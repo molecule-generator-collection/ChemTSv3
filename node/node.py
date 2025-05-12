@@ -7,7 +7,7 @@ class Node(ABC):
     self.parent = parent
     self.children = {}
     self._probs = [] #for save, call probs()
-    self.lastprob = lastprob
+    self.lastprob = lastprob #Prob(parent -> this node)
     self.n = 0 #visit count
     self.sum_r = 0.0 #sum of rewards
     self.mean_r = 0.0 #mean of rewards
