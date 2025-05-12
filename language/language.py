@@ -35,11 +35,6 @@ class Language(ABC):
   def ids2sentence(self, idseq: list[int]) -> str:
     pass
   
-  @staticmethod
-  @abstractmethod
-  def sentence2mol(sentence: str) -> Mol:
-    pass
-  
   def bos_token(self) -> str:
     return self.__class__._bos_token
   
@@ -147,3 +142,44 @@ class DynamicLanguage(Language):
     lang._token2id = token2id_tmp
     lang._id2token = id2token_tmp
     return lang
+
+class MolConvertibleLanguage(Language):
+  @abstractmethod
+  #convert sentence to token ids, used for training
+  def sentence2ids(self, sentence: str) -> list[int]:
+    pass
+  
+  @abstractmethod
+  def token2id(self, token: str) -> int:
+    pass
+
+  @abstractmethod
+  def id2token(tokenid: int) -> str:
+    pass
+
+  @abstractmethod
+  #list of all possible tokens, can be dynamic (thus not a static method)
+  def vocab(self) -> list[str]:
+    pass
+
+  @abstractmethod
+  #revert the token id sequence to sentence
+  def ids2sentence(self, idseq: list[int]) -> str:
+    pass
+  
+  @staticmethod
+  @abstractmethod
+  def sentence2mol(sentence: str) -> Mol:
+    pass
+
+#Should be (DynamicLanguage, MolConvertibleLanguage) for MRO
+class MolConvertibleDynamicLanguage(DynamicLanguage, MolConvertibleLanguage):
+  #split sentence to token strs, should include bos and eos
+  @abstractmethod
+  def sentence2tokens(self, sentence: str) -> list[str]:
+    pass
+
+  @staticmethod
+  @abstractmethod
+  def sentence2mol(sentence: str) -> Mol:
+    pass
