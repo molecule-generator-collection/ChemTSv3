@@ -1,4 +1,4 @@
-from .dynamiclanguage import DynamicLanguage
+from .language import DynamicLanguage
 import re
 from rdkit import Chem
 from rdkit.Chem import Mol
