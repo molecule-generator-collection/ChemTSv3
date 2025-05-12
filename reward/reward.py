@@ -5,9 +5,9 @@ from rdkit.Chem import Mol
 
 class Reward(ABC):
   #Callable[[Node], float] instead of Callable[[Mol], float] for better compatibility
-  @staticmethod
+  @classmethod
   @abstractmethod
-  def objective_functions(conf: dict) -> List[Callable[[Node], float]]:
+  def objective_functions(cls, conf: dict) -> List[Callable[[Node], float]]:
     pass
 
   @staticmethod
