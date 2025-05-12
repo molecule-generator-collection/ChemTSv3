@@ -46,3 +46,7 @@ class MolConvertibleSentenceNode(SentenceNode, MolConvertibleNode):
   #override
   def mol(self) -> Mol:
     return self.lang.__class__.sentence2mol(self.__str__())
+  
+  #override
+  def nextnode(self, id: int, prob: float = 1.0) -> Self:
+    return MolConvertibleSentenceNode(idtensor=torch.cat([self.idtensor, Language.list2tensor([id])], dim=1), lang=self.lang, parent=self, lastprob=prob)
