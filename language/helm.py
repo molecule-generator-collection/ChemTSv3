@@ -2,8 +2,11 @@ from .language import DynamicLanguage
 import re
 from rdkit import Chem
 from rdkit.Chem import Mol
+import pickle
+from typing import Self
 
 class Helm(DynamicLanguage):
+  #Currently has_period = True isn't properly implemented for general use
   #override
   def __init__(self, has_period = False):
     self.has_period = has_period
@@ -78,3 +81,28 @@ class Helm(DynamicLanguage):
   @staticmethod
   def sentence2mol(sentence: str) -> Mol:
     return Chem.MolFromHELM(sentence)
+  
+  #override
+  def save(self, file: str):
+    with open(file, mode="wb") as fo:
+      pickle.dump(self._vocab, fo)
+      pickle.dump(self._token2id, fo)
+      pickle.dump(self._id2token, fo)
+      pickle.dump(self.has_period, fo)
+      pickle.dump(self.monomer_ids, fo)
+
+  #override
+  @staticmethod    
+  def load(file: str) -> Self:
+    with open(file, "rb") as f:
+      vocab_tmp = pickle.load(f)
+      token2id_tmp = pickle.load(f)
+      id2token_tmp = pickle.load(f)
+      has_period_tmp = pickle.load(f)
+      monomer_ids_tmp = pickle.load(f)
+    lang = Helm(has_period = has_period_tmp)
+    lang._vocab = vocab_tmp
+    lang._token2id = token2id_tmp
+    lang._id2token = id2token_tmp
+    lang.monomer_ids = monomer_ids_tmp
+    return lang
