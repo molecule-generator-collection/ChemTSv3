@@ -44,17 +44,17 @@ class GPT2LM(LanguageModel):
     return nodes
 
   #override
-  def randomgen(self, initial_node: SentenceNode) -> SentenceNode:
+  def randomgen(self, initial_node: SentenceNode, conf={"top_p":0.995}) -> SentenceNode:
     with torch.no_grad():
         result_tensor = self.model.generate(
             initial_node.idtensor,
             max_length=self.max_length(),
             do_sample=True,       #sampling
             #top_k=50,             #top-k sampling
-            top_p=0.995,           #nucleus sampling
+            top_p=conf["top_p"],           #nucleus sampling
             eos_token_id=self.lang.eos_id(),
             pad_token_id=self.lang.pad_id(),
             num_return_sequences=1
         )
-    result = SentenceNode(idtensor=result_tensor, lang=self.lang)
+    result = initial_node.__class__(idtensor=result_tensor, lang=self.lang)
     return result
