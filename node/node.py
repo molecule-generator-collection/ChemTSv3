@@ -23,7 +23,8 @@ class Node(ABC):
   @abstractmethod
   def is_terminal(self) -> bool:
     raise NotImplementedError("is_terminal() needs to be implemented.")
-
+  
+class MolConvertibleNode(Node):
   @abstractmethod
   def mol(self) -> Mol:
     raise NotImplementedError("mol() needs to be implemented.")
