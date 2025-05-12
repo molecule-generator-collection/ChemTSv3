@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 from transformers import GPT2LMHeadModel
 from language.language import Language
-from .languagemodel import LanguageModel
+from .edgepredictor import LanguageModel
 from node.sentencenode import SentenceNode
 
 class GPT2LM(LanguageModel):
