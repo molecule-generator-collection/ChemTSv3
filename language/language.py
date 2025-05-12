@@ -15,30 +15,30 @@ class Language(ABC):
   @abstractmethod
   #convert sentence to token ids, used for training
   def sentence2ids(self, sentence: str) -> list[int]:
-    raise NotImplementedError("sentence2ids needs to be implemented.")
+    pass
   
   @abstractmethod
   def token2id(self, token: str) -> int:
-    raise NotImplementedError("token2id needs to be implemented.")
+    pass
 
   @abstractmethod
   def id2token(tokenid: int) -> str:
-    raise NotImplementedError("id2token needs to be implemented.")
+    pass
 
   @abstractmethod
   #list of all possible tokens, can be dynamic (thus not a static method)
   def vocab(self) -> list[str]:
-    raise NotImplementedError("vocab needs to be implemented.")
+    pass
 
   @abstractmethod
   #revert the token id sequence to sentence
   def ids2sentence(self, idseq: list[int]) -> str:
-    raise NotImplementedError("ids2sentence needs to be implemented.")
+    pass
   
   @staticmethod
   @abstractmethod
   def sentence2mol(sentence: str) -> Mol:
-    raise NotImplementedError("sentence2mol needs to be implemented.")
+    pass
   
   def bos_token(self) -> str:
     return self.__class__._bos_token
@@ -94,8 +94,17 @@ class DynamicLanguage(Language):
   #split sentence to token strs, should include bos and eos
   @abstractmethod
   def sentence2tokens(self, sentence: str) -> list[str]:
-    raise NotImplementedError("sentence2tokens needs to be implemented.")
+    pass
   
+  #override
+  def sentence2ids(self, sentence):
+    return [self.token2id(tok) for tok in self.sentence2tokens(sentence)]
+
+  #override
+  def ids2sentence(self, idseq):
+    idseq = idseq[1:-1] #remove bos and eos
+    return "".join(self.id2token(i) for i in idseq)
+
   #can input dataset
   def build_vocab(self, splits: dict[str, list[dict]]):
     counter = Counter()
