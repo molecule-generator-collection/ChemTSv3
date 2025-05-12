@@ -10,9 +10,9 @@ from reward.reward import Reward
 from reward.logp_reward import LogP_reward
 
 class MCTS():
-  def __init__(self, edgepredictor: EdgePredictor, reward: Type[Reward] = LogP_reward, reward_conf: dict = {"null_reward": -1},rollout_limit=4096, print_output=True, verbose=False, name=None):
+  def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = {"null_reward": -1},rollout_limit=4096, print_output=True, verbose=False, name=None):
     self.edgepredictor = edgepredictor
-    self.reward = reward
+    self.rewardfunc = rewardfunc
     self.reward_conf = reward_conf #specify at least all of: "null_reward"
     self.rollout_limit = rollout_limit #max sentence length, unused
     self.record: dict[str, tuple[list[float], float]] = {}
@@ -130,7 +130,7 @@ class MCTS():
       if self.verbose:
         self.logging("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key][1]))
       return self.record[key]
-    objective_values, reward = self.reward.objective_values_and_reward(node, conf=self.reward_conf)
+    objective_values, reward = self.rewardfunc.objective_values_and_reward(node, conf=self.reward_conf)
     self.record[key] = (objective_values, reward)
 
     if reward != self.reward_conf["null_reward"]:
