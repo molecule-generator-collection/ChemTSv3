@@ -12,11 +12,11 @@ class EdgePredictor(ABC):
 
   @abstractmethod
   def nextnodes_with_probs(self, node: Node) -> list[Node]:
-    raise NotImplementedError("edgeprobs() needs to be implemented.")
+    pass
 
   @abstractmethod
   def randomgen(self, initial_node: Node) -> Node:
-    raise NotImplementedError("randomgen() needs to be implemented.")
+    pass
   
 class LanguageModel(EdgePredictor):
   def __init__(self, lang: Language, name=None):
@@ -26,13 +26,13 @@ class LanguageModel(EdgePredictor):
   #override
   @abstractmethod
   def nextnodes_with_probs(self, node: SentenceNode) -> list[SentenceNode]:
-    raise NotImplementedError("edgeprobs() needs to be implemented.")
+    pass
 
   #override
   @abstractmethod
   def randomgen(self, initial_node: SentenceNode) -> SentenceNode:
-    raise NotImplementedError("randomgen() needs to be implemented.")
+    pass
 
   @abstractmethod
   def max_length(self) -> int:
-    raise NotImplementedError("max_length() needs to be implemented.")
+    pass

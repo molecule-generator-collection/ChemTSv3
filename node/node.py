@@ -14,17 +14,17 @@ class Node(ABC):
 
   @abstractmethod
   def __str__(self) -> str:
-    raise NotImplementedError("__str__() needs to be implemented.")
+    pass
 
   @abstractmethod
   def nextnodes(self) -> list[Self]:
-    raise NotImplementedError("nextnodes() needs to be implemented.")
+    pass
 
   @abstractmethod
   def is_terminal(self) -> bool:
-    raise NotImplementedError("is_terminal() needs to be implemented.")
+    pass
   
 class MolConvertibleNode(Node):
   @abstractmethod
   def mol(self) -> Mol:
-    raise NotImplementedError("mol() needs to be implemented.")
+    pass
