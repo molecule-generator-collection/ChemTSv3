@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 import torch
 from rdkit.Chem import Mol
 from collections import Counter
-
+import pickle
+from typing import Self
 
 #vocabulary can be dynamic for better compatibility, thus most methods are not static
 class Language(ABC):
@@ -119,3 +120,21 @@ class DynamicLanguage(Language):
   #override
   def id2token(self, tokenid):
     return self._id2token[tokenid]
+  
+  def save(self, file: str):
+    with open(file, mode="wb") as fo:
+      pickle.dump(self._vocab, fo)
+      pickle.dump(self._token2id, fo)
+      pickle.dump(self._id2token, fo)
+
+  @staticmethod    
+  def load(file: str) -> Self:
+    with open(file, "rb") as f:
+      vocab_tmp = pickle.load(f)
+      token2id_tmp = pickle.load(f)
+      id2token_tmp = pickle.load(f)
+    lang = DynamicLanguage()
+    lang._vocab = vocab_tmp
+    lang._token2id = token2id_tmp
+    lang._id2token = id2token_tmp
+    return lang
