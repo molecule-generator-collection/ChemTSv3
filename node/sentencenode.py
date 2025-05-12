@@ -39,9 +39,7 @@ class SentenceNode(Node):
 
 class MolConvertibleSentenceNode(SentenceNode, MolConvertibleNode):
   def __init__(self, idtensor: torch.Tensor, lang: MolConvertibleLanguage, parent=None, lastprob=1.0):
-    self.idtensor = idtensor
-    self.lang = lang
-    super().__init__(parent=parent, lastprob=lastprob)  
+    super().__init__(self, idtensor, lang, parent, lastprob)  
 
   #override
   def mol(self) -> Mol:
