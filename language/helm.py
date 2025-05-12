@@ -1,11 +1,11 @@
-from .language import DynamicLanguage
+from .language import MolConvertibleDynamicLanguage
 import re
 from rdkit import Chem
 from rdkit.Chem import Mol
 import pickle
 from typing import Self
 
-class Helm(DynamicLanguage):
+class Helm(MolConvertibleDynamicLanguage):
   #Currently has_period = True isn't properly implemented for general use
   #override
   def __init__(self, has_period = False):
