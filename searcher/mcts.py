@@ -172,7 +172,7 @@ class MCTS():
 
       node = root
       while node.children:
-        node = max(node.children.values(), key=lambda n: policy.evaluate(n))
+        node = max(node.children.values(), key=lambda n: policy.evaluate(n, conf=policy_conf))
         if node.sum_r == -float("inf"): #already exhausted every terminal under this
           if self.verbose:
             self.logging("!------exhaust every terminal under: " + str(node.parent) + "------!")
