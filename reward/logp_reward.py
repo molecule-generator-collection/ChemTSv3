@@ -1,15 +1,14 @@
 from rdkit.Chem import Descriptors
 import numpy as np
 import math
-from .reward import Reward
+from .reward import MolReward
 
-class LogP_reward(Reward):
-  def get_objective_functions(conf):
-    def LogP(node):
-      mol = node.mol()
+class LogP_reward(MolReward):
+  def mol_objective_functions(conf):
+    def LogP(mol):
       if mol is None or mol.GetNumAtoms()==0:
         return float('nan')
-      return Descriptors.MolLogP(node.mol())
+      return Descriptors.MolLogP(mol)
 
     return [LogP]
 
