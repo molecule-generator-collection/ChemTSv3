@@ -37,5 +37,6 @@ class MolReward(Reward):
     pass
 
   #override
-  def objective_functions(conf: dict) -> List[Callable[[MolConvertibleNode], float]]:
-    return [lambda node: f(node.mol()) for f in MolReward.mol_objective_functions(conf)]
+  @classmethod
+  def objective_functions(cls, conf: dict) -> List[Callable[[MolConvertibleNode], float]]:
+    return [lambda node: f(node.mol()) for f in cls.mol_objective_functions(conf)]
