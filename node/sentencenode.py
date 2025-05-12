@@ -22,7 +22,7 @@ class SentenceNode(Node):
     return [self.nextnode(id) for id in range(len(self.lang.vocab()))]
 
   def nextnode(self, id: int, prob: float = 1.0) -> Self:
-    return Self(idtensor=torch.cat([self.idtensor, Language.list2tensor([id])], dim=1), lang=self.lang, parent=self, lastprob=prob)
+    return self.__class__(idtensor=torch.cat([self.idtensor, Language.list2tensor([id])], dim=1), lang=self.lang, parent=self, lastprob=prob)
 
   #override
   def is_terminal(self):
@@ -33,9 +33,9 @@ class SentenceNode(Node):
     return self.idtensor[0].tolist()
 
   #bos node, often used as root
-  @staticmethod
-  def bos_node(lang: Language) -> Self:
-    return Self(idtensor = lang.bos_tensor(), lang=lang)
+  @classmethod
+  def bos_node(cls, lang: Language) -> Self:
+    return cls(idtensor = lang.bos_tensor(), lang=lang)
 
 class MolConvertibleSentenceNode(SentenceNode, MolConvertibleNode):
   def __init__(self, idtensor: torch.Tensor, lang: MolConvertibleLanguage, parent=None, lastprob=1.0):
