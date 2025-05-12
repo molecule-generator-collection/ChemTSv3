@@ -14,7 +14,7 @@ class MCTS():
     self.edgepredictor = edgepredictor
     self.rewardfunc = rewardfunc
     self.reward_conf = reward_conf #specify at least all of: "null_reward"
-    self.rollout_limit = rollout_limit #max sentence length, unused
+    self.rollout_limit = rollout_limit
     self.record: dict[str, tuple[list[float], float]] = {}
     self.unique_molkeys = []
     self.rewards = []
