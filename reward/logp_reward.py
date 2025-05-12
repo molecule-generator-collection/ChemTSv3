@@ -4,6 +4,7 @@ import math
 from .reward import MolReward
 
 class LogP_reward(MolReward):
+  #override
   def mol_objective_functions(conf):
     def LogP(mol):
       if mol is None or mol.GetNumAtoms()==0:
@@ -12,6 +13,7 @@ class LogP_reward(MolReward):
 
     return [LogP]
 
+  #override
   def reward_from_objective_values(values, conf):
     if math.isnan(values[0]):
       return conf["null_reward"]
