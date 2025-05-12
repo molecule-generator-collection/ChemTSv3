@@ -2,7 +2,7 @@ from typing import Self
 import torch
 from rdkit.Chem import Mol
 from language.language import Language
-from .node import Node
+from .node import Node, MolConvertibleNode
 
 class SentenceNode(Node):
   def __init__(self, idtensor: torch.Tensor, lang: Language, parent=None, lastprob=1.0):
@@ -37,6 +37,7 @@ class SentenceNode(Node):
   def bos_node(lang: Language) -> Self:
     return SentenceNode(idtensor = lang.bos_tensor(), lang=lang)
 
+class MolConvertibleSentenceNode(MolConvertibleNode, SentenceNode):
   #override
   def mol(self) -> Mol:
     return self.lang.__class__.sentence2mol(self.__str__())
