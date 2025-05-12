@@ -27,86 +27,6 @@ class MCTS():
     self.count_rollouts = 0
     self.passed_time = 0
 
-  #for expansion_threshold
-  @staticmethod
-  def select_indices_by_threshold(probs: list[float], expansion_threshold: float) -> list[int]:
-      probs = np.array(probs)
-      sorted_indices = np.argsort(-probs)
-      sorted_probs = probs[sorted_indices]
-      cumulative_probs = np.cumsum(sorted_probs)
-      cutoff = np.searchsorted(cumulative_probs, expansion_threshold)
-      return sorted_indices[:cutoff + 1].tolist()
-
-  #print_output
-  def logging(self, str):
-    if self.print_output:
-      print(str)
-    with open(self.filename + ".txt", "a") as f:
-      f.write(str + "\n")
-
-  #visualize results
-  def plot(self, type="reward_call", cutoff=None, maxline=False):
-    if type == "time":
-      x, y = self.times, self.rewards
-    elif type == "num_rollout":
-      self.n_rollouts, self.rewards
-    else:
-      x, y = list(range(1, len(self.rewards)+1)), self.rewards
-
-    if cutoff != None:
-      x, y = x[:cutoff], y[:cutoff]
-
-    plt.clf()
-    plt.scatter(x, y, s=1)
-    #plt.title("model: " + model_name + ", policy: " + policy + ", c = " + str(c))
-    plt.title(self.name)
-
-    if type == "time":
-      plt.xlim(0,x[-1])
-      plt.xlabel("seconds_passed")
-    elif type == "num_rollouts":
-      plt.xlim(0,x[-1])
-      plt.xlabel("num_rollouts")
-    else: #"reward call"
-      plt.xlim(0,len(x))
-      plt.xlabel("reward calls (unique valid helms)")
-
-    plt.ylim(-1,1)
-    plt.ylabel("reward")
-    plt.grid(axis="y")
-
-    if maxline:
-      max(y)
-      y_max = np.max(y)
-      plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}')
-
-    plt.legend()
-    plt.show()
-
-  def log_unique_mol(self, key, objective_values, reward):
-      self.logging(str(len(self.unique_molkeys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
-      self.unique_molkeys.append(key)
-      self.rewards.append(reward)
-      self.n_rollouts.append(self.count_rollouts)
-      self.times.append(time)
-
-  def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
-    key = str(node)
-    if key in self.record:
-      if self.verbose:
-        self.logging("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key][1]))
-      return self.record[key]
-    objective_values, reward = self.reward.objective_values_and_reward(node, conf=self.reward_conf)
-    self.record[key] = (objective_values, reward)
-
-    if reward != self.reward_conf["null_reward"]:
-      self.log_unique_mol(key, objective_values, reward)
-    else:
-      if self.verbose:
-        self.logging("invalid mol: " + key)
-
-    return objective_values, reward
-
   def _expand(self, node: Node, expansion_threshold=0.995):
     if node.is_terminal():
       return
@@ -186,3 +106,83 @@ class MCTS():
       self._backpropagate(node, value)
 
     print("Search is completed.")
+
+  #for expansion_threshold
+  @staticmethod
+  def select_indices_by_threshold(probs: list[float], expansion_threshold: float) -> list[int]:
+      probs = np.array(probs)
+      sorted_indices = np.argsort(-probs)
+      sorted_probs = probs[sorted_indices]
+      cumulative_probs = np.cumsum(sorted_probs)
+      cutoff = np.searchsorted(cumulative_probs, expansion_threshold)
+      return sorted_indices[:cutoff + 1].tolist()
+
+  def log_unique_mol(self, key, objective_values, reward):
+      self.logging(str(len(self.unique_molkeys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
+      self.unique_molkeys.append(key)
+      self.rewards.append(reward)
+      self.n_rollouts.append(self.count_rollouts)
+      self.times.append(time)
+
+  def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
+    key = str(node)
+    if key in self.record:
+      if self.verbose:
+        self.logging("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key][1]))
+      return self.record[key]
+    objective_values, reward = self.reward.objective_values_and_reward(node, conf=self.reward_conf)
+    self.record[key] = (objective_values, reward)
+
+    if reward != self.reward_conf["null_reward"]:
+      self.log_unique_mol(key, objective_values, reward)
+    else:
+      if self.verbose:
+        self.logging("invalid mol: " + key)
+
+    return objective_values, reward
+
+  #print_output
+  def logging(self, str):
+    if self.print_output:
+      print(str)
+    with open(self.filename + ".txt", "a") as f:
+      f.write(str + "\n")
+
+  #visualize results
+  def plot(self, type="reward_call", cutoff=None, maxline=False):
+    if type == "time":
+      x, y = self.times, self.rewards
+    elif type == "num_rollout":
+      self.n_rollouts, self.rewards
+    else:
+      x, y = list(range(1, len(self.rewards)+1)), self.rewards
+
+    if cutoff != None:
+      x, y = x[:cutoff], y[:cutoff]
+
+    plt.clf()
+    plt.scatter(x, y, s=1)
+    #plt.title("model: " + model_name + ", policy: " + policy + ", c = " + str(c))
+    plt.title(self.name)
+
+    if type == "time":
+      plt.xlim(0,x[-1])
+      plt.xlabel("seconds_passed")
+    elif type == "num_rollouts":
+      plt.xlim(0,x[-1])
+      plt.xlabel("num_rollouts")
+    else: #"reward call"
+      plt.xlim(0,len(x))
+      plt.xlabel("reward calls (unique valid helms)")
+
+    plt.ylim(-1,1)
+    plt.ylabel("reward")
+    plt.grid(axis="y")
+
+    if maxline:
+      max(y)
+      y_max = np.max(y)
+      plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}')
+
+    plt.legend()
+    plt.show()
