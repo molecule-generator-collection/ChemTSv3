@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from node import Node
 from edgepredictor import EdgePredictor
-from policy_class import * #for load scope
+from policy import * #for load scope
 from reward import * #for load scope
 from searcher import Searcher
 
