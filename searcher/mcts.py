@@ -6,7 +6,7 @@ from scipy import stats
 from node.node import Node
 from edgepredictor.edgepredictor import EdgePredictor
 from policy.policy import Policy
-from policy.policy import UCB
+from policy.ucb import UCB
 from reward.reward import Reward
 from reward.logp_reward import LogP_reward
 
