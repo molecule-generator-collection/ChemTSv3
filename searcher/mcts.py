@@ -42,7 +42,7 @@ class MCTS(Searcher):
 
     #apply expansion_threshold
     nodes = self.edgepredictor.nextnodes_with_probs(node)
-    probs = [node.lastprob for node in nodes]
+    probs = [node.last_prob for node in nodes]
     remaining_ids = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
 
     for id in remaining_ids:
@@ -59,7 +59,7 @@ class MCTS(Searcher):
     return reward
 
   def _rollout(self, node):
-    if node.idtensor.numel() >= self.rollout_limit:
+    if node.id_tensor.numel() >= self.rollout_limit:
       return self.reward_conf.get("null_reward", -1)
     mol = self.edgepredictor.randomgen(node, conf={"rollout_threshold": self.rollout_threshold})
     self.count_rollouts += 1
