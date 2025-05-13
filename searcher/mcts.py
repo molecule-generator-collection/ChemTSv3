@@ -20,16 +20,13 @@ class MCTS(Searcher):
     self.policy = policy
     self.policy_conf = policy_conf or {}
     self.rollout_limit = rollout_limit
-    self.record: dict[str, dict] = {} #save "objective_values", "reward", "generation_order", "n_rollouts", "time" for unique_molkeys
-    self.unique_molkeys = []
-    self.print_output = print_output
     self.verbose = verbose
     self.count_rollouts = 0
     self.passed_time = 0
     #for search
     self.expansion_threshold = 0.995
     self.rollout_threshold = 0.995
-    super().__init__(name)
+    super().__init__(name, print_output=print_output)
   
   #override
   def name(self):
@@ -173,33 +170,3 @@ class MCTS(Searcher):
       print(str)
     with open(self.name() + ".txt", "a") as f:
       f.write(str + "\n")
-
-  #visualize results
-  def plot(self, x_axis: str = "generation_order", maxline = False, xlim: tuple[float, float] = None, ylim: tuple[float, float] = None):
-    #x_axis ... use X in self.record["mol_key"]["X"]
-
-    x = [self.record[molkey][x_axis] for molkey in self.unique_molkeys]
-    y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
-
-    plt.clf()
-    plt.scatter(x, y, s=1)
-    plt.title(self.name())
-    
-    if xlim is not None:
-      plt.xlim(xlim)
-    else:
-      plt.xlim(0,x[-1])
-    plt.xlabel(x_axis)
-
-    if ylim is not None:
-      plt.ylim(ylim)
-    plt.ylabel("reward")
-    plt.grid(axis="y")
-
-    if maxline:
-      max(y)
-      y_max = np.max(y)
-      plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}')
-
-    plt.legend()
-    plt.show()
