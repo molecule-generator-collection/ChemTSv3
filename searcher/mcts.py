@@ -96,7 +96,7 @@ class MCTS(Searcher):
     self.rewardfunc = rewardfunc or self.rewardfunc
     self.reward_conf = reward_conf or self.reward_conf
     self.policy = policy or self.policy
-    self.policy_conf = policy or self.policy
+    self.policy_conf = policy_conf or self.policy_conf
 
     #record current time and counts
     time_start = time.time()
