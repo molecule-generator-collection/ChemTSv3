@@ -17,6 +17,13 @@ class Searcher(ABC):
     else:
       return str(datetime.datetime.now())
   
+  #print_output
+  def logging(self, str):
+    if self.print_output:
+      print(str)
+    with open(self.name() + ".txt", "a") as f:
+      f.write(str + "\n")
+      
   #visualize results
   def plot(self, x_axis: str = "generation_order", maxline = False, xlim: tuple[float, float] = None, ylim: tuple[float, float] = None):
     #x_axis ... use X in self.record["mol_key"]["X"]
