@@ -1,8 +1,8 @@
 from typing import Self
 import torch
 from rdkit.Chem import Mol
-from language.language import Language, MolConvertibleLanguage
-from .node import Node, MolConvertibleNode
+from language import Language, MolConvertibleLanguage
+from node import Node, MolConvertibleNode
 
 class SentenceNode(Node):
   def __init__(self, idtensor: torch.Tensor, lang: Language, parent=None, lastprob=1.0):

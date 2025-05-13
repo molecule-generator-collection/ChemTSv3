@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from node.node import Node
+from node import Node
 
 class Policy(ABC):
   @staticmethod

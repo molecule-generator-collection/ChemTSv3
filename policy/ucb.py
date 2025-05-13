@@ -1,6 +1,6 @@
 from math import log, sqrt
-from .policy import Policy
-from node.node import Node
+from policy import Policy
+from node import Node
 
 class UCB(Policy):
   def evaluate(node: Node, conf: dict = None):
