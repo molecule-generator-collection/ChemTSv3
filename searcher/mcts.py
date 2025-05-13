@@ -200,7 +200,7 @@ class MCTS(Searcher):
   #edgepredictor won't be saved/loaded
   @staticmethod
   def load(self, file: str, edgepredictor: EdgePredictor) -> Self:
-    s = MCTS.__init__(edgepredictor=edgepredictor)
+    s = MCTS(edgepredictor=edgepredictor)
     with open(file, "rb") as f:
       s._name = pickle.load(f)
       s.root = pickle.load(f)
