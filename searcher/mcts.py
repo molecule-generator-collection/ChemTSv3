@@ -67,7 +67,7 @@ class MCTS():
       node.mean_r = node.sum_r / node.n
       node = node.parent
 
-  def search(self, root: Node, policy: Type[Policy], policy_conf: dict={}, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, max_rollouts=None, time_limit=None, max_generations=None):
+  def search(self, root: Node, policy: Type[Policy], policy_conf: dict = {}, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, max_rollouts=None, time_limit=None, max_generations=None):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
     #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
     #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default

@@ -3,7 +3,7 @@ from .policy import Policy
 from node.node import Node
 
 class PUCT(Policy):
-  def evaluate(node: Node, conf: dict):
+  def evaluate(node: Node, conf: dict = {}):
     #c: exploration parameter, default: 1
     if node.parent is None:
       return node.mean_r
