@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Callable
-from node import Node, MolConvertibleNode
+from node import Node, MolNode
 from rdkit.Chem import Mol
 
 class Reward(ABC):
@@ -45,5 +45,5 @@ class MolReward(Reward):
 
   #override
   @classmethod
-  def objective_functions(cls, conf: dict[str, Any] = None) -> List[Callable[[MolConvertibleNode], float]]:
+  def objective_functions(cls, conf: dict[str, Any] = None) -> List[Callable[[MolNode], float]]:
     return [MolReward.wrap_with_mol(f) for f in cls.mol_objective_functions(conf)]

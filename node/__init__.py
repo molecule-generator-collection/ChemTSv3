@@ -1,4 +1,4 @@
-from .node import Node, MolConvertibleNode
-from .sentencenode import SentenceNode, MolConvertibleSentenceNode
+from .node import Node, MolNode
+from .sentencenode import SentenceNode, MolSentenceNode
 
-__all__ = ["Node", "MolConvertibleNode", "SentenceNode", "MolConvertibleSentenceNode"]
+__all__ = ["Node", "MolNode", "SentenceNode", "MolSentenceNode"]
