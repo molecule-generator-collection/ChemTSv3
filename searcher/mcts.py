@@ -224,3 +224,4 @@ class MCTS(Searcher):
       else:
         s.policy = policy_class
       s.policy_conf = pickle.load(f)
+    return s
