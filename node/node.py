@@ -3,11 +3,11 @@ from typing import Self
 from rdkit.Chem import Mol
 
 class Node(ABC):
-  def __init__(self, parent=None, lastprob=1.0):
+  def __init__(self, parent=None, last_prob=1.0):
     self.parent = parent
     self.children = {}
     self._probs = [] #for save, call probs()
-    self.lastprob = lastprob #Prob(parent -> this node)
+    self.last_prob = last_prob #Prob(parent -> this node)
     self.n = 0 #visit count
     self.sum_r = 0.0 #sum of rewards
     self.mean_r = 0.0 #mean of rewards
@@ -25,9 +25,9 @@ class Node(ABC):
     pass
   
 class MolNode(Node):
-  def __init__(self, parent=None, lastprob=1.0):
+  def __init__(self, parent=None, last_prob=1.0):
     self._is_valid_mol = None
-    super().__init__(parent, lastprob)
+    super().__init__(parent, last_prob)
 
   @abstractmethod
   def mol(self) -> Mol:

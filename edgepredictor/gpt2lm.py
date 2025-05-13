@@ -33,14 +33,14 @@ class GPT2LM(LanguageModel):
     nodes = node.nextnodes()
 
     with torch.no_grad():
-      outputs = self.model(node.idtensor)
+      outputs = self.model(node.id_tensor)
       logits = outputs.logits  #shape: [batch_size, seq_len, vocab_size]
       next_token_logits = logits[0, -1, :]
 
     probs = F.softmax(next_token_logits, dim=-1).tolist()
 
     for i in range(len(probs)):
-      nodes[i].lastprob = probs[i]
+      nodes[i].last_prob = probs[i]
 
     return nodes
 
@@ -49,7 +49,7 @@ class GPT2LM(LanguageModel):
     conf = conf or {}
     with torch.no_grad():
         result_tensor = self.model.generate(
-            initial_node.idtensor,
+            initial_node.id_tensor,
             max_length=self.max_length(),
             do_sample=True,       #sampling
             #top_k=50,             #top-k sampling
@@ -58,5 +58,5 @@ class GPT2LM(LanguageModel):
             pad_token_id=self.lang.pad_id(),
             num_return_sequences=1
         )
-    result = initial_node.__class__(idtensor=result_tensor, lang=self.lang)
+    result = initial_node.__class__(id_tensor=result_tensor, lang=self.lang)
     return result

@@ -5,10 +5,10 @@ from language import Language, MolLanguage
 from node import Node, MolNode
 
 class SentenceNode(Node):
-  def __init__(self, idtensor: torch.Tensor, lang: Language, parent=None, lastprob=1.0):
-    self.idtensor = idtensor
+  def __init__(self, id_tensor: torch.Tensor, lang: Language, parent=None, last_prob=1.0):
+    self.id_tensor = id_tensor
     self.lang = lang
-    super().__init__(parent=parent, lastprob=lastprob)
+    super().__init__(parent=parent, last_prob=last_prob)
 
   #override
   def __str__(self):
@@ -22,25 +22,25 @@ class SentenceNode(Node):
     return [self.nextnode(id) for id in range(len(self.lang.vocab()))]
 
   def nextnode(self, id: int, prob: float = 1.0) -> Self:
-    return self.__class__(idtensor=torch.cat([self.idtensor, Language.list2tensor([id])], dim=1), lang=self.lang, parent=self, lastprob=prob)
+    return self.__class__(id_tensor=torch.cat([self.id_tensor, Language.list2tensor([id])], dim=1), lang=self.lang, parent=self, last_prob=prob)
 
   #override
   def is_terminal(self):
-    return self.idtensor[0][-1] == self.lang.eos_id()
+    return self.id_tensor[0][-1] == self.lang.eos_id()
 
   #output token id sequence as a list
   def idlist(self) -> list[int]:
-    return self.idtensor[0].tolist()
+    return self.id_tensor[0].tolist()
 
   #bos node, often used as root
   @classmethod
   def bos_node(cls, lang: Language) -> Self:
-    return cls(idtensor = lang.bos_tensor(), lang=lang)
+    return cls(id_tensor = lang.bos_tensor(), lang=lang)
 
 class MolSentenceNode(SentenceNode, MolNode):
-  def __init__(self, idtensor: torch.Tensor, lang: MolLanguage, parent=None, lastprob=1.0):
+  def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent=None, last_prob=1.0):
     self._is_valid_mol = None
-    super().__init__(idtensor, lang, parent, lastprob)  
+    super().__init__(id_tensor, lang, parent, last_prob)  
 
   #override
   def mol(self) -> Mol:
