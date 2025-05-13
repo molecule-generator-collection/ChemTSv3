@@ -156,7 +156,7 @@ class MCTS(Searcher):
     if key in self.record:
       if self.verbose:
         self.logging("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
-      return self.record[key]["reward"]
+      return self.record[key]["objective_values"], self.record[key]["reward"]
     objective_values, reward = self.rewardfunc.objective_values_and_reward(node, conf=self.reward_conf)
 
     if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
