@@ -143,7 +143,7 @@ class DynamicLanguage(Language):
     lang._id2token = id2token_tmp
     return lang
 
-class MolConvertibleLanguage(Language):
+class MolLanguage(Language):
   @abstractmethod
   #convert sentence to token ids, used for training
   def sentence2ids(self, sentence: str) -> list[int]:
@@ -173,7 +173,7 @@ class MolConvertibleLanguage(Language):
     pass
 
 #Should be (DynamicLanguage, MolConvertibleLanguage) for MRO
-class MolConvertibleDynamicLanguage(DynamicLanguage, MolConvertibleLanguage):
+class DynamicMolLanguage(DynamicLanguage, MolLanguage):
   #split sentence to token strs, should include bos and eos
   @abstractmethod
   def sentence2tokens(self, sentence: str) -> list[str]:

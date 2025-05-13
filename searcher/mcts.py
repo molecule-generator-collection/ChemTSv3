@@ -98,7 +98,7 @@ class MCTS(Searcher):
     time_start = time.time()
     initial_time = self.passed_time
     initial_count_rollouts = self.count_rollouts
-    initial_count_generations = len(self.unique_molkeys)
+    initial_count_generations = len(self.unique_keys)
 
     #asign root node
     assert (root is not None) or (self.root is not None), \
@@ -116,7 +116,7 @@ class MCTS(Searcher):
         break
       if max_rollouts is not None and self.count_rollouts - initial_count_rollouts >= max_rollouts:
         break
-      if max_generations is not None and len(self.unique_molkeys) - initial_count_generations >= max_generations:
+      if max_generations is not None and len(self.unique_keys) - initial_count_generations >= max_generations:
         break
 
       node = self.root
@@ -153,14 +153,14 @@ class MCTS(Searcher):
     return sorted_indices[:cutoff + 1].tolist()
 
   def log_unique_mol(self, key, objective_values, reward):
-    self.logging(str(len(self.unique_molkeys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
-    self.unique_molkeys.append(key)
+    self.logging(str(len(self.unique_keys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
+    self.unique_keys.append(key)
     self.record[key] = {}
     self.record[key]["objective_values"] = objective_values
     self.record[key]["reward"] = reward
     self.record[key]["count_rollouts"] = self.count_rollouts
     self.record[key]["time"] = self.passed_time
-    self.record[key]["generation_order"] = len(self.unique_molkeys)
+    self.record[key]["generation_order"] = len(self.unique_keys)
 
   def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
     key = str(node)
@@ -184,7 +184,7 @@ class MCTS(Searcher):
       pickle.dump(self._name, fo)
       pickle.dump(self._output_dir, fo)
       pickle.dump(self.root, fo)
-      pickle.dump(self.unique_molkeys, fo)
+      pickle.dump(self.unique_keys, fo)
       pickle.dump(self.record, fo)
       pickle.dump(self.count_rollouts, fo)
       pickle.dump(self.passed_time, fo)
@@ -201,7 +201,7 @@ class MCTS(Searcher):
       s._name = pickle.load(f)
       s._output_dir = pickle.load(f)
       s.root = pickle.load(f)
-      s.unique_molkeys = pickle.load(f)
+      s.unique_keys = pickle.load(f)
       s.record = pickle.load(f)
       s.count_rollouts = pickle.load(f)
       s.passed_time = pickle.load(f)

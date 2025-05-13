@@ -24,7 +24,7 @@ class Node(ABC):
   def is_terminal(self) -> bool:
     pass
   
-class MolConvertibleNode(Node):
+class MolNode(Node):
   def __init__(self, parent=None, lastprob=1.0):
     self._is_valid_mol = None
     super().__init__(parent, lastprob)

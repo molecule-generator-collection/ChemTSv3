@@ -16,7 +16,7 @@ class Searcher(ABC):
     self._output_dir = output_dir if output_dir.endswith(os.sep) else output_dir + os.sep
     os.makedirs(os.path.dirname(self._output_dir), exist_ok=True)
     os.makedirs(os.path.dirname(self.output_dir()), exist_ok=True)
-    self.unique_molkeys = []
+    self.unique_keys = []
     self.record: dict[str, dict] = {} #save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
 
   def name(self):
@@ -39,19 +39,19 @@ class Searcher(ABC):
   def plot(self, x_axis: str = "generation_order", y_axis: str = "reward", maxline = False, xlim: tuple[float, float] = None, ylim: tuple[float, float] = None):
     #x_axis ... use X in self.record["mol_key"]["X"]
 
-    x = [self.record[molkey][x_axis] for molkey in self.unique_molkeys]
+    x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
 
     if y_axis == "reward":
-      y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
+      y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
     else:
       objective_names = [f.__name__ for f in self.reward_class.objective_functions()]
       if not y_axis in objective_names:
         print("ERROR: Couldn't find objective name " + y_axis + ": uses reward instead")
         y_axis = "reward"
-        y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
+        y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
       else:
         objective_id = objective_names.index(y_axis)
-        y = [self.record[molkey]["objective_values"][objective_id] for molkey in self.unique_molkeys]
+        y = [self.record[molkey]["objective_values"][objective_id] for molkey in self.unique_keys]
 
     plt.clf()
     plt.scatter(x, y, s=1)
