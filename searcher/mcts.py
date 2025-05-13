@@ -55,7 +55,7 @@ class MCTS():
   def _rollout(self, node):
     if node.idtensor.numel() >= self.rollout_limit:
       return self.reward_conf["null_reward"]
-    mol = self.edgepredictor.randomgen(node, conf={"rollout_threhold": self.rollout_threshold})
+    mol = self.edgepredictor.randomgen(node, conf={"rollout_threshold": self.rollout_threshold})
     self.count_rollouts += 1
     return self.grab_objective_values_and_reward(mol)
 
