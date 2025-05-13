@@ -3,12 +3,11 @@ from typing import Type, Self
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
-from node.node import Node
-from edgepredictor.edgepredictor import EdgePredictor
+from node import Node
+from edgepredictor import EdgePredictor
 from policy import * #for load scope
 from reward import * #for load scope
-from .searcher import Searcher
+from searcher import Searcher
 
 class MCTS(Searcher):
   def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = None, policy: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, verbose=False, name=None):
