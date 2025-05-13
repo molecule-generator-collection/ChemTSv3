@@ -13,6 +13,8 @@ from .searcher import Searcher
 
 class MCTS(Searcher):
   def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = None, policy: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, verbose=False, name=None):
+    #name: if you plan to change the policy or policy's c value, you might want to set the name manually
+    
     self.edgepredictor = edgepredictor
     self.rewardfunc = rewardfunc
     self.reward_conf = reward_conf or {}
@@ -139,22 +141,22 @@ class MCTS(Searcher):
   #for expansion_threshold
   @staticmethod
   def select_indices_by_threshold(probs: list[float], expansion_threshold: float) -> list[int]:
-      probs = np.array(probs)
-      sorted_indices = np.argsort(-probs)
-      sorted_probs = probs[sorted_indices]
-      cumulative_probs = np.cumsum(sorted_probs)
-      cutoff = np.searchsorted(cumulative_probs, expansion_threshold)
-      return sorted_indices[:cutoff + 1].tolist()
+    probs = np.array(probs)
+    sorted_indices = np.argsort(-probs)
+    sorted_probs = probs[sorted_indices]
+    cumulative_probs = np.cumsum(sorted_probs)
+    cutoff = np.searchsorted(cumulative_probs, expansion_threshold)
+    return sorted_indices[:cutoff + 1].tolist()
 
   def log_unique_mol(self, key, objective_values, reward):
-      self.logging(str(len(self.unique_molkeys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
-      self.unique_molkeys.append(key)
-      self.record[key] = {}
-      self.record[key]["objective_values"] = objective_values
-      self.record[key]["reward"] = reward
-      self.record[key]["count_rollouts"] = self.count_rollouts
-      self.record[key]["time"] = self.passed_time
-      self.record[key]["generation_order"] = len(self.unique_molkeys)
+    self.logging(str(len(self.unique_molkeys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
+    self.unique_molkeys.append(key)
+    self.record[key] = {}
+    self.record[key]["objective_values"] = objective_values
+    self.record[key]["reward"] = reward
+    self.record[key]["count_rollouts"] = self.count_rollouts
+    self.record[key]["time"] = self.passed_time
+    self.record[key]["generation_order"] = len(self.unique_molkeys)
 
   def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
     key = str(node)
