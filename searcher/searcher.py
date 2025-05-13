@@ -5,12 +5,13 @@ import numpy as np
 import os
 
 class Searcher(ABC):
-  def __init__(self, name=None, print_output=True, output_dir="result/"):
+  def __init__(self, name=None, print_output=True, output_dir="result"):
     self._name = name
     self._name = self.name() #generate name if name=None
     self.print_output = print_output
-    self.output_dir = output_dir
-    os.makedirs(os.path.dirname(self.output_dir), exist_ok=True)
+    self._output_dir = output_dir if output_dir.endswith(os.sep) else output_dir + os.sep
+    os.makedirs(os.path.dirname(self._output_dir), exist_ok=True)
+    os.makedirs(os.path.dirname(self.output_dir()), exist_ok=True)
     self.unique_molkeys = []
     self.record: dict[str, dict] = {} #save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
 
@@ -20,11 +21,14 @@ class Searcher(ABC):
     else:
       return datetime.now().strftime("%m-%d_%H-%M")
   
+  def output_dir(self):
+    return self._output_dir + self.name() + os.sep
+  
   #print_output
   def logging(self, str, force=False):
     if self.print_output or force:
       print(str)
-    with open(self.output_dir + self.name() + ".txt", "a") as f:
+    with open(self.output_dir() + self.name() + ".txt", "a") as f:
       f.write(str + "\n")
       
   #visualize results
@@ -54,6 +58,7 @@ class Searcher(ABC):
       y_max = np.max(y)
       plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}')
 
+    plt.savefig(self.output_dir() + self.name() + ".png")
     plt.legend()
     plt.show()
   
