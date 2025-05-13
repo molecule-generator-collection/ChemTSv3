@@ -20,11 +20,8 @@ class MCTS(Searcher):
     self.policy = policy
     self.policy_conf = policy_conf or {}
     self.rollout_limit = rollout_limit
-    self.record: dict[str, tuple[list[float], float]] = {}
+    self.record: dict[str, dict] = {} #save "objective_values", "reward", "generation_order", "n_rollouts", "time" for unique_molkeys
     self.unique_molkeys = []
-    self.rewards = []
-    self.n_rollouts = []
-    self.times = []
     self.print_output = print_output
     self.verbose = verbose
     self.count_rollouts = 0
@@ -147,9 +144,11 @@ class MCTS(Searcher):
   def log_unique_mol(self, key, objective_values, reward):
       self.logging(str(len(self.unique_molkeys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
       self.unique_molkeys.append(key)
-      self.rewards.append(reward)
-      self.n_rollouts.append(self.count_rollouts)
-      self.times.append(time)
+      self.record["key"]["objective_values"] = objective_values
+      self.record["key"]["reward"] = reward
+      self.record["key"]["count_rollouts"] = self.count_rollouts
+      self.record["key"]["time"] = time
+      self.record["key"]["generation_order"] = len(self.unique_molkeys)
 
   def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
     key = str(node)
@@ -176,34 +175,22 @@ class MCTS(Searcher):
       f.write(str + "\n")
 
   #visualize results
-  def plot(self, type="reward_call", cutoff=None, maxline=False):
-    #type ... "reward_call", "time", "n_rollouts"
-    if type == "time":
-      x, y = self.times, self.rewards
-    elif type == "n_rollouts":
-      self.n_rollouts, self.rewards
-    else:
-      x, y = list(range(1, len(self.rewards)+1)), self.rewards
+  def plot(self, x_axis: str = "generation_order", maxline=False, ylim=None):
+    #x_axis ... use X in self.record["mol_key"]["X"]
+    #cutoff: how man    
 
-    if cutoff != None:
-      x, y = x[:cutoff], y[:cutoff]
+    x = [self.record[molkey][x_axis] for molkey in self.unique_molkeys]
+    y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
 
     plt.clf()
     plt.scatter(x, y, s=1)
-    #plt.title("model: " + model_name + ", policy: " + policy + ", c = " + str(c))
     plt.title(self.name())
+    
+    plt.xlim(0,x[-1])
+    plt.xlabel(x_axis)
 
-    if type == "time":
-      plt.xlim(0,x[-1])
-      plt.xlabel("seconds_passed")
-    elif type == "n_rollouts":
-      plt.xlim(0,x[-1])
-      plt.xlabel("n_rollouts")
-    else: #"reward call"
-      plt.xlim(0,len(x))
-      plt.xlabel("reward calls (unique valid helms)")
-
-    plt.ylim(-1,1)
+    if ylim is not None:
+      plt.ylim(ylim)
     plt.ylabel("reward")
     plt.grid(axis="y")
 
