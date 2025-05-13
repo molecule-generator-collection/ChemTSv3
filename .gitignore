@@ -1,2 +1,5 @@
 ._*
 .DS_Store
+result/
+__pycache__/
+*.py[cod]
