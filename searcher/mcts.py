@@ -171,7 +171,7 @@ class MCTS(Searcher):
   def logging(self, str):
     if self.print_output:
       print(str)
-    with open(self.name + ".txt", "a") as f:
+    with open(self.name() + ".txt", "a") as f:
       f.write(str + "\n")
 
   #visualize results
