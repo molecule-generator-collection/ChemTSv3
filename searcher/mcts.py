@@ -26,33 +26,36 @@ class MCTS():
     self.filename = self.name
     self.count_rollouts = 0
     self.passed_time = 0
+    #for search
+    self.expansion_threshold = 0.995
+    self.rollout_threshold = 0.995
 
-  def _expand(self, node: Node, expansion_threshold=0.995):
+  def _expand(self, node: Node):
     if node.is_terminal():
       return
 
     #apply expansion_threshold
     nodes = self.edgepredictor.nextnodes_with_probs(node)
     probs = [node.lastprob for node in nodes]
-    remaining_ids = MCTS.select_indices_by_threshold(probs, expansion_threshold)
+    remaining_ids = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
 
     for id in remaining_ids:
       node.children[id] = nodes[id]
 
-  def _eval(self, node: Node, expansion_threshold=0.995):
+  def _eval(self, node: Node):
     if node.is_terminal():
       objective_values, reward = self.grab_objective_values_and_reward(node)
       node.sum_r = node.mean_r = -float("inf")
       return reward
     if not bool(node.children): #if empty
-      self._expand(node, expansion_threshold=expansion_threshold)
+      self._expand(node)
     objective_values, reward = self._rollout(node)
     return reward
 
   def _rollout(self, node):
     if node.idtensor.numel() >= self.rollout_limit:
       return self.reward_conf["null_reward"]
-    mol = self.edgepredictor.randomgen(node)
+    mol = self.edgepredictor.randomgen(node, conf={"rollout_threhold": self.rollout_threshold})
     self.count_rollouts += 1
     return self.grab_objective_values_and_reward(mol)
 
@@ -63,11 +66,20 @@ class MCTS():
       node.mean_r = node.sum_r / node.n
       node = node.parent
 
-  def search(self, root: Node, policy: Type[Policy], policy_conf={"c":1}, expansion_threshold=0.995, exhaust_backpropagate=False, max_rollouts=None, time_limit=None, max_generations=None):
+  def search(self, root: Node, policy: Type[Policy], policy_conf={"c":1}, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, max_rollouts=None, time_limit=None, max_generations=None):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
-    #expansion_threshold: [0-1], ignore children with low transition probabilities based on this value
+    #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
+    #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default
+    
     assert (max_rollouts is not None) or (time_limit is not None) or (max_generations is not None), \
-        "specify at least one of num_genrations, max_rollouts or time_limit"
+        "specify at least one of max_genrations, max_rollouts or time_limit"
+
+    if expansion_threshold is not None:
+      self.expansion_threshold = expansion_threshold
+      if rollout_threshold is None:
+        self.rollout_threshold = expansion_threshold
+    if rollout_threshold is not None:
+      self.rollout_threshold = rollout_threshold
 
     if self.name is None:
       self.filename = self.name = str(datetime.datetime.now())
@@ -78,7 +90,7 @@ class MCTS():
     initial_count_rollouts = self.count_rollouts
     initial_count_generations = len(self.unique_molkeys)
 
-    self._expand(root, expansion_threshold=expansion_threshold)
+    self._expand(root)
 
     while True:
       time_passed = time.time() - time_start
@@ -97,12 +109,12 @@ class MCTS():
           if self.verbose:
             self.logging("!------exhaust every terminal under: " + str(node.parent) + "------!")
           if exhaust_backpropagate:
-            value = self._eval(node, expansion_threshold=expansion_threshold)
+            value = self._eval(node)
             self._backpropagate(node, value)
           node.parent.sum_r = node.parent.mean_r = -float("inf")
           node = root
           continue
-      value = self._eval(node, expansion_threshold=expansion_threshold)
+      value = self._eval(node)
       self._backpropagate(node, value)
 
     print("Search is completed.")
@@ -150,9 +162,10 @@ class MCTS():
 
   #visualize results
   def plot(self, type="reward_call", cutoff=None, maxline=False):
+    #type ... "reward_call", "time", "n_rollouts"
     if type == "time":
       x, y = self.times, self.rewards
-    elif type == "num_rollout":
+    elif type == "n_rollouts":
       self.n_rollouts, self.rewards
     else:
       x, y = list(range(1, len(self.rewards)+1)), self.rewards
@@ -168,9 +181,9 @@ class MCTS():
     if type == "time":
       plt.xlim(0,x[-1])
       plt.xlabel("seconds_passed")
-    elif type == "num_rollouts":
+    elif type == "n_rollouts":
       plt.xlim(0,x[-1])
-      plt.xlabel("num_rollouts")
+      plt.xlabel("n_rollouts")
     else: #"reward call"
       plt.xlim(0,len(x))
       plt.xlabel("reward calls (unique valid helms)")
