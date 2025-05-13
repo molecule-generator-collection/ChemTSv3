@@ -44,7 +44,7 @@ class GPT2LM(LanguageModel):
     return nodes
 
   #override
-  def randomgen(self, initial_node: SentenceNode, conf: dict) -> SentenceNode:
+  def randomgen(self, initial_node: SentenceNode, conf: dict = {}) -> SentenceNode:
     with torch.no_grad():
         result_tensor = self.model.generate(
             initial_node.idtensor,

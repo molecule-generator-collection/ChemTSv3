@@ -6,7 +6,7 @@ from .reward import MolReward
 class LogP_reward(MolReward):
   #override
   @staticmethod
-  def mol_objective_functions(conf):
+  def mol_objective_functions(conf = {}):
     def LogP(mol):
       if mol is None or mol.GetNumAtoms()==0:
         return float('nan')
@@ -16,7 +16,7 @@ class LogP_reward(MolReward):
 
   #override
   @staticmethod
-  def reward_from_objective_values(values, conf):
+  def reward_from_objective_values(values, conf = {}):
     if math.isnan(values[0]):
       return conf.get("null_reward", -1)
     return np.tanh(values[0] / 10)

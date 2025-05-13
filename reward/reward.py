@@ -7,16 +7,16 @@ class Reward(ABC):
   #Callable[[Node], float] instead of Callable[[Mol], float] for better compatibility
   @classmethod
   @abstractmethod
-  def objective_functions(cls, conf: dict) -> List[Callable[[Node], float]]:
+  def objective_functions(cls, conf: dict = {}) -> List[Callable[[Node], float]]:
     pass
 
   @staticmethod
   @abstractmethod
-  def reward_from_objective_values(values: List[float], conf: dict) -> float:
+  def reward_from_objective_values(values: List[float], conf: dict={}) -> float:
     pass
 
   @classmethod
-  def objective_values(cls, node: Node, conf: dict):
+  def objective_values(cls, node: Node, conf: dict = {}):
     return [f(node) for f in cls.objective_functions(conf=conf)]
   
   @classmethod
@@ -28,15 +28,15 @@ class Reward(ABC):
 class MolReward(Reward):
   @staticmethod
   @abstractmethod
-  def mol_objective_functions(conf: dict) -> List[Callable[[Mol], float]]:
+  def mol_objective_functions(conf: dict = {}) -> List[Callable[[Mol], float]]:
     pass
 
   @staticmethod
   @abstractmethod
-  def reward_from_objective_values(values: List[float], conf: dict) -> float:
+  def reward_from_objective_values(values: List[float], conf: dict = {}) -> float:
     pass
 
   #override
   @classmethod
-  def objective_functions(cls, conf: dict) -> List[Callable[[MolConvertibleNode], float]]:
+  def objective_functions(cls, conf: dict = {}) -> List[Callable[[MolConvertibleNode], float]]:
     return [lambda node: f(node.mol()) for f in cls.mol_objective_functions(conf)]
