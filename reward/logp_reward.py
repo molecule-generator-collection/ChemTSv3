@@ -18,5 +18,5 @@ class LogP_reward(MolReward):
   @staticmethod
   def reward_from_objective_values(values, conf):
     if math.isnan(values[0]):
-      return conf["null_reward"]
+      return conf.get("null_reward", -1)
     return np.tanh(values[0] / 10)
