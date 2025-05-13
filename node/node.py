@@ -25,6 +25,20 @@ class Node(ABC):
     pass
   
 class MolConvertibleNode(Node):
+  def __init__(self, parent=None, lastprob=1.0):
+    self._is_valid_mol = None
+    super().__init__(parent, lastprob)
+
   @abstractmethod
   def mol(self) -> Mol:
+    #recommended to cache _is_valid_mol
     pass
+  
+  def is_valid_mol(self) -> bool:
+    if self._is_valid_mol is not None:
+      return self._is_valid_mol
+    
+    mol = self.mol()
+    is_valid = not (mol is None or mol.GetNumAtoms()==0)
+    self._is_valid_mol = is_valid
+    return is_valid
