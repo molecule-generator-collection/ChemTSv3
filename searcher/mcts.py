@@ -146,10 +146,9 @@ class MCTS():
     objective_values, reward = self.rewardfunc.objective_values_and_reward(node, conf=self.reward_conf)
     self.record[key] = (objective_values, reward)
 
-    if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")): #if node has is_valid_mol() method
-      if not node.is_valid_mol():
-        if self.verbose:
-          self.logging("invalid mol: " + key)
+    if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
+      if self.verbose:
+        self.logging("invalid mol: " + key)
     else:
       self.log_unique_mol(key, objective_values, reward)
 
