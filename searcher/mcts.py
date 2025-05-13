@@ -38,7 +38,7 @@ class MCTS():
     if self._name is not None:
       return self._name
     else:
-      policy_name = self.policy.__class__.__name__
+      policy_name = self.policy.__name__
       policy_c = str(self.policy_conf.get("c", 1))
       newname = policy_name + ", c = " + policy_c + ", " + str(datetime.datetime.now())
       return newname
