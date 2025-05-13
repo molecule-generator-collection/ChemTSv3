@@ -175,7 +175,7 @@ class MCTS(Searcher):
       f.write(str + "\n")
 
   #visualize results
-  def plot(self, x_axis: str = "generation_order", maxline=False, ylim=None):
+  def plot(self, x_axis: str = "generation_order", maxline = False, xlim: tuple[float, float] = None, ylim: tuple[float, float] = None):
     #x_axis ... use X in self.record["mol_key"]["X"]
     #cutoff: how man    
 
@@ -186,7 +186,10 @@ class MCTS(Searcher):
     plt.scatter(x, y, s=1)
     plt.title(self.name())
     
-    plt.xlim(0,x[-1])
+    if xlim is not None:
+      plt.xlim(xlim)
+    else:
+      plt.xlim(0,x[-1])
     plt.xlabel(x_axis)
 
     if ylim is not None:
