@@ -11,7 +11,7 @@ from reward import * #for load scope
 from searcher import Searcher
 
 class MCTS(Searcher):
-  def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = None, policy: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
+  def __init__(self, edgepredictor: EdgePredictor, reward_func: Type[Reward] = LogP_reward, reward_conf: dict = None, policy: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
     #name: if you plan to change the policy or policy's c value, you might want to set the name manually
     self.root = None
     self.edgepredictor = edgepredictor
@@ -24,7 +24,7 @@ class MCTS(Searcher):
     #for search
     self.expansion_threshold = 0.995
     self.rollout_threshold = 0.995
-    super().__init__(name, rewardfunc=rewardfunc, reward_conf=reward_conf, print_output=print_output, output_dir=output_dir)
+    super().__init__(name, reward_func=reward_func, reward_conf=reward_conf, print_output=print_output, output_dir=output_dir)
 
   #override
   def name(self):
@@ -72,7 +72,7 @@ class MCTS(Searcher):
       node.mean_r = node.sum_r / node.n
       node = node.parent
 
-  def search(self, root: Node=None, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, edgepredictor: EdgePredictor = None, rewardfunc: Type[Reward] = None, reward_conf: dict = None, policy: Type[Policy] = None, policy_conf: dict = None, change_root=False):
+  def search(self, root: Node=None, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, edgepredictor: EdgePredictor = None, reward_func: Type[Reward] = None, reward_conf: dict = None, policy: Type[Policy] = None, policy_conf: dict = None, change_root=False):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
     #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
     #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default
@@ -89,7 +89,7 @@ class MCTS(Searcher):
     if rollout_threshold is not None:
       self.rollout_threshold = rollout_threshold
     self.edgepredictor = edgepredictor or self.edgepredictor
-    self.rewardfunc = rewardfunc or self.rewardfunc
+    self.reward_func = reward_func or self.reward_func
     self.reward_conf = reward_conf or self.reward_conf
     self.policy = policy or self.policy
     self.policy_conf = policy_conf or self.policy_conf
@@ -168,7 +168,7 @@ class MCTS(Searcher):
       if self.verbose:
         self.logging("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
       return self.record[key]["objective_values"], self.record[key]["reward"]
-    objective_values, reward = self.rewardfunc.objective_values_and_reward(node, conf=self.reward_conf)
+    objective_values, reward = self.reward_func.objective_values_and_reward(node, conf=self.reward_conf)
 
     if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
       if self.verbose:
@@ -188,7 +188,7 @@ class MCTS(Searcher):
       pickle.dump(self.record, fo)
       pickle.dump(self.count_rollouts, fo)
       pickle.dump(self.passed_time, fo)
-      pickle.dump(self.rewardfunc.__name__, fo)
+      pickle.dump(self.reward_func.__name__, fo)
       pickle.dump(self.reward_conf, fo)
       pickle.dump(self.policy.__name__, fo)
       pickle.dump(self.policy_conf, fo)
@@ -210,9 +210,9 @@ class MCTS(Searcher):
       reward_class = globals().get(reward_name, None)
       if reward_class is None:
         s.logging("Reward class " + reward_name + " was not found, and replaced with LogP_reward.")
-        s.rewardfunc = LogP_reward
+        s.reward_func = LogP_reward
       else:
-        s.rewardfunc = reward_class
+        s.reward_func = reward_class
       s.reward_conf = pickle.load(f)
       
       policy_name = pickle.load(f)
