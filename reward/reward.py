@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Callable
-from node.node import Node, MolConvertibleNode
+from node import Node, MolConvertibleNode
 from rdkit.Chem import Mol
 
 class Reward(ABC):

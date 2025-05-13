@@ -1,7 +1,7 @@
 from rdkit.Chem import Descriptors
 import numpy as np
 import math
-from .reward import MolReward
+from reward import MolReward
 
 class LogP_reward(MolReward):
   #override

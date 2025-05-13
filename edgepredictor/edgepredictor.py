@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from language.language import Language
-from node.node import Node
-from node.sentencenode import SentenceNode
+from language import Language
+from node import Node, SentenceNode
 
 class EdgePredictor(ABC):
   def __init__(self, name=None):

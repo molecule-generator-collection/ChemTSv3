@@ -2,9 +2,9 @@ import os
 import torch
 import torch.nn.functional as F
 from transformers import GPT2LMHeadModel
-from language.language import Language
-from .edgepredictor import LanguageModel
-from node.sentencenode import SentenceNode
+from language import Language
+from edgepredictor import LanguageModel
+from node import SentenceNode
 
 class GPT2LM(LanguageModel):
   def __init__(self, lang: Language, model=None, model_dir=None, name=None):

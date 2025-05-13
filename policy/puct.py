@@ -1,6 +1,6 @@
 from math import sqrt
-from .policy import Policy
-from node.node import Node
+from policy import Policy
+from node import Node
 
 class PUCT(Policy):
   def evaluate(node: Node, conf: dict = None):
