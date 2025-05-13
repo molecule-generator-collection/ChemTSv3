@@ -189,7 +189,7 @@ class MCTS():
     plt.clf()
     plt.scatter(x, y, s=1)
     #plt.title("model: " + model_name + ", policy: " + policy + ", c = " + str(c))
-    plt.title(self.name)
+    plt.title(self.name())
 
     if type == "time":
       plt.xlim(0,x[-1])
