@@ -3,7 +3,8 @@ from .policy import Policy
 from node.node import Node
 
 class UCB(Policy):
-  def evaluate(node: Node, conf: dict = {}):
+  def evaluate(node: Node, conf: dict = None):
+    conf = conf or {}
     #c: exploration parameter, default: 1
     if node.parent is None:
       return node.mean_r
