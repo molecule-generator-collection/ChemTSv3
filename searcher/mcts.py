@@ -148,7 +148,7 @@ class MCTS(Searcher):
       self.record[key]["objective_values"] = objective_values
       self.record[key]["reward"] = reward
       self.record[key]["count_rollouts"] = self.count_rollouts
-      self.record[key]["time"] = time
+      self.record[key]["time"] = self.passed_time
       self.record[key]["generation_order"] = len(self.unique_molkeys)
 
   def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
