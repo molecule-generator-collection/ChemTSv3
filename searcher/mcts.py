@@ -144,6 +144,7 @@ class MCTS(Searcher):
   def log_unique_mol(self, key, objective_values, reward):
       self.logging(str(len(self.unique_molkeys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
       self.unique_molkeys.append(key)
+      self.record["key"] = {}
       self.record["key"]["objective_values"] = objective_values
       self.record["key"]["reward"] = reward
       self.record["key"]["count_rollouts"] = self.count_rollouts
