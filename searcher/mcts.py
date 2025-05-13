@@ -110,9 +110,7 @@ class MCTS(Searcher):
         "ERROR: root was passed as an argument, but this MCTS searcher already has the root node. If you really want to change the root node, set change_root to True."
     if (root is not None and change_root) or self.root is None:
       self.root = root
-    
-    #start search
-    self._expand(self.root)
+      self._expand(self.root)
 
     while True:
       time_passed = time.time() - time_start
