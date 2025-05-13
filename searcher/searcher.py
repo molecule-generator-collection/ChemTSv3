@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import time, datetime
 
-class searcher(ABC):
+class Searcher(ABC):
   def __init__(self, name=None):
     self._name = name
     self._name = self.name() #generate name if name=None
