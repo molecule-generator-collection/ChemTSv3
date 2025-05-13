@@ -146,7 +146,7 @@ class MCTS():
     objective_values, reward = self.rewardfunc.objective_values_and_reward(node, conf=self.reward_conf)
     self.record[key] = (objective_values, reward)
 
-    if reward != self.reward_conf["null_reward"]:
+    if reward != self.reward_conf.get("null_reward", -1): #should change
       self.log_unique_mol(key, objective_values, reward)
     else:
       if self.verbose:
