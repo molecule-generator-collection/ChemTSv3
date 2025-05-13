@@ -11,7 +11,7 @@ from reward import * #for load scope
 from searcher import Searcher
 
 class MCTS(Searcher):
-  def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = None, policy: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result/", verbose=False, name=None):
+  def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = None, policy: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
     #name: if you plan to change the policy or policy's c value, you might want to set the name manually
     self.root = None
     self.edgepredictor = edgepredictor
@@ -36,7 +36,7 @@ class MCTS(Searcher):
     else:
       policy_name = self.policy.__name__
       policy_c = str(self.policy_conf.get("c", 1))
-      newname = policy_name + ", c = " + policy_c + ", " + datetime.now().strftime("%m-%d_%H-%M")
+      newname = policy_name + "_c=" + policy_c + "_" + datetime.now().strftime("%m-%d_%H-%M")
       return newname
 
   def _expand(self, node: Node):
@@ -183,7 +183,7 @@ class MCTS(Searcher):
     self._name
     with open(file, mode="wb") as fo:
       pickle.dump(self._name, fo)
-      pickle.dump(self.output_dir, fo)
+      pickle.dump(self._output_dir, fo)
       pickle.dump(self.root, fo)
       pickle.dump(self.unique_molkeys, fo)
       pickle.dump(self.record, fo)
@@ -200,7 +200,7 @@ class MCTS(Searcher):
     s = MCTS(edgepredictor=edgepredictor)
     with open(file, "rb") as f:
       s._name = pickle.load(f)
-      s.output_dir = pickle.load(f)
+      s._output_dir = pickle.load(f)
       s.root = pickle.load(f)
       s.unique_molkeys = pickle.load(f)
       s.record = pickle.load(f)
