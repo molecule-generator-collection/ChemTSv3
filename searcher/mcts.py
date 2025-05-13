@@ -11,7 +11,7 @@ from reward import * #for load scope
 from searcher import Searcher
 
 class MCTS(Searcher):
-  def __init__(self, edgepredictor: EdgePredictor, reward_class: Type[Reward] = LogP_reward, reward_conf: dict = None, policy_class: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
+  def __init__(self, edgepredictor: EdgePredictor, reward_class: Type[Reward] = LogPReward, reward_conf: dict = None, policy_class: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.edgepredictor = edgepredictor
@@ -209,8 +209,8 @@ class MCTS(Searcher):
       reward_name = pickle.load(f)
       reward_class = globals().get(reward_name, None)
       if reward_class is None:
-        s.logging("Reward class " + reward_name + " was not found, and replaced with LogP_reward.")
-        s.reward_class = LogP_reward
+        s.logging("Reward class " + reward_name + " was not found, and replaced with LogPReward.")
+        s.reward_class = LogPReward
       else:
         s.reward_class = reward_class
       s.reward_conf = pickle.load(f)
