@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from typing import Type
-from reward import Reward, LogP_reward
+from reward import Reward, LogPReward
 
 class Searcher(ABC):
-  def __init__(self, name=None, reward_class: Type[Reward] = LogP_reward, reward_conf: dict = None, print_output=True, output_dir="result"):
+  def __init__(self, name=None, reward_class: Type[Reward] = LogPReward, reward_conf: dict = None, print_output=True, output_dir="result"):
     self._name = name
     self._name = self.name() #generate name if name=None
     self.reward_class = reward_class

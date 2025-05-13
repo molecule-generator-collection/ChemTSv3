@@ -4,7 +4,7 @@ import math
 from typing import Any
 from reward import MolReward
 
-class LogP_reward(MolReward):
+class LogPReward(MolReward):
   #override
   @staticmethod
   def mol_objective_functions(conf: dict[str, Any] = None):
