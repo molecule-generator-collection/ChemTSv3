@@ -138,6 +138,8 @@ class MCTS(Searcher):
         value = 0
       self._backpropagate(node, value)
 
+    self.plot_everything(x_axis = "generation_order", maxline = True)
+    self.plot_everything(x_axis = "time", maxline = True)
     print("Search is completed.")
 
   #for expansion_threshold

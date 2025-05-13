@@ -73,7 +73,13 @@ class Searcher(ABC):
       y_max = np.max(y)
       plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}')
 
-    plt.savefig(self.output_dir() + self.name() + ".png")
+    plt.savefig(self.output_dir() + self.name() + "_" + y_axis + "_by_" + x_axis + ".png")
     plt.legend()
     plt.show()
   
+  def plot_everything(self, x_axis: str = "generation_order", maxline = False, xlim: tuple[float, float] = None, ylims: dict[str, tuple[float, float]] = None):
+    ylims = ylims or {}
+    objective_names = [f.__name__ for f in self.rewardfunc.objective_functions()]
+    for o in objective_names:
+      self.plot(x_axis=x_axis, y_axis=o, maxline=maxline, xlim=xlim, ylim=ylims.get(o, None))
+    self.plot(x_axis=x_axis, y_axis="reward", maxline=maxline, xlim=xlim, ylim=ylims.get("reward", None))  
