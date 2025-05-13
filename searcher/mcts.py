@@ -9,8 +9,9 @@ from policy.policy import Policy
 from policy.ucb import UCB
 from reward.reward import Reward
 from reward.logp_reward import LogP_reward
+from .searcher import Searcher
 
-class MCTS():
+class MCTS(Searcher):
   def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = None, policy: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, verbose=False, name=None):
     self.edgepredictor = edgepredictor
     self.rewardfunc = rewardfunc
@@ -26,14 +27,14 @@ class MCTS():
     self.times = []
     self.print_output = print_output
     self.verbose = verbose
-    self._name = name
-    self.filename = self.name()    
     self.count_rollouts = 0
     self.passed_time = 0
     #for search
     self.expansion_threshold = 0.995
     self.rollout_threshold = 0.995
-    
+    super().__init__(name)
+  
+  #override
   def name(self):
     if self._name is not None:
       return self._name
@@ -171,7 +172,7 @@ class MCTS():
   def logging(self, str):
     if self.print_output:
       print(str)
-    with open(self.filename + ".txt", "a") as f:
+    with open(self.name + ".txt", "a") as f:
       f.write(str + "\n")
 
   #visualize results
