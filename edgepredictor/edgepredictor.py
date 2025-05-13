@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 from language import Language
 from node import Node, SentenceNode
 
@@ -14,7 +15,7 @@ class EdgePredictor(ABC):
     pass
 
   @abstractmethod
-  def randomgen(self, initial_node: Node, conf: dict = None) -> Node:
+  def randomgen(self, initial_node: Node, conf: dict[str, Any] = None) -> Node:
     pass
   
 class LanguageModel(EdgePredictor):
@@ -29,7 +30,7 @@ class LanguageModel(EdgePredictor):
 
   #override
   @abstractmethod
-  def randomgen(self, initial_node: SentenceNode, conf: dict = None) -> SentenceNode:
+  def randomgen(self, initial_node: SentenceNode, conf: dict[str, Any] = None) -> SentenceNode:
     pass
 
   @abstractmethod
