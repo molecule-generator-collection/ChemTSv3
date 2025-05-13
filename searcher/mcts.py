@@ -26,8 +26,8 @@ class MCTS():
     self.times = []
     self.print_output = print_output
     self.verbose = verbose
-    self._name = name or self.name()
-    self.filename = self._name    
+    self._name = name
+    self.filename = self.name()    
     self.count_rollouts = 0
     self.passed_time = 0
     #for search
@@ -40,7 +40,8 @@ class MCTS():
     else:
       policy_name = self.policy.__class__.__name__
       policy_c = str(self.policy_conf.get("c", 1))
-      return policy_name + ", c = " + policy_c + ", " + str(datetime.datetime.now())
+      newname = policy_name + ", c = " + policy_c + ", " + str(datetime.datetime.now())
+      return newname
 
   def _expand(self, node: Node):
     if node.is_terminal():
