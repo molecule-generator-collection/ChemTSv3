@@ -35,8 +35,8 @@ class MCTS():
     self.rollout_threshold = 0.995
     
   def name(self):
-    if self.name is not None:
-      return self.name
+    if self._name is not None:
+      return self._name
     else:
       policy_name = self.policy.__class__.__name__
       policy_c = str(self.policy_conf.get("c", 1))
