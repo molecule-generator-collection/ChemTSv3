@@ -155,10 +155,9 @@ class MCTS(Searcher):
     key = str(node)
     if key in self.record:
       if self.verbose:
-        self.logging("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key][1]))
-      return self.record[key]
+        self.logging("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
+      return self.record[key]["reward"]
     objective_values, reward = self.rewardfunc.objective_values_and_reward(node, conf=self.reward_conf)
-    self.record[key] = (objective_values, reward)
 
     if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
       if self.verbose:
@@ -178,7 +177,6 @@ class MCTS(Searcher):
   #visualize results
   def plot(self, x_axis: str = "generation_order", maxline = False, xlim: tuple[float, float] = None, ylim: tuple[float, float] = None):
     #x_axis ... use X in self.record["mol_key"]["X"]
-    #cutoff: how man    
 
     x = [self.record[molkey][x_axis] for molkey in self.unique_molkeys]
     y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
