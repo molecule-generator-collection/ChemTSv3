@@ -7,10 +7,10 @@ from typing import Type
 from reward import Reward, LogP_reward
 
 class Searcher(ABC):
-  def __init__(self, name=None, reward_func: Type[Reward] = LogP_reward, reward_conf: dict = None, print_output=True, output_dir="result"):
+  def __init__(self, name=None, reward_class: Type[Reward] = LogP_reward, reward_conf: dict = None, print_output=True, output_dir="result"):
     self._name = name
     self._name = self.name() #generate name if name=None
-    self.reward_func = reward_func
+    self.reward_class = reward_class
     self.reward_conf = reward_conf or {}
     self.print_output = print_output
     self._output_dir = output_dir if output_dir.endswith(os.sep) else output_dir + os.sep
@@ -44,7 +44,7 @@ class Searcher(ABC):
     if y_axis == "reward":
       y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
     else:
-      objective_names = [f.__name__ for f in self.reward_func.objective_functions()]
+      objective_names = [f.__name__ for f in self.reward_class.objective_functions()]
       if not y_axis in objective_names:
         print("ERROR: Couldn't find objective name " + y_axis + ": uses reward instead")
         y_axis = "reward"
@@ -79,7 +79,7 @@ class Searcher(ABC):
   
   def plot_everything(self, x_axis: str = "generation_order", maxline = False, xlim: tuple[float, float] = None, ylims: dict[str, tuple[float, float]] = None):
     ylims = ylims or {}
-    objective_names = [f.__name__ for f in self.reward_func.objective_functions()]
+    objective_names = [f.__name__ for f in self.reward_class.objective_functions()]
     for o in objective_names:
       self.plot(x_axis=x_axis, y_axis=o, maxline=maxline, xlim=xlim, ylim=ylims.get(o, None))
     self.plot(x_axis=x_axis, y_axis="reward", maxline=maxline, xlim=xlim, ylim=ylims.get("reward", None))  
