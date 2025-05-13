@@ -18,8 +18,8 @@ class Searcher(ABC):
       return str(datetime.datetime.now())
   
   #print_output
-  def logging(self, str):
-    if self.print_output:
+  def logging(self, str, force=False):
+    if self.print_output or force:
       print(str)
     with open(self.name() + ".txt", "a") as f:
       f.write(str + "\n")

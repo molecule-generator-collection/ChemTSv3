@@ -1,5 +1,6 @@
 import time, datetime
-from typing import Type
+from typing import Type, Self
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
@@ -14,7 +15,7 @@ from .searcher import Searcher
 class MCTS(Searcher):
   def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = None, policy: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, verbose=False, name=None):
     #name: if you plan to change the policy or policy's c value, you might want to set the name manually
-    
+    self.root = None
     self.edgepredictor = edgepredictor
     self.rewardfunc = rewardfunc
     self.reward_conf = reward_conf or {}
@@ -29,7 +30,7 @@ class MCTS(Searcher):
     self.expansion_threshold = 0.995
     self.rollout_threshold = 0.995
     super().__init__(name, print_output=print_output)
-  
+
   #override
   def name(self):
     if self._name is not None:
@@ -76,14 +77,14 @@ class MCTS(Searcher):
       node.mean_r = node.sum_r / node.n
       node = node.parent
 
-  def search(self, root: Node, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, edgepredictor: EdgePredictor = None, rewardfunc: Type[Reward] = None, reward_conf: dict = None, policy: Type[Policy] = None, policy_conf: dict = None):
+  def search(self, root: Node=None, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, edgepredictor: EdgePredictor = None, rewardfunc: Type[Reward] = None, reward_conf: dict = None, policy: Type[Policy] = None, policy_conf: dict = None, change_root=False):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
     #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
     #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default
     #dummy_reward: backpropagate value is fixed to 0, still calculates rewards and objective values
     
     assert (max_rollouts is not None) or (time_limit is not None) or (max_generations is not None), \
-        "specify at least one of max_genrations, max_rollouts or time_limit"
+        "ERROR: Specify at least one of max_genrations, max_rollouts or time_limit."
 
     #refresh variables
     if expansion_threshold is not None:
@@ -104,8 +105,16 @@ class MCTS(Searcher):
     initial_count_rollouts = self.count_rollouts
     initial_count_generations = len(self.unique_molkeys)
 
+    #asign root node
+    assert (root is not None) or (self.root is not None), \
+        "ERROR: Specify the root node unless you're running a loaded MCTS searcher."
+    assert (root is None) or (self.root is None) or change_root, \
+        "ERROR: root was passed as an argument, but this MCTS searcher already has the root node. If you really want to change the root node, set change_root to True."
+    if (root is not None and change_root) or self.root is None:
+      self.root = root
+    
     #start search
-    self._expand(root)
+    self._expand(self.root)
 
     while True:
       time_passed = time.time() - time_start
@@ -117,7 +126,7 @@ class MCTS(Searcher):
       if max_generations is not None and len(self.unique_molkeys) - initial_count_generations >= max_generations:
         break
 
-      node = root
+      node = self.root
       while node.children:
         node = max(node.children.values(), key=lambda n: self.policy.evaluate(n, conf=self.policy_conf))
         if node.sum_r == -float("inf"): #already exhausted every terminal under this
@@ -129,7 +138,7 @@ class MCTS(Searcher):
               value = 0
             self._backpropagate(node, value)
           node.parent.sum_r = node.parent.mean_r = -float("inf")
-          node = root
+          node = self.root
           continue
       value = self._eval(node)
       if dummy_reward:
@@ -173,3 +182,47 @@ class MCTS(Searcher):
       self.log_unique_mol(key, objective_values, reward)
 
     return objective_values, reward
+  
+  def save(self, file: str):
+    self._name
+    with open(file, mode="wb") as fo:
+      pickle.dump(self._name, fo)
+      pickle.dump(self.root, fo)
+      pickle.dump(self.unique_molkeys, fo)
+      pickle.dump(self.record, fo)
+      pickle.dump(self.count_rollouts, fo)
+      pickle.dump(self.passed_time, fo)
+      pickle.dump(self.rewardfunc.__name__, fo)
+      pickle.dump(self.reward_conf, fo)
+      pickle.dump(self.policy.__name__, fo)
+      pickle.dump(self.policy_conf, fo)
+  
+  #edgepredictor won't be saved/loaded
+  @staticmethod
+  def load(self, file: str, edgepredictor: EdgePredictor) -> Self:
+    s = MCTS.__init__(edgepredictor=edgepredictor)
+    with open(file, "rb") as f:
+      s._name = pickle.load(f)
+      s.root = pickle.load(f)
+      s.unique_molkeys = pickle.load(f)
+      s.record = pickle.load(f)
+      s.count_rollouts = pickle.load(f)
+      s.passed_time = pickle.load(f)
+      
+      reward_name = pickle.load(f)
+      reward_class = globals().get(reward_name, None)
+      if reward_class is None:
+        s.logging("Reward class " + reward_name + "was not found, and replaced with LogP_reward: check import")
+        s.rewardfunc = LogP_reward
+      else:
+        s.rewardfunc = reward_class
+      s.reward_conf = pickle.load(f)
+      
+      policy_name = pickle.load(f)
+      policy_class = globals().get(policy_name, None)
+      if policy_class is None:
+        s.logging("Policy class " + policy_name + "was not found, and replaced with UCB: check import")
+        s.policy = UCB
+      else:
+        s.policy = policy_class
+      s.policy_conf = pickle.load(f)

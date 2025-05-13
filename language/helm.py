@@ -94,15 +94,11 @@ class Helm(MolConvertibleDynamicLanguage):
   #override
   @staticmethod    
   def load(file: str) -> Self:
+    lang = Helm()
     with open(file, "rb") as f:
-      vocab_tmp = pickle.load(f)
-      token2id_tmp = pickle.load(f)
-      id2token_tmp = pickle.load(f)
-      has_period_tmp = pickle.load(f)
-      monomer_ids_tmp = pickle.load(f)
-    lang = Helm(has_period = has_period_tmp)
-    lang._vocab = vocab_tmp
-    lang._token2id = token2id_tmp
-    lang._id2token = id2token_tmp
-    lang.monomer_ids = monomer_ids_tmp
+      lang._vocab = pickle.load(f)
+      lang._token2id = pickle.load(f)
+      lang._id2token = pickle.load(f)
+      lang.has_period = pickle.load(f)
+      lang.monomer_ids = pickle.load(f)
     return lang
