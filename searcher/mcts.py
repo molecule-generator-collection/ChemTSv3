@@ -6,10 +6,8 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from node.node import Node
 from edgepredictor.edgepredictor import EdgePredictor
-from policy.policy import Policy
-from policy.ucb import UCB
-from reward.reward import Reward
-from reward.logp_reward import LogP_reward
+from policy import * #for load scope
+from reward import * #for load scope
 from .searcher import Searcher
 
 class MCTS(Searcher):
@@ -212,7 +210,7 @@ class MCTS(Searcher):
       reward_name = pickle.load(f)
       reward_class = globals().get(reward_name, None)
       if reward_class is None:
-        s.logging("Reward class " + reward_name + "was not found, and replaced with LogP_reward: check import")
+        s.logging("Reward class " + reward_name + " was not found, and replaced with LogP_reward.")
         s.rewardfunc = LogP_reward
       else:
         s.rewardfunc = reward_class
@@ -221,7 +219,7 @@ class MCTS(Searcher):
       policy_name = pickle.load(f)
       policy_class = globals().get(policy_name, None)
       if policy_class is None:
-        s.logging("Policy class " + policy_name + "was not found, and replaced with UCB: check import")
+        s.logging("Policy class " + policy_name + " was not found, and replaced with UCB.")
         s.policy = UCB
       else:
         s.policy = policy_class
