@@ -39,8 +39,11 @@ class SentenceNode(Node):
 
 class MolConvertibleSentenceNode(SentenceNode, MolConvertibleNode):
   def __init__(self, idtensor: torch.Tensor, lang: MolConvertibleLanguage, parent=None, lastprob=1.0):
+    self._is_valid_mol = None
     super().__init__(idtensor, lang, parent, lastprob)  
 
   #override
   def mol(self) -> Mol:
-    return self.lang.__class__.sentence2mol(self.__str__())
+    mol = self.lang.__class__.sentence2mol(self.__str__())
+    self._is_valid_mol = not (mol is None or mol.GetNumAtoms()==0)
+    return mol
