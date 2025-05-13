@@ -13,7 +13,8 @@ class MCTS():
   def __init__(self, edgepredictor: EdgePredictor, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = {"null_reward": -1},rollout_limit=4096, print_output=True, verbose=False, name=None):
     self.edgepredictor = edgepredictor
     self.rewardfunc = rewardfunc
-    self.reward_conf = reward_conf #specify at least all of: "null_reward"
+    self.reward_conf = reward_conf
+      #null_reward ...  reward for invalid molecules, default: 1
     self.rollout_limit = rollout_limit
     self.record: dict[str, tuple[list[float], float]] = {}
     self.unique_molkeys = []
@@ -54,7 +55,7 @@ class MCTS():
 
   def _rollout(self, node):
     if node.idtensor.numel() >= self.rollout_limit:
-      return self.reward_conf["null_reward"]
+      return self.reward_conf.get("null_reward", -1)
     mol = self.edgepredictor.randomgen(node, conf={"rollout_threshold": self.rollout_threshold})
     self.count_rollouts += 1
     return self.grab_objective_values_and_reward(mol)

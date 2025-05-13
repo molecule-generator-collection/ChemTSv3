@@ -44,14 +44,14 @@ class GPT2LM(LanguageModel):
     return nodes
 
   #override
-  def randomgen(self, initial_node: SentenceNode, conf={"rollout_threshold":0.995}) -> SentenceNode:
+  def randomgen(self, initial_node: SentenceNode, conf: dict) -> SentenceNode:
     with torch.no_grad():
         result_tensor = self.model.generate(
             initial_node.idtensor,
             max_length=self.max_length(),
             do_sample=True,       #sampling
             #top_k=50,             #top-k sampling
-            top_p=conf["rollout_threshold"],           #nucleus sampling
+            top_p=conf.get("rollout_threhold", 0.995),           #nucleus sampling
             eos_token_id=self.lang.eos_id(),
             pad_token_id=self.lang.pad_id(),
             num_return_sequences=1

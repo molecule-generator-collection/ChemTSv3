@@ -15,7 +15,7 @@ class EdgePredictor(ABC):
     pass
 
   @abstractmethod
-  def randomgen(self, initial_node: Node, conf={"rollout_threshold":0.995}) -> Node:
+  def randomgen(self, initial_node: Node, conf: dict) -> Node:
     pass
   
 class LanguageModel(EdgePredictor):
@@ -30,7 +30,7 @@ class LanguageModel(EdgePredictor):
 
   #override
   @abstractmethod
-  def randomgen(self, initial_node: SentenceNode, conf={"rollout_threshold":0.995}) -> SentenceNode:
+  def randomgen(self, initial_node: SentenceNode, conf: dict) -> SentenceNode:
     pass
 
   @abstractmethod
