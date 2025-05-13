@@ -15,9 +15,6 @@ class MCTS(Searcher):
     #name: if you plan to change the policy or policy's c value, you might want to set the name manually
     self.root = None
     self.edgepredictor = edgepredictor
-    self.rewardfunc = rewardfunc
-    self.reward_conf = reward_conf or {}
-      #null_reward ...  reward for invalid molecules, default: 1
     self.policy = policy
     self.policy_conf = policy_conf or {}
     self.rollout_limit = rollout_limit
@@ -27,7 +24,7 @@ class MCTS(Searcher):
     #for search
     self.expansion_threshold = 0.995
     self.rollout_threshold = 0.995
-    super().__init__(name, print_output=print_output, output_dir=output_dir)
+    super().__init__(name, rewardfunc=rewardfunc, reward_conf=reward_conf, print_output=print_output, output_dir=output_dir)
 
   #override
   def name(self):

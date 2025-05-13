@@ -3,11 +3,15 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from typing import Type
+from reward import Reward, LogP_reward
 
 class Searcher(ABC):
-  def __init__(self, name=None, print_output=True, output_dir="result"):
+  def __init__(self, name=None, rewardfunc: Type[Reward] = LogP_reward, reward_conf: dict = None, print_output=True, output_dir="result"):
     self._name = name
     self._name = self.name() #generate name if name=None
+    self.rewardfunc = rewardfunc
+    self.reward_conf = reward_conf or {}
     self.print_output = print_output
     self._output_dir = output_dir if output_dir.endswith(os.sep) else output_dir + os.sep
     os.makedirs(os.path.dirname(self._output_dir), exist_ok=True)
@@ -32,25 +36,36 @@ class Searcher(ABC):
       f.write(str + "\n")
       
   #visualize results
-  def plot(self, x_axis: str = "generation_order", maxline = False, xlim: tuple[float, float] = None, ylim: tuple[float, float] = None):
+  def plot(self, x_axis: str = "generation_order", y_axis: str = "reward", maxline = False, xlim: tuple[float, float] = None, ylim: tuple[float, float] = None):
     #x_axis ... use X in self.record["mol_key"]["X"]
 
     x = [self.record[molkey][x_axis] for molkey in self.unique_molkeys]
-    y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
+
+    if y_axis == "reward":
+      y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
+    else:
+      objective_names = [f.__name__ for f in self.rewardfunc.objective_functions()]
+      if not y_axis in objective_names:
+        print("ERROR: Couldn't find objective name " + y_axis + ": uses reward instead")
+        y_axis = "reward"
+        y = [self.record[molkey]["reward"] for molkey in self.unique_molkeys]
+      else:
+        objective_id = objective_names.index(y_axis)
+        y = [self.record[molkey]["objective_values"][objective_id] for molkey in self.unique_molkeys]
 
     plt.clf()
     plt.scatter(x, y, s=1)
     plt.title(self.name())
     
+    plt.xlabel(x_axis)
     if xlim is not None:
       plt.xlim(xlim)
     else:
       plt.xlim(0,x[-1])
-    plt.xlabel(x_axis)
 
+    plt.ylabel(y_axis)
     if ylim is not None:
       plt.ylim(ylim)
-    plt.ylabel("reward")
     plt.grid(axis="y")
 
     if maxline:

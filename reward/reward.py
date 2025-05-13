@@ -36,7 +36,14 @@ class MolReward(Reward):
   def reward_from_objective_values(values: List[float], conf: dict = None) -> float:
     pass
 
+  @staticmethod
+  def wrap_with_mol(f):
+    def wrapper(node: Node):
+      return f(node.mol())
+    wrapper.__name__ = f.__name__ #copy function names
+    return wrapper
+
   #override
   @classmethod
   def objective_functions(cls, conf: dict = None) -> List[Callable[[MolConvertibleNode], float]]:
-    return [lambda node: f(node.mol()) for f in cls.mol_objective_functions(conf)]
+    return [MolReward.wrap_with_mol(f) for f in cls.mol_objective_functions(conf)]
