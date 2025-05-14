@@ -34,14 +34,14 @@ class Searcher(ABC):
     logger_conf = logger_conf or {}
     self.logger = logging.getLogger(__name__)
     self.logger.setLevel(logging.DEBUG)
-    
-    if not self.logger.handlers:
-      console_handler = logging.StreamHandler()
-      console_handler.setLevel(logger_conf.get("console_level", logging.INFO))
-      file_handler = logging.FileHandler(self.output_dir() + self.name() + ".log")
-      file_handler.setLevel(logger_conf.get("file_level", logging.DEBUG))
-      self.logger.addHandler(console_handler)
-      self.logger.addHandler(file_handler)
+    self.logger.handlers.clear()
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logger_conf.get("console_level", logging.INFO))
+    file_handler = logging.FileHandler(self.output_dir() + self.name() + ".log")
+    file_handler.setLevel(logger_conf.get("file_level", logging.DEBUG))
+    self.logger.addHandler(console_handler)
+    self.logger.addHandler(file_handler)
       
   #visualize results
   def plot(self, x_axis: str="generation_order", y_axis: str="reward", maxline=False, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
