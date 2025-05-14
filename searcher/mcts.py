@@ -5,16 +5,16 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from node import Node
-from edge_predictor import EdgePredictor
+from transition import WeightedTransition
 from policy import * #for load scope
 from reward import * #for load scope
 from searcher import Searcher
 
 class MCTS(Searcher):
-  def __init__(self, edge_predictor: EdgePredictor, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, rollout_limit=4096, output_dir="result", logger_conf: dict[str, Any]=None, name=None):
+  def __init__(self, transition: WeightedTransition, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, rollout_limit=4096, output_dir="result", logger_conf: dict[str, Any]=None, name=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
-    self.edge_predictor = edge_predictor
+    self.transition = transition
     self.policy_class = policy_class
     self.policy_conf = policy_conf or {}
     self.rollout_limit = rollout_limit
@@ -32,20 +32,18 @@ class MCTS(Searcher):
     else:
       policy_name = self.policy_class.__name__
       policy_c = str(self.policy_conf.get("c", 1))
-      newname = self.__class__.__name__ + "_" + policy_name + "_c=" + policy_c + "_" + datetime.now().strftime("%m-%d_%H-%M")
-      return newname
+      return super().name() + "_" + policy_name + "_c=" + policy_c + "_"
 
   def _expand(self, node: Node):
     if node.is_terminal():
       return
 
     #apply expansion_threshold
-    nodes = self.edge_predictor.child_candidates_with_probs(node)
-    probs = [node.last_prob for node in nodes]
+    actions, nodes, probs = zip(*self.transition.transitions_with_weights(node))
     remaining_indices = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
 
     for idx in remaining_indices:
-      node.add_child(idx, nodes[idx])
+      node.add_child(actions[idx], nodes[idx])
 
   def _eval(self, node: Node):
     if node.is_terminal():
@@ -60,7 +58,7 @@ class MCTS(Searcher):
   def _rollout(self, node: Node):
     if node.id_tensor.numel() >= self.rollout_limit:
       return self.reward_conf.get("null_reward", -1)
-    mol = self.edge_predictor.generate(node, conf={"rollout_threshold": self.rollout_threshold})
+    mol = self.transition.generate(node, conf={"rollout_threshold": self.rollout_threshold})
     self.count_rollouts += 1
     return self.grab_objective_values_and_reward(mol)
 
@@ -120,7 +118,7 @@ class MCTS(Searcher):
       while node.children:
         node = max(node.children.values(), key=lambda n: self.policy_class.evaluate(n, conf=self.policy_conf))
         if node.sum_r == -float("inf"): #already exhausted every terminal under this
-          self.logger.DEBUG("Exhaust every terminal under: " + str(node.parent) + "")
+          self.logger.debug("Exhaust every terminal under: " + str(node.parent) + "")
           if exhaust_backpropagate:
             value = self._eval(node)
             self._backpropagate(node, value, use_dummy_reward)
@@ -183,10 +181,10 @@ class MCTS(Searcher):
       pickle.dump(self.policy_class.__name__, fo)
       pickle.dump(self.policy_conf, fo)
   
-  #edge_predictor won't be saved/loaded
+  #transition won't be saved/loaded
   @staticmethod
-  def load(file: str, edge_predictor: EdgePredictor) -> Self:
-    s = MCTS(edge_predictor=edge_predictor)
+  def load(file: str, transition: WeightedTransition) -> Self:
+    s = MCTS(transition=transition)
     with open(file, "rb") as f:
       s._name = pickle.load(f)
       s._output_dir = pickle.load(f)

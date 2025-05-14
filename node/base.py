@@ -9,7 +9,7 @@ class Node(ABC):
       self.depth = parent.depth + 1
     else:
       self.depth = 0
-    self.children: dict[int, Self] = {}
+    self.children: dict[Any, Self] = {}
     self._probs = [] #for save, call probs()
     self.last_prob = last_prob #Prob(parent -> this node)
     self.last_action = last_action
@@ -21,17 +21,12 @@ class Node(ABC):
   def __str__(self) -> str:
     pass
 
-  #ordered by action idx
-  @abstractmethod
-  def child_candidates(self) -> list[Self]:
-    pass
-
   @abstractmethod
   def is_terminal(self) -> bool:
     pass
 
-  def add_child(self, action_idx: int, child: Self):
-    self.children[action_idx] = child
+  def add_child(self, action: Any, child: Self):
+    self.children[action] = child
   
   def observe(self, value: float):
     self.n += 1

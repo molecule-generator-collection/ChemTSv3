@@ -24,7 +24,7 @@ class Searcher(ABC):
     if self._name is not None:
       return self._name
     else:
-      return self.__class__.__name__ + "_" + datetime.now().strftime("%m-%d_%H-%M")
+      return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
   
   def output_dir(self):
     return self._output_dir + self.name() + os.sep
