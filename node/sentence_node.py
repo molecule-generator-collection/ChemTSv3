@@ -21,7 +21,7 @@ class SentenceNode(Node):
   def child_candidates(self):
     return [self.child_candidate(id) for id in range(len(self.lang.vocab()))]
 
-  def child_candidate(self, id: int, prob: float = 1.0) -> Self:
+  def child_candidate(self, id: int, prob: float=1.0) -> Self:
     return self.__class__(id_tensor=torch.cat([self.id_tensor, Language.list2tensor([id])], dim=1), lang=self.lang, parent=self, last_prob=prob)
 
   #override

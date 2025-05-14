@@ -4,7 +4,7 @@ from policy import Policy
 from node import Node
 
 class UCB(Policy):
-  def evaluate(node: Node, conf: dict[str, Any] = None):
+  def evaluate(node: Node, conf: dict[str, Any]=None):
     conf = conf or {}
     #c: exploration parameter, default: 1
     if node.n == 0:

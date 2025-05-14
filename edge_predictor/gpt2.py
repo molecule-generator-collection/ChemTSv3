@@ -45,7 +45,7 @@ class GPT2EdgePredictor(LanguageModel):
     return nodes
 
   #override
-  def generate(self, initial_node: SentenceNode, conf: dict[str, Any] = None) -> SentenceNode:
+  def generate(self, initial_node: SentenceNode, conf: dict[str, Any]=None) -> SentenceNode:
     conf = conf or {}
     with torch.no_grad():
         result_tensor = self.model.generate(

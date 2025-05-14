@@ -11,7 +11,7 @@ from reward import * #for load scope
 from searcher import Searcher
 
 class MCTS(Searcher):
-  def __init__(self, edge_predictor: EdgePredictor, reward_class: Type[Reward] = LogPReward, reward_conf: dict = None, policy_class: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
+  def __init__(self, edge_predictor: EdgePredictor, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict=None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.edge_predictor = edge_predictor
@@ -46,7 +46,7 @@ class MCTS(Searcher):
     remaining_indices = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
 
     for idx in remaining_indices:
-      node.children[idx] = nodes[idx]
+      node.add_child(idx, nodes[idx])
 
   def _eval(self, node: Node):
     if node.is_terminal():
@@ -67,12 +67,10 @@ class MCTS(Searcher):
 
   def _backpropagate(self, node, value):
     while node:
-      node.n += 1
-      node.sum_r += value
-      node.mean_r = node.sum_r / node.n
+      node.observe(value)
       node = node.parent
 
-  def search(self, root: Node=None, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, edge_predictor: EdgePredictor = None, reward_class: Type[Reward] = None, reward_conf: dict = None, policy_class: Type[Policy] = None, policy_conf: dict = None, change_root=False):
+  def search(self, root: Node=None, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, change_root=False):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
     #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
     #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default
@@ -88,11 +86,6 @@ class MCTS(Searcher):
         self.rollout_threshold = expansion_threshold
     if rollout_threshold is not None:
       self.rollout_threshold = rollout_threshold
-    self.edge_predictor = edge_predictor or self.edge_predictor
-    self.reward_class = reward_class or self.reward_class
-    self.reward_conf = reward_conf or self.reward_conf
-    self.policy_class = policy_class or self.policy_class
-    self.policy_conf = policy_conf or self.policy_conf
 
     #record current time and counts
     time_start = time.time()

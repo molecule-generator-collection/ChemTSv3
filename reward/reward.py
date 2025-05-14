@@ -7,20 +7,20 @@ class Reward(ABC):
   #Callable[[Node], float] instead of Callable[[Mol], float] for better compatibility
   @classmethod
   @abstractmethod
-  def objective_functions(cls, conf: dict[str, Any] = None) -> List[Callable[[Node], float]]:
+  def objective_functions(cls, conf: dict[str, Any]=None) -> List[Callable[[Node], float]]:
     pass
 
   @staticmethod
   @abstractmethod
-  def reward_from_objective_values(values: List[float], conf: dict[str, Any] = None) -> float:
+  def reward_from_objective_values(values: List[float], conf: dict[str, Any]=None) -> float:
     pass
 
   @classmethod
-  def objective_values(cls, node: Node, conf: dict[str, Any] = None):
+  def objective_values(cls, node: Node, conf: dict[str, Any]=None):
     return [f(node) for f in cls.objective_functions(conf=conf)]
   
   @classmethod
-  def objective_values_and_reward(cls, node: Node, conf: dict[str, Any] = None) -> tuple[list[float], float]:
+  def objective_values_and_reward(cls, node: Node, conf: dict[str, Any]=None) -> tuple[list[float], float]:
     objective_values = cls.objective_values(node, conf=conf)
     reward = cls.reward_from_objective_values(objective_values, conf=conf)
     return objective_values, reward
@@ -28,12 +28,12 @@ class Reward(ABC):
 class MolReward(Reward):
   @staticmethod
   @abstractmethod
-  def mol_objective_functions(conf: dict[str, Any] = None) -> List[Callable[[Mol], float]]:
+  def mol_objective_functions(conf: dict[str, Any]=None) -> List[Callable[[Mol], float]]:
     pass
 
   @staticmethod
   @abstractmethod
-  def reward_from_objective_values(values: List[float], conf: dict[str, Any] = None) -> float:
+  def reward_from_objective_values(values: List[float], conf: dict[str, Any]=None) -> float:
     pass
 
   @staticmethod
@@ -45,5 +45,5 @@ class MolReward(Reward):
 
   #override
   @classmethod
-  def objective_functions(cls, conf: dict[str, Any] = None) -> List[Callable[[MolNode], float]]:
+  def objective_functions(cls, conf: dict[str, Any]=None) -> List[Callable[[MolNode], float]]:
     return [MolReward.wrap_with_mol(f) for f in cls.mol_objective_functions(conf)]

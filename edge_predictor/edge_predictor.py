@@ -15,7 +15,7 @@ class EdgePredictor(ABC):
     pass
 
   @abstractmethod
-  def generate(self, initial_node: Node, conf: dict[str, Any] = None) -> Node:
+  def generate(self, initial_node: Node, conf: dict[str, Any]=None) -> Node:
     pass
   
 class LanguageModel(EdgePredictor):
@@ -30,7 +30,7 @@ class LanguageModel(EdgePredictor):
 
   #override
   @abstractmethod
-  def generate(self, initial_node: SentenceNode, conf: dict[str, Any] = None) -> SentenceNode:
+  def generate(self, initial_node: SentenceNode, conf: dict[str, Any]=None) -> SentenceNode:
     pass
 
   @abstractmethod

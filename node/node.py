@@ -1,13 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Self
+from typing import Self, Any
 from rdkit.Chem import Mol
 
 class Node(ABC):
-  def __init__(self, parent=None, last_prob=1.0):
+  def __init__(self, parent=None, last_action: Any=None, last_prob=1.0):
     self.parent = parent
-    self.children = {}
+    if parent is not None:
+      self.depth = parent.depth + 1
+    else:
+      self.depth = 0
+    self.children: dict[int, Self] = {}
     self._probs = [] #for save, call probs()
     self.last_prob = last_prob #Prob(parent -> this node)
+    self.last_action = last_action
     self.n = 0 #visit count
     self.sum_r = 0.0 #sum of rewards
     self.mean_r = 0.0 #mean of rewards
@@ -16,6 +21,7 @@ class Node(ABC):
   def __str__(self) -> str:
     pass
 
+  #ordered by action idx
   @abstractmethod
   def child_candidates(self) -> list[Self]:
     pass
@@ -23,6 +29,14 @@ class Node(ABC):
   @abstractmethod
   def is_terminal(self) -> bool:
     pass
+
+  def add_child(self, action_idx: int, child: Self):
+    self.children[action_idx] = child
+  
+  def observe(self, value: float):
+    self.n += 1
+    self.sum_r += value
+    self.mean_r = self.sum_r / self.n
   
 class MolNode(Node):
   def __init__(self, parent=None, last_prob=1.0):
