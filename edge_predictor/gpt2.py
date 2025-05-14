@@ -29,8 +29,8 @@ class GPT2EdgePredictor(LanguageModel):
     return self.model.config.n_positions
 
   #override
-  def nextnodes_with_probs(self, node: SentenceNode) -> list[SentenceNode]:
-    nodes = node.nextnodes()
+  def child_candidates_with_probs(self, node: SentenceNode) -> list[SentenceNode]:
+    nodes = node.child_candidates()
 
     with torch.no_grad():
       outputs = self.model(node.id_tensor)

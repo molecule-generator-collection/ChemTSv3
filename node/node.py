@@ -17,7 +17,7 @@ class Node(ABC):
     pass
 
   @abstractmethod
-  def nextnodes(self) -> list[Self]:
+  def child_candidates(self) -> list[Self]:
     pass
 
   @abstractmethod
