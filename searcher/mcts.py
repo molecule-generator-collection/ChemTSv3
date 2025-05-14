@@ -1,6 +1,6 @@
 import time
 from datetime import datetime
-from typing import Type, Self
+from typing import Type, Self, Any
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,20 +11,19 @@ from reward import * #for load scope
 from searcher import Searcher
 
 class MCTS(Searcher):
-  def __init__(self, edge_predictor: EdgePredictor, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict=None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
+  def __init__(self, edge_predictor: EdgePredictor, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict=None, rollout_limit=4096, output_dir="result", logger_conf: dict[str, Any]=None, name=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.edge_predictor = edge_predictor
     self.policy_class = policy_class
     self.policy_conf = policy_conf or {}
     self.rollout_limit = rollout_limit
-    self.verbose = verbose
     self.count_rollouts = 0
     self.passed_time = 0
     #for search
     self.expansion_threshold = 0.995
     self.rollout_threshold = 0.995
-    super().__init__(name, reward_class=reward_class, reward_conf=reward_conf, print_output=print_output, output_dir=output_dir)
+    super().__init__(name, reward_class=reward_class, reward_conf=reward_conf, output_dir=output_dir, logger_conf=logger_conf)
 
   #override
   def name(self):
@@ -33,7 +32,7 @@ class MCTS(Searcher):
     else:
       policy_name = self.policy_class.__name__
       policy_c = str(self.policy_conf.get("c", 1))
-      newname = policy_name + "_c=" + policy_c + "_" + datetime.now().strftime("%m-%d_%H-%M")
+      newname = self.__class__.__name__ + "_" + policy_name + "_c=" + policy_c + "_" + datetime.now().strftime("%m-%d_%H-%M")
       return newname
 
   def _expand(self, node: Node):
@@ -79,8 +78,8 @@ class MCTS(Searcher):
     #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default
     #dummy_reward: backpropagate value is fixed to 0, still calculates rewards and objective values
     
-    assert (max_rollouts is not None) or (time_limit is not None) or (max_generations is not None), \
-        "ERROR: Specify at least one of max_genrations, max_rollouts or time_limit."
+    if (max_rollouts is None) and (time_limit is None) and (max_generations is None):
+        raise AssertionError("Specify at least one of max_genrations, max_rollouts or time_limit.")
 
     #refresh variables
     if expansion_threshold is not None:
@@ -97,14 +96,16 @@ class MCTS(Searcher):
     initial_count_generations = len(self.unique_keys)
 
     #asign root node
-    assert (root is not None) or (self.root is not None), \
-        "ERROR: Specify the root node unless you're running a loaded MCTS searcher."
-    assert (root is None) or (self.root is None) or change_root, \
-        "ERROR: root was passed as an argument, but this MCTS searcher already has the root node. If you really want to change the root node, set change_root to True."
+    if root is None and self.root is None:
+      raise AssertionError("Specify the root node unless you're running a loaded MCTS searcher.")
+    if (root is not None) and (self.root is not None) and not change_root:
+      raise AssertionError("root was passed as an argument, but this MCTS searcher already has the root node. If you really want to change the root node, set change_root to True.")
+
     if (root is not None and change_root) or self.root is None:
       self.root = root
       self._expand(self.root)
 
+    self.logger.info("Search is started.")
     while True:
       time_passed = time.time() - time_start
       self.passed_time = initial_time + time_passed
@@ -119,8 +120,7 @@ class MCTS(Searcher):
       while node.children:
         node = max(node.children.values(), key=lambda n: self.policy_class.evaluate(n, conf=self.policy_conf))
         if node.sum_r == -float("inf"): #already exhausted every terminal under this
-          if self.verbose:
-            self.logging("!------exhaust every terminal under: " + str(node.parent) + "------!")
+          self.logger.DEBUG("!------exhaust every terminal under: " + str(node.parent) + "------!")
           if exhaust_backpropagate:
             value = self._eval(node)
             self._backpropagate(node, value, use_dummy_reward)
@@ -132,7 +132,7 @@ class MCTS(Searcher):
 
     self.plot_everything(x_axis = "generation_order", maxline = True)
     self.plot_everything(x_axis = "time", maxline = True)
-    print("Search is completed.")
+    self.logger.info("Search is completed.")
 
   #for expansion_threshold
   @staticmethod
@@ -145,7 +145,7 @@ class MCTS(Searcher):
     return sorted_indices[:cutoff + 1].tolist()
 
   def log_unique_mol(self, key, objective_values, reward):
-    self.logging(str(len(self.unique_keys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
+    self.logger.info(str(len(self.unique_keys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
     self.unique_keys.append(key)
     self.record[key] = {}
     self.record[key]["objective_values"] = objective_values
@@ -157,14 +157,12 @@ class MCTS(Searcher):
   def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
     key = str(node)
     if key in self.record:
-      if self.verbose:
-        self.logging("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
+      self.logger.debug("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
       return self.record[key]["objective_values"], self.record[key]["reward"]
     objective_values, reward = self.reward_class.objective_values_and_reward(node, conf=self.reward_conf)
 
     if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
-      if self.verbose:
-        self.logging("invalid mol: " + key)
+      self.logger.debug("invalid mol: " + key)
     else:
       self.log_unique_mol(key, objective_values, reward)
 
@@ -201,7 +199,7 @@ class MCTS(Searcher):
       reward_name = pickle.load(f)
       reward_class = globals().get(reward_name, None)
       if reward_class is None:
-        s.logging("Reward class " + reward_name + " was not found, and replaced with LogPReward.")
+        s.logger.warning("Reward class " + reward_name + " was not found, and replaced with LogPReward.")
         s.reward_class = LogPReward
       else:
         s.reward_class = reward_class
@@ -210,7 +208,7 @@ class MCTS(Searcher):
       policy_name = pickle.load(f)
       policy_class = globals().get(policy_name, None)
       if policy_class is None:
-        s.logging("Policy class " + policy_name + " was not found, and replaced with UCB.")
+        s.logger.warning("Policy class " + policy_name + " was not found, and replaced with UCB.")
         s.policy_class = UCB
       else:
         s.policy_class = policy_class
