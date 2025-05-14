@@ -16,7 +16,7 @@ class Transition(ABC):
 
 class WeightedTransition(Transition):
   @abstractmethod
-  def transitions_with_weights(self, node: Node) -> list[tuple[Any, Node, float]]:
+  def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
     pass
 
   #can implement default execution later
@@ -26,7 +26,7 @@ class WeightedTransition(Transition):
 
   #override
   def transitions(self, node: Node) -> list[tuple[Any, Node]]:
-    return self.transitions_with_weights(node)[:-1]
+    return self.transitions_with_probs(node)[:-1]
   
 class LanguageModel(WeightedTransition):
   def __init__(self, lang: Language, name=None):
@@ -35,7 +35,7 @@ class LanguageModel(WeightedTransition):
 
   #override
   @abstractmethod
-  def transitions_with_weights(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+  def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
     pass
 
   #override

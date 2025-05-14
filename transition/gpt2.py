@@ -29,7 +29,7 @@ class GPT2Transition(LanguageModel):
     return self.model.config.n_positions
 
   #override
-  def transitions_with_weights(self, node: SentenceNode) -> list[SentenceNode]:
+  def transitions_with_probs(self, node: SentenceNode) -> list[SentenceNode]:
     nodes = []
 
     with torch.no_grad():
