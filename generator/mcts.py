@@ -8,10 +8,10 @@ from node import Node
 from transition import WeightedTransition
 from policy import * #for load scope
 from reward import * #for load scope
-from searcher import Searcher
+from generator import Generator
 
-class MCTS(Searcher):
-  def __init__(self, transition: WeightedTransition, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, rollout_limit=4096, output_dir="result", logger_conf: dict[str, Any]=None, name=None):
+class MCTS(Generator):
+  def __init__(self, transition: WeightedTransition, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, rollout_limit=4096, output_dir="result", name=None, logger_conf: dict[str, Any]=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.transition = transition
@@ -23,7 +23,7 @@ class MCTS(Searcher):
     #for search
     self.expansion_threshold = 0.995
     self.rollout_threshold = 0.995
-    super().__init__(name, reward_class=reward_class, reward_conf=reward_conf, output_dir=output_dir, logger_conf=logger_conf)
+    super().__init__(reward_class=reward_class, reward_conf=reward_conf, output_dir=output_dir, name=name, logger_conf=logger_conf)
 
   #override
   def name(self):
@@ -39,7 +39,7 @@ class MCTS(Searcher):
       return
 
     #apply expansion_threshold
-    actions, nodes, probs = zip(*self.transition.transitions_with_weights(node))
+    actions, nodes, probs = zip(*self.transition.transitions_with_probs(node))
     remaining_indices = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
 
     for idx in remaining_indices:
@@ -70,7 +70,7 @@ class MCTS(Searcher):
         node.observe(value)
       node = node.parent
 
-  def search(self, root: Node=None, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, use_dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, change_root=False):
+  def generate(self, root: Node=None, time_limit=None, max_generations=None, max_rollouts=None, use_dummy_reward=False, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, change_root=False):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
     #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
     #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default
@@ -128,8 +128,8 @@ class MCTS(Searcher):
       value = self._eval(node)
       self._backpropagate(node, value, use_dummy_reward)
 
-    self.plot_everything(x_axis = "generation_order", maxline = True)
-    self.plot_everything(x_axis = "time", maxline = True)
+    self.plot_objective_values_and_reward(x_axis = "generation_order", maxline = True)
+    self.plot_objective_values_and_reward(x_axis = "time", maxline = True)
     self.logger.info("Search is completed.")
 
   #for expansion_threshold

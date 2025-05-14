@@ -7,8 +7,9 @@ import logging
 from typing import Type, Any
 from reward import Reward, LogPReward
 
-class Searcher(ABC):
-  def __init__(self, name=None, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, output_dir="result", logger_conf: dict[str, Any]=None):
+class Generator(ABC):
+  def __init__(self, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, output_dir="result", name=None, logger_conf: dict[str, Any]=None):
+    #transition is not passed: generator with multiple transition rules
     self._name = name
     self._name = self.name() #generate name if name=None
     self.reward_class = reward_class
@@ -19,6 +20,10 @@ class Searcher(ABC):
     self.unique_keys = []
     self.record: dict[str, dict] = {} #save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
     self.set_logger(logger_conf)
+  
+  @abstractmethod
+  def generate(self, *args):
+    pass
 
   def name(self):
     if self._name is not None:
@@ -85,7 +90,7 @@ class Searcher(ABC):
     plt.legend()
     plt.show()
   
-  def plot_everything(self, x_axis: str="generation_order", maxline=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):
+  def plot_objective_values_and_reward(self, x_axis: str="generation_order", maxline=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):
     ylims = ylims or {}
     objective_names = [f.__name__ for f in self.reward_class.objective_functions()]
     for o in objective_names:
