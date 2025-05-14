@@ -5,7 +5,7 @@ from rdkit.Chem import Mol
 import pickle
 from typing import Self
 
-class Helm(DynamicMolLanguage):
+class HELM(DynamicMolLanguage):
   #Currently has_period = True isn't properly implemented for general use
   #override
   def __init__(self, has_period=False):
@@ -15,7 +15,7 @@ class Helm(DynamicMolLanguage):
 
   #override
   def sentence2tokens(self, sentence):
-    helm = Helm.eos_culling(sentence)
+    helm = HELM.eos_culling(sentence)
 
     #pattern by Shoichi Ishida
     pattern = "(\[[^\]]+]|PEPTIDE[0-9]+|RNA[0-9]+|CHEM[0-9]+|BLOB[0-9]+|R[0-9]|A|C|D|E|F|G|H|I|K|L|M|N|P|Q|R|S|T|V|W|Y|\||\(|\)|\{|\}|-|\$|:|,|\.|[0-9]{2}|[0-9])"
@@ -94,7 +94,7 @@ class Helm(DynamicMolLanguage):
   #override
   @staticmethod    
   def load(file: str) -> Self:
-    lang = Helm()
+    lang = HELM()
     with open(file, "rb") as f:
       lang._vocab = pickle.load(f)
       lang._token2id = pickle.load(f)
