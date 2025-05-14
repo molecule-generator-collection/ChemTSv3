@@ -8,7 +8,7 @@ from typing import Self
 class Helm(DynamicMolLanguage):
   #Currently has_period = True isn't properly implemented for general use
   #override
-  def __init__(self, has_period = False):
+  def __init__(self, has_period=False):
     self.has_period = has_period
     self.monomer_ids = set()
     super().__init__()

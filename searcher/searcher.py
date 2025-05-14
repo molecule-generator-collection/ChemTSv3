@@ -7,7 +7,7 @@ from typing import Type
 from reward import Reward, LogPReward
 
 class Searcher(ABC):
-  def __init__(self, name=None, reward_class: Type[Reward] = LogPReward, reward_conf: dict = None, print_output=True, output_dir="result"):
+  def __init__(self, name=None, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, print_output=True, output_dir="result"):
     self._name = name
     self._name = self.name() #generate name if name=None
     self.reward_class = reward_class
@@ -36,7 +36,7 @@ class Searcher(ABC):
       f.write(str + "\n")
       
   #visualize results
-  def plot(self, x_axis: str = "generation_order", y_axis: str = "reward", maxline = False, xlim: tuple[float, float] = None, ylim: tuple[float, float] = None):
+  def plot(self, x_axis: str="generation_order", y_axis: str="reward", maxline = False, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
     #x_axis ... use X in self.record["mol_key"]["X"]
 
     x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
