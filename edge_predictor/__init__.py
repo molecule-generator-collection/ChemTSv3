@@ -1,4 +1,4 @@
 from .edge_predictor import EdgePredictor, LanguageModel
-from .gpt2lm import GPT2LM
+from .gpt2 import GPT2EdgePredictor
 
-__all__ = ["EdgePredictor", "LanguageModel", "GPT2LM"]
+__all__ = ["EdgePredictor", "LanguageModel", "GPT2EdgePredictor"]

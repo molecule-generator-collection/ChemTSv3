@@ -7,7 +7,7 @@ from language import Language
 from edge_predictor import LanguageModel
 from node import SentenceNode
 
-class GPT2LM(LanguageModel):
+class GPT2EdgePredictor(LanguageModel):
   def __init__(self, lang: Language, model=None, model_dir=None, name=None):
     assert (model is not None) or (model_dir is not None), \
             "specify model or model_dir."
