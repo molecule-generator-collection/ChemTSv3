@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from transformers import GPT2LMHeadModel
 from language import Language
-from edgepredictor import LanguageModel
+from edge_predictor import LanguageModel
 from node import SentenceNode
 
 class GPT2LM(LanguageModel):

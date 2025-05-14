@@ -5,16 +5,16 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from node import Node
-from edgepredictor import EdgePredictor
+from edge_predictor import EdgePredictor
 from policy import * #for load scope
 from reward import * #for load scope
 from searcher import Searcher
 
 class MCTS(Searcher):
-  def __init__(self, edgepredictor: EdgePredictor, reward_class: Type[Reward] = LogPReward, reward_conf: dict = None, policy_class: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
+  def __init__(self, edge_predictor: EdgePredictor, reward_class: Type[Reward] = LogPReward, reward_conf: dict = None, policy_class: Type[Policy] = UCB, policy_conf: dict = None, rollout_limit=4096, print_output=True, output_dir="result", verbose=False, name=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
-    self.edgepredictor = edgepredictor
+    self.edge_predictor = edge_predictor
     self.policy_class = policy_class
     self.policy_conf = policy_conf or {}
     self.rollout_limit = rollout_limit
@@ -41,7 +41,7 @@ class MCTS(Searcher):
       return
 
     #apply expansion_threshold
-    nodes = self.edgepredictor.nextnodes_with_probs(node)
+    nodes = self.edge_predictor.nextnodes_with_probs(node)
     probs = [node.last_prob for node in nodes]
     remaining_ids = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
 
@@ -61,7 +61,7 @@ class MCTS(Searcher):
   def _rollout(self, node):
     if node.id_tensor.numel() >= self.rollout_limit:
       return self.reward_conf.get("null_reward", -1)
-    mol = self.edgepredictor.randomgen(node, conf={"rollout_threshold": self.rollout_threshold})
+    mol = self.edge_predictor.randomgen(node, conf={"rollout_threshold": self.rollout_threshold})
     self.count_rollouts += 1
     return self.grab_objective_values_and_reward(mol)
 
@@ -72,7 +72,7 @@ class MCTS(Searcher):
       node.mean_r = node.sum_r / node.n
       node = node.parent
 
-  def search(self, root: Node=None, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, edgepredictor: EdgePredictor = None, reward_class: Type[Reward] = None, reward_conf: dict = None, policy_class: Type[Policy] = None, policy_conf: dict = None, change_root=False):
+  def search(self, root: Node=None, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, dummy_reward=False, max_rollouts=None, time_limit=None, max_generations=None, edge_predictor: EdgePredictor = None, reward_class: Type[Reward] = None, reward_conf: dict = None, policy_class: Type[Policy] = None, policy_conf: dict = None, change_root=False):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
     #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
     #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default
@@ -88,7 +88,7 @@ class MCTS(Searcher):
         self.rollout_threshold = expansion_threshold
     if rollout_threshold is not None:
       self.rollout_threshold = rollout_threshold
-    self.edgepredictor = edgepredictor or self.edgepredictor
+    self.edge_predictor = edge_predictor or self.edge_predictor
     self.reward_class = reward_class or self.reward_class
     self.reward_conf = reward_conf or self.reward_conf
     self.policy_class = policy_class or self.policy_class
@@ -193,10 +193,10 @@ class MCTS(Searcher):
       pickle.dump(self.policy_class.__name__, fo)
       pickle.dump(self.policy_conf, fo)
   
-  #edgepredictor won't be saved/loaded
+  #edge_predictor won't be saved/loaded
   @staticmethod
-  def load(file: str, edgepredictor: EdgePredictor) -> Self:
-    s = MCTS(edgepredictor=edgepredictor)
+  def load(file: str, edge_predictor: EdgePredictor) -> Self:
+    s = MCTS(edge_predictor=edge_predictor)
     with open(file, "rb") as f:
       s._name = pickle.load(f)
       s._output_dir = pickle.load(f)
