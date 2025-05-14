@@ -11,7 +11,7 @@ from reward import * #for load scope
 from searcher import Searcher
 
 class MCTS(Searcher):
-  def __init__(self, edge_predictor: EdgePredictor, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict=None, rollout_limit=4096, output_dir="result", logger_conf: dict[str, Any]=None, name=None):
+  def __init__(self, edge_predictor: EdgePredictor, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, rollout_limit=4096, output_dir="result", logger_conf: dict[str, Any]=None, name=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.edge_predictor = edge_predictor
@@ -120,7 +120,7 @@ class MCTS(Searcher):
       while node.children:
         node = max(node.children.values(), key=lambda n: self.policy_class.evaluate(n, conf=self.policy_conf))
         if node.sum_r == -float("inf"): #already exhausted every terminal under this
-          self.logger.DEBUG("!------exhaust every terminal under: " + str(node.parent) + "------!")
+          self.logger.DEBUG("Exhaust every terminal under: " + str(node.parent) + "")
           if exhaust_backpropagate:
             value = self._eval(node)
             self._backpropagate(node, value, use_dummy_reward)
