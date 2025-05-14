@@ -4,10 +4,10 @@ import torch
 import torch.nn.functional as F
 from transformers import GPT2LMHeadModel
 from language import Language
-from edge_predictor import LanguageModel
+from transition import LanguageModel
 from node import SentenceNode
 
-class GPT2EdgePredictor(LanguageModel):
+class GPT2Transition(LanguageModel):
   def __init__(self, lang: Language, model=None, model_dir=None, name=None):
     assert (model is not None) or (model_dir is not None), \
             "specify model or model_dir."
@@ -29,8 +29,8 @@ class GPT2EdgePredictor(LanguageModel):
     return self.model.config.n_positions
 
   #override
-  def child_candidates_with_probs(self, node: SentenceNode) -> list[SentenceNode]:
-    nodes = node.child_candidates()
+  def transitions_with_weights(self, node: SentenceNode) -> list[SentenceNode]:
+    nodes = []
 
     with torch.no_grad():
       outputs = self.model(node.id_tensor)
@@ -40,9 +40,9 @@ class GPT2EdgePredictor(LanguageModel):
     probs = F.softmax(next_token_logits, dim=-1).tolist()
 
     for i in range(len(probs)):
-      nodes[i].last_prob = probs[i]
+      nodes.append(node.__class__(id_tensor=torch.cat([node.id_tensor, Language.list2tensor([i])], dim=1), lang=node.lang, parent=node, last_prob=probs[i]))
 
-    return nodes
+    return [(i, nodes[i], probs[i]) for i in range(len(probs))]
 
   #override
   def generate(self, initial_node: SentenceNode, conf: dict[str, Any]=None) -> SentenceNode:
