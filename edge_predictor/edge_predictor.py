@@ -11,7 +11,7 @@ class EdgePredictor(ABC):
       self.name = "model"
 
   @abstractmethod
-  def nextnodes_with_probs(self, node: Node) -> list[Node]:
+  def child_candidates_with_probs(self, node: Node) -> list[Node]:
     pass
 
   @abstractmethod
@@ -25,7 +25,7 @@ class LanguageModel(EdgePredictor):
 
   #override
   @abstractmethod
-  def nextnodes_with_probs(self, node: SentenceNode) -> list[SentenceNode]:
+  def child_candidates_with_probs(self, node: SentenceNode) -> list[SentenceNode]:
     pass
 
   #override

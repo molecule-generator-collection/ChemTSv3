@@ -12,16 +12,16 @@ class SentenceNode(Node):
 
   #override
   def __str__(self):
-    return self.lang.ids2sentence(self.idlist())
+    return self.lang.ids2sentence(self.id_list())
     pass
 
   #override
   #should be ordered by token id
   #doesn't register nodes as children
-  def nextnodes(self):
-    return [self.nextnode(id) for id in range(len(self.lang.vocab()))]
+  def child_candidates(self):
+    return [self.child_candidate(id) for id in range(len(self.lang.vocab()))]
 
-  def nextnode(self, id: int, prob: float = 1.0) -> Self:
+  def child_candidate(self, id: int, prob: float = 1.0) -> Self:
     return self.__class__(id_tensor=torch.cat([self.id_tensor, Language.list2tensor([id])], dim=1), lang=self.lang, parent=self, last_prob=prob)
 
   #override
@@ -29,7 +29,7 @@ class SentenceNode(Node):
     return self.id_tensor[0][-1] == self.lang.eos_id()
 
   #output token id sequence as a list
-  def idlist(self) -> list[int]:
+  def id_list(self) -> list[int]:
     return self.id_tensor[0].tolist()
 
   #bos node, often used as root
