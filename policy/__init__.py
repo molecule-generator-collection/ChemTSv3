@@ -1,4 +1,4 @@
-from .policy import Policy
+from .base import Policy
 from .ucb import UCB
 from .puct import PUCT
 
