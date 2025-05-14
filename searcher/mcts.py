@@ -43,10 +43,10 @@ class MCTS(Searcher):
     #apply expansion_threshold
     nodes = self.edge_predictor.nextnodes_with_probs(node)
     probs = [node.last_prob for node in nodes]
-    remaining_ids = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
+    remaining_indices = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
 
-    for id in remaining_ids:
-      node.children[id] = nodes[id]
+    for idx in remaining_indices:
+      node.children[idx] = nodes[idx]
 
   def _eval(self, node: Node):
     if node.is_terminal():
