@@ -20,7 +20,7 @@ class Reward(ABC):
     return [f(node) for f in cls.objective_functions(**kwargs)]
   
   @classmethod
-  def objective_values_and_reward(cls, node: Node, objective_values_conf: dict[str, Any], reward_conf: dict[str, Any]) -> tuple[list[float], float]:
+  def objective_values_and_reward(cls, node: Node, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None) -> tuple[list[float], float]:
     objective_values = cls.objective_values(node, **objective_values_conf)
     reward = cls.reward_from_objective_values(objective_values, **reward_conf)
     return objective_values, reward
