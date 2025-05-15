@@ -45,15 +45,14 @@ class GPT2Transition(LanguageModel):
     return [(i, nodes[i], probs[i]) for i in range(len(probs))]
 
   #override
-  def generate(self, initial_node: SentenceNode, conf: dict[str, Any]=None) -> SentenceNode:
-    conf = conf or {}
+  def generate(self, initial_node: SentenceNode, rollout_threshold=0.995) -> SentenceNode:
     with torch.no_grad():
         result_tensor = self.model.generate(
             initial_node.id_tensor,
             max_length=self.max_length(),
             do_sample=True,       #sampling
             #top_k=50,             #top-k sampling
-            top_p=conf.get("rollout_threshold", 0.995),           #nucleus sampling
+            top_p=rollout_threshold,  #nucleus sampling
             eos_token_id=self.lang.eos_id(),
             pad_token_id=self.lang.pad_id(),
             num_return_sequences=1
