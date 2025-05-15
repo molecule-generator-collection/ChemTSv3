@@ -11,10 +11,11 @@ from reward import * #for load scope
 from generator import Generator
 
 class MCTS(Generator):
-  def __init__(self, transition: WeightedTransition, reward_class: Type[Reward]=LogPReward, reward_conf: dict=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, rollout_limit=4096, output_dir="result", name=None, logger_conf: dict[str, Any]=None):
+  def __init__(self, transition: WeightedTransition, generation_conf: dict[str, Any]=None, reward_class: Type[Reward]=LogPReward, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, rollout_limit=4096, output_dir="result", name=None, logger_conf: dict[str, Any]=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.transition = transition
+    self.generation_conf = generation_conf or {}
     self.policy_class = policy_class
     self.policy_conf = policy_conf or {}
     self.rollout_limit = rollout_limit
@@ -23,7 +24,7 @@ class MCTS(Generator):
     #for search
     self.expansion_threshold = 0.995
     self.rollout_threshold = 0.995
-    super().__init__(reward_class=reward_class, reward_conf=reward_conf, output_dir=output_dir, name=name, logger_conf=logger_conf)
+    super().__init__(reward_class=reward_class, objective_values_conf=objective_values_conf, reward_conf=reward_conf, output_dir=output_dir, name=name, logger_conf=logger_conf)
 
   #override
   def name(self):
@@ -57,8 +58,8 @@ class MCTS(Generator):
 
   def _rollout(self, node: Node):
     if node.id_tensor.numel() >= self.rollout_limit:
-      return self.reward_conf.get("null_reward", -1)
-    mol = self.transition.generate(node, conf={"rollout_threshold": self.rollout_threshold})
+      return self.reward_conf.get("filtered_reward", -1)
+    mol = self.transition.generate(node, **self.generation_conf)
     self.count_rollouts += 1
     return self.grab_objective_values_and_reward(mol)
 
@@ -116,7 +117,7 @@ class MCTS(Generator):
 
       node = self.root
       while node.children:
-        node = max(node.children.values(), key=lambda n: self.policy_class.evaluate(n, conf=self.policy_conf))
+        node = max(node.children.values(), key=lambda n: self.policy_class.evaluate(n, **self.policy_conf))
         if node.sum_r == -float("inf"): #already exhausted every terminal under this
           self.logger.debug("Exhaust every terminal under: " + str(node.parent) + "")
           if exhaust_backpropagate:
@@ -158,7 +159,7 @@ class MCTS(Generator):
     if key in self.record:
       self.logger.debug("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
       return self.record[key]["objective_values"], self.record[key]["reward"]
-    objective_values, reward = self.reward_class.objective_values_and_reward(node, conf=self.reward_conf)
+    objective_values, reward = self.reward_class.objective_values_and_reward(node, objective_values_conf=self.objective_values_conf, reward_conf=self.reward_conf)
 
     if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
       self.logger.debug("invalid mol: " + key)

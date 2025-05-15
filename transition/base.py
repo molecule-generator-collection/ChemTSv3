@@ -21,7 +21,7 @@ class WeightedTransition(Transition):
 
   #can implement default execution later
   @abstractmethod
-  def generate(self, initial_node: Node, conf: dict[str, Any]=None) -> Node:
+  def generate(self, initial_node: Node, **kwargs) -> Node:
     pass
 
   #override

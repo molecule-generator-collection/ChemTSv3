@@ -4,10 +4,9 @@ from policy import Policy
 from node import Node
 
 class UCB(Policy):
-  def evaluate(node: Node, conf: dict[str, Any]=None):
-    conf = conf or {}
-    #c: exploration parameter, default: 1
+  def evaluate(node: Node, c=1):
+    #c: exploration parameter
     if node.n == 0:
       return float("inf")
-    u = conf.get("c", 1) * sqrt(2 * log(node.parent.n) / (node.n))
+    u = c * sqrt(2 * log(node.parent.n) / (node.n))
     return node.mean_r + u
