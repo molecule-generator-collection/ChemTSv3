@@ -133,6 +133,7 @@ class MCTS(Generator):
     self.logger.info("Search is completed.")
 
   #for expansion_threshold
+  #move to WeightedTransition later
   @staticmethod
   def select_indices_by_threshold(probs: list[float], expansion_threshold: float) -> list[int]:
     probs = np.array(probs)
