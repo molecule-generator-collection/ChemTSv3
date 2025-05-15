@@ -21,12 +21,16 @@ class WeightedTransition(Transition):
 
   #can implement default execution later
   @abstractmethod
-  def generate(self, initial_node: Node, **kwargs) -> Node:
+  def rollout(self, initial_node: Node, **kwargs) -> Node:
     pass
 
   #override
   def transitions(self, node: Node) -> list[tuple[Any, Node]]:
     return self.transitions_with_probs(node)[:-1]
+  
+  #should override if not inf
+  def max_length(self) -> int:
+    return 10**18
   
 class LanguageModel(WeightedTransition):
   def __init__(self, lang: Language, name=None):
@@ -40,9 +44,10 @@ class LanguageModel(WeightedTransition):
 
   #override
   @abstractmethod
-  def generate(self, initial_node: SentenceNode, conf: dict[str, Any]=None) -> SentenceNode:
+  def rollout(self, initial_node: SentenceNode, **kwargs) -> SentenceNode:
     pass
 
   #should override if not inf
+  #override
   def max_length(self) -> int:
     return 10**18

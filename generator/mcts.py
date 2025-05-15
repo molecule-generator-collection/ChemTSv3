@@ -11,19 +11,18 @@ from reward import * #for load scope
 from generator import Generator
 
 class MCTS(Generator):
-  def __init__(self, transition: WeightedTransition, generation_conf: dict[str, Any]=None, reward_class: Type[Reward]=LogPReward, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, rollout_limit=4096, output_dir="result", name=None, logger_conf: dict[str, Any]=None):
+  def __init__(self, transition: WeightedTransition, reward_class: Type[Reward]=LogPReward, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, max_length=None, output_dir="result", name=None, logger_conf: dict[str, Any]=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.transition = transition
-    self.generation_conf = generation_conf or {}
     self.policy_class = policy_class
     self.policy_conf = policy_conf or {}
-    self.rollout_limit = rollout_limit
+    self.max_length = max_length or transition.max_length()
     self.count_rollouts = 0
     self.passed_time = 0
     #for search
     self.expansion_threshold = 0.995
-    self.rollout_threshold = 0.995
+    self.rollout_conf = {"rollout_threshold": self.expansion_threshold}
     super().__init__(reward_class=reward_class, objective_values_conf=objective_values_conf, reward_conf=reward_conf, output_dir=output_dir, name=name, logger_conf=logger_conf)
 
   #override
@@ -57,9 +56,9 @@ class MCTS(Generator):
     return reward
 
   def _rollout(self, node: Node):
-    if node.id_tensor.numel() >= self.rollout_limit:
+    if node.depth >= self.max_length:
       return self.reward_conf.get("filtered_reward", -1)
-    mol = self.transition.generate(node, **self.generation_conf)
+    mol = self.transition.rollout(node, **self.rollout_conf)
     self.count_rollouts += 1
     return self.grab_objective_values_and_reward(mol)
 
@@ -71,22 +70,18 @@ class MCTS(Generator):
         node.observe(value)
       node = node.parent
 
-  def generate(self, root: Node=None, time_limit=None, max_generations=None, max_rollouts=None, use_dummy_reward=False, expansion_threshold=None, rollout_threshold=None, exhaust_backpropagate=False, change_root=False):
+  def generate(self, root: Node=None, time_limit=None, max_generations=None, max_rollouts=None, use_dummy_reward=False, expansion_threshold=0.995, rollout_conf: dict[str, Any]=None, exhaust_backpropagate=False, change_root=False):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
     #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
-    #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value, set to the same value as expansion_threshold by default
+    #rollout_conf: config for rollout
     #dummy_reward: backpropagate value is fixed to 0, still calculates rewards and objective values
     
     if (max_rollouts is None) and (time_limit is None) and (max_generations is None):
         raise AssertionError("Specify at least one of max_genrations, max_rollouts or time_limit.")
 
     #refresh variables
-    if expansion_threshold is not None:
-      self.expansion_threshold = expansion_threshold
-      if rollout_threshold is None:
-        self.rollout_threshold = expansion_threshold
-    if rollout_threshold is not None:
-      self.rollout_threshold = rollout_threshold
+    self.expansion_threshold = expansion_threshold or self.expansion_threshold
+    self.rollout_conf = rollout_conf or self.rollout_conf
 
     #record current time and counts
     time_start = time.time()
@@ -179,6 +174,7 @@ class MCTS(Generator):
       pickle.dump(self.count_rollouts, fo)
       pickle.dump(self.passed_time, fo)
       pickle.dump(self.reward_class.__name__, fo)
+      pickle.dump(self.objective_values_conf, fo)
       pickle.dump(self.reward_conf, fo)
       pickle.dump(self.policy_class.__name__, fo)
       pickle.dump(self.policy_conf, fo)
@@ -203,6 +199,7 @@ class MCTS(Generator):
         s.reward_class = LogPReward
       else:
         s.reward_class = reward_class
+      s.objective_values_conf = pickle.load(f)
       s.reward_conf = pickle.load(f)
       
       policy_name = pickle.load(f)
