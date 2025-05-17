@@ -8,7 +8,7 @@ from typing import Type, Any
 from reward import Reward, LogPReward
 
 class Generator(ABC):
-  def __init__(self, reward_class: Type[Reward]=LogPReward, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, output_dir="result", name=None, logger_conf: dict[str, Any]=None):
+  def __init__(self, reward_class: Type[Reward]=LogPReward, output_dir="result", name=None, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
     #transition is not passed: generator with multiple transition rules
     self._name = name
     self._name = self.name() #generate name if name=None
