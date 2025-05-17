@@ -5,7 +5,7 @@ model_conf:
   lang_path: model/helm/helm_pep_noperiod.lang
 
 generator_conf:
-  output_dir: result
+  output_dir: generation_result
   reward_class_path: reward.logp_reward.LogPReward
   objective_values_conf:
   reward_conf:

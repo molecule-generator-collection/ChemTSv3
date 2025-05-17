@@ -1,6 +1,8 @@
 ._*
 .DS_Store
 result/
+training_result/
+generation_result/
 personal/
 __pycache__/
 *.py[cod]
