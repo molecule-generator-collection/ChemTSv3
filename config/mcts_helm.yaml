@@ -1,13 +1,16 @@
 generator_conf:
   output_dir: result
   objective_values_conf:
+  reward_class_path: "reward.logp_reward.LogPReward"
+  objective_values_conf:
   reward_conf:
     filtered_reward: -1
+  policy_class_path: "policy.ucb.UCB"
   policy_conf:
     c: 0.01
 
 generation_conf:
-  time_limit: 10 #seconds
+  time_limit: 5 #seconds
   #max_rollouts : 15
   #max_generations : 1500
   expansion_threshold: 0.995
