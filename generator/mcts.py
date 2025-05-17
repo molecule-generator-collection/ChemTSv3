@@ -10,7 +10,7 @@ from transition import WeightedTransition
 from utils import get_class_from_str
 
 class MCTS(Generator):
-  def __init__(self, transition: WeightedTransition, max_length=None, output_dir="result", name=None, reward_class_path: str="reward.logp_reward.LogPReward", objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_class_path: str="policy.ucb.UCB", policy_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
+  def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward_class_path: str="reward.logp_reward.LogPReward", objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_class_path: str="policy.ucb.UCB", policy_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.transition = transition
@@ -70,11 +70,20 @@ class MCTS(Generator):
       node = node.parent
 
   #implement
-  def generate(self, root: Node=None, time_limit=None, max_generations=None, max_rollouts=None, use_dummy_reward=False, expansion_threshold=0.995, exhaust_backpropagate=False, change_root=False, rollout_conf: dict[str, Any]=None):
-    #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
-    #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
-    #rollout_conf: config for rollout
-    #dummy_reward: backpropagate value is fixed to 0, still calculates rewards and objective values
+  def generate(self, root: Node=None, time_limit: float=None, max_generations: int=None, max_rollouts: int=None, expansion_threshold: float=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, change_root: bool=False, rollout_conf: dict[str, Any]=None):
+    """
+    Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search.
+
+    Args:
+      time_limit: Seconds. Generation stops after the time limit.
+      max_generations: Generation stops after generating 'max_generations' number of nodes.
+      max_rollouts: Generation stops after conducting 'max_rollouts' number of rollouts.
+      exhaust_backpropagate: If true, backpropagate the reward when every terminal node under the node is already explored (only once, as that node won't be visited again)
+      expansion_threshold: [0-1]. Ignore children with low transition probabilities in expansion based on this value
+      use_dummy_reward: If True, backpropagate value is fixed to 0, still calculates rewards and objective values
+      change_root: Failsafe. Set to False only if you want to change the root node in the loaded generator.
+      rollout_conf: config for rollout.
+    """
     
     if (max_rollouts is None) and (time_limit is None) and (max_generations is None):
         raise AssertionError("Specify at least one of max_genrations, max_rollouts or time_limit.")
