@@ -1,6 +1,6 @@
 model_conf:
   model_class_path: transition.gpt2.GPT2Transition
-  model_dir: model/smiles/smiles_drugs_zinc
+  model_dir: model/smiles/smiles_drugs_zinc_1.2m
   lang_class_path: language.smiles.SMILES
   lang_path: model/smiles/smiles_drugs_zinc.lang
 
