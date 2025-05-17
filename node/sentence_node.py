@@ -10,12 +10,12 @@ class SentenceNode(Node):
     self.lang = lang
     super().__init__(parent=parent, last_prob=last_prob)
 
-  #override
+  #implement
   def __str__(self):
     return self.lang.ids2sentence(self.id_list())
     pass
 
-  #override
+  #implement
   def is_terminal(self):
     return self.id_tensor[0][-1] == self.lang.eos_id()
 
@@ -33,7 +33,7 @@ class MolSentenceNode(SentenceNode, MolNode):
     self._is_valid_mol = None
     super().__init__(id_tensor, lang, parent, last_prob)  
 
-  #override
+  #implement
   def mol(self) -> Mol:
     mol = self.lang.__class__.sentence2mol(self.__str__())
     self._is_valid_mol = not (mol is None or mol.GetNumAtoms()==0)

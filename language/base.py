@@ -91,11 +91,11 @@ class DynamicLanguage(Language):
   def sentence2tokens(self, sentence: str) -> list[str]:
     pass
   
-  #override
+  #implement
   def sentence2ids(self, sentence):
     return [self.token2id(tok) for tok in self.sentence2tokens(sentence)]
 
-  #override
+  #implement
   def ids2sentence(self, idseq):
     idseq = idseq[1:-1] #remove bos and eos
     return "".join(self.id2token(i) for i in idseq)
@@ -113,15 +113,15 @@ class DynamicLanguage(Language):
     self._token2id = {tok: idx for idx, tok in enumerate(self._vocab)}
     self._id2token = {idx: tok for tok, idx in self._token2id.items()}
 
-  #override
+  #implement
   def vocab(self):
     return self._vocab
 
-  #override
+  #implement
   def token2id(self, token):
     return self._token2id.get(token, self._token2id[self.unk_token()])
 
-  #override
+  #implement
   def id2token(self, tokenid):
     return self._id2token[tokenid]
   
