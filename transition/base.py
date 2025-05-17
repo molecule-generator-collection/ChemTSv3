@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any
+import logging
 from language import Language
 from node import Node, SentenceNode
 
 class Transition(ABC):
-  def __init__(self, name=None):
+  def __init__(self, name=None, logger: logging.Logger=None):
     self.name = name or self.default_name()
+    self.logger = logger or logging.getLogger(__name__)
 
   @abstractmethod
   def transitions(self, node: Node) -> list[tuple[Any, Node]]:
@@ -33,9 +35,9 @@ class WeightedTransition(Transition):
     return 10**18
   
 class LanguageModel(WeightedTransition):
-  def __init__(self, lang: Language, name=None):
+  def __init__(self, lang: Language, name=None, logger: logging.Logger=None):
     self.lang = lang
-    super().__init__(name)
+    super().__init__(name, logger)
 
   #override
   @abstractmethod
