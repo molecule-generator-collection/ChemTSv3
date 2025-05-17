@@ -131,13 +131,13 @@ class DynamicLanguage(Language):
       pickle.dump(self._token2id, fo)
       pickle.dump(self._id2token, fo)
 
-  @staticmethod    
-  def load(file: str) -> Self:
+  @classmethod    
+  def load(cls, file: str) -> Self:
     with open(file, "rb") as f:
       vocab_tmp = pickle.load(f)
       token2id_tmp = pickle.load(f)
       id2token_tmp = pickle.load(f)
-    lang = DynamicLanguage()
+    lang = cls()
     lang._vocab = vocab_tmp
     lang._token2id = token2id_tmp
     lang._id2token = id2token_tmp

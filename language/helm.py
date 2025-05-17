@@ -91,9 +91,9 @@ class HELM(DynamicMolLanguage):
       pickle.dump(self.monomer_ids, fo)
 
   #override
-  @staticmethod    
-  def load(file: str) -> Self:
-    lang = HELM()
+  @classmethod    
+  def load(cls, file: str) -> Self:
+    lang = cls()
     with open(file, "rb") as f:
       lang._vocab = pickle.load(f)
       lang._token2id = pickle.load(f)

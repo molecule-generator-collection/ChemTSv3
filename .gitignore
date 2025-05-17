@@ -4,3 +4,4 @@ result/
 personal/
 __pycache__/
 *.py[cod]
+optimizer.pt

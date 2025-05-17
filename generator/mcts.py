@@ -31,7 +31,7 @@ class MCTS(Generator):
     else:
       policy_name = self.policy_class.__name__
       policy_c = str(self.policy_conf.get("c", 1))
-      return super().name() + "_" + policy_name + "_c=" + policy_c + "_"
+      return super().name() + "_" + policy_name + "_c=" + policy_c
 
   def _expand(self, node: Node):
     if node.is_terminal():
