@@ -1,4 +1,5 @@
 import os
+import logging
 from typing import Any
 import torch
 import torch.nn.functional as F
@@ -8,7 +9,7 @@ from transition import LanguageModel
 from node import SentenceNode
 
 class GPT2Transition(LanguageModel):
-  def __init__(self, lang: Language, model=None, model_dir=None, name=None):
+  def __init__(self, lang: Language, model=None, model_dir=None, name=None, logger: logging.Logger=None):
     assert (model is not None) or (model_dir is not None), \
             "specify model or model_dir."
     assert (model is None) or (model_dir is None), \
@@ -17,12 +18,12 @@ class GPT2Transition(LanguageModel):
     if model is not None:
       self.model = model
     else:
-      print("Is CUDA available: " + str(torch.cuda.is_available()))
       self.model = GPT2LMHeadModel.from_pretrained(model_dir, torch_dtype=torch.float16).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
       if name is None:
         name = os.path.basename(os.path.normpath(model_dir))
 
-    super().__init__(lang=lang, name=name)
+    super().__init__(lang=lang, name=name, logger=logger)
+    self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
 
   #override
   def max_length(self):
