@@ -26,7 +26,7 @@ class WeightedTransition(Transition):
   def rollout(self, initial_node: Node, **kwargs) -> Node:
     pass
 
-  #override
+  #implement
   def transitions(self, node: Node) -> list[tuple[Any, Node]]:
     return self.transitions_with_probs(node)[:-1]
   
@@ -39,12 +39,10 @@ class LanguageModel(WeightedTransition):
     self.lang = lang
     super().__init__(name, logger)
 
-  #override
   @abstractmethod
   def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
     pass
 
-  #override
   @abstractmethod
   def rollout(self, initial_node: SentenceNode, **kwargs) -> SentenceNode:
     pass

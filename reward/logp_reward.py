@@ -5,7 +5,7 @@ from typing import Any
 from reward import MolReward
 
 class LogPReward(MolReward):
-  #override
+  #implement
   @staticmethod
   def mol_objective_functions():
     def LogP(mol):
@@ -15,7 +15,7 @@ class LogPReward(MolReward):
 
     return [LogP]
 
-  #override
+  #implement
   @staticmethod
   def reward_from_objective_values(values, filtered_reward=-1):
     if math.isnan(values[0]):

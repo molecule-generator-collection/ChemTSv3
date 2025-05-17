@@ -7,13 +7,12 @@ from typing import Self
 
 class HELM(DynamicMolLanguage):
   #Currently has_period = True isn't properly implemented for general use
-  #override
   def __init__(self, has_period=False):
     self.has_period = has_period
     self.monomer_ids = set()
     super().__init__()
 
-  #override
+  #implement
   def sentence2tokens(self, sentence):
     helm = HELM.eos_culling(sentence)
 
@@ -77,7 +76,7 @@ class HELM(DynamicMolLanguage):
     else:
         return sentence
     
-  #override
+  #implement
   @staticmethod
   def sentence2mol(sentence: str) -> Mol:
     return Chem.MolFromHELM(sentence)
