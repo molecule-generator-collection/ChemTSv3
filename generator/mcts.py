@@ -4,6 +4,7 @@ from typing import Type, Self, Any
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+from utils import get_class_from_str
 from node import Node
 from transition import WeightedTransition
 from policy import * #for load scope
@@ -11,11 +12,11 @@ from reward import * #for load scope
 from generator import Generator
 
 class MCTS(Generator):
-  def __init__(self, transition: WeightedTransition, reward_class: Type[Reward]=LogPReward, policy_class: Type[Policy]=UCB, max_length=None, output_dir="result", name=None, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
+  def __init__(self, transition: WeightedTransition, max_length=None, output_dir="result", name=None, reward_class_path: str="reward.logp_reward.LogPReward", objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_class_path: str="policy.ucb.UCB", policy_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.transition = transition
-    self.policy_class = policy_class
+    self.policy_class: Type[Policy] = get_class_from_str(policy_class_path)
     self.policy_conf = policy_conf or {}
     self.max_length = max_length or transition.max_length()
     self.count_rollouts = 0
@@ -23,7 +24,7 @@ class MCTS(Generator):
     #for search
     self.expansion_threshold = 0.995
     self.rollout_conf = {"rollout_threshold": self.expansion_threshold}
-    super().__init__(reward_class=reward_class, objective_values_conf=objective_values_conf, reward_conf=reward_conf, output_dir=output_dir, name=name, logger_conf=logger_conf)
+    super().__init__(output_dir=output_dir, name=name, reward_class_path=reward_class_path, objective_values_conf=objective_values_conf, reward_conf=reward_conf, logger_conf=logger_conf)
 
   #override
   def name(self):
