@@ -24,25 +24,13 @@ class MCTS(Generator):
     self.rollout_conf = {"rollout_threshold": self.expansion_threshold}
     super().__init__(output_dir=output_dir, name=name, reward_class_path=reward_class_path, objective_values_conf=objective_values_conf, reward_conf=reward_conf, logger_conf=logger_conf)
 
-  #override
-  def name(self):
-    if self._name is not None:
-      return self._name
-    else:
-      policy_name = self.policy_class.__name__
-      policy_c = str(self.policy_conf.get("c", 1))
-      return super().name() + "_" + policy_name + "_c=" + policy_c
-
   def _expand(self, node: Node):
     if node.is_terminal():
       return
 
-    #apply expansion_threshold
-    actions, nodes, probs = zip(*self.transition.transitions_with_probs(node))
-    remaining_indices = MCTS.select_indices_by_threshold(probs, self.expansion_threshold)
-
-    for idx in remaining_indices:
-      node.add_child(actions[idx], nodes[idx])
+    actions, nodes, probs = zip(*self.transition.transitions_with_probs(node, threshold=self.expansion_threshold))
+    for a, n in zip(actions, nodes):
+      node.add_child(a, n)
 
   def _eval(self, node: Node):
     if node.is_terminal():
@@ -137,17 +125,6 @@ class MCTS(Generator):
     self.plot_objective_values_and_reward(x_axis = "time", maxline = True)
     self.logger.info("Search is completed.")
 
-  #for expansion_threshold
-  #move to WeightedTransition later
-  @staticmethod
-  def select_indices_by_threshold(probs: list[float], expansion_threshold: float) -> list[int]:
-    probs = np.array(probs)
-    sorted_indices = np.argsort(-probs)
-    sorted_probs = probs[sorted_indices]
-    cumulative_probs = np.cumsum(sorted_probs)
-    cutoff = np.searchsorted(cumulative_probs, expansion_threshold)
-    return sorted_indices[:cutoff + 1].tolist()
-
   def log_unique_mol(self, key, objective_values, reward):
     self.logger.info(str(len(self.unique_keys)) + "- time: " +  "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
     self.unique_keys.append(key)
@@ -172,6 +149,15 @@ class MCTS(Generator):
 
     return objective_values, reward
   
+  #override
+  def name(self):
+    if self._name is not None:
+      return self._name
+    else:
+      policy_name = self.policy_class.__name__
+      policy_c = str(self.policy_conf.get("c", 1))
+      return super().name() + "_" + policy_name + "_c=" + policy_c
+
   def save(self, file: str):
     self._name
     with open(file, mode="wb") as fo:
