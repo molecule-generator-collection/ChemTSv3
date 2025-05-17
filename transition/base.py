@@ -3,6 +3,7 @@ import logging
 from typing import Any
 from language import Language
 from node import Node, SentenceNode
+from utils import select_indices_by_threshold
 
 class Transition(ABC):
   def __init__(self, name=None, logger: logging.Logger=None):
@@ -18,13 +19,22 @@ class Transition(ABC):
 
 class WeightedTransition(Transition):
   @abstractmethod
-  def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
+  def _transitions_with_probs_impl(self, node: Node) -> list[tuple[Any, Node, float]]:
     pass
 
   #can implement default execution later
   @abstractmethod
   def rollout(self, initial_node: Node, **kwargs) -> Node:
     pass
+
+  def transitions_with_probs(self, node: Node, threshold: float=None) -> list[tuple[Any, Node, float]]:
+    if threshold is not None:
+      raw_transitions = self._transitions_with_probs_impl(node)
+      actions, nodes, probs = zip(*raw_transitions)
+      remaining_indices = select_indices_by_threshold(probs, threshold)
+      return [(actions[i], nodes[i], probs[i]) for i in remaining_indices]
+    else:
+      return self._transitions_with_probs_impl(node)
 
   #implement
   def transitions(self, node: Node) -> list[tuple[Any, Node]]:
@@ -40,7 +50,7 @@ class LanguageModel(WeightedTransition):
     super().__init__(name, logger)
 
   @abstractmethod
-  def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+  def _transitions_with_probs_impl(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
     pass
 
   @abstractmethod
