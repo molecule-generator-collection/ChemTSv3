@@ -11,7 +11,7 @@ from reward import * #for load scope
 from generator import Generator
 
 class MCTS(Generator):
-  def __init__(self, transition: WeightedTransition, reward_class: Type[Reward]=LogPReward, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_class: Type[Policy]=UCB, policy_conf: dict[str, Any]=None, max_length=None, output_dir="result", name=None, logger_conf: dict[str, Any]=None):
+  def __init__(self, transition: WeightedTransition, reward_class: Type[Reward]=LogPReward, policy_class: Type[Policy]=UCB, max_length=None, output_dir="result", name=None, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
     #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
     self.root = None
     self.transition = transition
@@ -70,7 +70,7 @@ class MCTS(Generator):
         node.observe(value)
       node = node.parent
 
-  def generate(self, root: Node=None, time_limit=None, max_generations=None, max_rollouts=None, use_dummy_reward=False, expansion_threshold=0.995, rollout_conf: dict[str, Any]=None, exhaust_backpropagate=False, change_root=False):
+  def generate(self, root: Node=None, time_limit=None, max_generations=None, max_rollouts=None, use_dummy_reward=False, expansion_threshold=0.995, exhaust_backpropagate=False, change_root=False, rollout_conf: dict[str, Any]=None):
     #exhaust_backpropagate: whether to backpropagate or not when every terminal node under the node is already explored (only once: won't be visited again)
     #expansion_threshold: [0-1], ignore children with low transition probabilities in expansion based on this value
     #rollout_conf: config for rollout
