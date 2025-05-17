@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
+import logging
+import os
+from typing import Type, Any
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import logging
-from typing import Type, Any
+from reward import Reward
 from utils import get_class_from_str
-from reward import Reward, LogPReward
 
 class Generator(ABC):
   def __init__(self, output_dir="result", name=None, reward_class_path: str="reward.logp_reward.LogPReward", objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):

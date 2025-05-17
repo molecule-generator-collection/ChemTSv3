@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Callable
-from node import Node, MolNode
 from rdkit.Chem import Mol
+from node import Node, MolNode
 
 class Reward(ABC):
   #Callable[[Node], float] instead of Callable[[Mol], float] for better compatibility

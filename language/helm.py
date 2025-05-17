@@ -1,9 +1,9 @@
-from language import DynamicMolLanguage
+import pickle
 import re
+from typing import Self
 from rdkit import Chem
 from rdkit.Chem import Mol
-import pickle
-from typing import Self
+from language import DynamicMolLanguage
 
 class HELM(DynamicMolLanguage):
   #Currently has_period = True isn't properly implemented for general use
