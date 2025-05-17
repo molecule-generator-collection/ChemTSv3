@@ -1,7 +1,6 @@
 from math import sqrt
-from typing import Any
-from policy import Policy
 from node import Node
+from policy import Policy
 
 class PUCT(Policy):
   #implement

@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-import torch
-from rdkit.Chem import Mol
 from collections import Counter
 import pickle
 from typing import Self
+from rdkit.Chem import Mol
+import torch
 
 #vocabulary can be dynamic for better compatibility, thus most methods are not static
 class Language(ABC):

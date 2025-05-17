@@ -1,6 +1,6 @@
 from typing import Self
-import torch
 from rdkit.Chem import Mol
+import torch
 from language import Language, MolLanguage
 from node import Node, MolNode
 

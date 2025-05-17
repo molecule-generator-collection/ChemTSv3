@@ -1,12 +1,12 @@
-import os
 import logging
+import os
 from typing import Any
 import torch
 import torch.nn.functional as F
 from transformers import GPT2LMHeadModel
 from language import Language
-from transition import LanguageModel
 from node import SentenceNode
+from transition import LanguageModel
 
 class GPT2Transition(LanguageModel):
   def __init__(self, lang: Language, model=None, model_dir=None, name=None, logger: logging.Logger=None):

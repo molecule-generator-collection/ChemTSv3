@@ -1,7 +1,6 @@
-from rdkit.Chem import Descriptors
-import numpy as np
 import math
-from typing import Any
+import numpy as np
+from rdkit.Chem import Descriptors
 from reward import MolReward
 
 class LogPReward(MolReward):

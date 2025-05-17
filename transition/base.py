@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any
 import logging
+from typing import Any
 from language import Language
 from node import Node, SentenceNode
 
