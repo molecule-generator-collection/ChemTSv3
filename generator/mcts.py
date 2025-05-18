@@ -10,13 +10,12 @@ from transition import WeightedTransition
 from utils import get_class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy_class_path: str="policy.ucb.UCB", policy_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
+    def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), logger_conf: dict[str, Any]=None):
         #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
         self.root = None
         self.transition = transition
-        self.policy_class: Type[Policy] = get_class_from_class_path(policy_class_path)
-        self.policy_conf = policy_conf or {}
         self.max_length = max_length or transition.max_length()
+        self.policy = policy
         self.count_rollouts = 0
         self.passed_time = 0
         #for search
@@ -109,7 +108,7 @@ class MCTS(Generator):
 
             node = self.root
             while node.children:
-                node = max(node.children.values(), key=lambda n: self.policy_class.evaluate(n, **self.policy_conf))
+                node = max(node.children.values(), key=lambda n: self.policy.evaluate(n))
                 if node.sum_r == -float("inf"): #already exhausted every terminal under this
                     self.logger.debug("Exhaust every terminal under: " + str(node.parent) + "")
                     if exhaust_backpropagate:
@@ -154,9 +153,8 @@ class MCTS(Generator):
         if self._name is not None:
             return self._name
         else:
-            policy_name = self.policy_class.__name__
-            policy_c = str(self.policy_conf.get("c", 1))
-            return super().name() + "_" + policy_name + "_c=" + policy_c
+            policy_name = self.policy.name()
+            return super().name() + "_" + policy_name
 
     def save(self, file: str):
         with open(file, mode="wb") as fo:
@@ -168,8 +166,7 @@ class MCTS(Generator):
             pickle.dump(self.count_rollouts, fo)
             pickle.dump(self.passed_time, fo)
             pickle.dump(self.reward, fo)
-            pickle.dump(self.policy_class.__name__, fo)
-            pickle.dump(self.policy_conf, fo)
+            pickle.dump(self.policy, fo)
     
     #transition won't be saved/loaded
     @staticmethod
@@ -184,13 +181,5 @@ class MCTS(Generator):
             s.count_rollouts = pickle.load(f)
             s.passed_time = pickle.load(f)
             s.reward = pickle.load(f)
-            
-            policy_name = pickle.load(f)
-            policy_class = globals().get(policy_name, None)
-            if policy_class is None:
-                s.logger.warning("Policy class " + policy_name + " was not found, and replaced with UCB.")
-                s.policy_class = UCB
-            else:
-                s.policy_class = policy_class
-            s.policy_conf = pickle.load(f)
+            s.policy = pickle.load(f)
         return s

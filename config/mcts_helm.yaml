@@ -1,3 +1,5 @@
+output_dir: generation_result
+
 model_class_path: transition.gpt2.GPT2Transition
 model_dir: model/helm/pep_noperiod_1.2m
 lang_class_path: language.helm.HELM
@@ -7,11 +9,9 @@ reward_class_path: reward.logp_reward.LogPReward
 reward_conf:
   filtered_reward: -2
 
-generator_conf:
-  output_dir: generation_result
-  policy_class_path: policy.ucb.UCB
-  policy_conf:
-    c: 0.01
+policy_class_path: policy.ucb.UCB
+policy_conf:
+  c: 0.01
 
 generation_conf:
   time_limit: 5 #seconds
