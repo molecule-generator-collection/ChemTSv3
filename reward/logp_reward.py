@@ -4,9 +4,11 @@ from rdkit.Chem import Descriptors
 from reward import MolReward
 
 class LogPReward(MolReward):
+    def __init__(self, filtered_reward: float=1):
+        self.filtered_reward = filtered_reward
+        
     #implement
-    @staticmethod
-    def mol_objective_functions():
+    def mol_objective_functions(self):
         def LogP(mol):
             if mol is None or mol.GetNumAtoms()==0:
                 return float('nan')
@@ -15,8 +17,7 @@ class LogPReward(MolReward):
         return [LogP]
 
     #implement
-    @staticmethod
-    def reward_from_objective_values(values, filtered_reward=-1):
+    def reward_from_objective_values(self, values):
         if math.isnan(values[0]):
-            return filtered_reward
+            return self.filtered_reward
         return np.tanh(values[0] / 10)
