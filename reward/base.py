@@ -5,35 +5,32 @@ from node import Node, MolNode
 
 class Reward(ABC):
     #Callable[[Node], float] instead of Callable[[Mol], float] for better compatibility
-    @classmethod
-    @abstractmethod
-    def objective_functions(cls, **kwargs) -> List[Callable[[Node], float]]:
+    def __init__(**kwargs):
         pass
-
-    @staticmethod
-    @abstractmethod
-    def reward_from_objective_values(values: List[float], **kwargs) -> float:
-        pass
-
-    @classmethod
-    def objective_values(cls, node: Node, **kwargs):
-        return [f(node) for f in cls.objective_functions(**kwargs)]
     
-    @classmethod
-    def objective_values_and_reward(cls, node: Node, objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None) -> tuple[list[float], float]:
-        objective_values = cls.objective_values(node, **objective_values_conf)
-        reward = cls.reward_from_objective_values(objective_values, **reward_conf)
+    @abstractmethod
+    def objective_functions(self) -> List[Callable[[Node], float]]:
+        pass
+
+    @abstractmethod
+    def reward_from_objective_values(self, values: List[float]) -> float:
+        pass
+
+    def objective_values(self, node: Node):
+        return [f(node) for f in self.objective_functions()]
+    
+    def objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
+        objective_values = self.objective_values(node)
+        reward = self.reward_from_objective_values(objective_values)
         return objective_values, reward
 
 class MolReward(Reward):
-    @staticmethod
     @abstractmethod
-    def mol_objective_functions(**kwargs) -> List[Callable[[Mol], float]]:
+    def mol_objective_functions(self) -> List[Callable[[Mol], float]]:
         pass
 
-    @staticmethod
     @abstractmethod
-    def reward_from_objective_values(values: List[float], **kwargs) -> float:
+    def reward_from_objective_values(self, values: List[float]) -> float:
         pass
 
     @staticmethod
@@ -44,6 +41,5 @@ class MolReward(Reward):
         return wrapper
 
     #override
-    @classmethod
-    def objective_functions(cls, **kwargs) -> List[Callable[[MolNode], float]]:
-        return [MolReward.wrap_with_mol(f) for f in cls.mol_objective_functions(**kwargs)]
+    def objective_functions(self) -> List[Callable[[MolNode], float]]:
+        return [MolReward.wrap_with_mol(f) for f in self.mol_objective_functions()]

@@ -5,22 +5,20 @@ import os
 from typing import Type, Any
 import matplotlib.pyplot as plt
 import numpy as np
-from reward import Reward
-from utils import get_class_from_str
+from reward import Reward, LogPReward
+from utils import get_class_from_class_path
 
 class Generator(ABC):
-    def __init__(self, output_dir="generation_result", name=None, reward_class_path: str="reward.logp_reward.LogPReward", objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
+    def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), logger_conf: dict[str, Any]=None):
         #transition is not passed: generator with multiple transition rules
         self._name = name
         self._name = self.name() #generate name if name=None
-        self.reward_class: Type[Reward] = get_class_from_str(reward_class_path)
+        self.reward: Reward = reward
         self._output_dir = output_dir if output_dir.endswith(os.sep) else output_dir + os.sep
         os.makedirs(os.path.dirname(self._output_dir), exist_ok=True)
         os.makedirs(os.path.dirname(self.output_dir()), exist_ok=True)
         self.unique_keys = []
         self.record: dict[str, dict] = {} #save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
-        self.objective_values_conf = objective_values_conf or {}
-        self.reward_conf = reward_conf or {}
         self.set_logger(logger_conf)
     
     @abstractmethod
@@ -59,7 +57,7 @@ class Generator(ABC):
         if y_axis == "reward":
             y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
         else:
-            objective_names = [f.__name__ for f in self.reward_class.objective_functions()]
+            objective_names = [f.__name__ for f in self.reward.objective_functions()]
             if not y_axis in objective_names:
                 self.logger.warning("Couldn't find objective name " + y_axis + ": uses reward instead")
                 y_axis = "reward"
@@ -94,7 +92,7 @@ class Generator(ABC):
     
     def plot_objective_values_and_reward(self, x_axis: str="generation_order", maxline=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):
         ylims = ylims or {}
-        objective_names = [f.__name__ for f in self.reward_class.objective_functions()]
+        objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for o in objective_names:
             self.plot(x_axis=x_axis, y_axis=o, maxline=maxline, xlim=xlim, ylim=ylims.get(o, None))
         self.plot(x_axis=x_axis, y_axis="reward", maxline=maxline, xlim=xlim, ylim=ylims.get("reward", None))

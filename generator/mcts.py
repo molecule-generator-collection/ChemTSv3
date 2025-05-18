@@ -5,16 +5,16 @@ import numpy as np
 from generator import Generator
 from node import Node
 from policy import Policy, UCB
-from reward import LogPReward
+from reward import Reward, LogPReward
 from transition import WeightedTransition
-from utils import get_class_from_str
+from utils import get_class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward_class_path: str="reward.logp_reward.LogPReward", objective_values_conf: dict[str, Any]=None, reward_conf: dict[str, Any]=None, policy_class_path: str="policy.ucb.UCB", policy_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
+    def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy_class_path: str="policy.ucb.UCB", policy_conf: dict[str, Any]=None, logger_conf: dict[str, Any]=None):
         #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
         self.root = None
         self.transition = transition
-        self.policy_class: Type[Policy] = get_class_from_str(policy_class_path)
+        self.policy_class: Type[Policy] = get_class_from_class_path(policy_class_path)
         self.policy_conf = policy_conf or {}
         self.max_length = max_length or transition.max_length()
         self.count_rollouts = 0
@@ -22,7 +22,7 @@ class MCTS(Generator):
         #for search
         self.expansion_threshold = 0.995
         self.rollout_conf = {"rollout_threshold": self.expansion_threshold}
-        super().__init__(output_dir=output_dir, name=name, reward_class_path=reward_class_path, objective_values_conf=objective_values_conf, reward_conf=reward_conf, logger_conf=logger_conf)
+        super().__init__(output_dir=output_dir, name=name, reward=reward, logger_conf=logger_conf)
 
     def _expand(self, node: Node):
         if node.is_terminal():
@@ -140,7 +140,7 @@ class MCTS(Generator):
         if key in self.record:
             self.logger.debug("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
             return self.record[key]["objective_values"], self.record[key]["reward"]
-        objective_values, reward = self.reward_class.objective_values_and_reward(node, objective_values_conf=self.objective_values_conf, reward_conf=self.reward_conf)
+        objective_values, reward = self.reward.objective_values_and_reward(node)
 
         if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
             self.logger.debug("invalid mol: " + key)
@@ -159,7 +159,6 @@ class MCTS(Generator):
             return super().name() + "_" + policy_name + "_c=" + policy_c
 
     def save(self, file: str):
-        self._name
         with open(file, mode="wb") as fo:
             pickle.dump(self._name, fo)
             pickle.dump(self._output_dir, fo)
@@ -168,9 +167,7 @@ class MCTS(Generator):
             pickle.dump(self.record, fo)
             pickle.dump(self.count_rollouts, fo)
             pickle.dump(self.passed_time, fo)
-            pickle.dump(self.reward_class.__name__, fo)
-            pickle.dump(self.objective_values_conf, fo)
-            pickle.dump(self.reward_conf, fo)
+            pickle.dump(self.reward, fo)
             pickle.dump(self.policy_class.__name__, fo)
             pickle.dump(self.policy_conf, fo)
     
@@ -186,16 +183,7 @@ class MCTS(Generator):
             s.record = pickle.load(f)
             s.count_rollouts = pickle.load(f)
             s.passed_time = pickle.load(f)
-            
-            reward_name = pickle.load(f)
-            reward_class = globals().get(reward_name, None)
-            if reward_class is None:
-                s.logger.warning("Reward class " + reward_name + " was not found, and replaced with LogPReward.")
-                s.reward_class = LogPReward
-            else:
-                s.reward_class = reward_class
-            s.objective_values_conf = pickle.load(f)
-            s.reward_conf = pickle.load(f)
+            s.reward = pickle.load(f)
             
             policy_name = pickle.load(f)
             policy_class = globals().get(policy_name, None)
