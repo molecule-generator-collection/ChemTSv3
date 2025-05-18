@@ -1,18 +1,17 @@
-model_conf:
-  model_class_path: transition.gpt2.GPT2Transition
-  model_dir: model/smiles/smiles_drugs_zinc_1.2m
-  lang_class_path: language.smiles.SMILES
-  lang_path: model/smiles/smiles_drugs_zinc.lang
+output_dir: generation_result
 
-generator_conf:
-  output_dir: generation_result
-  reward_class_path: reward.logp_reward.LogPReward
-  objective_values_conf:
-  reward_conf:
-    filtered_reward: -1
-  policy_class_path: policy.ucb.UCB
-  policy_conf:
-    c: 1
+model_class_path: transition.gpt2.GPT2Transition
+model_dir: model/smiles/smiles_drugs_zinc_1.2m
+lang_class_path: language.smiles.SMILES
+lang_path: model/smiles/smiles_drugs_zinc.lang
+
+reward_class_path: reward.logp_reward.LogPReward
+reward_conf:
+  filtered_reward: -1
+
+policy_class_path: policy.ucb.UCB
+policy_conf:
+  c: 1
 
 generation_conf:
   time_limit: 5 #seconds
