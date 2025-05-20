@@ -1,4 +1,7 @@
+import re
 import xml.etree.ElementTree as ET
+from rdkit import Chem
+from rdkit.Chem import Mol
 
 class MonomersLib():
     def __init__(self, monomers_lib: ET):
@@ -16,6 +19,12 @@ class MonomersLib():
         element.tag = element.tag.split("}", 1)[-1] if "}" in element.tag else element.tag
         for child in element:
             cls.strip_namespace(child)
+
+    @staticmethod
+    def standardize_monomer_token(token: str):
+        if token.startswith("["):
+            token = token[1:-1]
+        return token
     
     # load monomers of the specific polymer type
     def get_monomers_list(self, polymer_type: str):
@@ -24,14 +33,130 @@ class MonomersLib():
         monomers = polymer_list.find("Polymer[@polymerType='" + polymer_type + "']")
         return monomers
 
-    def get_monomer(self, polymer_type: str, monomer_id: str):
+    def get_monomer(self, polymer_type: str, monomer_token: str):
+        monomer_token = self.standardize_monomer_token(monomer_token)
         monomers_list = self.get_monomers_list(polymer_type)
-        monomer = monomers_list.find("Monomer[MonomerID='" + monomer_id + "']")
+        monomer = monomers_list.find("Monomer[MonomerID='" + monomer_token + "']")
         return monomer
 
-    def get_monomer_smiles(self, polymer_type: str, monomer_id: str):
-        monomer = self.get_monomer(polymer_type, monomer_id)
+    def get_monomer_smiles(self, polymer_type: str, monomer_token: str):
+        monomer = self.get_monomer(polymer_type, monomer_token)
         return monomer.find("MonomerSmiles").text
     
-    def get_attachment_cap_smiles(self, polymer_type: str, monomer_id: str, attachment_label: str):
-        return self.get_monomer(polymer_type, monomer_id).find("Attachments/Attachment[AttachmentLabel='" + attachment_label + "']/CapGroupSmiles").text
+    def get_attachment_cap_smiles(self, polymer_type: str, monomer_token: str, attachment_label: str):
+        return self.get_monomer(polymer_type, monomer_token).find("Attachments/Attachment[AttachmentLabel='" + attachment_label + "']/CapGroupSmiles").text
+    
+    def get_attachment_id(self, polymer_type: str, monomer_token: str, attachment_label: str):
+        return self.get_monomer(polymer_type, monomer_token).find("Attachments/Attachment[AttachmentLabel='" + attachment_label + "']/AttachmentID").text
+
+class HELMConverter():
+    polymer_types = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
+    skip_tokens = [".", "{"]
+
+    def __init__(self, monomers_lib: MonomersLib):
+        self.lib = monomers_lib
+
+        # TODO: don't hardcode these (read xml instead) for non-PEPTIDE use?
+        r1h = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("[*][H] |$_R1;$|"))
+        r2oh = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("O[*] |$;_R2$|"))
+        r3h = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("[*][H] |$_R3;$|"))
+        r3oh = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("O[*] |$;_R3$|"))
+        self.attachments = {"R1-H": r1h, "R2-OH": r2oh, "R3-H": r3h, "R3-OH": r3oh}
+
+    @staticmethod
+    def split_helm(helm: str):
+        #pattern by Shoichi Ishida
+        pattern = "(\[[^\]]+]|PEPTIDE[0-9]+|RNA[0-9]+|CHEM[0-9]+|BLOB[0-9]+|R[0-9]|A|C|D|E|F|G|H|I|K|L|M|N|P|Q|R|S|T|V|W|Y|\||\(|\)|\{|\}|-|\$|:|,|\.|[0-9]{2}|[0-9])"
+        regex = re.compile(pattern)
+        tokens = [t for t in regex.findall(helm)]
+        assert helm == "".join(tokens)
+        return tokens
+
+    # should be called only if each r_num is unique within that mol
+    @staticmethod
+    def combine_monomers(m1: Mol, m1_r_num: int, m2: Mol, m2_r_num: int) -> Mol:
+        m1_r_str = "_R" + str(m1_r_num)
+        m2_r_str = "_R" + str(m2_r_num)
+        for a in m1.GetAtoms():
+            if a.HasProp("atomLabel") and a.GetProp("atomLabel").endswith(m1_r_str):
+                a.SetAtomMapNum(1)
+        for a in m2.GetAtoms():
+            if a.HasProp("atomLabel") and a.GetProp("atomLabel").endswith(m2_r_str):
+                a.SetAtomMapNum(1)
+        return Chem.molzip(m1, m2)
+
+    @classmethod
+    def combine_backbone_monomers(cls, m_left: Mol, m_right: Mol) -> Mol:
+        return cls.combine_monomers(m_left, 2, m_right, 1)
+    
+    @staticmethod
+    def prepare_attachment_cap(cap: Mol) -> Mol:
+        for a in cap.GetAtoms():
+            if a.HasProp("atomLabel"):
+                a.SetAtomMapNum(1)
+        return cap
+
+    def generate_mol(self, polymer_type: str, polymer_name: str, monomer_token: str, monomer_idx: int) -> Mol:
+        smiles = self.lib.get_monomer_smiles(polymer_type, monomer_token)
+        mol = Chem.MolFromSmiles(smiles)
+
+        for a in mol.GetAtoms():
+            if a.HasProp("atomLabel"):
+                attachment_label = a.GetProp("atomLabel")[1:]
+                attachment_id = self.lib.get_attachment_id(polymer_type, monomer_token, attachment_label)
+                a.SetProp("attachmentID", attachment_id)
+                a.SetProp("polymerName", polymer_name)
+                a.SetProp("monomerIndex", str(monomer_idx)) # int can't be passed
+        
+        return mol
+    
+    #mol form splitted POLYMERTYPE_N_{......}
+    def mol_from_single_polymer(self, helm_tokens_list: list[str]) -> Mol:
+        polymer_type = None
+        polymer_name = None
+        monomer_idx = 1 # 1-based index
+        is_first_monomer = True
+
+        for t in helm_tokens_list:
+            if t in self.skip_tokens:
+                continue
+            if t == "}":
+                break
+            if polymer_type is None:
+                for pt in self.polymer_types:
+                    if t.startswith(pt):
+                        polymer_type = pt
+                        polymer_name = t
+                        continue
+            elif monomer_idx == 1:
+                mol = self.generate_mol(polymer_type, polymer_name, t, monomer_idx)
+                monomer_idx += 1
+            else:
+                last_mol = self.generate_mol(polymer_type, polymer_name, t, monomer_idx)
+                mol = self.combine_backbone_monomers(mol, last_mol)
+                monomer_idx += 1
+
+        return mol
+    
+    def close_residual_attachment_points(self, mol: Mol) -> Mol:
+        remaining = True
+        while remaining:
+            remaining = False
+            for a in mol.GetAtoms():
+                if a.HasProp("attachmentID"):
+                    remaining = True
+                    a.SetAtomMapNum(1)
+                    attachment_id = a.GetProp("attachmentID")
+                    cap_mol = self.attachments[attachment_id]
+                    mol = Chem.molzip(mol, cap_mol)
+                    break
+        return mol
+    
+    #should remember which cap should be applied
+    @classmethod
+    def close_r(cls, mol: Mol, cap: Mol):
+        for a in cap.GetAtoms():
+            if a.HasProp("atomLabel"):
+                r_str = a.GetProp("atomLabel")
+                r_num = int(re.search(r'\d+$', r_str).group())
+        return cls.combine_monomers(mol, r_num, cap, r_num)

@@ -1,5 +1,5 @@
 from .class_utils import get_class_from_class_path
 from .math_utils import select_indices_by_threshold
-from .helm_utils import MonomersLib
+from .helm_utils import MonomersLib, HELMConverter
 
-__all__ = ["get_class_from_class_path", "select_indices_by_threshold", "MonomersLib"]
+__all__ = ["get_class_from_class_path", "select_indices_by_threshold", "MonomersLib", "HELMConverter"]
