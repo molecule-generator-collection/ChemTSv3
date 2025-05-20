@@ -151,12 +151,3 @@ class HELMConverter():
                     mol = Chem.molzip(mol, cap_mol)
                     break
         return mol
-    
-    #should remember which cap should be applied
-    @classmethod
-    def close_r(cls, mol: Mol, cap: Mol):
-        for a in cap.GetAtoms():
-            if a.HasProp("atomLabel"):
-                r_str = a.GetProp("atomLabel")
-                r_num = int(re.search(r'\d+$', r_str).group())
-        return cls.combine_monomers(mol, r_num, cap, r_num)
