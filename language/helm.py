@@ -4,6 +4,7 @@ from typing import Self
 from rdkit import Chem
 from rdkit.Chem import Mol
 from language import DynamicMolLanguage
+from utils import HELMConverter
 
 class HELM(DynamicMolLanguage):
     #Currently has_period = True isn't properly implemented for general use
@@ -16,11 +17,7 @@ class HELM(DynamicMolLanguage):
     def sentence2tokens(self, sentence):
         helm = HELM.eos_culling(sentence)
 
-        #pattern by Shoichi Ishida
-        pattern = "(\[[^\]]+]|PEPTIDE[0-9]+|RNA[0-9]+|CHEM[0-9]+|BLOB[0-9]+|R[0-9]|A|C|D|E|F|G|H|I|K|L|M|N|P|Q|R|S|T|V|W|Y|\||\(|\)|\{|\}|-|\$|:|,|\.|[0-9]{2}|[0-9])"
-        regex = re.compile(pattern)
-        tokens = [t for t in regex.findall(helm)]
-        assert helm == "".join(tokens)
+        tokens = HELMConverter.split_helm(helm)
 
         tokens.insert(0, self.bos_token())
         tokens.append(self.eos_token())
