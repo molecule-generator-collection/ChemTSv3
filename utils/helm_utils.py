@@ -65,17 +65,26 @@ class HELMConverter():
     
     def convert(self, helm: str):
         helm_parts = helm.split('$')
-        polymer_tokens = HELMConverter.split_helm(helm_parts[0])
-        bond_tokens = HELMConverter.split_helm(helm_parts[1])
-        parsed_bonds = self.parse_bonds(bond_tokens)
+        parsed_polymers = self.parse_polymers(helm_parts[0])
+        parsed_bonds = self.parse_bonds(helm_parts[1])
+        representative_polymer_name = None
         
-        #TODO: multiple polymer
-        mol = self.mol_from_single_polymer(polymer_tokens)
+        mol_dict = {}
+        for p in parsed_polymers:
+            polymer_name = representative_polymer_name = p[0]
+            mol = self.mol_from_single_polymer(p)
+            mol_dict[polymer_name] = mol
         
         for b in parsed_bonds:
-            mol = self.add_bond_in_single_polymer(mol, *b)
-            
-        mol = self.close_residual_attachment_points(mol)
+            polymer_name_1 = b[0]
+            polymer_name_2 = b[3]
+            if mol_dict[polymer_name_1] == mol_dict[polymer_name_2]:
+                mol_dict[polymer_name_1] = self.add_bond_in_single_polymer(mol_dict[polymer_name_1], *b)
+            else:
+                combined_polymer = self.combine_polymers(mol_dict[polymer_name_1], b[1], b[2], mol_dict[polymer_name_2], b[4], b[5])
+                mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = combined_polymer
+        
+        mol = self.close_residual_attachment_points(mol_dict[representative_polymer_name])
         
         return mol        
 
@@ -88,9 +97,21 @@ class HELMConverter():
         assert helm == "".join(tokens)
         return tokens
 
+    @staticmethod
+    def combine_polymers(polymer_1: Mol, monomer_idx_1: str, attachment_label_1: str, polymer_2: Mol, monomer_idx_2: str, attachment_label_2: str) -> Mol:
+        for a in polymer_1.GetAtoms():
+            if a.HasProp("atomLabel") and a.GetProp("atomLabel").endswith(attachment_label_1):
+                if a.GetProp("monomerIndex") == monomer_idx_1:
+                    a.SetAtomMapNum(1)
+        for a in polymer_2.GetAtoms():
+            if a.HasProp("atomLabel") and a.GetProp("atomLabel").endswith(attachment_label_2):
+                if a.GetProp("monomerIndex") == monomer_idx_2:
+                    a.SetAtomMapNum(1)
+        return Chem.molzip(polymer_1, polymer_2)
+
     # should be called only if each r_num is unique within that mol
     @staticmethod
-    def combine_monomers(m1: Mol, m1_r_num: int, m2: Mol, m2_r_num: int) -> Mol:
+    def combine_monomers_with_unique_r_nums(m1: Mol, m1_r_num: int, m2: Mol, m2_r_num: int) -> Mol:
         m1_r_str = "_R" + str(m1_r_num)
         m2_r_str = "_R" + str(m2_r_num)
         for a in m1.GetAtoms():
@@ -103,7 +124,7 @@ class HELMConverter():
 
     @classmethod
     def combine_backbone_monomers(cls, m_left: Mol, m_right: Mol) -> Mol:
-        return cls.combine_monomers(m_left, 2, m_right, 1)
+        return cls.combine_monomers_with_unique_r_nums(m_left, 2, m_right, 1)
     
     @staticmethod
     def prepare_attachment_cap(cap: Mol) -> Mol:
@@ -180,8 +201,21 @@ class HELMConverter():
             emol.RemoveAtom(idx_r_1) # changes indices
             emol.RemoveAtom(idx_r_2 - 1 if idx_r_2 > idx_r_1 else idx_r_2)
             return emol.GetMol()
+    
+    def parse_polymers(self, polymer_part: list):
+        polymer_tokens = HELMConverter.split_helm(polymer_part)
+        parsed_polymers = []
+        for i in range(len(polymer_tokens)):
+            if polymer_tokens[i].startswith(tuple(self.polymer_types)):
+                j = i+2
+                while polymer_tokens[j] != "}":
+                    j += 1
+                parsed_polymers.append(polymer_tokens[i:j+1])
+                
+        return parsed_polymers
         
-    def parse_bonds(self, bond_tokens: list) -> list[tuple[str, str, str, str, str, str]]:
+    def parse_bonds(self, bond_part: str) -> list[tuple[str, str, str, str, str, str]]:
+        bond_tokens = HELMConverter.split_helm(bond_part)
         parsed_bonds = [] # list[(initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str)]
         for i in range(len(bond_tokens)):
             if len(bond_tokens) - 1 < i + 10:
