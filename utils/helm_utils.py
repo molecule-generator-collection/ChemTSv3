@@ -138,6 +138,36 @@ class HELMConverter():
 
         return mol
     
+    @staticmethod
+    def add_bond_in_single_polymer(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str):
+        idx_1 = idx_2 = None
+        for a in polymer.GetAtoms():
+            if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_1:
+                if a.GetProp("monomerIndex") == initial_monomer_idx_1:
+                    if a.GetProp("atomLabel").endswith(attachment_label_1):
+                        a.ClearProp("atomLabel") # for removing from visualization
+                        a.ClearProp("attachmentID") # used to detect remaining attatchment points
+                        idx_1 = a.GetIdx()
+            if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_2:
+                if a.GetProp("monomerIndex") == initial_monomer_idx_2:
+                    if a.GetProp("atomLabel").endswith(attachment_label_2):
+                        a.ClearProp("atomLabel")
+                        a.ClearProp("attachmentID")
+                        idx_2 = a.GetIdx()
+        if idx_1 is None or idx_2 is None:
+            return None
+        else:
+            emol = Chem.EditableMol(polymer)
+            emol.AddBond(idx_1, idx_2, Chem.rdchem.BondType.SINGLE)
+            return emol.GetMol()
+        
+    def parse_bonds(self, bond_tokens: list):
+        parsed_bonds = [] #list[(initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str)]
+        for t in bond_tokens:
+            for pt in self.polymer_types:
+                    if t.startswith(pt):
+                        pass
+    
     def close_residual_attachment_points(self, mol: Mol) -> Mol:
         remaining = True
         while remaining:
