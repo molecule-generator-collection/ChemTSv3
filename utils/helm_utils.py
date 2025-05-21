@@ -62,6 +62,22 @@ class HELMConverter():
         r3h = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("[*][H] |$_R3;$|"))
         r3oh = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("O[*] |$;_R3$|"))
         self.attachments = {"R1-H": r1h, "R2-OH": r2oh, "R3-H": r3h, "R3-OH": r3oh}
+    
+    def convert(self, helm: str):
+        helm_parts = helm.split('$')
+        polymer_tokens = HELMConverter.split_helm(helm_parts[0])
+        bond_tokens = HELMConverter.split_helm(helm_parts[1])
+        parsed_bonds = self.parse_bonds(bond_tokens)
+        
+        #TODO: multiple polymer
+        mol = self.mol_from_single_polymer(polymer_tokens)
+        
+        for b in parsed_bonds:
+            mol = self.add_bond_in_single_polymer(mol, *b)
+            
+        mol = self.close_residual_attachment_points(mol)
+        
+        return mol        
 
     @staticmethod
     def split_helm(helm: str):
@@ -139,7 +155,7 @@ class HELMConverter():
         return mol
     
     @staticmethod
-    def add_bond_in_single_polymer(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str):
+    def add_bond_in_single_polymer(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str) -> Mol:
         idx_1 = idx_2 = idx_r_1 = idx_r_2 = None
         for a in polymer.GetAtoms():
             if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_1:
