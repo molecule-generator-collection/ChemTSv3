@@ -64,29 +64,32 @@ class HELMConverter():
         self.attachments = {"R1-H": r1h, "R2-OH": r2oh, "R3-H": r3h, "R3-OH": r3oh}
     
     def convert(self, helm: str):
-        helm_parts = helm.split('$')
-        parsed_polymers = self.parse_polymers(helm_parts[0])
-        parsed_bonds = self.parse_bonds(helm_parts[1])
-        representative_polymer_name = None
-        
-        mol_dict = {}
-        for p in parsed_polymers:
-            polymer_name = representative_polymer_name = p[0]
-            mol = self.mol_from_single_polymer(p)
-            mol_dict[polymer_name] = mol
-        
-        for b in parsed_bonds:
-            polymer_name_1 = b[0]
-            polymer_name_2 = b[3]
-            if mol_dict[polymer_name_1] == mol_dict[polymer_name_2]:
-                mol_dict[polymer_name_1] = self.add_bond_in_single_polymer(mol_dict[polymer_name_1], *b)
-            else:
-                combined_polymer = self.combine_polymers(mol_dict[polymer_name_1], b[1], b[2], mol_dict[polymer_name_2], b[4], b[5])
-                mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = combined_polymer
-        
-        mol = self.close_residual_attachment_points(mol_dict[representative_polymer_name])
-        
-        return mol        
+        try:
+            helm_parts = helm.split('$')
+            parsed_polymers = self.parse_polymers(helm_parts[0])
+            parsed_bonds = self.parse_bonds(helm_parts[1])
+            representative_polymer_name = None
+            
+            mol_dict = {}
+            for p in parsed_polymers:
+                polymer_name = representative_polymer_name = p[0]
+                mol = self.mol_from_single_polymer(p)
+                mol_dict[polymer_name] = mol
+            
+            for b in parsed_bonds:
+                polymer_name_1 = b[0]
+                polymer_name_2 = b[3]
+                if mol_dict[polymer_name_1] == mol_dict[polymer_name_2]:
+                    mol_dict[polymer_name_1] = self.add_bond_in_single_polymer(mol_dict[polymer_name_1], *b)
+                else:
+                    combined_polymer = self.combine_polymers(mol_dict[polymer_name_1], b[1], b[2], mol_dict[polymer_name_2], b[4], b[5])
+                    mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = combined_polymer
+            
+            mol = self.close_residual_attachment_points(mol_dict[representative_polymer_name])
+            
+            return mol
+        except:
+            return None
 
     @staticmethod
     def split_helm(helm: str):
