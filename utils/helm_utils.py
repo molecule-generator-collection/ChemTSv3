@@ -80,7 +80,7 @@ class HELMConverter():
                 polymer_name_1 = b[0]
                 polymer_name_2 = b[3]
                 if mol_dict[polymer_name_1] == mol_dict[polymer_name_2]:
-                    mol_dict[polymer_name_1] = self.add_bond_in_single_polymer(mol_dict[polymer_name_1], *b)
+                    mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = self.add_bond_in_single_polymer(mol_dict[polymer_name_1], *b)
                 else:
                     combined_polymer = self.combine_polymers(mol_dict[polymer_name_1], b[1], b[2], mol_dict[polymer_name_2], b[4], b[5])
                     mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = combined_polymer
