@@ -6,6 +6,7 @@ from rdkit.Chem import Mol
 class MonomersLib():
     def __init__(self, monomers_lib: ET):
         self.lib = monomers_lib
+        self._cache = {}
         self.__class__.strip_namespace(monomers_lib.getroot())
     
     @classmethod
@@ -34,10 +35,14 @@ class MonomersLib():
         return monomers
 
     def get_monomer(self, polymer_type: str, monomer_token: str):
-        monomer_token = self.standardize_monomer_token(monomer_token)
-        monomers_list = self.get_monomers_list(polymer_type)
-        monomer = monomers_list.find("Monomer[MonomerID='" + monomer_token + "']")
-        return monomer
+        if polymer_type + monomer_token in self._cache:
+            return self._cache[polymer_type + monomer_token]
+        else:
+            monomer_token = self.standardize_monomer_token(monomer_token)
+            monomers_list = self.get_monomers_list(polymer_type)
+            monomer = monomers_list.find("Monomer[MonomerID='" + monomer_token + "']")
+            self._cache[polymer_type + monomer_token] = monomer
+            return monomer
 
     def get_monomer_smiles(self, polymer_type: str, monomer_token: str):
         monomer = self.get_monomer(polymer_type, monomer_token)
