@@ -195,14 +195,12 @@ class HELMConverter():
             if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_1:
                 if a.GetProp("monomerIndex") == initial_monomer_idx_1:
                     if a.GetProp("atomLabel").endswith(attachment_label_1):
-                        #a.ClearProp("atomLabel") # for removing from visualization
                         a.ClearProp("attachmentID") # used to detect remaining attatchment points
                         idx_r_1 = a.GetIdx()
                         idx_1 = a.GetNeighbors()[0].GetIdx()
             if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_2:
                 if a.GetProp("monomerIndex") == initial_monomer_idx_2:
                     if a.GetProp("atomLabel").endswith(attachment_label_2):
-                        #a.ClearProp("atomLabel")
                         a.ClearProp("attachmentID")
                         idx_r_2 = a.GetIdx()
                         idx_2 = a.GetNeighbors()[0].GetIdx()
