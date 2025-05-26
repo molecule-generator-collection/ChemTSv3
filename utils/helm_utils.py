@@ -4,15 +4,39 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 
 class MonomersLib():
-    def __init__(self, monomers_lib: ET):
+    def __init__(self, monomers_lib: dict):
         self.lib = monomers_lib
-        self._cache = {}
-        self.__class__.strip_namespace(monomers_lib.getroot())
+        #self.__class__.strip_namespace(monomers_lib.getroot())
     
     @classmethod
-    def load(cls, monomer_lib_path: str):
-        monomers_lib = ET.parse(monomer_lib_path)
-        return cls(monomers_lib)
+    def load(cls, monomers_lib_path: str):
+        root = ET.parse(monomers_lib_path).getroot()
+        MonomersLib.strip_namespace(root)
+        polymers = root.find("PolymerList")
+        lib = {}
+        
+        for pt in polymers:
+            polymer_type = pt.get("polymerType")
+            lib[polymer_type] = {}
+            for m in pt:
+                for m_tag in m:
+                    if m_tag.tag == "MonomerID": #should be earlier than below
+                        monomer_token = m_tag.text
+                        lib[polymer_type][monomer_token] = {}
+                    elif m_tag.tag == "MonomerSmiles":
+                        monomer_smiles = m_tag.text
+                        lib[polymer_type][monomer_token]["MonomerSmiles"] = monomer_smiles
+                    elif m_tag.tag == "Attachments":
+                        lib[polymer_type][monomer_token]["Attachments"] = {}
+                        for a in m_tag:
+                            for a_tag in a:
+                                if a_tag.tag == "AttachmentID":
+                                    attachment_id = a_tag.text
+                                elif a_tag.tag == "AttachmentLabel": #should be later than above
+                                    attachment_label = a_tag.text
+                                    lib[polymer_type][monomer_token]["Attachments"][attachment_label] = attachment_id
+        
+        return cls(lib)
     
     # remove namespace from xml
     @classmethod
@@ -26,33 +50,14 @@ class MonomersLib():
         if token.startswith("["):
             token = token[1:-1]
         return token
-    
-    # load monomers of the specific polymer type
-    def get_monomers_list(self, polymer_type: str):
-        root = self.lib.getroot()
-        polymer_list = root.find("PolymerList")
-        monomers = polymer_list.find("Polymer[@polymerType='" + polymer_type + "']")
-        return monomers
-
-    def get_monomer(self, polymer_type: str, monomer_token: str):
-        if polymer_type + monomer_token in self._cache:
-            return self._cache[polymer_type + monomer_token]
-        else:
-            monomer_token = self.standardize_monomer_token(monomer_token)
-            monomers_list = self.get_monomers_list(polymer_type)
-            monomer = monomers_list.find("Monomer[MonomerID='" + monomer_token + "']")
-            self._cache[polymer_type + monomer_token] = monomer
-            return monomer
 
     def get_monomer_smiles(self, polymer_type: str, monomer_token: str):
-        monomer = self.get_monomer(polymer_type, monomer_token)
-        return monomer.find("MonomerSmiles").text
-    
-    def get_attachment_cap_smiles(self, polymer_type: str, monomer_token: str, attachment_label: str):
-        return self.get_monomer(polymer_type, monomer_token).find("Attachments/Attachment[AttachmentLabel='" + attachment_label + "']/CapGroupSmiles").text
+        monomer_token = self.standardize_monomer_token(monomer_token)
+        return self.lib[polymer_type][monomer_token]["MonomerSmiles"]
     
     def get_attachment_id(self, polymer_type: str, monomer_token: str, attachment_label: str):
-        return self.get_monomer(polymer_type, monomer_token).find("Attachments/Attachment[AttachmentLabel='" + attachment_label + "']/AttachmentID").text
+        monomer_token = self.standardize_monomer_token(monomer_token)
+        return self.lib[polymer_type][monomer_token]["Attachments"][attachment_label]
 
 class HELMConverter():
     polymer_types = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
