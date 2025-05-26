@@ -53,7 +53,10 @@ class MonomersLib():
 
     def get_monomer_smiles(self, polymer_type: str, monomer_token: str):
         monomer_token = self.standardize_monomer_token(monomer_token)
-        return self.lib[polymer_type][monomer_token]["MonomerSmiles"]
+        if monomer_token in self.lib[polymer_type]:
+            return self.lib[polymer_type][monomer_token]["MonomerSmiles"]
+        else: #inline SMILES
+            return monomer_token
     
     def get_attachment_id(self, polymer_type: str, monomer_token: str, attachment_label: str):
         monomer_token = self.standardize_monomer_token(monomer_token)
