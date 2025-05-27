@@ -102,7 +102,14 @@ class HELMConverter():
         for b in parsed_bonds:
             polymer_name_1, polymer_name_2 = b[0], b[3]
             if mol_dict[polymer_name_1] == mol_dict[polymer_name_2]:
-                mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = self.add_bond_in_single_polymer(mol_dict[polymer_name_1], *b)
+                mol_1, mol_2 = mol_dict[polymer_name_1], mol_dict[polymer_name_2]
+                bonded_polymer = self.add_bond_in_single_polymer(mol_dict[polymer_name_1], *b)
+                mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = bonded_polymer
+                for k, v in mol_dict.items():
+                    if v is mol_1:
+                        mol_dict[k] = bonded_polymer
+                    elif v is mol_2:
+                        mol_dict[k] = bonded_polymer
             else:
                 # copy seems to be needed for bond cache clean-up: example - "PEPTIDE1{Y.G.G.F.[dD]}|PEPTIDE2{[dR].R}|PEPTIDE3{[dDab].R.P.K.L.K}$PEPTIDE3,PEPTIDE2,1:R3-2:R2|PEPTIDE1,PEPTIDE2,5:R2-1:R1|PEPTIDE1,PEPTIDE3,5:R3-1:R1$$$"
                 mol_1, mol_2 = mol_dict[polymer_name_1], mol_dict[polymer_name_2]
@@ -117,6 +124,7 @@ class HELMConverter():
         mol = mol_dict[representative_polymer_name]
         if close: 
             mol = self.close_residual_attachment_points(mol)
+            mol = Chem.RemoveHs(mol)
         return mol
 
     @staticmethod
