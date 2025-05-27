@@ -2260,7 +2260,7 @@
             </Monomer>
             <Monomer>
                 <MonomerID>X242</MonomerID>
-                <MonomerSmiles>CC(C)=CCCC(C)=CC[C@]12C[C@H](N([*])[C@H]1Nc1ccccc21)C([*])=O |w:8.8,$;;;;;;;;;;;;;;_R1;;;;;;;;;;_R2;$|</MonomerSmiles>
+                <MonomerSmiles>CC(C)=CCC/C(C)=C/C[C@]12C[C@H](N([*])[C@H]1Nc1ccccc21)C([*])=O |$;;;;;;;;;;;;;;_R1;;;;;;;;;;_R2;$|</MonomerSmiles>
                 <MonomerMolFile>H4sIAAAAAAAAAO2UzWrDMBCE73qKheZcNGv5R+cm5JSkOKEvEErx+79ARxLa6JBDCgXnEGHsb7zLaJBsOZHzdbl8/yxXP3ZAwISgW+dEB9FJxOcL+X4bMUb5Uu+9S8q/k/xd+pBi8ep7rj4RrbCq9/FB7/ntrxnw7xnW3rNn7Xt0b043P+RvBEWQulaE8spl6q1CGkyQRhOkqRXRDKLA1wpQBYqwBCRYAhKCiSDoW2EJSEArRrMeBRaHBItDUotDUtQKSS0OSTurdM08SUxNUA11UpJa0CSG8he6g8i8/yzLzYa88umpqbI78qTfcLhfjdkrQggGAAA=</MonomerMolFile>
                 <MonomerType>Backbone</MonomerType>
                 <PolymerType>PEPTIDE</PolymerType>
@@ -10970,7 +10970,7 @@
             </Monomer>
             <Monomer>
                 <MonomerID>X11</MonomerID>
-                <MonomerSmiles>[*]N=C(Cc1ccccc1)C([*])=O |w:1.0,$_R1;;;;;;;;;;;_R2;$|</MonomerSmiles>
+                <MonomerSmiles>[*]N\C(=C\c1ccccc1)C([*])=O |$_R1;;;;;;;;;;;_R2;$|</MonomerSmiles>
                 <MonomerMolFile>H4sIAAAAAAAAAO2SQQrCMBBF93OKD7qWmSTaZq3iyipVvEAR6f0v4ExCky4Eu3JlmAzv83+GQELAbRjvz9c4cONFgrQS3IEI4q3As6orxoiHY2YyxRsl/kj9Kh/+luuwLLf/536SW/pulzpPAJe6CSWfOyUKxVHaFqG0KzGlpjhKbXGUYnEihCfHqE7THyuTUBI3F/k6TGegP12TMNe2BeHMOXb69de66A3ZKAiAGQMAAA==</MonomerMolFile>
                 <MonomerType>Backbone</MonomerType>
                 <PolymerType>PEPTIDE</PolymerType>
