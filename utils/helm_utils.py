@@ -90,6 +90,16 @@ class MonomersLib():
             if a.HasProp("atomLabel"):
                 a.SetAtomMapNum(1)
         return cap
+    
+    #receives "R1" as attachment_label, not "_R1"
+    @staticmethod
+    def prepare_attachment_cap_from_atom_mapped_smiles(smiles: str, attachment_label: str) -> Mol:
+        cap = Chem.MolFromSmiles(smiles)
+        for a in cap.GetAtoms():
+            if a.GetAtomicNum() == 0:
+                a.SetAtomMapNum(1)
+                a.SetProp("atomLabel", "_" + attachment_label)
+        return cap
 
     def get_monomer_smiles(self, polymer_type: str, monomer_token: str):
         monomer_token = self.standardize_monomer_token(monomer_token)
