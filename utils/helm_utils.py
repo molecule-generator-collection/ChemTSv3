@@ -55,6 +55,33 @@ class MonomersLib():
         if token.startswith("["):
             token = token[1:-1]
         return token
+    
+    @staticmethod
+    def atom_mapped_to_cx(smiles: str) -> str:
+        p = Chem.SmilesParserParams()
+        p.removeHs = False
+        mol = Chem.MolFromSmiles(smiles, p)
+        rw  = Chem.RWMol(mol)
+
+        for idx in range(rw.GetNumAtoms()):
+            a = rw.GetAtomWithIdx(idx)
+            atom_map = a.GetAtomMapNum()
+            if atom_map:
+                a.SetAtomicNum(0)
+                a.SetAtomMapNum(0)
+                a.SetNoImplicit(True)
+                a.SetNumExplicitHs(0)
+                a.SetProp("atomLabel", f"_R{atom_map}")
+                for nb in list(a.GetNeighbors()):
+                    if nb.GetAtomicNum() == 1:
+                        rw.RemoveBond(a.GetIdx(), nb.GetIdx())
+                        rw.RemoveAtom(nb.GetIdx())
+
+        mol = rw.GetMol()
+        Chem.SanitizeMol(mol)
+
+        cx = Chem.MolToCXSmiles(mol)
+        return cx
 
     @staticmethod
     def prepare_attachment_cap(cap: Mol) -> Mol:
