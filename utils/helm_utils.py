@@ -4,8 +4,9 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 
 class MonomersLib():
-    def __init__(self, monomers_lib: dict={}):
+    def __init__(self, monomers_lib: dict={}, cap_group_mols: dict={}):
         self.lib = monomers_lib
+        self.cap_group_mols = cap_group_mols # smiles - mol
         #self.__class__.strip_namespace(monomers_lib.getroot())
     
     #one instance can load multiple libraries
@@ -14,6 +15,7 @@ class MonomersLib():
         MonomersLib.strip_namespace(root)
         polymers = root.find("PolymerList")
         lib = self.lib or {}
+        cap_groups = self.cap_group_mols or {}
         
         for pt in polymers:
             polymer_type = pt.get("polymerType")
@@ -30,13 +32,16 @@ class MonomersLib():
                         lib[polymer_type][monomer_token]["Attachments"] = lib[polymer_type][monomer_token].get("Attachments") or {}
                         for a in m_tag:
                             for a_tag in a:
-                                if a_tag.tag == "AttachmentID":
-                                    attachment_id = a_tag.text
-                                elif a_tag.tag == "AttachmentLabel": #should be later than above
+                                if a_tag.tag == "AttachmentLabel": #should be earlier than below
                                     attachment_label = a_tag.text
-                                    lib[polymer_type][monomer_token]["Attachments"][attachment_label] = attachment_id
-        
+                                elif a_tag.tag == "CapGroupSmiles":
+                                    cap_group_smiles = a_tag.text
+                                    lib[polymer_type][monomer_token]["Attachments"][attachment_label] = cap_group_smiles
+                                    if not cap_group_smiles in cap_groups:
+                                        cap_groups[cap_group_smiles] = MonomersLib.prepare_attachment_cap(Chem.MolFromSmiles(cap_group_smiles))
+                                    
         self.lib = lib
+        self.cap_group_mols = cap_groups
     
     # remove namespace from xml
     @classmethod
@@ -51,14 +56,21 @@ class MonomersLib():
             token = token[1:-1]
         return token
 
+    @staticmethod
+    def prepare_attachment_cap(cap: Mol) -> Mol:
+        for a in cap.GetAtoms():
+            if a.HasProp("atomLabel"):
+                a.SetAtomMapNum(1)
+        return cap
+
     def get_monomer_smiles(self, polymer_type: str, monomer_token: str):
         monomer_token = self.standardize_monomer_token(monomer_token)
         if monomer_token in self.lib[polymer_type]:
             return self.lib[polymer_type][monomer_token]["MonomerSmiles"]
         else: #inline SMILES
             return monomer_token
-    
-    def get_attachment_id(self, polymer_type: str, monomer_token: str, attachment_label: str):
+
+    def get_cap_group_smiles(self, polymer_type: str, monomer_token: str, attachment_label: str):
         monomer_token = self.standardize_monomer_token(monomer_token)
         return self.lib[polymer_type][monomer_token]["Attachments"][attachment_label]
 
@@ -68,13 +80,6 @@ class HELMConverter():
 
     def __init__(self, monomers_lib: MonomersLib):
         self.lib = monomers_lib
-
-        # TODO: don't hardcode these (read xml instead) for non-PEPTIDE use?
-        r1h = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("[*][H] |$_R1;$|"))
-        r2oh = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("O[*] |$;_R2$|"))
-        r3h = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("[*][H] |$_R3;$|"))
-        r3oh = HELMConverter.prepare_attachment_cap(Chem.MolFromSmiles("O[*] |$;_R3$|"))
-        self.attachments = {"R1-H": r1h, "R2-OH": r2oh, "R3-H": r3h, "R3-OH": r3oh}
     
     def convert(self, helm: str):
         try:
@@ -151,13 +156,6 @@ class HELMConverter():
     @classmethod
     def combine_backbone_monomers(cls, m_left: Mol, m_right: Mol) -> Mol:
         return cls.combine_monomers_with_unique_r_nums(m_left, 2, m_right, 1)
-    
-    @staticmethod
-    def prepare_attachment_cap(cap: Mol) -> Mol:
-        for a in cap.GetAtoms():
-            if a.HasProp("atomLabel"):
-                a.SetAtomMapNum(1)
-        return cap
 
     def generate_mol(self, polymer_type: str, polymer_name: str, monomer_token: str, monomer_idx: int) -> Mol:
         smiles = self.lib.get_monomer_smiles(polymer_type, monomer_token)
@@ -166,8 +164,8 @@ class HELMConverter():
         for a in mol.GetAtoms():
             if a.HasProp("atomLabel"):
                 attachment_label = a.GetProp("atomLabel")[1:]
-                attachment_id = self.lib.get_attachment_id(polymer_type, monomer_token, attachment_label)
-                a.SetProp("attachmentID", attachment_id)
+                cap_group_smiles = self.lib.get_cap_group_smiles(polymer_type, monomer_token, attachment_label)
+                a.SetProp("capGroupSmiles", cap_group_smiles)
                 a.SetProp("polymerName", polymer_name)
                 a.SetProp("monomerIndex", str(monomer_idx)) # int can't be passed
         
@@ -254,11 +252,11 @@ class HELMConverter():
         while remaining:
             remaining = False
             for a in mol.GetAtoms():
-                if a.HasProp("attachmentID"):
+                if a.HasProp("capGroupSmiles"):
                     remaining = True
                     a.SetAtomMapNum(1)
-                    attachment_id = a.GetProp("attachmentID")
-                    cap_mol = self.attachments[attachment_id]
+                    cap_group_smiles = a.GetProp("capGroupSmiles")
+                    cap_mol = self.lib.cap_group_mols[cap_group_smiles]
                     mol = Chem.molzip(mol, cap_mol)
                     break
         return mol
