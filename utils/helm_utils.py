@@ -38,7 +38,7 @@ class MonomersLib():
                                     cap_group_smiles = a_tag.text
                                     lib[polymer_type][monomer_token]["Attachments"][attachment_label] = cap_group_smiles
                                     if not cap_group_smiles in cap_groups:
-                                        cap_groups[cap_group_smiles] = MonomersLib.prepare_attachment_cap(Chem.MolFromSmiles(cap_group_smiles))
+                                        cap_groups[cap_group_smiles] = MonomersLib.prepare_attachment_cap(cap_group_smiles)
                                     
         self.lib = lib
         self.cap_group_mols = cap_groups
@@ -84,7 +84,8 @@ class MonomersLib():
         return cx
 
     @staticmethod
-    def prepare_attachment_cap(cap: Mol) -> Mol:
+    def prepare_attachment_cap(smiles: str) -> Mol:
+        cap = Chem.MolFromSmiles(smiles)
         for a in cap.GetAtoms():
             if a.HasProp("atomLabel"):
                 a.SetAtomMapNum(1)
