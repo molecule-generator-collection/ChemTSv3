@@ -4,30 +4,30 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 
 class MonomersLib():
-    def __init__(self, monomers_lib: dict):
+    def __init__(self, monomers_lib: dict={}):
         self.lib = monomers_lib
         #self.__class__.strip_namespace(monomers_lib.getroot())
     
-    @classmethod
-    def load(cls, monomers_lib_path: str):
+    #one instance can load multiple libraries
+    def load_lib(self, monomers_lib_path: str):
         root = ET.parse(monomers_lib_path).getroot()
         MonomersLib.strip_namespace(root)
         polymers = root.find("PolymerList")
-        lib = {}
+        lib = self.lib or {}
         
         for pt in polymers:
             polymer_type = pt.get("polymerType")
-            lib[polymer_type] = {}
+            lib[polymer_type] = lib.get(polymer_type) or {}
             for m in pt:
                 for m_tag in m:
                     if m_tag.tag == "MonomerID": #should be earlier than below
                         monomer_token = m_tag.text
-                        lib[polymer_type][monomer_token] = {}
+                        lib[polymer_type][monomer_token] = lib[polymer_type].get(monomer_token) or {}
                     elif m_tag.tag == "MonomerSmiles":
                         monomer_smiles = m_tag.text
                         lib[polymer_type][monomer_token]["MonomerSmiles"] = monomer_smiles
                     elif m_tag.tag == "Attachments":
-                        lib[polymer_type][monomer_token]["Attachments"] = {}
+                        lib[polymer_type][monomer_token]["Attachments"] = lib[polymer_type][monomer_token].get("Attachments") or {}
                         for a in m_tag:
                             for a_tag in a:
                                 if a_tag.tag == "AttachmentID":
@@ -36,7 +36,7 @@ class MonomersLib():
                                     attachment_label = a_tag.text
                                     lib[polymer_type][monomer_token]["Attachments"][attachment_label] = attachment_id
         
-        return cls(lib)
+        self.lib = lib
     
     # remove namespace from xml
     @classmethod
