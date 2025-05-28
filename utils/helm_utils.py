@@ -65,6 +65,8 @@ class MonomersLib():
                 lib[polymer_type][monomer_token]["Attachments"][attachment_label] = cap_group_smiles
                 if not cap_group_smiles in cap_group_mols:
                     cap_group_mols[cap_group_smiles] = MonomersLib.prepare_attachment_cap_from_atom_mapped_smiles(cap_group_smiles, attachment_label)
+            if polymer_type == "RNA" and monomer_token in ["r", "p"]: #both capitalizations are commonly used
+                lib[polymer_type][monomer_token.upper()] = lib[polymer_type][monomer_token]
     
         self.lib = lib
         self.cap_group_mols = cap_group_mols        
@@ -141,7 +143,7 @@ class MonomersLib():
 
 class HELMConverter():
     polymer_types = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
-    skip_tokens = [".", "{"]
+    skip_tokens = [".", "{", "(", ")"]
 
     def __init__(self, monomers_lib: MonomersLib):
         self.lib = monomers_lib
@@ -244,14 +246,13 @@ class HELMConverter():
         
         return mol
     
-    #mol form splitted POLYMERTYPE_N_{......}
+    #mol form splitted POLYMERNAME{......}
     def mol_from_single_polymer(self, helm_tokens_list: list[str]) -> Mol:
         polymer_type = None
         polymer_name = None
         monomer_idx = 1 # 1-based index
-        is_first_monomer = True
 
-        for t in helm_tokens_list:
+        for i, t in enumerate(helm_tokens_list):
             if t in self.skip_tokens:
                 continue
             if t == "}":
@@ -264,9 +265,17 @@ class HELMConverter():
                         continue
             elif monomer_idx == 1:
                 mol = self.generate_mol(polymer_type, polymer_name, t, monomer_idx)
+                if helm_tokens_list[i+1] == "(":
+                    branch_mol = self.generate_mol(polymer_type, polymer_name, helm_tokens_list[i+2], -1)
+                    mol = self.combine_monomers_with_unique_r_nums(mol, 3, branch_mol, 1)
                 monomer_idx += 1
             else:
+                if helm_tokens_list[i-1] == "(":
+                    continue
                 last_mol = self.generate_mol(polymer_type, polymer_name, t, monomer_idx)
+                if helm_tokens_list[i+1] == "(":
+                    branch_mol = self.generate_mol(polymer_type, polymer_name, helm_tokens_list[i+2], -1)
+                    last_mol = self.combine_monomers_with_unique_r_nums(last_mol, 3, branch_mol, 1)
                 mol = self.combine_backbone_monomers(mol, last_mol)
                 monomer_idx += 1
 
