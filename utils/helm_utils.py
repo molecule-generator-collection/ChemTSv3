@@ -1,3 +1,4 @@
+import json
 import re
 import xml.etree.ElementTree as ET
 from rdkit import Chem
@@ -9,13 +10,14 @@ class MonomersLib():
         self.cap_group_mols = cap_group_mols # smiles - mol
         #self.__class__.strip_namespace(monomers_lib.getroot())
     
+    #load xml in ChEMBL format
     #one instance can load multiple libraries
-    def load_lib(self, monomers_lib_path: str):
+    def load_xml(self, monomers_lib_path: str):
         root = ET.parse(monomers_lib_path).getroot()
         MonomersLib.strip_namespace(root)
         polymers = root.find("PolymerList")
         lib = self.lib or {}
-        cap_groups = self.cap_group_mols or {}
+        cap_group_mols = self.cap_group_mols or {}
         
         for pt in polymers:
             polymer_type = pt.get("polymerType")
@@ -37,11 +39,35 @@ class MonomersLib():
                                 elif a_tag.tag == "CapGroupSmiles":
                                     cap_group_smiles = a_tag.text
                                     lib[polymer_type][monomer_token]["Attachments"][attachment_label] = cap_group_smiles
-                                    if not cap_group_smiles in cap_groups:
-                                        cap_groups[cap_group_smiles] = MonomersLib.prepare_attachment_cap(cap_group_smiles)
+                                    if not cap_group_smiles in cap_group_mols:
+                                        cap_group_mols[cap_group_smiles] = MonomersLib.prepare_attachment_cap(cap_group_smiles)
                                     
         self.lib = lib
-        self.cap_group_mols = cap_groups
+        self.cap_group_mols = cap_group_mols
+    
+    #load json in Pistoia Alliance format
+    def load_json(self, monomers_lib_path:str):
+        lib = self.lib or {}
+        cap_group_mols = self.cap_group_mols or {}
+        with open(monomers_lib_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        for m in data:
+            polymer_type = m.get("polymerType")
+            lib[polymer_type] = lib.get(polymer_type) or {}
+            monomer_token = m.get("symbol")
+            lib[polymer_type][monomer_token] = lib[polymer_type].get(monomer_token) or {}
+            lib[polymer_type][monomer_token]["MonomerSmiles"] = MonomersLib.atom_mapped_to_cx(m.get("smiles"))
+            lib[polymer_type][monomer_token]["Attachments"] = lib[polymer_type][monomer_token].get("Attachments") or {}
+            for r in m.get("rgroups"):
+                attachment_label = r.get("label")
+                cap_group_smiles = r.get("capGroupSmiles") or r.get("capGroupSMILES") #can be both
+                lib[polymer_type][monomer_token]["Attachments"][attachment_label] = cap_group_smiles
+                if not cap_group_smiles in cap_group_mols:
+                    cap_group_mols[cap_group_smiles] = MonomersLib.prepare_attachment_cap_from_atom_mapped_smiles(cap_group_smiles, attachment_label)
+    
+        self.lib = lib
+        self.cap_group_mols = cap_group_mols        
     
     # remove namespace from xml
     @classmethod
@@ -56,6 +82,7 @@ class MonomersLib():
             token = token[1:-1]
         return token
     
+    #convert atom mapped SMILES to CXSMILES
     @staticmethod
     def atom_mapped_to_cx(smiles: str) -> str:
         p = Chem.SmilesParserParams()
