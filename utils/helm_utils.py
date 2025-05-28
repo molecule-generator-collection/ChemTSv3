@@ -65,7 +65,7 @@ class MonomersLib():
                 lib[polymer_type][monomer_token]["Attachments"][attachment_label] = cap_group_smiles
                 if not cap_group_smiles in cap_group_mols:
                     cap_group_mols[cap_group_smiles] = MonomersLib.prepare_attachment_cap_from_atom_mapped_smiles(cap_group_smiles, attachment_label)
-            if polymer_type == "RNA" and monomer_token in ["r", "p"]: #both capitalizations are commonly used
+            if polymer_type == "RNA" and monomer_token in ["r", "p"]: #for convenience: both capitalizations are commonly used
                 lib[polymer_type][monomer_token.upper()] = lib[polymer_type][monomer_token]
     
         self.lib = lib
