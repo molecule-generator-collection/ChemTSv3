@@ -139,7 +139,10 @@ class MonomersLib():
 
     def get_cap_group_smiles(self, polymer_type: str, monomer_token: str, attachment_label: str):
         monomer_token = self.standardize_monomer_token(monomer_token)
-        return self.lib[polymer_type][monomer_token]["Attachments"][attachment_label]
+        if monomer_token in self.lib[polymer_type]:
+            return self.lib[polymer_type][monomer_token]["Attachments"][attachment_label]
+        else: #Inline SMILES or undefined monomer token
+            return "[*][H] |$_R1;$|"
 
 class HELMConverter():
     polymer_types = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
@@ -155,7 +158,7 @@ class HELMConverter():
             return None
     
     def _convert(self, helm: str, close=True, verbose=False):
-        helm_parts = helm.split('$')
+        helm_parts = helm.rsplit("$", 4)
         parsed_polymers = self.parse_polymers(helm_parts[0])
         parsed_bonds = self.parse_bonds(helm_parts[1])
         representative_polymer_name = None
@@ -196,10 +199,20 @@ class HELMConverter():
 
     @staticmethod
     def split_helm(helm: str):
-        #pattern by Shoichi Ishida
-        pattern = "(\[[^\]]+]|PEPTIDE[0-9]+|RNA[0-9]+|CHEM[0-9]+|BLOB[0-9]+|R[0-9]|A|C|D|E|F|G|H|I|K|L|M|N|P|Q|R|S|T|V|W|Y|\||\(|\)|\{|\}|-|\$|:|,|\.|[0-9]{2}|[0-9])"
-        regex = re.compile(pattern)
-        tokens = [t for t in regex.findall(helm)]
+        pattern = (
+            r"("
+            r"\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]"
+            r"|PEPTIDE\d+"
+            r"|RNA\d+"
+            r"|CHEM\d+"
+            r"|BLOB\d+"
+            r"|R\d"
+            r"|[ACDEFGHIKLMNPQRSTVWY]"
+            r"|\||\(|\)|\{|\}|-|\$|:|,|\."
+            r"|\d{2}|\d"
+            r")"
+        )
+        tokens = re.findall(pattern, helm)
         assert helm == "".join(tokens)
         return tokens
 
