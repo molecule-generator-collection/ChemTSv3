@@ -135,7 +135,10 @@ class MonomersLib():
         if monomer_token in self.lib[polymer_type]:
             return self.lib[polymer_type][monomer_token]["MonomerSmiles"]
         else: #inline SMILES
-            return monomer_token
+            if "$" in monomer_token:
+                return monomer_token
+            else:
+                return MonomersLib.atom_mapped_to_cx(monomer_token)
 
     def get_cap_group_smiles(self, polymer_type: str, monomer_token: str, attachment_label: str):
         monomer_token = self.standardize_monomer_token(monomer_token)
