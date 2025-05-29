@@ -207,6 +207,7 @@ class HELMConverter():
             r"|CHEM\d+"
             r"|BLOB\d+"
             r"|R\d"
+            r"|V2.0"
             r"|[ACDEFGHIKLMNPQRSTVWY]"
             r"|\||\(|\)|\{|\}|-|\$|:|,|\."
             r"|\d{2}|\d"
