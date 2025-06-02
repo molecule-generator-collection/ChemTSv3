@@ -94,7 +94,7 @@
           "capGroupName": "OH"
         }
       ],
-      "smiles": "[*:1]N[C@@H](CCCOC\\C=C)C(=O)[*:2]",
+      "smiles": "[*:1]N[C@@H](CCOC\\C=C)C(=O)[*:2]",
       "name": "L-homoserine-(O-allyl)",
       "polymerType": "PEPTIDE"
     },
