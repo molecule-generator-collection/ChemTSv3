@@ -87,6 +87,7 @@ class MonomersLib():
     #convert atom mapped SMILES to CXSMILES
     @staticmethod
     def atom_mapped_to_cx(smiles: str) -> str:
+        smiles = smiles.replace("null", "H")
         p = Chem.SmilesParserParams()
         p.removeHs = False
         mol = Chem.MolFromSmiles(smiles, p)
@@ -158,37 +159,18 @@ class HELMConverter():
         helm_parts = helm.split('$')
         parsed_polymers = self.parse_polymers(helm_parts[0])
         parsed_bonds = self.parse_bonds(helm_parts[1])
-        representative_polymer_name = None
-        
-        mol_dict = {}
+        mol = None        
+
         for p in parsed_polymers:
-            polymer_name = representative_polymer_name = p[0]
-            mol = self.mol_from_single_polymer(p)
-            mol_dict[polymer_name] = mol
+            if mol is None:
+                mol = self.mol_from_single_polymer(p)
+            else:
+                mol2 = self.mol_from_single_polymer(p)
+                mol = Chem.molzip(mol, mol2)
         
         for b in parsed_bonds:
-            polymer_name_1, polymer_name_2 = b[0], b[3]
-            if mol_dict[polymer_name_1] == mol_dict[polymer_name_2]:
-                mol_1, mol_2 = mol_dict[polymer_name_1], mol_dict[polymer_name_2]
-                bonded_polymer = self.add_bond_in_single_polymer(mol_dict[polymer_name_1], *b)
-                mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = bonded_polymer
-                for k, v in mol_dict.items():
-                    if v is mol_1:
-                        mol_dict[k] = bonded_polymer
-                    elif v is mol_2:
-                        mol_dict[k] = bonded_polymer
-            else:
-                # copy seems to be needed for bond cache clean-up: example - "PEPTIDE1{Y.G.G.F.[dD]}|PEPTIDE2{[dR].R}|PEPTIDE3{[dDab].R.P.K.L.K}$PEPTIDE3,PEPTIDE2,1:R3-2:R2|PEPTIDE1,PEPTIDE2,5:R2-1:R1|PEPTIDE1,PEPTIDE3,5:R3-1:R1$$$"
-                mol_1, mol_2 = mol_dict[polymer_name_1], mol_dict[polymer_name_2]
-                combined_polymer = self.combine_polymers(Chem.Mol(mol_dict[polymer_name_1]), Chem.Mol(mol_dict[polymer_name_2]), *b)
-                mol_dict[polymer_name_1] = mol_dict[polymer_name_2] = combined_polymer
-                for k, v in mol_dict.items():
-                    if v is mol_1:
-                        mol_dict[k] = combined_polymer
-                    elif v is mol_2:
-                        mol_dict[k] = combined_polymer
+            mol = self.add_bond_in_single_polymer(mol, *b)
 
-        mol = mol_dict[representative_polymer_name]
         if close: 
             mol = self.close_residual_attachment_points(mol)
             mol = Chem.RemoveHs(mol)
@@ -202,18 +184,6 @@ class HELMConverter():
         tokens = [t for t in regex.findall(helm)]
         assert helm == "".join(tokens)
         return tokens
-
-    @staticmethod
-    def combine_polymers(polymer_1: Mol, polymer_2: Mol, polymer_name_1: str, monomer_idx_1: str, attachment_label_1: str, polymer_name_2: str, monomer_idx_2: str, attachment_label_2: str) -> Mol:
-        for a in polymer_1.GetAtoms():
-            if a.HasProp("atomLabel") and a.GetProp("atomLabel").endswith(attachment_label_1):
-                if a.GetProp("monomerIndex") == monomer_idx_1 and a.GetProp("polymerName") == polymer_name_1:
-                    a.SetAtomMapNum(1)
-        for a in polymer_2.GetAtoms():
-            if a.HasProp("atomLabel") and a.GetProp("atomLabel").endswith(attachment_label_2):
-                if a.GetProp("monomerIndex") == monomer_idx_2 and a.GetProp("polymerName") == polymer_name_2:
-                    a.SetAtomMapNum(1)
-        return Chem.molzip(polymer_1, polymer_2)
 
     # should be called only if each r_num is unique within that mol
     @staticmethod

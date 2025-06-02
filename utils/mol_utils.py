@@ -10,6 +10,7 @@ def is_same_mol(mol1: Mol, mol2: Mol, options=None):
     return inchi1 == inchi2
 
 def standardize_mol(mol):
+    #mol = Chem.RemoveHs(mol)
     mol = get_main_mol(mol)
     mol = remove_isotopes(mol)
     return mol

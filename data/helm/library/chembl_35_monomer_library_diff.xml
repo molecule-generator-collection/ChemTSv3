@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MonomerDB xmlns="lmr" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <PolymerList>
+        <Polymer polymerType="PEPTIDE">
+            <Monomer>
+                <MonomerID>X1670</MonomerID>
+                <MonomerSmiles>C/C=C/C[C@@H](C)[C@@H](O)[C@H](N(C)[*])C([*])=O |$;;;;;;;;;;;_R1;;_R2;$|</MonomerSmiles>
+                <MonomerMolFile>H4sIAAAAAAAAAI1Ty07EMAy85ysswRXLdpqHz4A4saAF8QMrhPb/f2CTmLTpVkuJqmimMx7ZTeoAPk7nz++f84m8eE5MnOXJOeAAPAFQe7jty1JV+BIicpURSqRoiAN5Q0UleASLaD5GX981NYWOtj7BSCv1hs+j/isvoOzl9RG3NQ98Xb3Kjhj2ethkLzWMuq55G7MTpvqh/+5b1tkJM/nfvkt0HmoOY3bGPHmuPkFSnW7Pl+KUzcckcfAd7waf1hTdP4vFt5l9zONyk3zv6upODd+I2/xspCBvu2tompWCwkwKio1EI2lWCsqNsBGdFS0NdaUg5q5UIqPNz4pv/89Cgp2VewU4vrxb4wKWWgeVqjwfyr93X5a7AFN3rh6aAwAA</MonomerMolFile>
+                <MonomerType>Backbone</MonomerType>
+                <PolymerType>PEPTIDE</PolymerType>
+                <NaturalAnalog>T</NaturalAnalog>
+                <MonomerName>X1670</MonomerName>
+                <Attachments>
+                    <Attachment>
+                        <AttachmentID>R1-H</AttachmentID>
+                        <AttachmentLabel>R1</AttachmentLabel>
+                        <CapGroupName>H</CapGroupName>
+                        <CapGroupSmiles>[*][H] |$_R1;$|</CapGroupSmiles>
+                    </Attachment>
+                    <Attachment>
+                        <AttachmentID>R2-OH</AttachmentID>
+                        <AttachmentLabel>R2</AttachmentLabel>
+                        <CapGroupName>OH</CapGroupName>
+                        <CapGroupSmiles>O[*] |$;_R2$|</CapGroupSmiles>
+                    </Attachment>
+                </Attachments>
+            </Monomer>
+            <Monomer>
+                <MonomerID>dHpr</MonomerID>
+                <MonomerSmiles>[*]N1CCCC[C@@H]1C([*])=O |$_R1;;;;;;;;_R2;$|</MonomerSmiles>
+                <MonomerMolFile>H4sIAAAAAAAAANWSwQrCMAyG73mKgJ4lyaptzzp2csoUX2CI7P1fwDTFzIPgDl4Mafk/8hNCCCBexul6f0wjxYY5cOIgBwBkKok12f45cs54EyKCQrRRRR/VsKotvvl6XObb/4nvtbJf9l66y9PcT4eQOgqYahxUBQdVWwdVOwdV0SG+d1NIBgymsleSHY4UOCIO3dmgVO2pEaVU2l7vbK0BT1eMjlyGAgAA</MonomerMolFile>
+                <MonomerType>Backbone</MonomerType>
+                <PolymerType>PEPTIDE</PolymerType>
+                <NaturalAnalog>X</NaturalAnalog>
+                <MonomerName>D-Pipecolic acid</MonomerName>
+                <Attachments>
+                    <Attachment>
+                        <AttachmentID>R1-H</AttachmentID>
+                        <AttachmentLabel>R1</AttachmentLabel>
+                        <CapGroupName>H</CapGroupName>
+                        <CapGroupSmiles>[*][H] |$_R1;$|</CapGroupSmiles>
+                    </Attachment>
+                    <Attachment>
+                        <AttachmentID>R2-OH</AttachmentID>
+                        <AttachmentLabel>R2</AttachmentLabel>
+                        <CapGroupName>OH</CapGroupName>
+                        <CapGroupSmiles>O[*] |$;_R2$|</CapGroupSmiles>
+                    </Attachment>
+                </Attachments>
+            </Monomer>
+            <Monomer>
+                <MonomerID>Hpr</MonomerID>
+                <MonomerSmiles>[*]N1CCCC[C@H]1C([*])=O |$_R1;;;;;;;;_R2;$|</MonomerSmiles>
+                <MonomerMolFile>H4sIAAAAAAAAANWSwQrCMAyG73mKH/QsSVftelbx5JQpvsAQ2fu/gGmKmQfBHbwY0vJ9JIS2lIDLMF7vj3Hg1IhEaSWGHRGES6Km2D5Fzhm3wMxUjFdK/JH6RR3xra/DvL7tn/QB4QU/mz33LU/TPLFzSBWlxkUpuiitXZQ2LkrJJb1PU2lNhIyyV1r7OOX+dAT6w9mkVG1pI0Kp7Dv9Z0sNegKITNk8hgIAAA==</MonomerMolFile>
+                <MonomerType>Backbone</MonomerType>
+                <PolymerType>PEPTIDE</PolymerType>
+                <NaturalAnalog>X</NaturalAnalog>
+                <MonomerName>Pipecolic acid</MonomerName>
+                <Attachments>
+                    <Attachment>
+                        <AttachmentID>R1-H</AttachmentID>
+                        <AttachmentLabel>R1</AttachmentLabel>
+                        <CapGroupName>H</CapGroupName>
+                        <CapGroupSmiles>[*][H] |$_R1;$|</CapGroupSmiles>
+                    </Attachment>
+                    <Attachment>
+                        <AttachmentID>R2-OH</AttachmentID>
+                        <AttachmentLabel>R2</AttachmentLabel>
+                        <CapGroupName>OH</CapGroupName>
+                        <CapGroupSmiles>O[*] |$;_R2$|</CapGroupSmiles>
+                    </Attachment>
+                </Attachments>
+            </Monomer>
+            <Monomer>
+                <MonomerID>X242</MonomerID>
+                <MonomerSmiles>CC(C)=CCC/C(C)=C/C[C@]12C[C@H](N([*])[C@H]1Nc1ccccc21)C([*])=O |$;;;;;;;;;;;;;;_R1;;;;;;;;;;_R2;$|</MonomerSmiles>
+                <MonomerMolFile>H4sIAAAAAAAAAO2UzWrDMBCE73qKheZcNGv5R+cm5JSkOKEvEErx+79ARxLa6JBDCgXnEGHsb7zLaJBsOZHzdbl8/yxXP3ZAwISgW+dEB9FJxOcL+X4bMUb5Uu+9S8q/k/xd+pBi8ep7rj4RrbCq9/FB7/ntrxnw7xnW3rNn7Xt0b043P+RvBEWQulaE8spl6q1CGkyQRhOkqRXRDKLA1wpQBYqwBCRYAhKCiSDoW2EJSEArRrMeBRaHBItDUotDUtQKSS0OSTurdM08SUxNUA11UpJa0CSG8he6g8i8/yzLzYa88umpqbI78qTfcLhfjdkrQggGAAA=</MonomerMolFile>
+                <MonomerType>Backbone</MonomerType>
+                <PolymerType>PEPTIDE</PolymerType>
+                <NaturalAnalog>P</NaturalAnalog>
+                <MonomerName>X242</MonomerName>
+                <Attachments>
+                    <Attachment>
+                        <AttachmentID>R1-H</AttachmentID>
+                        <AttachmentLabel>R1</AttachmentLabel>
+                        <CapGroupName>H</CapGroupName>
+                        <CapGroupSmiles>[*][H] |$_R1;$|</CapGroupSmiles>
+                    </Attachment>
+                    <Attachment>
+                        <AttachmentID>R2-OH</AttachmentID>
+                        <AttachmentLabel>R2</AttachmentLabel>
+                        <CapGroupName>OH</CapGroupName>
+                        <CapGroupSmiles>O[*] |$;_R2$|</CapGroupSmiles>
+                    </Attachment>
+                </Attachments>
+            </Monomer>
+            <Monomer>
+                <MonomerID>X11</MonomerID>
+                <MonomerSmiles>[*]N\C(=C\c1ccccc1)C([*])=O |$_R1;;;;;;;;;;;_R2;$|</MonomerSmiles>
+                <MonomerMolFile>H4sIAAAAAAAAAO2SQQrCMBBF93OKD7qWmSTaZq3iyipVvEAR6f0v4ExCky4Eu3JlmAzv83+GQELAbRjvz9c4cONFgrQS3IEI4q3As6orxoiHY2YyxRsl/kj9Kh/+luuwLLf/536SW/pulzpPAJe6CSWfOyUKxVHaFqG0KzGlpjhKbXGUYnEihCfHqE7THyuTUBI3F/k6TGegP12TMNe2BeHMOXb69de66A3ZKAiAGQMAAA==</MonomerMolFile>
+                <MonomerType>Backbone</MonomerType>
+                <PolymerType>PEPTIDE</PolymerType>
+                <NaturalAnalog>X</NaturalAnalog>
+                <MonomerName>X11</MonomerName>
+                <Attachments>
+                    <Attachment>
+                        <AttachmentID>R1-H</AttachmentID>
+                        <AttachmentLabel>R1</AttachmentLabel>
+                        <CapGroupName>H</CapGroupName>
+                        <CapGroupSmiles>[*][H] |$_R1;$|</CapGroupSmiles>
+                    </Attachment>
+                    <Attachment>
+                        <AttachmentID>R2-OH</AttachmentID>
+                        <AttachmentLabel>R2</AttachmentLabel>
+                        <CapGroupName>OH</CapGroupName>
+                        <CapGroupSmiles>O[*] |$;_R2$|</CapGroupSmiles>
+                    </Attachment>
+                </Attachments>
+            </Monomer>
+        </Polymer>
+    </PolymerList>
+</MonomerDB>
