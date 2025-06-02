@@ -100,6 +100,25 @@
     },
     {
       "monomerType": "Backbone",
+      "symbol": "J",
+      "rgroups": [
+        {
+          "label": "R1",
+          "capGroupSMILES": "[*:1][H]",
+          "capGroupName": "H"
+        },
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        }
+      ],
+      "smiles": "[*:1]N[C@@H](CCN)C(=O)[*:2]",
+      "name": "J",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
       "symbol": "S5Left",
       "rgroups": [
         {
