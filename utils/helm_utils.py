@@ -281,7 +281,7 @@ class HELMConverter():
     
     @staticmethod
     def add_bond(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str) -> Mol:
-        idx_1 = idx_2 = idx_r_1 = idx_r_2 = None
+        idx_1 = idx_2 = idx_r_1 = idx_r_2 = bond_type = None
         for a in polymer.GetAtoms():
             if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_1:
                 if a.GetProp("monomerIndex") == initial_monomer_idx_1:
@@ -289,6 +289,7 @@ class HELMConverter():
                         a.ClearProp("attachmentID") # used to detect remaining attatchment points
                         idx_r_1 = a.GetIdx()
                         idx_1 = a.GetNeighbors()[0].GetIdx()
+                        bond_type = a.GetBonds()[0].GetBondType()
             if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_2:
                 if a.GetProp("monomerIndex") == initial_monomer_idx_2:
                     if a.GetProp("atomLabel").endswith(attachment_label_2):
@@ -299,7 +300,7 @@ class HELMConverter():
             return None
         else:
             emol = Chem.EditableMol(polymer)
-            emol.AddBond(idx_1, idx_2, Chem.rdchem.BondType.SINGLE)
+            emol.AddBond(idx_1, idx_2, bond_type)
             emol.RemoveAtom(idx_r_1) # changes indices
             emol.RemoveAtom(idx_r_2 - 1 if idx_r_2 > idx_r_1 else idx_r_2)
             return emol.GetMol()
