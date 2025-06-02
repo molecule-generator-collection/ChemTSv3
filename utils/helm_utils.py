@@ -175,7 +175,7 @@ class HELMConverter():
                 mol = Chem.molzip(mol, mol2)
         
         for b in parsed_bonds:
-            mol = self.add_bond_in_single_polymer(mol, *b)
+            mol = self.add_bond(mol, *b)
 
         if close: 
             mol = self.close_residual_attachment_points(mol)
@@ -271,7 +271,7 @@ class HELMConverter():
         return mol
     
     @staticmethod
-    def add_bond_in_single_polymer(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str) -> Mol:
+    def add_bond(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str) -> Mol:
         idx_1 = idx_2 = idx_r_1 = idx_r_2 = None
         for a in polymer.GetAtoms():
             if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_1:
