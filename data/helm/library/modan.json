@@ -56,7 +56,7 @@
           "capGroupName": "OH"
         }
       ],
-      "smiles": "[*:1]N[C@H]1CCCC1C(=O)[*:2]",
+      "smiles": "[*:1]N[C@@]1(CCCC1)C(=O)[*:2]",
       "name": "1-aminocyclopentanecarboxylic acid",
       "polymerType": "PEPTIDE"
     },
@@ -75,7 +75,7 @@
           "capGroupName": "OH"
         }
       ],
-      "smiles": "[*:1]N[C@H]1CCCCC1C(=O)[*:2]",
+      "smiles": "[*:1]N[C@@]1(CCCCC1)C(=O)[*:2]",
       "name": "1-aminocyclohexanecarboxylic acid",
       "polymerType": "PEPTIDE"
     },
