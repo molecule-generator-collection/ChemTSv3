@@ -1,0 +1,88 @@
+[
+    {
+      "monomerType": "Backbone",
+      "symbol": "S5",
+      "rgroups": [
+        {
+          "label": "R1",
+          "capGroupSMILES": "[*:1][H]",
+          "capGroupName": "H"
+        },
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        },
+        {
+          "label": "R3",
+          "capGroupSMILES": "[*:3][*]",
+          "capGroupName": "H"
+        }
+      ],
+      "smiles": "[*:1]N[C@@](C)([*:3])C(=O)[*:2]",
+      "name": "(S)-2-(4-Pentenyl)alanine",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
+      "symbol": "R8",
+      "rgroups": [
+        {
+          "label": "R1",
+          "capGroupSMILES": "[*:1][H]",
+          "capGroupName": "H"
+        },
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        },
+        {
+          "label": "R3",
+          "capGroupSMILES": "[*:3][*]",
+          "capGroupName": "H"
+        }
+      ],
+      "smiles": "[*:1]N[C@](C)([*:3])(C(=O)[*:2])",
+      "name": "(R)-2-(7-octenly)alanine",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
+      "symbol": "BridgeR8S5",
+      "rgroups": [
+        {
+          "label": "R3",
+          "capGroupSMILES": "[*:3][*]",
+          "capGroupName": "H"
+        },
+        {
+          "label": "R4",
+          "capGroupSMILES": "[*:4][*]",
+          "capGroupName": "H"
+        }
+      ],
+      "smiles": "[*:3]CCCCCC/C=C\\CCC[*:4]",
+      "name": "Bridge_R8S5",
+      "polymerType": "CHEM"
+    },
+    {
+      "monomerType": "Backbone",
+      "symbol": "BridgeS5S5",
+      "rgroups": [
+        {
+          "label": "R3",
+          "capGroupSMILES": "[*:3][*]",
+          "capGroupName": "H"
+        },
+        {
+          "label": "R4",
+          "capGroupSMILES": "[*:4][*]",
+          "capGroupName": "H"
+        }
+      ],
+      "smiles": "[*:3]CCC/C=C\\CCC[*:4]",
+      "name": "Bridge_S5S5",
+      "polymerType": "CHEM"
+    }
+]
