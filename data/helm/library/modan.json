@@ -1,6 +1,44 @@
 [
     {
       "monomerType": "Backbone",
+      "symbol": "Ac5c",
+      "rgroups": [
+        {
+          "label": "R1",
+          "capGroupSMILES": "[*:1][H]",
+          "capGroupName": "H"
+        },
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        }
+      ],
+      "smiles": "[*:1]N[C@H]1CCCC1C(=O)[*:2]",
+      "name": "1-aminocyclopentanecarboxylic acid",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
+      "symbol": "Ac6c",
+      "rgroups": [
+        {
+          "label": "R1",
+          "capGroupSMILES": "[*:1][H]",
+          "capGroupName": "H"
+        },
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        }
+      ],
+      "smiles": "[*:1]N[C@H]1CCCCC1C(=O)[*:2]",
+      "name": "1-aminocyclohexanecarboxylic acid",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
       "symbol": "S5Left",
       "rgroups": [
         {
