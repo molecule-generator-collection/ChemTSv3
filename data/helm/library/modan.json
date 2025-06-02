@@ -81,6 +81,25 @@
     },
     {
       "monomerType": "Backbone",
+      "symbol": "OAllylHse",
+      "rgroups": [
+        {
+          "label": "R1",
+          "capGroupSMILES": "[*:1][H]",
+          "capGroupName": "H"
+        },
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        }
+      ],
+      "smiles": "[*:1]N[C@@H](CCCOC\\C=C)C(=O)[*:2]",
+      "name": "L-homoserine-(O-allyl)",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
       "symbol": "S5Left",
       "rgroups": [
         {
@@ -95,7 +114,7 @@
         },
         {
           "label": "R3",
-          "capGroupSMILES": "[*:3][*]",
+          "capGroupSMILES": "[*:3][H]",
           "capGroupName": "H"
         }
       ],
@@ -119,7 +138,7 @@
         },
         {
           "label": "R3",
-          "capGroupSMILES": "[*:3][*]",
+          "capGroupSMILES": "[*:3][H]",
           "capGroupName": "H"
         }
       ],
@@ -143,7 +162,7 @@
         },
         {
           "label": "R3",
-          "capGroupSMILES": "[*:3][*]",
+          "capGroupSMILES": "[*:3][H]",
           "capGroupName": "H"
         }
       ],
