@@ -1,6 +1,48 @@
 [
     {
       "monomerType": "Backbone",
+      "symbol": "Pentanoyl",
+      "rgroups": [
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        }
+      ],
+      "smiles": "CCCCCC(=O)[*:2]",
+      "name": "Pentanoyl",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
+      "symbol": "Dodecanoyl",
+      "rgroups": [
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        }
+      ],
+      "smiles": "CCCCCCCCCCCC(=O)[*:2]",
+      "name": "Dodecanoyl",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
+      "symbol": "Octadecanoyl",
+      "rgroups": [
+        {
+          "label": "R2",
+          "capGroupSMILES": "O[*:2]",
+          "capGroupName": "OH"
+        }
+      ],
+      "smiles": "CCCCCCCCCCCCCCCCCC(=O)[*:2]",
+      "name": "Octadecanoyl",
+      "polymerType": "PEPTIDE"
+    },
+    {
+      "monomerType": "Backbone",
       "symbol": "Ac5c",
       "rgroups": [
         {
