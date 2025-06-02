@@ -162,6 +162,7 @@ class HELMConverter():
             return None
     
     def _convert(self, helm: str, close=True, verbose=False):
+        helm = self.standardize_helm(helm)
         helm_parts = helm.rsplit("$", 4)
         parsed_polymers = self.parse_polymers(helm_parts[0])
         parsed_bonds = self.parse_bonds(helm_parts[1])
@@ -193,7 +194,7 @@ class HELMConverter():
             r"|BLOB\d+"
             r"|R\d"
             r"|pair"
-            r"|V2.0"
+            #r"|V2.0"
             r"|[A-Z]"
             r"|[a-z]"
             r"|\||\(|\)|\{|\}|-|\$|:|,|\."
@@ -203,6 +204,12 @@ class HELMConverter():
         tokens = re.findall(pattern, helm)
         assert helm == "".join(tokens)
         return tokens
+
+    @staticmethod
+    def standardize_helm(sentence: str):
+        sentence = sentence.replace(".(", "(")
+        sentence = sentence.replace("V2.0", "")
+        return sentence
 
     # should be called only if each r_num is unique within that mol
     @staticmethod
@@ -257,6 +264,7 @@ class HELMConverter():
                 if helm_tokens_list[i+1] == "(":
                     branch_mol = self.generate_mol(polymer_type, polymer_name, helm_tokens_list[i+2], -1)
                     mol = self.combine_monomers_with_unique_r_nums(mol, 3, branch_mol, 1)
+                    monomer_idx += 1
                 monomer_idx += 1
             else:
                 if helm_tokens_list[i-1] == "(":
@@ -265,6 +273,7 @@ class HELMConverter():
                 if helm_tokens_list[i+1] == "(":
                     branch_mol = self.generate_mol(polymer_type, polymer_name, helm_tokens_list[i+2], -1)
                     last_mol = self.combine_monomers_with_unique_r_nums(last_mol, 3, branch_mol, 1)
+                    monomer_idx += 1
                 mol = self.combine_backbone_monomers(mol, last_mol)
                 monomer_idx += 1
 
