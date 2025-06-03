@@ -1,15 +1,15 @@
 output_dir: generation_result
 
-model_class_path: transition.gpt2.GPT2Transition
+model_class_name: GPT2Transition
 model_dir: model/helm/pep_noperiod_1.2m
-lang_class_path: language.helm.HELM
+lang_class_name: HELM
 lang_path: model/helm/helm_pep_noperiod.lang
 
-reward_class_path: reward.logp_reward.LogPReward
+reward_class_name: LogPReward
 reward_conf:
   filtered_reward: -2
 
-policy_class_path: policy.ucb.UCB
+policy_class_name: UCB
 policy_conf:
   c: 0.01
 
@@ -25,4 +25,4 @@ generation_conf:
     rollout_threshold: 0.995
 
 filters:
-  - filter_class_path: filter.validity_filter.ValidityFilter #put this first if unsure
+  - filter_class_name: ValidityFilter #put this first if unsure
