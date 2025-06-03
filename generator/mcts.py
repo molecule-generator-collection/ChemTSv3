@@ -150,11 +150,6 @@ class MCTS(Generator):
         objective_values, reward = self.reward.objective_values_and_reward(node)
         self.log_unique_node(key, objective_values, reward)
 
-        # if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol():
-        #     self.logger.debug("invalid mol: " + key)
-        # else:
-        #     self.log_unique_node(key, objective_values, reward)
-
         return objective_values, reward
     
     #override

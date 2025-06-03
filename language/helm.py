@@ -7,12 +7,16 @@ from language import DynamicMolLanguage
 from utils import HELMConverter
 
 class HELM(DynamicMolLanguage):
-    #Currently has_period = True isn't properly implemented for general use
     def __init__(self, has_period=False, converter: HELMConverter=None):
         self.has_period = has_period
-        self.monomer_ids = set()
+        self.backbone_monomer_ids = set()
         self.converter = converter
         super().__init__()
+    
+    def load_monomer_library(self, *args: str, culling=False):
+        self.converter = HELMConverter().load(*args)
+        if culling:
+            self.converter.lib.cull(self.vocab())
 
     #implement
     def sentence2tokens(self, sentence):
@@ -34,11 +38,11 @@ class HELM(DynamicMolLanguage):
         noperiod_tokenids = []
         for i, tokenid in enumerate(raw_tokenids):
             if tokenid == self.token2id("."):
-                #index conditions shouldn't be needed, but implemented for precaution
+                #index conditions shouldn't be needed for valid helm sentence
                 if i > 0:
-                    self.monomer_ids.add(raw_tokenids[i-1])
+                    self.backbone_monomer_ids.add(raw_tokenids[i-1])
                 if i < len(raw_tokenids) - 1:
-                    self.monomer_ids.add(raw_tokenids[i+1])
+                    self.backbone_monomer_ids.add(raw_tokenids[i+1])
             else:
                 noperiod_tokenids.append(tokenid)
 
@@ -53,7 +57,7 @@ class HELM(DynamicMolLanguage):
             for i, tokenid in enumerate(idseq):
                 newidseq.append(tokenid)
                 if i < len(idseq) - 1:
-                    if idseq[i] in self.monomer_ids and idseq[i+1] in self.monomer_ids:
+                    if idseq[i] in self.backbone_monomer_ids and idseq[i+1] in self.backbone_monomer_ids:
                         newidseq.append(self.token2id("."))
             s = "".join(self.id2token(i) for i in newidseq)
         else:
@@ -63,13 +67,15 @@ class HELM(DynamicMolLanguage):
 
     @staticmethod
     def eos_culling(sentence: str) -> str:
-        if sentence.endswith('$$$$'):
+        if sentence.endswith("V2.0"):
+            sentence = sentence[:-4]
+        if sentence.endswith("$$$$"):
             return sentence[:-4]
-        elif sentence.endswith('$$$'):
+        elif sentence.endswith("$$$"):
             return sentence[:-3]
-        elif sentence.endswith('$$'):
+        elif sentence.endswith("$$"):
             return sentence[:-2]
-        elif sentence.endswith('$'):
+        elif sentence.endswith("$"):
             return sentence[:-1]
         else:
             return sentence
@@ -88,7 +94,8 @@ class HELM(DynamicMolLanguage):
             pickle.dump(self._token2id, fo)
             pickle.dump(self._id2token, fo)
             pickle.dump(self.has_period, fo)
-            pickle.dump(self.monomer_ids, fo)
+            pickle.dump(self.backbone_monomer_ids, fo)
+            pickle.dump(self.converter, fo)
 
     #override
     @classmethod
@@ -99,5 +106,6 @@ class HELM(DynamicMolLanguage):
             lang._token2id = pickle.load(f)
             lang._id2token = pickle.load(f)
             lang.has_period = pickle.load(f)
-            lang.monomer_ids = pickle.load(f)
+            lang.backbone_monomer_ids = pickle.load(f)
+            lang.converter = pickle.load(f)
         return lang
