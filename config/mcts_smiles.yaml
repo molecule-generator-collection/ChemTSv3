@@ -27,11 +27,8 @@ generation_conf:
 filters:
   - filter_class_path: filter.validity_filter.ValidityFilter #put this first if unsure
   - filter_class_path: filter.lipinski_filter.LipinskiFilter
-    filter_conf:
-      rule_of: 5
+    rule_of: 5
   - filter_class_path: filter.logP_filter.LogPFilter
-    filter_conf:
-      min_logP: 0
+    min_logP: 0
   - filter_class_path: filter.ring_size_filter.RingSizeFilter
-    filter_conf:
-      max_ring_size: 6
+    max_ring_size: 6
