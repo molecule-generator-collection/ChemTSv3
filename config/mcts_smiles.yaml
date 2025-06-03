@@ -23,3 +23,6 @@ generation_conf:
   change_root: false
   rollout_conf:
     rollout_threshold: 0.95
+
+filters:
+  - filter_class_path: filter.validity_filter.ValidityFilter
