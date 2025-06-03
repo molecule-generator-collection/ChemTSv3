@@ -2,6 +2,7 @@ import pickle
 import time
 from typing import Type, Self, Any
 import numpy as np
+from filter import Filter
 from generator import Generator
 from node import Node
 from policy import Policy, UCB
@@ -10,7 +11,7 @@ from transition import WeightedTransition
 from utils import get_class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), logger_conf: dict[str, Any]=None):
+    def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, logger_conf: dict[str, Any]=None):
         #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
         self.root = None
         self.transition = transition
@@ -21,7 +22,7 @@ class MCTS(Generator):
         #for search
         self.expansion_threshold = 0.995
         self.rollout_conf = {"rollout_threshold": self.expansion_threshold}
-        super().__init__(output_dir=output_dir, name=name, reward=reward, logger_conf=logger_conf)
+        super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, logger_conf=logger_conf)
 
     def _expand(self, node: Node):
         if node.is_terminal():
@@ -42,11 +43,12 @@ class MCTS(Generator):
         return reward
 
     def _rollout(self, node: Node):
+        #TODO: change here
         if node.depth >= self.max_length:
-            return self.reward_conf.get("filtered_reward", -1)
-        mol = self.transition.rollout(node, **self.rollout_conf)
+            return self.reward.filtered_reward
+        result = self.transition.rollout(node, **self.rollout_conf)
         self.count_rollouts += 1
-        return self.grab_objective_values_and_reward(mol)
+        return self.grab_objective_values_and_reward(result)
 
     def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
         while node:
@@ -124,8 +126,8 @@ class MCTS(Generator):
         self.plot_objective_values_and_reward(x_axis = "time", maxline = True)
         self.logger.info("Search is completed.")
 
-    def log_unique_mol(self, key, objective_values, reward):
-        self.logger.info(str(len(self.unique_keys)) + "- time: " + "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", mol: " + key)
+    def log_unique_node(self, key, objective_values, reward):
+        self.logger.info(str(len(self.unique_keys)) + "- time: " + "{:.2f}".format(self.passed_time) + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(reward) + ", node: " + key)
         self.unique_keys.append(key)
         self.record[key] = {}
         self.record[key]["objective_values"] = objective_values
@@ -144,7 +146,7 @@ class MCTS(Generator):
         if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
             self.logger.debug("invalid mol: " + key)
         else:
-            self.log_unique_mol(key, objective_values, reward)
+            self.log_unique_node(key, objective_values, reward)
 
         return objective_values, reward
     

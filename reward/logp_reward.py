@@ -3,10 +3,7 @@ import numpy as np
 from rdkit.Chem import Descriptors
 from reward import MolReward
 
-class LogPReward(MolReward):
-    def __init__(self, filtered_reward: float=1):
-        self.filtered_reward = filtered_reward
-        
+class LogPReward(MolReward):        
     #implement
     def mol_objective_functions(self):
         def LogP(mol):
