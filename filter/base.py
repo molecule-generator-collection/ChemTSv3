@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from rdkit.Chem import Mol
 from node import Node, MolNode
 
 class Filter(ABC):
@@ -10,9 +11,10 @@ class Filter(ABC):
         pass
 
 class MolFilter(Filter):
-    def __init__(self, **kwargs):
+    @abstractmethod
+    def mol_check(self, mol: Mol) -> bool:
         pass
     
-    @abstractmethod
+    #implement
     def check(self, node: MolNode) -> bool:
-        pass
+        return self.mol_check(node.mol())
