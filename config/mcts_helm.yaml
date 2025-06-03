@@ -25,4 +25,4 @@ generation_conf:
     rollout_threshold: 0.995
 
 filters:
-  - filter_class_path: filter.validity_filter.ValidityFilter
+  - filter_class_path: filter.validity_filter.ValidityFilter #put this first if unsure
