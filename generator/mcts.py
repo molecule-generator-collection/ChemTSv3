@@ -141,12 +141,19 @@ class MCTS(Generator):
         if key in self.record:
             self.logger.debug("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
             return self.record[key]["objective_values"], self.record[key]["reward"]
+        
+        for filter in self.filters:
+            if not filter.check(node):
+                self.logger.debug("filtered by " + filter.__class__.__name__ + ": " + key)
+                return ([0,0], self.reward.filtered_reward)
+            
         objective_values, reward = self.reward.objective_values_and_reward(node)
+        self.log_unique_node(key, objective_values, reward)
 
-        if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol(): #if node has is_valid_mol() method, check whether valid or not
-            self.logger.debug("invalid mol: " + key)
-        else:
-            self.log_unique_node(key, objective_values, reward)
+        # if hasattr(node, "is_valid_mol") and callable(getattr(node, "is_valid_mol")) and not node.is_valid_mol():
+        #     self.logger.debug("invalid mol: " + key)
+        # else:
+        #     self.log_unique_node(key, objective_values, reward)
 
         return objective_values, reward
     
