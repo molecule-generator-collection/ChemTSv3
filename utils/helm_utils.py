@@ -10,9 +10,23 @@ class MonomersLib():
         self.cap_group_mols = cap_group_mols # smiles - mol
         #self.__class__.strip_namespace(monomers_lib.getroot())
     
-    #load xml in ChEMBL format
-    #one instance can load multiple libraries
-    def load_xml(self, monomers_lib_path: str):
+    def load(self, *args: str):
+        """
+        Load monomer library. Supports xml in chembl format and json in the official format.
+        
+        Args:
+            *args: File path(s). If the same token is defined multiple times, prioritize the last definition. ex. /data/helm/library/chembl_35_monomer_library.xml
+        """
+        for s in args:
+            if s.endswith("xml"):
+                self._load_xml(s)
+            else:
+                self._load_json(s)
+    
+    def _load_xml(self, monomers_lib_path: str):
+        """
+        Load xml in ChEMBL format. One instance can load multiple libraries.
+        """
         root = ET.parse(monomers_lib_path).getroot()
         MonomersLib.strip_namespace(root)
         polymers = root.find("PolymerList")
@@ -45,8 +59,10 @@ class MonomersLib():
         self.lib = lib
         self.cap_group_mols = cap_group_mols
     
-    #load json in Pistoia Alliance format
-    def load_json(self, monomers_lib_path:str):
+    def _load_json(self, monomers_lib_path:str):
+        """
+        Load json in Pistoia Alliance format.
+        """
         lib = self.lib or {}
         cap_group_mols = self.cap_group_mols or {}
         with open(monomers_lib_path, 'r', encoding='utf-8') as f:
