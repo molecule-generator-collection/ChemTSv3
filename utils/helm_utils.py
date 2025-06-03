@@ -99,7 +99,7 @@ class MonomersLib():
             cls.strip_namespace(child)
 
     @staticmethod
-    def standardize_monomer_token(token: str):
+    def standardize_monomer_token(token: str) -> str:
         if token.startswith("["):
             token = token[1:-1]
         return token
@@ -151,7 +151,7 @@ class MonomersLib():
                 a.SetProp("atomLabel", "_" + attachment_label)
         return cap
 
-    def get_monomer_smiles(self, polymer_type: str, monomer_token: str):
+    def get_monomer_smiles(self, polymer_type: str, monomer_token: str) -> str:
         monomer_token = self.standardize_monomer_token(monomer_token)
         if monomer_token in self.lib[polymer_type]:
             return self.lib[polymer_type][monomer_token]["MonomerSmiles"]
@@ -161,7 +161,7 @@ class MonomersLib():
             else:
                 return MonomersLib.atom_mapped_to_cx(monomer_token)
 
-    def get_cap_group_smiles(self, polymer_type: str, monomer_token: str, attachment_label: str):
+    def get_cap_group_smiles(self, polymer_type: str, monomer_token: str, attachment_label: str) -> str:
         monomer_token = self.standardize_monomer_token(monomer_token)
         if monomer_token in self.lib[polymer_type]:
             return self.lib[polymer_type][monomer_token]["Attachments"][attachment_label]
@@ -179,13 +179,13 @@ class HELMConverter():
         self.lib.load(*args)
         return self
     
-    def convert(self, helm: str):
+    def convert(self, helm: str) -> Mol:
         try:
             return self._convert(helm)
         except:
             return None
     
-    def _convert(self, helm: str, close=True, verbose=False):
+    def _convert(self, helm: str, close=True, verbose=False) -> Mol:
         helm = self.standardize_helm(helm)
         helm_parts = helm.rsplit("$", 4)
         parsed_polymers = self.parse_polymers(helm_parts[0])
@@ -208,7 +208,7 @@ class HELMConverter():
         return mol
 
     @staticmethod
-    def split_helm(helm: str):
+    def split_helm(helm: str) -> list[str]:
         pattern = (
             r"("
             r"\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]"
@@ -230,7 +230,7 @@ class HELMConverter():
         return tokens
 
     @staticmethod
-    def standardize_helm(sentence: str):
+    def standardize_helm(sentence: str) -> str:
         sentence = sentence.replace(".(", "(")
         sentence = sentence.replace("V2.0", "")
         return sentence
@@ -329,7 +329,7 @@ class HELMConverter():
             emol.RemoveAtom(idx_r_2 - 1 if idx_r_2 > idx_r_1 else idx_r_2)
             return emol.GetMol()
     
-    def parse_polymers(self, polymer_part: list):
+    def parse_polymers(self, polymer_part: str) -> list[str]:
         polymer_tokens = HELMConverter.split_helm(polymer_part)
         parsed_polymers = []
         for i in range(len(polymer_tokens)):
