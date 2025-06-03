@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any
+from typing import Any, Self
 import torch
 import torch.nn.functional as F
 from transformers import GPT2LMHeadModel
@@ -9,21 +9,22 @@ from node import SentenceNode
 from transition import LanguageModel
 
 class GPT2Transition(LanguageModel):
-    def __init__(self, lang: Language, model=None, model_dir=None, name=None, logger: logging.Logger=None):
-        assert (model is not None) or (model_dir is not None), \
-            "specify model or model_dir."
+    def __init__(self, lang: Language, model=None, model_dir: str=None, name=None, logger: logging.Logger=None):
         assert (model is None) or (model_dir is None), \
-            "specify one of model or model_dir, not both."
+            "specify one (or none) of model or model_dir, not both."
 
         if model is not None:
             self.model = model
-        else:
-            self.model = GPT2LMHeadModel.from_pretrained(model_dir, torch_dtype=torch.float16).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-            if name is None:
-                name = os.path.basename(os.path.normpath(model_dir))
+        elif model_dir is not None:
+            self.load(model_dir)
 
         super().__init__(lang=lang, name=name, logger=logger)
         self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
+    
+    def load(self, model_dir: str) -> Self:
+        self.model = GPT2LMHeadModel.from_pretrained(model_dir, torch_dtype=torch.float16).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+        self.name = os.path.basename(os.path.normpath(model_dir))
+        return self
 
     #override
     def max_length(self):
