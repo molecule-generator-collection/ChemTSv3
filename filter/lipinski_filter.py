@@ -10,7 +10,7 @@ class LipinskiFilter(MolFilter):
             raise AssertionError("rule_of must be either 5, 3, or None")
         
         if rule_of:
-            self.max_weight = 500 * rule_of
+            self.max_weight = 100 * rule_of
             self.max_logP = rule_of
             self.max_hydrogen_bond_donors = rule_of
             if rule_of == 3:
