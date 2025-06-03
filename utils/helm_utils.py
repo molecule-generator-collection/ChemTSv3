@@ -1,13 +1,15 @@
 import json
 import re
 import xml.etree.ElementTree as ET
-from rdkit import Chem
+from rdkit import Chem, RDLogger
 from rdkit.Chem import Mol
 
 class MonomersLib():
-    def __init__(self, monomers_lib: dict={}, cap_group_mols: dict={}):
+    def __init__(self, monomers_lib: dict={}, cap_group_mols: dict={}, disable_RDLogger=True):
         self.lib = monomers_lib
         self.cap_group_mols = cap_group_mols # smiles - mol
+        if disable_RDLogger:
+            RDLogger.DisableLog('rdApp.*')
         #self.__class__.strip_namespace(monomers_lib.getroot())
     
     def load(self, *args: str):
@@ -169,8 +171,12 @@ class HELMConverter():
     polymer_types = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
     skip_tokens = [".", "{", "(", ")"]
 
-    def __init__(self, monomers_lib: MonomersLib):
-        self.lib = monomers_lib
+    def __init__(self, monomers_lib: MonomersLib=None):
+        self.lib = monomers_lib or MonomersLib()
+    
+    def load(self, *args: str):
+        self.lib.load(*args)
+        return self
     
     def convert(self, helm: str):
         try:
