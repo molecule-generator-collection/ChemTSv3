@@ -1,15 +1,15 @@
 output_dir: generation_result
 
-model_class_path: transition.gpt2.GPT2Transition
+model_class_name: GPT2Transition
 model_dir: model/smiles/smiles_drugs_zinc_1.2m
-lang_class_path: language.smiles.SMILES
+lang_class_name: SMILES
 lang_path: model/smiles/smiles_drugs_zinc.lang
 
-reward_class_path: reward.logp_reward.LogPReward
+reward_class_name: LogPReward
 reward_conf:
   filtered_reward: -1
 
-policy_class_path: policy.ucb.UCB
+policy_class_name: UCB
 policy_conf:
   c: 0.1
 
@@ -25,10 +25,10 @@ generation_conf:
     rollout_threshold: 0.95
 
 filters:
-  - filter_class_path: filter.validity_filter.ValidityFilter #put this first if unsure
-  - filter_class_path: filter.lipinski_filter.LipinskiFilter
+  - filter_class_name: ValidityFilter #put this first if unsure
+  - filter_class_name: LipinskiFilter
     rule_of: 5
-  - filter_class_path: filter.logP_filter.LogPFilter
+  - filter_class_name: LogPFilter
     min_logP: 0
-  - filter_class_path: filter.ring_size_filter.RingSizeFilter
+  - filter_class_name: RingSizeFilter
     max_ring_size: 6
