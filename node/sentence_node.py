@@ -35,6 +35,6 @@ class MolSentenceNode(SentenceNode, MolNode):
 
     #implement
     def mol(self) -> Mol:
-        mol = self.lang.__class__.sentence2mol(self.__str__())
+        mol = self.lang.sentence2mol(self.__str__())
         self._is_valid_mol = not (mol is None or mol.GetNumAtoms()==0)
         return mol

@@ -22,6 +22,7 @@ class MonomersLib():
                 self._load_xml(s)
             else:
                 self._load_json(s)
+        return self
     
     def _load_xml(self, monomers_lib_path: str):
         """

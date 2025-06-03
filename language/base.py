@@ -167,9 +167,8 @@ class MolLanguage(Language):
     def ids2sentence(self, idseq: list[int]) -> str:
         pass
     
-    @staticmethod
     @abstractmethod
-    def sentence2mol(sentence: str) -> Mol:
+    def sentence2mol(self, sentence: str) -> Mol:
         pass
 
 #Should be (DynamicLanguage, MolConvertibleLanguage) for MRO
@@ -179,7 +178,6 @@ class DynamicMolLanguage(DynamicLanguage, MolLanguage):
     def sentence2tokens(self, sentence: str) -> list[str]:
         pass
 
-    @staticmethod
     @abstractmethod
-    def sentence2mol(sentence: str) -> Mol:
+    def sentence2mol(self, sentence: str) -> Mol:
         pass

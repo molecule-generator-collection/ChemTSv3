@@ -8,9 +8,10 @@ from utils import HELMConverter
 
 class HELM(DynamicMolLanguage):
     #Currently has_period = True isn't properly implemented for general use
-    def __init__(self, has_period=False):
+    def __init__(self, has_period=False, converter: HELMConverter=None):
         self.has_period = has_period
         self.monomer_ids = set()
+        self.converter = converter
         super().__init__()
 
     #implement
@@ -74,9 +75,11 @@ class HELM(DynamicMolLanguage):
             return sentence
         
     #implement
-    @staticmethod
-    def sentence2mol(sentence: str) -> Mol:
-        return Chem.MolFromHELM(sentence)
+    def sentence2mol(self, sentence: str) -> Mol:
+        if self.converter is None:
+            return Chem.MolFromHELM(sentence)
+        else:
+            return self.converter.convert(sentence)
     
     #override
     def save(self, file: str):

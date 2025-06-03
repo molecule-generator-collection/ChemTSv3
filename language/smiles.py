@@ -20,6 +20,5 @@ class SMILES(DynamicMolLanguage):
         return tokens
 
     #implement
-    @staticmethod
-    def sentence2mol(sentence: str) -> Mol:
+    def sentence2mol(self, sentence: str) -> Mol:
         return Chem.MolFromSmiles(sentence)
