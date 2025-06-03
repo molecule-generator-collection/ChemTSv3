@@ -1,5 +1,6 @@
 import json
 import re
+from typing import Self
 import xml.etree.ElementTree as ET
 from rdkit import Chem, RDLogger
 from rdkit.Chem import Mol
@@ -12,7 +13,7 @@ class MonomersLib():
             RDLogger.DisableLog('rdApp.*')
         #self.__class__.strip_namespace(monomers_lib.getroot())
     
-    def load(self, *args: str):
+    def load(self, *args: str) -> Self:
         """
         Load monomer library. Supports xml in chembl format and json in the official format.
         
@@ -174,7 +175,7 @@ class HELMConverter():
     def __init__(self, monomers_lib: MonomersLib=None):
         self.lib = monomers_lib or MonomersLib()
     
-    def load(self, *args: str):
+    def load(self, *args: str) -> Self:
         self.lib.load(*args)
         return self
     
