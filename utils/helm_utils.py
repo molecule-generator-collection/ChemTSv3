@@ -11,7 +11,6 @@ class MonomersLib():
         self.cap_group_mols = cap_group_mols # smiles - mol
         if disable_RDLogger:
             RDLogger.DisableLog('rdApp.*')
-        #self.__class__.strip_namespace(monomers_lib.getroot())
     
     def load(self, *args: str) -> Self:
         """
@@ -91,6 +90,21 @@ class MonomersLib():
         self.lib = lib
         self.cap_group_mols = cap_group_mols        
     
+    def cull(self, monomer_tokens: list[str]):
+        """
+        Roughly removes monomer entries if they are not in the list. Unused monomers with the same ID in the other polymer types won't be removed.)
+        """
+        culled_lib = {}
+        for polymer_type in HELMConverter.polymer_types:
+            if not polymer_type in self.lib:
+                continue
+            culled_lib[polymer_type] = {}
+            for t in monomer_tokens:
+                t = self.standardize_monomer_token(t)
+                if t in self.lib[polymer_type]:
+                    culled_lib[polymer_type][t] = self.lib[polymer_type][t]
+        self.lib = culled_lib
+
     # remove namespace from xml
     @classmethod
     def strip_namespace(cls, element: ET.Element):
