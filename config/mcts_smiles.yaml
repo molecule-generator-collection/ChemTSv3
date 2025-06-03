@@ -14,7 +14,7 @@ policy_conf:
   c: 1
 
 generation_conf:
-  time_limit: 5 #seconds
+  time_limit: 60 #seconds
   #max_rollouts : 15
   #max_generations : 1500
   expansion_threshold: 0.995
@@ -26,3 +26,6 @@ generation_conf:
 
 filters:
   - filter_class_path: filter.validity_filter.ValidityFilter
+  - filter_class_path: filter.lipinski_filter.LipinskiFilter
+    filter_conf:
+      rule_of: 5
