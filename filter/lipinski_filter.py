@@ -2,7 +2,7 @@ from rdkit.Chem import Mol, Descriptors, rdMolDescriptors
 from filter import MolFilter
 
 class LipinskiFilter(MolFilter):
-    def __init__(self, rule_of: int = None, max_weight = None, max_logP = None, max_hydrogen_bond_donors = None, max_hydrogen_bond_acceptors = None, max_rotatable_bonds = None):
+    def __init__(self, rule_of: int=None, max_weight=None, max_logP=None, max_hydrogen_bond_donors=None, max_hydrogen_bond_acceptors=None, max_rotatable_bonds=None):
         """
         Prioritize max_*** over rule_of value.
         """

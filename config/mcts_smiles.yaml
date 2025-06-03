@@ -32,3 +32,6 @@ filters:
   - filter_class_path: filter.logP_filter.LogPFilter
     filter_conf:
       min_logP: 0
+  - filter_class_path: filter.ring_size_filter.RingSizeFilter
+    filter_conf:
+      max_ring_size: 6
