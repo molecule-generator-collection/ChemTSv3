@@ -11,10 +11,14 @@ reward_conf:
 
 policy_class_name: UCB
 policy_conf:
-  c: 0.01
+  #c: 0.01
+  c:
+    - [2, 0.0001]
+    - [3, 0.1]
+    - [4, 0.01]
 
 generation_conf:
-  time_limit: 10 #seconds
+  time_limit: 20 #seconds
   #max_rollouts : 15
   #max_generations : 1500
   expansion_threshold: 0.995
