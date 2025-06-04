@@ -1,16 +1,20 @@
 import importlib
-import pickle
-from typing import Self
+import re
 
-def get_class_from_class_path(class_path: str):
+def class_from_class_path(class_path: str):
     module_path, class_name = class_path.rsplit(".", 1)
     module = importlib.import_module(module_path)
     return getattr(module, class_name)
 
-def get_class_from_package(package_name: str, class_name: str):
+def class_from_package(package_name: str, class_name: str):
     module = importlib.import_module(package_name)
     return getattr(module, class_name)
 
-def get_class_path_from_object(obj: object) -> str:
+def class_path_from_object(obj: object) -> str:
     cls = obj.__class__
     return f"{cls.__module__}.{cls.__name__}"
+
+def camel2snake(name: str) -> str:
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    snake = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+    return snake

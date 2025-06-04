@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from filter import Filter
 from reward import Reward, LogPReward
-from utils import get_class_from_class_path
+from utils import camel2snake
 
 class Generator(ABC):
     def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, logger_conf: dict[str, Any]=None):
@@ -64,6 +64,7 @@ class Generator(ABC):
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
 
         if y_axis == "reward":
+            y_axis = camel2snake(self.reward.__class__.__name__)
             y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
         else:
             objective_names = [f.__name__ for f in self.reward.objective_functions()]
