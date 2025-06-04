@@ -30,6 +30,7 @@ generation_conf:
 
 filters:
   - filter_class_name: ValidityFilter #put this first if unsure
+  - filter_class_name: RadicalFilter
   - filter_class_name: AromaticRingFilter
   - filter_class_name: LipinskiFilter
     rule_of: 5
