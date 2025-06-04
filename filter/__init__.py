@@ -5,7 +5,7 @@ from .charge_filter import ChargeFilter
 from .hba_filter import HBAFilter
 from .hbd_filter import HBDFilter
 from .lipinski_filter import LipinskiFilter
-from .logP_filter import LogPFilter
+from .log_p_filter import LogPFilter
 from .pains_filter import PainsFilter
 from .radical_filter import RadicalFilter
 from .ring_size_filter import RingSizeFilter
