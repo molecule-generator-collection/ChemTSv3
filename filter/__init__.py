@@ -10,7 +10,8 @@ from .pains_filter import PainsFilter
 from .radical_filter import RadicalFilter
 from .ring_size_filter import RingSizeFilter
 from .rotatable_bonds_filter import RotatableBondsFilter
+from .tpsa_filter import TPSAFilter
 from .validity_filter import ValidityFilter
 from .weight_filter import WeightFilter
 
-__all__ = ["Filter", "MolFilter", "AromaticRingFilter", "AttachmentPointsFilter", "ChargeFilter", "HBAFilter", "HBDFilter", "LipinskiFilter", "LogPFilter", "PainsFilter", "RadicalFilter", "RingSizeFilter", "RotatableBondsFilter", "ValidityFilter", "WeightFilter"]
+__all__ = ["Filter", "MolFilter", "AromaticRingFilter", "AttachmentPointsFilter", "ChargeFilter", "HBAFilter", "HBDFilter", "LipinskiFilter", "LogPFilter", "PainsFilter", "RadicalFilter", "RingSizeFilter", "RotatableBondsFilter", "TPSAFilter", "ValidityFilter", "WeightFilter"]
