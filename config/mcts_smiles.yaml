@@ -11,7 +11,11 @@ reward_conf:
 
 policy_class_name: UCB
 policy_conf:
-  c: 0.1
+  #c: 0.1
+  c:
+    - [5, 1]
+    - [10, 0.1]
+    - [20, 0.01]
 
 generation_conf:
   time_limit: 15 #seconds
@@ -26,6 +30,7 @@ generation_conf:
 
 filters:
   - filter_class_name: ValidityFilter #put this first if unsure
+  - filter_class_name: AromaticRingFilter
   - filter_class_name: LipinskiFilter
     rule_of: 5
   - filter_class_name: LogPFilter
