@@ -7,7 +7,7 @@ class LipinskiFilter(MolFilter):
         Prioritize max_*** over rule_of value.
         """
         if not (rule_of is None or rule_of == 3 or rule_of == 5):
-            raise AssertionError("rule_of must be either 5, 3, or None")
+            raise ValueError("rule_of must be either 5, 3, or None")
         
         if rule_of:
             self.max_weight = 100 * rule_of
