@@ -9,5 +9,6 @@ from .logP_filter import LogPFilter
 from .radical_filter import RadicalFilter
 from .ring_size_filter import RingSizeFilter
 from .validity_filter import ValidityFilter
+from .weight_filter import WeightFilter
 
-__all__ = ["Filter", "MolFilter", "AromaticRingFilter", "AttachmentPointsFilter", "ChargeFilter", "HBAFilter", "HBDFilter", "LipinskiFilter", "LogPFilter", "RadicalFilter", "RingSizeFilter", "ValidityFilter"]
+__all__ = ["Filter", "MolFilter", "AromaticRingFilter", "AttachmentPointsFilter", "ChargeFilter", "HBAFilter", "HBDFilter", "LipinskiFilter", "LogPFilter", "RadicalFilter", "RingSizeFilter", "ValidityFilter", "WeightFilter"]
