@@ -75,7 +75,7 @@ class MCTS(Generator):
         """
         
         if (max_rollouts is None) and (time_limit is None) and (max_generations is None):
-            raise AssertionError("Specify at least one of max_genrations, max_rollouts or time_limit.")
+            raise ValueError("Specify at least one of max_genrations, max_rollouts or time_limit.")
 
         #refresh variables
         self.expansion_threshold = expansion_threshold or self.expansion_threshold
@@ -89,9 +89,9 @@ class MCTS(Generator):
 
         #asign root node
         if root is None and self.root is None:
-            raise AssertionError("Specify the root node unless you're running a loaded MCTS searcher.")
+            raise ValueError("Specify the root node unless you're running a loaded MCTS searcher.")
         if (root is not None) and (self.root is not None) and not change_root:
-            raise AssertionError("root was passed as an argument, but this MCTS searcher already has the root node. If you really want to change the root node, set change_root to True.")
+            raise ValueError("root was passed as an argument, but this MCTS searcher already has the root node. If you really want to change the root node, set change_root to True.")
 
         if (root is not None and change_root) or self.root is None:
             self.root = root
