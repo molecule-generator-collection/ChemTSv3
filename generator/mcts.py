@@ -112,7 +112,7 @@ class MCTS(Generator):
             while node.children:
                 node = max(node.children.values(), key=lambda n: self.policy.evaluate(n))
                 if node.sum_r == -float("inf"): #already exhausted every terminal under this
-                    self.logger.debug("Exhaust every terminal under: " + str(node.parent) + "")
+                    self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
                     if exhaust_backpropagate:
                         value = self._eval(node)
                         self._backpropagate(node, value, use_dummy_reward)
@@ -139,7 +139,7 @@ class MCTS(Generator):
     def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
         key = str(node)
         if key in self.record:
-            self.logger.debug("already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
+            self.logger.debug("Already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
         for filter in self.filters:
