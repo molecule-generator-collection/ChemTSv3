@@ -51,7 +51,7 @@ class Generator(ABC):
         self.logger.addHandler(file_handler)
 
     #visualize results
-    def plot(self, x_axis: str="generation_order", y_axis: str="reward", maxline=False, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
+    def plot(self, x_axis: str="generation_order", y_axis: str="reward", moving_average: int=50, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
         #x_axis ... use X in self.record["mol_key"]["X"]
 
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
@@ -82,8 +82,17 @@ class Generator(ABC):
         if ylim is not None:
             plt.ylim(ylim)
         plt.grid(axis="y")
+        
+        if moving_average is not None and moving_average > 1:
+            y_ma = np.convolve(y, np.ones(moving_average) / moving_average, mode='valid')
+            x_ma = x[moving_average - 1:]  # align with shorter y_ma
+            plt.plot(x_ma, y_ma, label=f'moving average ({moving_average})', linewidth=1.5)
 
-        if maxline:
+        if max_curve:
+            y_max_curve = np.maximum.accumulate(y)
+            plt.plot(x, y_max_curve, label='max', linestyle='--')
+
+        if max_line:
             max(y)
             y_max = np.max(y)
             plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}')
@@ -92,9 +101,9 @@ class Generator(ABC):
         plt.legend()
         plt.show()
     
-    def plot_objective_values_and_reward(self, x_axis: str="generation_order", maxline=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):
+    def plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average: int=50, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):
         ylims = ylims or {}
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for o in objective_names:
-            self.plot(x_axis=x_axis, y_axis=o, maxline=maxline, xlim=xlim, ylim=ylims.get(o, None))
-        self.plot(x_axis=x_axis, y_axis="reward", maxline=maxline, xlim=xlim, ylim=ylims.get("reward", None))
+            self.plot(x_axis=x_axis, y_axis=o, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None))
+        self.plot(x_axis=x_axis, y_axis="reward", moving_average=moving_average, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None))

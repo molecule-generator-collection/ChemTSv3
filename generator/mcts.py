@@ -121,9 +121,9 @@ class MCTS(Generator):
                     continue
             value = self._eval(node)
             self._backpropagate(node, value, use_dummy_reward)
-
-        self.plot_objective_values_and_reward(x_axis = "generation_order", maxline = True)
-        self.plot_objective_values_and_reward(x_axis = "time", maxline = True)
+            
+        self.plot_objective_values_and_reward(x_axis = "generation_order")
+        self.plot_objective_values_and_reward(x_axis = "time")
         self.logger.info("Search is completed.")
 
     def log_unique_node(self, key, objective_values, reward):
