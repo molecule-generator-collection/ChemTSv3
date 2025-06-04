@@ -5,7 +5,7 @@ model_dir: model/smiles/smiles_drugs_zinc_1.2m
 lang_class_name: SMILES
 lang_path: model/smiles/smiles_drugs_zinc.lang
 
-reward_class_name: LogPReward
+reward_class_name: JScoreReward
 reward_conf:
   filtered_reward: -1
 

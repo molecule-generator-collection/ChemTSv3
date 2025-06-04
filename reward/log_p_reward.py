@@ -7,14 +7,10 @@ class LogPReward(MolReward):
     #implement
     def mol_objective_functions(self):
         def log_p(mol):
-            # if mol is None or mol.GetNumAtoms()==0:
-            #     return float('nan')
             return Descriptors.MolLogP(mol)
 
         return [log_p]
 
     #implement
     def reward_from_objective_values(self, values):
-        # if math.isnan(values[0]):
-        #     return self.filtered_reward
         return np.tanh(values[0] / 10)
