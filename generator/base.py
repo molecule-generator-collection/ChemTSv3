@@ -109,6 +109,6 @@ class Generator(ABC):
             y_max = np.max(y)
             plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}')
 
-        plt.savefig(self.output_dir() + self.name() + "_" + y_axis + "_by_" + x_axis + ".png")
         plt.legend()
+        plt.savefig(self.output_dir() + self.name() + "_" + y_axis + "_by_" + x_axis + ".png")
         plt.show()
