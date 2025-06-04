@@ -6,5 +6,5 @@ class RadicalFilter(MolValueFilter):
         super().__init__(allowed=allowed, **kwargs)
         
     #implement
-    def mol_value(self, mol):
+    def mol_value(self, mol) -> int:
         return Descriptors.NumRadicalElectrons(mol)

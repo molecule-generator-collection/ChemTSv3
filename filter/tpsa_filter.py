@@ -1,12 +1,10 @@
 from rdkit.Chem import Mol, Descriptors
-from filter import MolFilter
+from filter import MolValueFilter
 
-class TPSAFilter(MolFilter):
-    def __init__(self, max_TPSA=140, min_TPSA=None):
-        self.max_TPSA = float("inf") if max_TPSA is None else max_TPSA
-        self.min_TPSA = -float("inf") if min_TPSA is None else min_TPSA
+class TPSAFilter(MolValueFilter):
+    def __init__(self, max=140, **kwargs):
+        super().__init__(max=max, **kwargs)
 
     #implement
-    def mol_check(self, mol: Mol) -> bool:
-        area = Descriptors.TPSA(mol)
-        return self.min_TPSA <= area and area <= self.max_TPSA 
+    def mol_value(self, mol: Mol) -> float:
+        return Descriptors.TPSA(mol)

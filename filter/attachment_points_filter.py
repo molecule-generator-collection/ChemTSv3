@@ -7,6 +7,6 @@ class AttachmentPointsFilter(ValueFilter):
         super().__init__(allowed=allowed, **kwargs)
         
     #implement
-    def check(self, node: SentenceNode) -> bool:
+    def value(self, node: SentenceNode) -> int:
         smiles = str(node)
         return smiles.count("*")
