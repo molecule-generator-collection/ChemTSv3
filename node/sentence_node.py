@@ -13,7 +13,6 @@ class SentenceNode(Node):
     #implement
     def __str__(self):
         return self.lang.ids2sentence(self.id_list())
-        pass
 
     #implement
     def is_terminal(self):
