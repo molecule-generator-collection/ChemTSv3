@@ -33,12 +33,12 @@ filters:
   - filter_class_name: RadicalFilter
   - filter_class_name: ChargeFilter
   - filter_class_name: AromaticRingFilter
-  - filter_class_name: LipinskiFilter
-    rule_of: 5
-  - filter_class_name: PainsFilter
-    families:
-      - A
-      - B
-      - C
-  - filter_class_name: RingSizeFilter
-    max_ring_size: 6
+  # - filter_class_name: LipinskiFilter
+  #   rule_of: 5
+  # - filter_class_name: PainsFilter
+  #   families:
+  #     - A
+  #     - B
+  #     - C
+  - filter_class_name: MaxRingSizeFilter
+    max: 6
