@@ -8,7 +8,7 @@ from node import Node
 from policy import Policy, UCB
 from reward import Reward, LogPReward
 from transition import WeightedTransition
-from utils import get_class_from_class_path
+from utils import class_from_class_path
 
 class MCTS(Generator):
     def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, logger_conf: dict[str, Any]=None):
