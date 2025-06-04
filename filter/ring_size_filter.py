@@ -1,16 +1,16 @@
 from rdkit.Chem import Mol, Descriptors
-from filter import MolFilter
+from filter import MolValueFilter
 
-class RingSizeFilter(MolFilter):
-    def __init__(self, max_ring_size = None, min_ring_size = None):
-        self.max_ring_size = max_ring_size
-        self.min_ring_size = min_ring_size
-
+class MaxRingSizeFilter(MolValueFilter):
     #implement
-    def mol_check(self, mol: Mol) -> bool:
+    def mol_value(self, mol: Mol) -> bool:
         ri = mol.GetRingInfo()
-        if self.max_ring_size is not None and self.max_ring_size < max((len(r) for r in ri.AtomRings()), default=0):
-            return False
-        if self.min_ring_size is not None and self.min_ring_size > min((len(r) for r in ri.AtomRings()), default=float("inf")):
-            return False
-        return True
+        max_ring_size = max((len(r) for r in ri.AtomRings()), default=0)
+        return max_ring_size
+    
+class MinRingSizeFilter(MolValueFilter):
+    #implement
+    def mol_value(self, mol: Mol) -> bool:
+        ri = mol.GetRingInfo()
+        min_ring_size = min((len(r) for r in ri.AtomRings()), default=float("inf"))
+        return min_ring_size

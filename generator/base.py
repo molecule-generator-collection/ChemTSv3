@@ -92,10 +92,10 @@ class Generator(ABC):
             plt.ylim(ylim)
         plt.grid(axis="y")
         
-        if moving_average is not None and moving_average > 0:
-            label = f"moving average ({moving_average})"
-            if moving_average < 1:
-                moving_average = math.floor(len(self.unique_keys) * moving_average)
+        label = f"moving average ({moving_average})"
+        if moving_average is not None and moving_average < 1:
+            moving_average = math.floor(len(self.unique_keys) * moving_average)
+        if moving_average is not None and moving_average > 1:
             y_ma = np.convolve(y, np.ones(moving_average) / moving_average, mode='valid')
             x_ma = x[moving_average - 1:]  # align with shorter y_ma
             plt.plot(x_ma, y_ma, label=label, linewidth=1.5)
