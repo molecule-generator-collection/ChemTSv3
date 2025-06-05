@@ -34,20 +34,14 @@ class Node(ABC):
         self.mean_r = self.sum_r / self.n
     
 class MolNode(Node):
-    def __init__(self, parent=None, last_prob=1.0):
-        self._is_valid_mol = None
-        super().__init__(parent, last_prob)
+    @abstractmethod
+    def __str__(self) -> str:
+        pass
 
     @abstractmethod
-    def mol(self) -> Mol:
-        #recommended to cache _is_valid_mol
+    def is_terminal(self) -> bool:
         pass
     
-    def is_valid_mol(self) -> bool:
-        if self._is_valid_mol is not None:
-            return self._is_valid_mol
-        
-        mol = self.mol()
-        is_valid = not (mol is None or mol.GetNumAtoms()==0)
-        self._is_valid_mol = is_valid
-        return is_valid
+    @abstractmethod
+    def mol(self) -> Mol:
+        pass
