@@ -147,6 +147,7 @@ class MCTS(Generator):
             
         objective_values, reward = self.reward.objective_values_and_reward(node)
         self.log_unique_node(key, objective_values, reward)
+        node.clear_cache()
 
         return objective_values, reward
     
