@@ -33,6 +33,5 @@ class MolSentenceNode(SentenceNode, MolNode):
         super().__init__(id_tensor, lang, parent, last_prob)
 
     #implement
-    def mol(self) -> Mol:
-        mol = self.lang.sentence2mol(self.__str__())
-        return mol
+    def _mol_impl(self) -> Mol:
+        return self.lang.sentence2mol(self.__str__())
