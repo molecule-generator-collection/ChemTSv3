@@ -18,7 +18,7 @@ policy_conf:
     - [5, 0.01]
 
 generation_conf:
-  time_limit: 30 #seconds
+  time_limit: 10 #seconds
   #max_rollouts : 15
   #max_generations : 1500
   expansion_threshold: 0.995
