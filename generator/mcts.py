@@ -66,8 +66,9 @@ class MCTS(Generator):
             time_limit: Seconds. Generation stops after the time limit.
             max_generations: Generation stops after generating 'max_generations' number of nodes.
             max_rollouts: Generation stops after conducting 'max_rollouts' number of rollouts.
-            exhaust_backpropagate: If true, backpropagate the reward when every terminal node under the node is already explored (only once, as that node won't be visited again)
             expansion_threshold: [0-1]. Ignore children with low transition probabilities in expansion based on this value
+            n_evals: the number of node evaluation in one rollout step
+            exhaust_backpropagate: If true, backpropagate the reward when every terminal node under the node is already explored (only once, as that node won't be visited again)
             use_dummy_reward: If True, backpropagate value is fixed to 0, still calculates rewards and objective values
             change_root: Failsafe. Set to False only if you want to change the root node in the loaded generator.
             rollout_conf: config for rollout.

@@ -20,8 +20,7 @@ reward_conf:
     permeability: {type: max_gauss, alpha: 1, mu: 1, sigma: 1, weight: 1}
     metabolic_stability: {type: max_gauss, alpha: 1, mu: 75, sigma: 20, weight: 1}
     toxicity: {type: min_gauss, alpha: 1, mu: 5.5, sigma: 0.5, weight: 1}
-    # SAscore is made negative when scaling because a smaller value is more desirable.
-    sa_score: {type: max_gauss, alpha: 1, mu: -3, sigma: 2, weight: 1}
+    sa_score: {type: max_gauss, alpha: 1, mu: -3, sigma: 2, weight: 1} # negative when scaling as smaller values are more desirable.
     qed: {type: max_gauss, alpha: 1, mu: 0.8, sigma: 0.25, weight: 1}
     molecular_weight: {type: rectangular, min: 200, max: 600, weight: 1}
     tox_alert: {type: identity, weight: 1}
@@ -36,11 +35,6 @@ generation_conf:
   # max_generations : 300000
   expansion_threshold: 0.995
   n_evals: 3
-  exhaust_backpropagate: false
-  use_dummy_reward: false
-  change_root: false
-  rollout_conf:
-    rollout_threshold: 0.995
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
