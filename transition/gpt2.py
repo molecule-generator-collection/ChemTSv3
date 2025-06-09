@@ -26,17 +26,17 @@ class GPT2Transition(LanguageModel):
         self.name = os.path.basename(os.path.normpath(model_dir))
         return self
 
-    #override
+    # override
     def max_length(self):
         return self.model.config.n_positions
 
-    #implement
+    # implement
     def _transitions_with_probs_impl(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
         nodes = []
 
         with torch.no_grad():
             outputs = self.model(node.id_tensor)
-            logits = outputs.logits  #shape: [batch_size, seq_len, vocab_size]
+            logits = outputs.logits  # shape: [batch_size, seq_len, vocab_size]
             next_token_logits = logits[0, -1, :]
 
         probs = F.softmax(next_token_logits, dim=-1).tolist()
@@ -46,16 +46,16 @@ class GPT2Transition(LanguageModel):
 
         return [(i, nodes[i], probs[i]) for i in range(len(probs))]
 
-    #implement
+    # implement
     def rollout(self, initial_node: SentenceNode, rollout_threshold=0.995) -> SentenceNode:
-    #rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value
+    # rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value
         with torch.no_grad():
             result_tensor = self.model.generate(
                 initial_node.id_tensor,
                 max_length=self.max_length(),
-                do_sample=True,       #sampling
-                #top_k=50,             #top-k sampling
-                top_p=rollout_threshold,  #nucleus sampling
+                do_sample=True, # sampling
+                # top_k=50, # top-k sampling
+                top_p=rollout_threshold, # nucleus sampling
                 eos_token_id=self.lang.eos_id(),
                 pad_token_id=self.lang.pad_id(),
                 num_return_sequences=1
