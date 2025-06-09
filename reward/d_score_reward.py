@@ -50,10 +50,9 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 #python3.11/site-packages/sklearn/utils/deprecation.py:132: FutureWarning: 'force_all_finite' was renamed to 'ensure_all_finite' in 1.6 and will be removed in 1.8.
 
 class DScoreReward(MolReward):
-    def __init__(self, params: dict[str, dict], **kwargs):
+    def __init__(self, params: dict[str, dict]):
         self.params = params
-        super().__init__(**kwargs)
-
+        
     #implement
     def mol_objective_functions(self):
         def EGFR(mol):

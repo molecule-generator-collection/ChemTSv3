@@ -11,7 +11,7 @@ from transition import WeightedTransition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, logger_conf: dict[str, Any]=None):
+    def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None):
         #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
         self.root = None
         self.transition = transition
@@ -22,7 +22,7 @@ class MCTS(Generator):
         #for search
         self.expansion_threshold = 0.995
         self.rollout_conf = {"rollout_threshold": self.expansion_threshold}
-        super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, logger_conf=logger_conf)
+        super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger_conf=logger_conf)
 
     def _expand(self, node: Node):
         if node.is_terminal():
@@ -45,7 +45,7 @@ class MCTS(Generator):
     def _rollout(self, node: Node):
         #TODO: change here
         if node.depth >= self.max_length:
-            return self.reward.filtered_reward
+            return self.filtered_reward
         result = self.transition.rollout(node, **self.rollout_conf)
         self.count_rollouts += 1
         return self.grab_objective_values_and_reward(result)
@@ -143,7 +143,7 @@ class MCTS(Generator):
         for filter in self.filters:
             if not filter.check(node):
                 self.logger.debug("filtered by " + filter.__class__.__name__ + ": " + key)
-                return ([0,0], self.reward.filtered_reward)
+                return ([0,0], self.filtered_reward)
             
         objective_values, reward = self.reward.objective_values_and_reward(node)
         self.log_unique_node(key, objective_values, reward)

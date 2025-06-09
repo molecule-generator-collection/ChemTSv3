@@ -4,8 +4,8 @@ model_class: GPT2Transition
 model_dir: model/smiles/smiles_drugs_zinc_1.2m
 
 reward_class: JScoreReward
-reward_conf:
-  filtered_reward: -1
+filtered_reward: -0.5
+# reward_conf:
 
 policy_class: UCB
 policy_conf:
