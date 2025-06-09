@@ -19,7 +19,7 @@ class UCB(Policy):
     #implement
     def evaluate(self, node: Node):
         #c: exploration parameter
-        u = self.c(node.depth) * sqrt(2 * log(node.parent.n) / (node.n))
         if node.n == 0:
-            return self.initial_mean + u
+            return self.initial_mean + self.c(node.depth) * sqrt(2 * log(node.parent.n + 1) / (node.n + 1))
+        u = self.c(node.depth) * sqrt(2 * log(node.parent.n) / (node.n))
         return node.mean_r + u

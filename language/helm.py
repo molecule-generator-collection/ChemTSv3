@@ -86,26 +86,3 @@ class HELM(DynamicMolLanguage):
             return Chem.MolFromHELM(sentence)
         else:
             return self.converter.convert(sentence)
-    
-    #override
-    def save(self, file: str):
-        with open(file, mode="wb") as fo:
-            pickle.dump(self._vocab, fo)
-            pickle.dump(self._token2id, fo)
-            pickle.dump(self._id2token, fo)
-            pickle.dump(self.has_period, fo)
-            pickle.dump(self.backbone_monomer_ids, fo)
-            pickle.dump(self.converter, fo)
-
-    #override
-    @classmethod
-    def load(cls, file: str) -> Self:
-        lang = cls()
-        with open(file, "rb") as f:
-            lang._vocab = pickle.load(f)
-            lang._token2id = pickle.load(f)
-            lang._id2token = pickle.load(f)
-            lang.has_period = pickle.load(f)
-            lang.backbone_monomer_ids = pickle.load(f)
-            lang.converter = pickle.load(f)
-        return lang
