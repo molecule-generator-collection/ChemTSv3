@@ -78,6 +78,15 @@ class Language(ABC):
     
     def unk_tensor(self):
         return Language.list2tensor([self.unk_id()])
+    
+    def save(self, file: str):
+        with open(file, mode="wb") as fo:
+            pickle.dump(self, fo)
+
+    def load(file: str) -> Self:
+        with open(file, "rb") as f:
+            lang = pickle.load(f)
+        return lang
 
 #language that makes vocabulary from dataset
 class DynamicLanguage(Language):
@@ -124,24 +133,6 @@ class DynamicLanguage(Language):
     #implement
     def id2token(self, tokenid):
         return self._id2token[tokenid]
-    
-    def save(self, file: str):
-        with open(file, mode="wb") as fo:
-            pickle.dump(self._vocab, fo)
-            pickle.dump(self._token2id, fo)
-            pickle.dump(self._id2token, fo)
-
-    @classmethod
-    def load(cls, file: str) -> Self:
-        with open(file, "rb") as f:
-            vocab_tmp = pickle.load(f)
-            token2id_tmp = pickle.load(f)
-            id2token_tmp = pickle.load(f)
-        lang = cls()
-        lang._vocab = vocab_tmp
-        lang._token2id = token2id_tmp
-        lang._id2token = id2token_tmp
-        return lang
 
 class MolLanguage(Language):
     @abstractmethod
