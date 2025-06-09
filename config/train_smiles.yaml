@@ -6,7 +6,7 @@ interval: 1000
 
 n_embd: 256
 n_layer: 4
-n_head: 4
+n_head: 8
 # additional_length: 0
 
 training_args:
