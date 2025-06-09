@@ -7,18 +7,19 @@ lang_path: model/helm/helm_pep_noperiod.lang
 
 reward_class: JScoreReward
 reward_conf:
-  filtered_reward: -2
+  filtered_reward: -1
 
-policy_class: UCB
+policy_class: PUCT
 policy_conf:
   c:
     - [2, 0.0001]
     - [3, 1]
     - [4, 0.1]
     - [5, 0.01]
+  initial_mean: 0.5
 
 generation_conf:
-  time_limit: 10 #seconds
+  time_limit: 30 #seconds
   #max_rollouts : 15
   #max_generations : 1500
   expansion_threshold: 0.995
