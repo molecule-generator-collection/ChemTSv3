@@ -22,7 +22,7 @@ class WeightedTransition(Transition):
     def _transitions_with_probs_impl(self, node: Node) -> list[tuple[Any, Node, float]]:
         pass
 
-    #can implement default execution later
+    # can implement default execution later
     @abstractmethod
     def rollout(self, initial_node: Node, **kwargs) -> Node:
         pass
@@ -36,11 +36,11 @@ class WeightedTransition(Transition):
         else:
             return self._transitions_with_probs_impl(node)
 
-    #implement
+    # implement
     def transitions(self, node: Node) -> list[tuple[Any, Node]]:
         return self.transitions_with_probs(node)[:-1]
     
-    #should override if not inf
+    # should override if not inf
     def max_length(self) -> int:
         return 10**18
     
@@ -57,7 +57,7 @@ class LanguageModel(WeightedTransition):
     def rollout(self, initial_node: SentenceNode, **kwargs) -> SentenceNode:
         pass
 
-    #should override if not inf
-    #override
+    # should override if not inf
+    # override
     def max_length(self) -> int:
         return 10**18

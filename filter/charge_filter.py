@@ -6,6 +6,6 @@ class ChargeFilter(MolValueFilter):
     def __init__(self, allowed=0, **kwargs):
         super().__init__(allowed=allowed, **kwargs)
         
-    #implement
+    # implement
     def mol_value(self, mol: Mol) -> int:
         return Chem.rdmolops.GetFormalCharge(mol)

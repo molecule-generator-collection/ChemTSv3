@@ -12,9 +12,9 @@ from utils import camel2snake
 
 class Generator(ABC):
     def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None):
-        #transition is not passed: generator with multiple transition rules
+        # transition is not passed: generator with multiple transition rules
         self._name = name
-        self._name = self.name() #generate name if name=None
+        self._name = self.name() # generate name if name=None
         self.reward: Reward = reward
         self.filters: list[Filter] = filters or []
         self.filtered_reward = filtered_reward
@@ -22,7 +22,7 @@ class Generator(ABC):
         os.makedirs(os.path.dirname(self._output_dir), exist_ok=True)
         os.makedirs(os.path.dirname(self.output_dir()), exist_ok=True)
         self.unique_keys = []
-        self.record: dict[str, dict] = {} #save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
+        self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
         self.set_logger(logger_conf)
     
     @abstractmethod
@@ -38,7 +38,7 @@ class Generator(ABC):
     def output_dir(self):
         return self._output_dir + self.name() + os.sep
 
-    #support more option / yaml later
+    # support more option / yaml later
     def set_logger(self, logger_conf: dict[str, Any]):
         logger_conf = logger_conf or {}
         self.logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class Generator(ABC):
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
 
-    #visualize results
+    # visualize results
     def plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average: int | float=0.05, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):
         ylims = ylims or {}
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
@@ -61,7 +61,7 @@ class Generator(ABC):
         self._plot(x_axis=x_axis, y_axis="reward", moving_average=moving_average, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None))
 
     def _plot(self, x_axis: str="generation_order", y_axis: str="reward", moving_average: int | float=0.05, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
-        #x_axis ... use X in self.record["mol_key"]["X"]
+        # x_axis ... use X in self.record["mol_key"]["X"]
 
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
 

@@ -10,19 +10,19 @@ class SentenceNode(Node):
         self.lang = lang
         super().__init__(parent=parent, last_prob=last_prob)
 
-    #implement
+    # implement
     def __str__(self):
         return self.lang.ids2sentence(self.id_list())
 
-    #implement
+    # implement
     def is_terminal(self):
         return self.id_tensor[0][-1] == self.lang.eos_id()
 
-    #output token id sequence as a list
+    # output token id sequence as a list
     def id_list(self) -> list[int]:
         return self.id_tensor[0].tolist()
 
-    #bos node, often used as root
+    # bos node, often used as root
     @classmethod
     def bos_node(cls, lang: Language) -> Self:
         return cls(id_tensor = lang.bos_tensor(), lang=lang)
@@ -32,6 +32,6 @@ class MolSentenceNode(SentenceNode, MolNode):
         self._is_valid_mol = None
         super().__init__(id_tensor, lang, parent, last_prob)
 
-    #implement
+    # implement
     def _mol_impl(self) -> Mol:
         return self.lang.sentence2mol(self.__str__())

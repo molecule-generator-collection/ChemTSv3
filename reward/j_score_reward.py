@@ -19,7 +19,7 @@ CS_MEAN = np.mean(CA_BASELINE)
 CS_STD = np.std(CA_BASELINE)
 
 class JScoreReward(MolReward):
-    #implement
+    # implement
     def mol_objective_functions(self):
         def log_p(mol):
             return Descriptors.MolLogP(mol)
@@ -34,7 +34,7 @@ class JScoreReward(MolReward):
 
         return [log_p, sa_score, ring_size_penalty]
 
-    #implement
+    # implement
     def reward_from_objective_values(self, values):
         logP, sascore, ring_size_penalty = values
         logP_norm = (logP - LOG_P_MEAN) / LOG_P_STD
