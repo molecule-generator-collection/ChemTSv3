@@ -55,88 +55,88 @@ class DScoreReward(MolReward):
         
     #implement
     def mol_objective_functions(self):
-        def EGFR(mol):
+        def egfr(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["EGFR"].predict(fp)[0]
 
-        def ERBB2(mol):
+        def erbb2(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["ERBB2"].predict(fp)[0]
 
-        def ABL(mol):
+        def abl(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["ABL"].predict(fp)[0]
 
-        def SRC(mol):
+        def src(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["SRC"].predict(fp)[0]
 
-        def LCK(mol):
+        def lck(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["LCK"].predict(fp)[0]
 
-        def PDGFRbeta(mol):
+        def pdgfr_beta(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["PDGFRbeta"].predict(fp)[0]
 
-        def VEGFR2(mol):
+        def vegfr2(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["VEGFR2"].predict(fp)[0]
 
-        def FGFR1(mol):
+        def fgfr1(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["FGFR1"].predict(fp)[0]
 
-        def EPHB4(mol):
+        def ephb4(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["EPHB4"].predict(fp)[0]
 
-        def Solubility(mol):
+        def solubility(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["Sol"].predict(fp)[0]
 
-        def Permeability(mol):
+        def permeability(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["Perm"].predict(fp)[0]
 
-        def Metabolic_stability(mol):
+        def metabolic_stability(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["Meta"].predict(fp)[0]
 
-        def Toxicity(mol):
+        def toxicity(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["Tox"].predict(fp)[0]
 
-        def SAscore(mol):
+        def sa_score(mol):
             return sascorer.calculateScore(mol)
 
-        def QED(mol):
+        def qed(mol):
             try:
                 return Chem.QED.qed(mol)
             except (Chem.rdchem.AtomValenceException, Chem.rdchem.KekulizeException):
@@ -166,8 +166,8 @@ class DScoreReward(MolReward):
             else:
                 return 1
 
-        return [EGFR, ERBB2, ABL, SRC, LCK, PDGFRbeta, VEGFR2, FGFR1, EPHB4, Solubility, Permeability, Metabolic_stability,
-                Toxicity, SAscore, QED, molecular_weight, tox_alert, has_chembl_substruct]
+        return [egfr, erbb2, abl, src, lck, pdgfr_beta, vegfr2, fgfr1, ephb4, solubility, permeability, metabolic_stability,
+                toxicity, sa_score, qed, molecular_weight, tox_alert, has_chembl_substruct]
 
     #implement
     def reward_from_objective_values(self, values):
