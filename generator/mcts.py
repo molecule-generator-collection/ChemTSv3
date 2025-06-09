@@ -12,14 +12,13 @@ from utils import class_from_class_path
 
 class MCTS(Generator):
     def __init__(self, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None):
-        #name: if you plan to change the policy_class or policy_class's c value, you might want to set the name manually
         self.root = None
         self.transition = transition
         self.max_length = max_length or transition.max_length()
         self.policy = policy
         self.count_rollouts = 0
         self.passed_time = 0
-        #for search
+        # for search
         self.expansion_threshold = 0.995
         self.rollout_conf = {"rollout_threshold": self.expansion_threshold}
         super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger_conf=logger_conf)
@@ -37,13 +36,13 @@ class MCTS(Generator):
             objective_values, reward = self.grab_objective_values_and_reward(node)
             node.sum_r = node.mean_r = -float("inf")
             return reward
-        if not bool(node.children): #if empty
+        if not bool(node.children): # if empty
             self._expand(node)
         objective_values, reward = self._rollout(node)
         return reward
 
     def _rollout(self, node: Node):
-        #TODO: change here
+        # TODO: change here
         if node.depth >= self.max_length:
             return self.filtered_reward
         result = self.transition.rollout(node, **self.rollout_conf)
@@ -58,7 +57,7 @@ class MCTS(Generator):
                 node.observe(value)
             node = node.parent
 
-    #implement
+    # implement
     def generate(self, root: Node=None, time_limit: float=None, max_generations: int=None, max_rollouts: int=None, expansion_threshold: float=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, change_root: bool=False, rollout_conf: dict[str, Any]=None):
         """
         Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search.
@@ -77,17 +76,17 @@ class MCTS(Generator):
         if (max_rollouts is None) and (time_limit is None) and (max_generations is None):
             raise ValueError("Specify at least one of max_genrations, max_rollouts or time_limit.")
 
-        #refresh variables
+        # refresh variables
         self.expansion_threshold = expansion_threshold or self.expansion_threshold
         self.rollout_conf = rollout_conf or self.rollout_conf
 
-        #record current time and counts
+        # record current time and counts
         time_start = time.time()
         initial_time = self.passed_time
         initial_count_rollouts = self.count_rollouts
         initial_count_generations = len(self.unique_keys)
 
-        #asign root node
+        # asign root node
         if root is None and self.root is None:
             raise ValueError("Specify the root node unless you're running a loaded MCTS searcher.")
         if (root is not None) and (self.root is not None) and not change_root:
@@ -111,7 +110,7 @@ class MCTS(Generator):
             node = self.root
             while node.children:
                 node = max(node.children.values(), key=lambda n: self.policy.evaluate(n))
-                if node.sum_r == -float("inf"): #already exhausted every terminal under this
+                if node.sum_r == -float("inf"): # already exhausted every terminal under this
                     self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
                     if exhaust_backpropagate:
                         value = self._eval(node)
@@ -151,7 +150,7 @@ class MCTS(Generator):
 
         return objective_values, reward
     
-    #override
+    # override
     def name(self):
         if self._name is not None:
             return self._name
@@ -170,8 +169,10 @@ class MCTS(Generator):
             pickle.dump(self.passed_time, fo)
             pickle.dump(self.reward, fo)
             pickle.dump(self.policy, fo)
+            pickle.dump(self.filters, fo)
+            pickle.dump(self.filtered_reward, fo)
     
-    #transition won't be saved/loaded
+    # transition won't be saved/loaded
     @staticmethod
     def load(file: str, transition: WeightedTransition) -> Self:
         s = MCTS(transition=transition)
@@ -185,4 +186,6 @@ class MCTS(Generator):
             s.passed_time = pickle.load(f)
             s.reward = pickle.load(f)
             s.policy = pickle.load(f)
+            s.filters = pickle.load(f)
+            s.filtered_reward = pickle.load(f)
         return s
