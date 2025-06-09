@@ -11,28 +11,6 @@ def select_indices_by_threshold(probs: list[float], threshold: float) -> list[in
     cutoff = np.searchsorted(cumulative_probs, threshold)
     return sorted_indices[:cutoff + 1].tolist()
 
-def make_curve_from_points(points: list[tuple[float, float]]) -> Callable[[float], float]:
-    if not points:
-        raise ValueError("Points must not be empty")
-
-    points.sort()
-    xs, ys = zip(*points)
-
-    def curve(x: float) -> float:
-        if x <= xs[0]:
-            return ys[0]
-        if x >= xs[-1]:
-            return ys[-1]
-
-        i = bisect_right(xs, x)
-        x0, y0 = xs[i - 1], ys[i - 1]
-        x1, y1 = xs[i], ys[i]
-
-        t = (x - x0) / (x1 - x0)
-        return y0 + t * (y1 - y0)
-
-    return curve
-
 def max_gauss(x, a=1, mu=8, sigma=2):
     if x > mu:
         return 1
@@ -50,3 +28,24 @@ def rectangular(x, min, max):
         return 1
     else:
         return 0
+    
+class PointCurve():
+    def __init__(self, points: list[tuple[float, float]]):
+        if not points:
+            raise ValueError("Points must not be empty")
+
+        points.sort()
+        self.xs, self.ys = zip(*points)
+
+    def curve(self, x: float) -> float:
+        if x <= self.xs[0]:
+            return self.ys[0]
+        if x >= self.xs[-1]:
+            return self.ys[-1]
+
+        i = bisect_right(self.xs, x)
+        x0, y0 = self.xs[i - 1], self.ys[i - 1]
+        x1, y1 = self.xs[i], self.ys[i]
+
+        t = (x - x0) / (x1 - x0)
+        return y0 + t * (y1 - y0)

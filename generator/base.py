@@ -3,10 +3,12 @@ from datetime import datetime
 import logging
 import math
 import os
+import time
 from typing import Type, Any
 import matplotlib.pyplot as plt
 import numpy as np
 from filter import Filter
+from node import Node
 from reward import Reward, LogPReward
 from utils import camel2snake
 
@@ -23,11 +25,41 @@ class Generator(ABC):
         os.makedirs(os.path.dirname(self.output_dir()), exist_ok=True)
         self.unique_keys = []
         self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
+        self.passed_time = 0
         self.set_logger(logger_conf)
     
     @abstractmethod
-    def generate(self, *args):
+    def _generate_impl(self, *kwargs):
         pass
+
+    def generate(self, time_limit: float=None, max_generations: int=None):
+        """
+        Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search.
+
+        Args:
+            time_limit: Seconds. Generation stops after the time limit.
+            max_generations: Generation stops after generating 'max_generations' number of nodes.
+        """
+        if (time_limit is None) and (max_generations is None):
+            raise ValueError("Specify at least one of max_genrations, max_rollouts or time_limit.")
+        
+        # record current time and counts
+        time_start = time.time()
+        initial_time = self.passed_time
+        initial_count_generations = len(self.unique_keys)
+        
+        self.logger.info("Search is started.")
+        while True:
+            time_passed = time.time() - time_start
+            self.passed_time = initial_time + time_passed
+            if time_limit is not None and time_passed >= time_limit:
+                break
+            if max_generations is not None and len(self.unique_keys) - initial_count_generations >= max_generations:
+                break
+            
+            self._generate_impl()
+            
+        self.logger.info("Search is completed.")
 
     def name(self):
         if self._name is not None:
@@ -51,6 +83,32 @@ class Generator(ABC):
         file_handler.setLevel(logger_conf.get("file_level", logging.DEBUG))
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
+
+    def log_unique_node(self, key, objective_values, reward):
+        self.logger.info(str(len(self.unique_keys)) + "- time: " + "{:.2f}".format(self.passed_time) + ", reward: " + str(reward) + ", node: " + key)
+        self.unique_keys.append(key)
+        self.record[key] = {}
+        self.record[key]["objective_values"] = objective_values
+        self.record[key]["reward"] = reward
+        self.record[key]["time"] = self.passed_time
+        self.record[key]["generation_order"] = len(self.unique_keys)
+
+    def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
+        key = str(node)
+        if key in self.record:
+            self.logger.debug("Already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
+            return self.record[key]["objective_values"], self.record[key]["reward"]
+        
+        for filter in self.filters:
+            if not filter.check(node):
+                self.logger.debug("filtered by " + filter.__class__.__name__ + ": " + key)
+                return ([0,0], self.filtered_reward)
+            
+        objective_values, reward = self.reward.objective_values_and_reward(node)
+        self.log_unique_node(key, objective_values, reward)
+        node.clear_cache()
+
+        return objective_values, reward
 
     # visualize results
     def plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average: int | float=0.05, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):

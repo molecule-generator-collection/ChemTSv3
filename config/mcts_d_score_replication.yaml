@@ -1,4 +1,6 @@
 output_dir: generation_result
+time_limit: 15 # seconds
+# max_generations : 300000
 
 model_class: GPT2Transition
 model_dir: model/smiles/smiles_drugs_zinc_1.2m
@@ -30,9 +32,7 @@ policy_class: UCB
 policy_conf:
   c: 0.2
 
-generation_conf:
-  time_limit: 15 # seconds
-  # max_generations : 300000
+generator_conf:
   expansion_threshold: 0.995
   n_evals: 3
 
