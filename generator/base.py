@@ -171,3 +171,9 @@ class Generator(ABC):
         plt.legend()
         plt.savefig(self.output_dir() + self.name() + "_" + y_axis + "_by_" + x_axis + ".png")
         plt.show()
+
+    def analyze(self):
+        valid_rate = len(self.unique_keys) / self.rollout_count
+        self.logger.info("valid rate: " + str(valid_rate))
+        node_per_sec = len(self.unique_keys) / self.passed_time
+        self.logger.info("node_per_sec: " + str(node_per_sec))
