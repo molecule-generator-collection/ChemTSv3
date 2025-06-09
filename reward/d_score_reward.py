@@ -56,44 +56,30 @@ class DScoreReward(MolReward):
     # implement
     def mol_objective_functions(self):
         def egfr(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["EGFR"].predict(fp)[0]
 
         def erbb2(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["ERBB2"].predict(fp)[0]
 
         def abl(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["ABL"].predict(fp)[0]
 
         def src(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["SRC"].predict(fp)[0]
 
         def lck(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["LCK"].predict(fp)[0]
 
         def pdgfr_beta(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["PDGFRbeta"].predict(fp)[0]
 
         def vegfr2(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["VEGFR2"].predict(fp)[0]
 
@@ -104,32 +90,22 @@ class DScoreReward(MolReward):
             return lgb_models["FGFR1"].predict(fp)[0]
 
         def ephb4(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["EPHB4"].predict(fp)[0]
 
         def solubility(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["Sol"].predict(fp)[0]
 
         def permeability(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["Perm"].predict(fp)[0]
 
         def metabolic_stability(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["Meta"].predict(fp)[0]
 
         def toxicity(mol):
-            if mol is None:
-                return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
             return lgb_models["Tox"].predict(fp)[0]
 
