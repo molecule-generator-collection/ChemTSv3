@@ -2,7 +2,7 @@ output_dir: generation_result
 
 model_class: GPT2Transition
 model_dir: model/smiles/smiles_drugs_zinc_1.2m
-lang_path: model/smiles/smiles_drugs_zinc.lang
+#lang_path: if not specified, uses model_dir/{model_dir_name}.lang
 
 reward_class: JScoreReward
 reward_conf:

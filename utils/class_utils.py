@@ -1,4 +1,5 @@
 import importlib
+import os
 import re
 
 def class_from_class_path(class_path: str):
@@ -18,3 +19,6 @@ def camel2snake(name: str) -> str:
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     snake = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
     return snake
+
+def add_sep(path: str) -> str:
+    return path if path.endswith(os.path.sep) else path + os.path.sep

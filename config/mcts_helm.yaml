@@ -2,7 +2,7 @@ output_dir: generation_result
 
 model_class: GPT2Transition
 model_dir: model/helm/pep_noperiod_1.2m
-lang_path: model/helm/helm_pep_noperiod.lang
+#lang_path: if not specified, uses model_dir/{model_dir_name}.lang
 
 reward_class: JScoreReward
 reward_conf:
