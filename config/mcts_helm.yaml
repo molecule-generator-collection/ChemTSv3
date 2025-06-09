@@ -1,31 +1,12 @@
 output_dir: generation_result
+time_limit: 10 # seconds
+# max_generations : 1500
 
 model_class: GPT2Transition
 model_dir: model/helm/pep_noperiod_1.2m
 
-reward_class: DScoreReward
+reward_class: JScoreReward
 filtered_reward: -0.5
-reward_conf:
-  params:
-    egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
-    erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    solubility: {type: max_gauss, alpha: 1, mu: -2, sigma: 0.6, weight: 1}
-    permeability: {type: max_gauss, alpha: 1, mu: 1, sigma: 1, weight: 1}
-    metabolic_stability: {type: max_gauss, alpha: 1, mu: 75, sigma: 20, weight: 1}
-    toxicity: {type: min_gauss, alpha: 1, mu: 5.5, sigma: 0.5, weight: 1}
-    # SAscore is made negative when scaling because a smaller value is more desirable.
-    sa_score: {type: max_gauss, alpha: 1, mu: -3, sigma: 2, weight: 1}
-    qed: {type: max_gauss, alpha: 1, mu: 0.8, sigma: 0.25, weight: 1}
-    molecular_weight: {type: rectangular, min: 200, max: 600, weight: 1}
-    tox_alert: {type: identity, weight: 1}
-    has_chembl_substruct: {type: identity, weight: 1}
 
 policy_class: PUCT
 policy_conf:
@@ -36,14 +17,10 @@ policy_conf:
     - [5, 0.01]
   initial_mean: 0.5
 
-generation_conf:
-  time_limit: 10 # seconds
-  # max_rollouts : 15
-  # max_generations : 1500
+generator_conf:
   expansion_threshold: 0.995
   exhaust_backpropagate: false
   use_dummy_reward: false
-  change_root: false
   rollout_conf:
     rollout_threshold: 0.995
 
