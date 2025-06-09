@@ -4,8 +4,8 @@ model_class: GPT2Transition
 model_dir: model/helm/pep_noperiod_1.2m
 
 reward_class: JScoreReward
-reward_conf:
-  filtered_reward: -1
+filtered_reward: -0.5
+# reward_conf:
   # params:
   #   EGFR: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
   #   ERBB2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}

@@ -5,8 +5,8 @@ from node import Node, MolNode
 
 class Reward(ABC):
     #Callable[[Node], float] instead of Callable[[Mol], float] for better compatibility    
-    def __init__(self, filtered_reward: float=1, **kwargs):
-        self.filtered_reward = filtered_reward
+    def __init__(self, **kwargs):
+        pass
     
     @abstractmethod
     def objective_functions(self) -> List[Callable[[Node], float]]:

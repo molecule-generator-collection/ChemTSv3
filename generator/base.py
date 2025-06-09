@@ -11,12 +11,13 @@ from reward import Reward, LogPReward
 from utils import camel2snake
 
 class Generator(ABC):
-    def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, logger_conf: dict[str, Any]=None):
+    def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None):
         #transition is not passed: generator with multiple transition rules
         self._name = name
         self._name = self.name() #generate name if name=None
         self.reward: Reward = reward
         self.filters: list[Filter] = filters or []
+        self.filtered_reward = filtered_reward
         self._output_dir = output_dir if output_dir.endswith(os.sep) else output_dir + os.sep
         os.makedirs(os.path.dirname(self._output_dir), exist_ok=True)
         os.makedirs(os.path.dirname(self.output_dir()), exist_ok=True)
