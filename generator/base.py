@@ -96,7 +96,7 @@ class Generator(ABC):
     def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
         key = str(node)
         if key in self.record:
-            self.logger.debug("Already in dict: " + key + ", count_rollouts: " + str(self.count_rollouts) + ", reward: " + str(self.record[key]["reward"]))
+            self.logger.debug("Already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
         for filter in self.filters:
