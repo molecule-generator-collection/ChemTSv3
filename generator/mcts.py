@@ -58,7 +58,7 @@ class MCTS(Generator):
             node = node.parent
 
     # implement
-    def generate(self, root: Node=None, time_limit: float=None, max_generations: int=None, max_rollouts: int=None, expansion_threshold: float=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, change_root: bool=False, rollout_conf: dict[str, Any]=None):
+    def generate(self, root: Node=None, time_limit: float=None, max_generations: int=None, max_rollouts: int=None, expansion_threshold: float=0.995, n_evals=1, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, change_root: bool=False, rollout_conf: dict[str, Any]=None):
         """
         Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search.
 
@@ -118,8 +118,9 @@ class MCTS(Generator):
                     node.parent.sum_r = node.parent.mean_r = -float("inf")
                     node = self.root
                     continue
-            value = self._eval(node)
-            self._backpropagate(node, value, use_dummy_reward)
+            for _ in range(n_evals):
+                value = self._eval(node)
+                self._backpropagate(node, value, use_dummy_reward)
             
         self.logger.info("Search is completed.")
 
