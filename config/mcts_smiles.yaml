@@ -3,7 +3,7 @@ time_limit: 15 # seconds
 # max_generations : 1500
 
 model_class: GPT2Transition
-model_dir: model/smiles/smiles_drugs_zinc_1.2m
+model_dir: model/smiles/smiles_drugs_zinc_3.2m
 
 reward_class: JScoreReward
 filtered_reward: -0.5
