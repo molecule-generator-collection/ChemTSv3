@@ -33,9 +33,6 @@ def make_curve_from_points(points: list[tuple[float, float]]) -> Callable[[float
 
     return curve
 
-def minmax(x, min, max):
-    return (x - min) / (max - min)
-
 def max_gauss(x, a=1, mu=8, sigma=2):
     if x > mu:
         return 1

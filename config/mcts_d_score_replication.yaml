@@ -29,12 +29,13 @@ reward_conf:
 
 policy_class: UCB
 policy_conf:
-  c: 1.0
+  c: 0.2
 
 generation_conf:
   time_limit: 15 # seconds
   # max_generations : 300000
   expansion_threshold: 0.995
+  n_evals: 3
   exhaust_backpropagate: false
   use_dummy_reward: false
   change_root: false

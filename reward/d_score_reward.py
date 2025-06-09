@@ -14,7 +14,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 from reward import MolReward
-from utils import minmax, max_gauss, min_gauss, rectangular
+from utils import max_gauss, min_gauss, rectangular
 from utils.third_party import sascorer
 
 LGB_MODELS_PATH = "../data/reward/d_score/lgb_models.pickle"
@@ -37,7 +37,7 @@ def scale_objective_value(params, value):
     elif scaling == "min_gauss":
         return min_gauss(value, params["alpha"], params["mu"], params["sigma"])
     elif scaling == "minmax":
-        return minmax(value, params["min"], params["max"])
+        return (value - params["min"]) / (params["max"] - params["min"])
     elif scaling == "rectangular":
         return rectangular(value, params["min"], params["max"])
     elif scaling == "identity":
