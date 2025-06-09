@@ -1,6 +1,7 @@
 """
 edited from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/reward/dscore_reward.py
-requires: lightgbm==3.2.1
+requires: lightgbm==3.2.1~3.3.5
+recommended: conda install -c conda-forge lightgbm=3.3.5
 """
 
 import os
@@ -16,9 +17,9 @@ from reward import MolReward
 from utils import minmax, max_gauss, min_gauss, rectangular
 from utils.third_party import sascorer
 
-LGB_MODELS_PATH = "data/reward/d_score/lgb_models.pickle"
-SURE_CHEMBL_ALERTS_PATH = "data/reward/d_score/sure_chembl_alerts.txt"
-CHEMBL_FPS_PATH = "data/reward/d_score/chembl_fps.npy"
+LGB_MODELS_PATH = "../data/reward/d_score/lgb_models.pickle"
+SURE_CHEMBL_ALERTS_PATH = "../data/reward/d_score/sure_chembl_alerts.txt"
+CHEMBL_FPS_PATH = "../data/reward/d_score/chembl_fps.npy"
 
 with open(LGB_MODELS_PATH, mode='rb') as models,\
     open(SURE_CHEMBL_ALERTS_PATH, mode='rb') as alerts, \
@@ -44,10 +45,14 @@ def scale_objective_value(params, value):
     else:
         raise ValueError("Set the scaling function from one of 'max_gauss', 'min_gauss', 'minimax', rectangular, or 'identity'")
 
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+#python3.11/site-packages/sklearn/utils/deprecation.py:132: FutureWarning: 'force_all_finite' was renamed to 'ensure_all_finite' in 1.6 and will be removed in 1.8.
 
-class DscoreReward(MolReward):
-    def __init__(self, dscore_params: dict[str, dict]):
-        self.dscore_params = dscore_params
+class DScoreReward(MolReward):
+    def __init__(self, params: dict[str, dict], **kwargs):
+        self.params = params
+        super().__init__(**kwargs)
 
     #implement
     def mol_objective_functions(self):
@@ -167,21 +172,20 @@ class DscoreReward(MolReward):
 
     #implement
     def reward_from_objective_values(self, values):
-
         if None in values:
             return -1
 
-        objectives = [f.__name__ for f in DscoreReward.get_objective_functions()]
+        objectives = [f.__name__ for f in self.mol_objective_functions()]
 
         scaled_values = []
         weights = []
         for objective, value in zip(objectives, values):
             if objective == "SAscore":
                 # SAscore is made negative when scaling because a smaller value is more desirable.
-                scaled_values.append(scale_objective_value(self.dscore_params[objective], -1 * value))
+                scaled_values.append(scale_objective_value(self.params[objective], -1 * value))
             else:
-                scaled_values.append(scale_objective_value(self.dscore_params[objective], value))
-            weights.append(self.dscore_params[objective]["weight"])
+                scaled_values.append(scale_objective_value(self.params[objective], value))
+            weights.append(self.params[objective]["weight"])
 
         multiplication_value = 1
         for v, w in zip(scaled_values, weights):
