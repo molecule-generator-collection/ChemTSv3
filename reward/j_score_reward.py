@@ -1,7 +1,7 @@
 import numpy as np
 from rdkit.Chem import Descriptors
 from reward import MolReward
-from utils.third_party.sascorer import calculateScore
+from utils.third_party import sascorer
 
 # edited from ChemTSv2
 # ref: https://github.com/tsudalab/ChemTS/blob/4174c3600ebb47ed136b433b22a29c879824a6ba/mcts_logp_improved_version/add_node_type.py#L172
@@ -27,7 +27,7 @@ class JScoreReward(MolReward):
             return Descriptors.MolLogP(mol)
 
         def sa_score(mol):
-            return calculateScore(mol)
+            return sascorer.calculateScore(mol)
 
         def ring_size_penalty(mol):
             ri = mol.GetRingInfo()
