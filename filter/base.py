@@ -15,7 +15,7 @@ class MolFilter(Filter):
     def mol_check(self, mol: Mol) -> bool:
         pass
     
-    #implement
+    # implement
     def check(self, node: MolNode) -> bool:
         return self.mol_check(node.mol())
 
@@ -48,7 +48,7 @@ class ValueFilter(Filter):
             return False
         return True
     
-    #implement
+    # implement
     def check(self, node: Node) -> bool:
         value = self.value(node)
         return self._check_value(value)
@@ -58,15 +58,15 @@ class MolValueFilter(ValueFilter, MolFilter):
     def mol_value(self, mol: Mol) -> int | float:
         pass
     
-    #implement
+    # implement
     def mol_check(self, mol):
         value = self.mol_value(mol)
         return self._check_value(value)
     
-    #implement
+    # implement
     def check(self, node: MolNode):
         return self.mol_check(node.mol())
     
-    #implement for consistency (not actually needed)
+    # implement for consistency (not actually needed)
     def value(self, node: MolNode) -> bool:
         return self.mol_value(node.mol())

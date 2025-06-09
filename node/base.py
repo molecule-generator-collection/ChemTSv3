@@ -10,14 +10,14 @@ class Node(ABC):
         else:
             self.depth = 0
         self.children: dict[Any, Self] = {}
-        self._probs = [] #for save, call probs()
-        self.last_prob = last_prob #Prob(parent -> this node)
+        self._probs = [] # call probs()
+        self.last_prob = last_prob # Prob(parent -> this node)
         self.last_action = last_action
-        self.n = 0 #visit count
-        self.sum_r = 0.0 #sum of rewards
-        self.mean_r = 0.0 #mean of rewards
+        self.n = 0 # visit count
+        self.sum_r = 0.0 # sum of rewards
+        self.mean_r = 0.0 # mean of rewards
         self.use_cache = use_cache
-        self._cache = {} #str, Any
+        self._cache = {} # str, Any
 
     @abstractmethod
     def __str__(self) -> str:

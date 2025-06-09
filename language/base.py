@@ -5,7 +5,7 @@ from typing import Self
 from rdkit.Chem import Mol
 import torch
 
-#vocabulary can be dynamic for better compatibility, thus most methods are not static
+# vocabulary can be dynamic for better compatibility, thus most methods are not static
 class Language(ABC):
     _bos_token = "<BOS>"
     _eos_token = "<EOS>"
@@ -13,7 +13,7 @@ class Language(ABC):
     _unk_token = "<UNKNOWN>"
 
     @abstractmethod
-    #convert sentence to token ids, used for training
+    # convert sentence to token ids, used for training
     def sentence2ids(self, sentence: str) -> list[int]:
         pass
     
@@ -26,12 +26,12 @@ class Language(ABC):
         pass
 
     @abstractmethod
-    #list of all possible tokens, can be dynamic (thus not a static method)
+    # list of all possible tokens, can be dynamic (thus not a static method)
     def vocab(self) -> list[str]:
         pass
 
     @abstractmethod
-    #revert the token id sequence to sentence
+    # revert the token id sequence to sentence
     def ids2sentence(self, idseq: list[int]) -> str:
         pass
     
@@ -88,28 +88,28 @@ class Language(ABC):
             lang = pickle.load(f)
         return lang
 
-#language that makes vocabulary from dataset
+# language that makes vocabulary from dataset
 class DynamicLanguage(Language):
     def __init__(self):
         self._vocab: list[str] = []
         self._token2id = {}
         self._id2token = {}
 
-    #split sentence to token strs, should include bos and eos
+    # split sentence to token strs, should include bos and eos
     @abstractmethod
     def sentence2tokens(self, sentence: str) -> list[str]:
         pass
     
-    #implement
+    # implement
     def sentence2ids(self, sentence):
         return [self.token2id(tok) for tok in self.sentence2tokens(sentence)]
 
-    #implement
+    # implement
     def ids2sentence(self, idseq):
         idseq = idseq[1:-1] #remove bos and eos
         return "".join(self.id2token(i) for i in idseq)
 
-    #can input dataset
+    # can input dataset
     def build_vocab(self, splits: dict[str, list[dict]]):
         counter = Counter()
         for split_name, examples in splits.items():
@@ -122,15 +122,15 @@ class DynamicLanguage(Language):
         self._token2id = {tok: idx for idx, tok in enumerate(self._vocab)}
         self._id2token = {idx: tok for tok, idx in self._token2id.items()}
 
-    #implement
+    # implement
     def vocab(self):
         return self._vocab
 
-    #implement
+    # implement
     def token2id(self, token):
         return self._token2id.get(token, self._token2id[self.unk_token()])
 
-    #implement
+    # implement
     def id2token(self, tokenid):
         return self._id2token[tokenid]
 
@@ -149,12 +149,12 @@ class MolLanguage(Language):
         pass
 
     @abstractmethod
-    #list of all possible tokens, can be dynamic (thus not a static method)
+    # list of all possible tokens, can be dynamic (thus not a static method)
     def vocab(self) -> list[str]:
         pass
 
     @abstractmethod
-    #revert the token id sequence to sentence
+    # revert the token id sequence to sentence
     def ids2sentence(self, idseq: list[int]) -> str:
         pass
     
@@ -162,9 +162,9 @@ class MolLanguage(Language):
     def sentence2mol(self, sentence: str) -> Mol:
         pass
 
-#Should be (DynamicLanguage, MolConvertibleLanguage) for MRO
+# Should be (DynamicLanguage, MolConvertibleLanguage) for MRO
 class DynamicMolLanguage(DynamicLanguage, MolLanguage):
-    #split sentence to token strs, should include bos and eos
+    # split sentence to token strs, should include bos and eos
     @abstractmethod
     def sentence2tokens(self, sentence: str) -> list[str]:
         pass

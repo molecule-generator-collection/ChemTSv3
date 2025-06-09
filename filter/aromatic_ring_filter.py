@@ -5,6 +5,6 @@ class AromaticRingFilter(MolValueFilter):
     def __init__(self, min=1, **kwargs):
         super().__init__(min=min, **kwargs)
     
-    #implement
+    # implement
     def mol_value(self, mol: Mol) -> int:
         return Descriptors.NumAromaticRings(mol)

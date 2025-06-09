@@ -18,7 +18,7 @@ class HELM(DynamicMolLanguage):
         if culling:
             self.converter.lib.cull(self.vocab())
 
-    #implement
+    # implement
     def sentence2tokens(self, sentence):
         helm = HELM.eos_culling(sentence)
 
@@ -29,7 +29,7 @@ class HELM(DynamicMolLanguage):
         
         return tokens
 
-    #override
+    # override
     def sentence2ids(self, sentence):
         raw_tokenids = [self.token2id(tok) for tok in self.sentence2tokens(sentence)]
         if self.has_period:
@@ -38,7 +38,7 @@ class HELM(DynamicMolLanguage):
         noperiod_tokenids = []
         for i, tokenid in enumerate(raw_tokenids):
             if tokenid == self.token2id("."):
-                #index conditions shouldn't be needed for valid helm sentence
+                # index conditions shouldn't be needed for valid helm sentence
                 if i > 0:
                     self.backbone_monomer_ids.add(raw_tokenids[i-1])
                 if i < len(raw_tokenids) - 1:
@@ -48,10 +48,10 @@ class HELM(DynamicMolLanguage):
 
         return noperiod_tokenids
     
-    #override
+    # override
     def ids2sentence(self, idseq):
         idseq = idseq[1:-1]
-        #add periods
+        # add periods
         if not self.has_period:
             newidseq = []
             for i, tokenid in enumerate(idseq):
@@ -80,7 +80,7 @@ class HELM(DynamicMolLanguage):
         else:
             return sentence
         
-    #implement
+    # implement
     def sentence2mol(self, sentence: str) -> Mol:
         if self.converter is None:
             return Chem.MolFromHELM(sentence)

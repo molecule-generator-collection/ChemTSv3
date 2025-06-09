@@ -47,13 +47,13 @@ def scale_objective_value(params, value):
 
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
-#python3.11/site-packages/sklearn/utils/deprecation.py:132: FutureWarning: 'force_all_finite' was renamed to 'ensure_all_finite' in 1.6 and will be removed in 1.8.
+# python3.11/site-packages/sklearn/utils/deprecation.py:132: FutureWarning: 'force_all_finite' was renamed to 'ensure_all_finite' in 1.6 and will be removed in 1.8.
 
 class DScoreReward(MolReward):
     def __init__(self, params: dict[str, dict]):
         self.params = params
         
-    #implement
+    # implement
     def mol_objective_functions(self):
         def egfr(mol):
             if mol is None:
@@ -142,12 +142,13 @@ class DScoreReward(MolReward):
             except (Chem.rdchem.AtomValenceException, Chem.rdchem.KekulizeException):
                 return None
 
-        # The following three functions were taken from　https://github.com/jrwnter/mso.
+        # taken from　https://github.com/jrwnter/mso.
         def molecular_weight(mol):
             """molecular weight"""
             mw = Chem.Descriptors.MolWt(mol)
             return mw
 
+        # taken from　https://github.com/jrwnter/mso.
         def tox_alert(mol):
             """
             0 if a molecule matches a structural alert as defined by the included list from surechembl.
@@ -158,6 +159,7 @@ class DScoreReward(MolReward):
                 score = 1
             return score
 
+        # taken from　https://github.com/jrwnter/mso.
         def has_chembl_substruct(mol):
             """0 for molecuels with substructures (ECFP2 that occur less often than 5 times in ChEMBL."""
             fp_query = AllChem.GetMorganFingerprint(mol, 1, useCounts=False)
@@ -169,7 +171,7 @@ class DScoreReward(MolReward):
         return [egfr, erbb2, abl, src, lck, pdgfr_beta, vegfr2, fgfr1, ephb4, solubility, permeability, metabolic_stability,
                 toxicity, sa_score, qed, molecular_weight, tox_alert, has_chembl_substruct]
 
-    #implement
+    # implement
     def reward_from_objective_values(self, values):
         if None in values:
             return -1

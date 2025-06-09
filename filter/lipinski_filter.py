@@ -27,7 +27,7 @@ class LipinskiFilter(MolFilter):
                 setattr(self, field, value)
             
             
-    #implement
+    # implement
     def mol_check(self, mol: Mol) -> bool:
         weight = round(rdMolDescriptors._CalcMolWt(mol), 2)
         log_p = Descriptors.MolLogP(mol)

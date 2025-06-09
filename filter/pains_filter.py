@@ -8,7 +8,7 @@ class PainsFilter(MolFilter):
     def __init__(self, families: list[str]=["A", "B", "C"]):
         self.families = [f.upper() for f in families]
 
-    #implement
+    # implement
     def mol_check(self, mol: Mol) -> bool:
         params = FilterCatalogParams()
         for f in self.families:

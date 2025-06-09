@@ -4,13 +4,13 @@ from rdkit.Chem import Descriptors
 from reward import MolReward
 
 class LogPReward(MolReward):        
-    #implement
+    # implement
     def mol_objective_functions(self):
         def log_p(mol):
             return Descriptors.MolLogP(mol)
 
         return [log_p]
 
-    #implement
+    # implement
     def reward_from_objective_values(self, values):
         return np.tanh(values[0] / 10)
