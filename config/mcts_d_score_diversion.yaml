@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 60 # seconds
-# max_generations : 300000
+time_limit: 36000 # seconds
+max_generations : 200000
 
 model_class: GPT2Transition
 model_dir: model/smiles/smiles_drugs_zinc_3.2m
