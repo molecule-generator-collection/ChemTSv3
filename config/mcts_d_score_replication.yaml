@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 15 # seconds
-# max_generations : 300000
+time_limit: 60 # seconds
+max_generations : 300000
 
 model_class: GPT2Transition
 model_dir: model/smiles/smiles_drugs_zinc_3.2m
@@ -9,12 +9,21 @@ reward_class: DScoreReward
 filtered_reward: 0
 reward_conf:
   params:
-    egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    # egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    # erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    egfr: {type: min_gauss, alpha: 1, mu: 9, sigma: 2, weight: 1}
     erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    pdgfr_beta: {type: max_gauss, alpha: 1, mu: 2, sigma: 2, weight: 8}
     vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
@@ -35,6 +44,9 @@ policy_conf:
 generator_conf:
   expansion_threshold: 0.995
   n_tries: 3
+  info_type: 100
+  rollout_conf:
+    rollout_threshold: 0.95
 
 plot_conf:
   x_axis: generation_order
