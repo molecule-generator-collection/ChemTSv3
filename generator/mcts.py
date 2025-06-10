@@ -11,14 +11,14 @@ from transition import WeightedTransition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None, n_evals=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, rollout_conf = None):
+    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None, n_tries=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, rollout_conf = None):
         """
         Tries to maximize the reward by MCTS search.
 
         Args:
             root: root node
             expansion_threshold: [0-1]. Ignore children with low transition probabilities in expansion based on this value
-            n_evals: the number of node evaluation in one rollout step
+            n_tries: how many tries before using filtered_reward
             exhaust_backpropagate: If true, backpropagate the reward when every terminal node under the node is already explored (only once, as that node won't be visited again)
             use_dummy_reward: If True, backpropagate value is fixed to 0, still calculates rewards and objective values
             rollout_conf: config for rollout.
@@ -28,7 +28,7 @@ class MCTS(Generator):
         self.max_length = max_length or transition.max_length()
         self.policy = policy
         self.expansion_threshold = expansion_threshold
-        self.n_evals = n_evals
+        self.n_tries = n_tries
         self.exhaust_backpropagate = exhaust_backpropagate
         self.use_dummy_reward = use_dummy_reward
         self.rollout_conf = rollout_conf or {"rollout_threshold": self.expansion_threshold}
@@ -48,11 +48,11 @@ class MCTS(Generator):
         if node.is_terminal():
             objective_values, reward = self.grab_objective_values_and_reward(node)
             node.sum_r = node.mean_r = -float("inf")
-            return reward
+            return objective_values, reward
         if not bool(node.children): # if empty
             self._expand(node)
         objective_values, reward = self._rollout(node)
-        return reward
+        return objective_values, reward
 
     def _rollout(self, node: Node):
         # TODO: change here
@@ -78,14 +78,16 @@ class MCTS(Generator):
             if node.sum_r == -float("inf"): # already exhausted every terminal under this
                 self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
                 if self.exhaust_backpropagate:
-                    value = self._eval(node)
+                    value = self._eval(node)[1]
                     self._backpropagate(node, value, self.use_dummy_reward)
                 node.parent.sum_r = node.parent.mean_r = -float("inf")
                 node = self.root
                 continue
-        for _ in range(self.n_evals):
-            value = self._eval(node)
-            self._backpropagate(node, value, self.use_dummy_reward)
+        for _ in range(self.n_tries):
+            objective_values, reward = self._eval(node)
+            if objective_values[0] != -float("inf"): # not filtered
+                break
+        self._backpropagate(node, reward, self.use_dummy_reward)
 
     # override
     def name(self):

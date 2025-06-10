@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 36000 # seconds
+time_limit: 15 # seconds
 max_generations : 200000
 
 model_class: GPT2Transition
@@ -40,7 +40,7 @@ policy_conf:
 
 generator_conf:
   expansion_threshold: 0.995
-  n_evals: 1
+  n_tries: 1
   rollout_conf:
     rollout_threshold: 0.995
 

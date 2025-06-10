@@ -1,4 +1,5 @@
 from bisect import bisect_right
+import math
 from typing import Callable
 import numpy as np
 
@@ -10,6 +11,13 @@ def select_indices_by_threshold(probs: list[float], threshold: float) -> list[in
     cumulative_probs = np.cumsum(sorted_probs)
     cutoff = np.searchsorted(cumulative_probs, threshold)
     return sorted_indices[:cutoff + 1].tolist()
+
+def moving_average(values: list[float], window: float=0.05) -> np.ndarray:
+    if window < 1:
+        window = math.floor(len(values) * window)
+    head = [np.mean(values[:i+1]) for i in range(window - 1)]
+    tail = np.convolve(values, np.ones(window)/window, mode='valid')
+    return np.array(head + list(tail))
 
 def max_gauss(x, a=1, mu=8, sigma=2):
     if x > mu:
