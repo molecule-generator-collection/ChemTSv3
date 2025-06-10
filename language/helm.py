@@ -7,11 +7,11 @@ from language import DynamicMolLanguage
 from utils import HELMConverter
 
 class HELM(DynamicMolLanguage):
-    def __init__(self, has_period=False, converter: HELMConverter=None):
+    def __init__(self, has_period=False, converter: HELMConverter=None, device: str=None):
         self.has_period = has_period
         self.backbone_monomer_ids = set()
         self.converter = converter
-        super().__init__()
+        super().__init__(device=device)
     
     def load_monomer_library(self, *args: str, culling=False):
         self.converter = HELMConverter().load(*args)
