@@ -44,7 +44,7 @@ class GPT2Transition(LanguageModel):
         probs = F.softmax(next_token_logits, dim=-1).tolist()
 
         for i in range(len(probs)):
-            nodes.append(node.__class__(id_tensor=torch.cat([node.id_tensor, Language.list2tensor([i])], dim=1), lang=node.lang, parent=node, last_prob=probs[i]))
+            nodes.append(node.__class__(id_tensor=torch.cat([node.id_tensor, self.lang.list2tensor([i])], dim=1), lang=node.lang, parent=node, last_prob=probs[i]))
 
         return [(i, nodes[i], probs[i]) for i in range(len(probs))]
 

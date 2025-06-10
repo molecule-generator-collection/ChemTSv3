@@ -4,7 +4,6 @@ max_generations : 300000
 
 model_class: GPT2Transition
 model_dir: model/smiles/smiles_drugs_zinc_3.2m
-device: cpu
 
 reward_class: DScoreReward
 filtered_reward: 0
