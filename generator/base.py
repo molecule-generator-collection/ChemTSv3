@@ -116,9 +116,9 @@ class Generator(ABC):
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for o in objective_names:
             self._plot(x_axis=x_axis, y_axis=o, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None))
-        self._plot(x_axis=x_axis, y_axis="reward", moving_average=moving_average, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None))
+        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None))
 
-    def _plot(self, x_axis: str="generation_order", y_axis: str="reward", moving_average: int | float=0.05, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
+    def _plot(self, x_axis: str="generation_order", y_axis: str="reward", moving_average_window: int | float=0.05, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
         # x_axis ... use X in self.record["mol_key"]["X"]
 
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
@@ -137,7 +137,7 @@ class Generator(ABC):
                 y = [self.record[molkey]["objective_values"][objective_id] for molkey in self.unique_keys]
 
         plt.clf()
-        plt.scatter(x, y, s=1)
+        plt.scatter(x, y, s=1000/len(x), alpha=0.5)
         plt.title(self.name())
         
         plt.xlabel(x_axis)
@@ -151,13 +151,14 @@ class Generator(ABC):
             plt.ylim(ylim)
         plt.grid(axis="y")
         
-        label = f"moving average ({moving_average})"
-        if moving_average is not None and moving_average < 1:
-            moving_average = math.floor(len(self.unique_keys) * moving_average)
-        if moving_average is not None and moving_average > 1:
-            y_ma = np.convolve(y, np.ones(moving_average) / moving_average, mode='valid')
-            x_ma = x[moving_average - 1:]  # align with shorter y_ma
-            plt.plot(x_ma, y_ma, label=label, linewidth=1.5)
+        label = f"moving average ({moving_average_window})"
+        if moving_average_window is not None and moving_average_window < 1:
+            moving_average_window = math.floor(len(self.unique_keys) * moving_average_window)
+        if moving_average_window is not None and moving_average_window > 1:
+            head = [np.mean(y[:i+1]) for i in range(moving_average_window - 1)]
+            tail = np.convolve(y, np.ones(moving_average_window)/moving_average_window, mode='valid')
+            y_ma = np.array(head + list(tail))
+            plt.plot(x, y_ma, label=label, linewidth=1.5)
 
         if max_curve:
             y_max_curve = np.maximum.accumulate(y)
@@ -173,6 +174,7 @@ class Generator(ABC):
         plt.show()
 
     def analyze(self):
+        self.logger.info("number of generated nodes: " + str(len(self.unique_keys)))
         valid_rate = len(self.unique_keys) / self.rollout_count
         self.logger.info("valid rate: " + str(valid_rate))
         node_per_sec = len(self.unique_keys) / self.passed_time
