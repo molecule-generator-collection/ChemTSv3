@@ -11,7 +11,7 @@ from transition import WeightedTransition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None, n_tries=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, rollout_conf = None):
+    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, rollout_conf = None, logger_conf: dict[str, Any]=None, info_type: int | str="all"):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -34,7 +34,7 @@ class MCTS(Generator):
         self.rollout_conf = rollout_conf or {"rollout_threshold": self.expansion_threshold}
         self.rollout_count = 0 #unused
         self._expand(self.root)
-        super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger_conf=logger_conf)
+        super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger_conf=logger_conf, info_type=info_type)
 
     def _expand(self, node: Node):
         if node.is_terminal():
