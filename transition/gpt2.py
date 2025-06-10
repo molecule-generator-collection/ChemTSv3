@@ -9,20 +9,22 @@ from node import SentenceNode
 from transition import LanguageModel
 
 class GPT2Transition(LanguageModel):
-    def __init__(self, lang: Language, model=None, model_dir: str=None, name=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model=None, model_dir: str=None, name=None, device: str=None, logger: logging.Logger=None):
         assert (model is None) or (model_dir is None), \
             "specify one (or none) of model or model_dir, not both."
 
         if model is not None:
             self.model = model
         elif model_dir is not None:
-            self.load(model_dir)
+            self.load(model_dir, device=device)
 
         super().__init__(lang=lang, name=name, logger=logger)
         self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
     
-    def load(self, model_dir: str) -> Self:
-        self.model = GPT2LMHeadModel.from_pretrained(model_dir, torch_dtype=torch.float16).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+    def load(self, model_dir: str, device: str=None) -> Self:
+        if device is None:
+            device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.model = GPT2LMHeadModel.from_pretrained(model_dir, torch_dtype=torch.float16).to(torch.device(device))
         self.name = os.path.basename(os.path.normpath(model_dir))
         return self
 
