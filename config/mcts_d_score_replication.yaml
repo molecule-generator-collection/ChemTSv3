@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 60 # seconds
+time_limit: 15 # seconds
 # max_generations : 300000
 
 model_class: GPT2Transition
@@ -34,7 +34,12 @@ policy_conf:
 
 generator_conf:
   expansion_threshold: 0.995
-  n_evals: 3
+  n_tries: 3
+
+plot_conf:
+  x_axis: generation_order
+  packed_objectives:
+    - [egfr, erbb2, abl, src, lck, pdgfr_beta, vegfr2, fgfr1, ephb4]
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
