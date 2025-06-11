@@ -11,6 +11,9 @@ class Language(ABC):
     _eos_token = "<EOS>"
     _pad_token = "<PAD>"
     _unk_token = "<UNKNOWN>"
+    
+    def __init__(self, device: str=None):
+        self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
 
     @abstractmethod
     # convert sentence to token ids, used for training
@@ -59,41 +62,43 @@ class Language(ABC):
     def unk_id(self) -> int:
         return self.token2id(self.__class__._unk_token)
     
-    @staticmethod
-    def list2tensor(li: list[int]) -> torch.Tensor:
-        return torch.tensor([li], device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+    def list2tensor(self, li: list[int]) -> torch.Tensor:
+        return torch.tensor([li], device=torch.device(self.device))
     
     @staticmethod
     def tensor2list(t: torch.Tensor) -> list[int]:
         return t[0].tolist()
     
     def bos_tensor(self):
-        return Language.list2tensor([self.bos_id()])
+        return self.list2tensor([self.bos_id()])
     
     def eos_tensor(self):
-        return Language.list2tensor([self.eos_id()])
+        return self.list2tensor([self.eos_id()])
     
     def pad_tensor(self):
-        return Language.list2tensor([self.pad_id()])
+        return self.list2tensor([self.pad_id()])
     
     def unk_tensor(self):
-        return Language.list2tensor([self.unk_id()])
+        return self.list2tensor([self.unk_id()])
     
     def save(self, file: str):
         with open(file, mode="wb") as fo:
             pickle.dump(self, fo)
 
-    def load(file: str) -> Self:
+    def load(file: str, device: str=None) -> Self:
         with open(file, "rb") as f:
             lang = pickle.load(f)
+        if device is not None or not hasattr(lang, 'device'):
+            lang.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         return lang
 
 # language that makes vocabulary from dataset
 class DynamicLanguage(Language):
-    def __init__(self):
+    def __init__(self, device: str=None):
         self._vocab: list[str] = []
         self._token2id = {}
         self._id2token = {}
+        super.__init__(device=device)
 
     # split sentence to token strs, should include bos and eos
     @abstractmethod
