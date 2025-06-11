@@ -51,7 +51,7 @@ class Generator(ABC):
             self.write_header()
         initial_count_generations = len(self.unique_keys)
         
-        self.logger.info("Search is started.")
+        self.logger.info("Starting search...")
         while True:
             time_passed = time.time() - time_start
             self.passed_time = initial_time + time_passed
@@ -62,7 +62,7 @@ class Generator(ABC):
             
             self._generate_impl()
             
-        self.logger.info("Search is completed.")
+        self.logger.info("Search completed.")
 
     def name(self):
         if self._name is not None:
@@ -159,7 +159,7 @@ class Generator(ABC):
                 y = [self.record[molkey]["objective_values"][objective_idx] for molkey in self.unique_keys]
 
         plt.clf()
-        plt.scatter(x, y, s=1000/len(x), alpha=0.5)
+        plt.scatter(x, y, s=500/len(x), alpha=0.2)
         plt.title(self.name())
         
         plt.xlabel(x_axis)
