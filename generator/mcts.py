@@ -11,7 +11,7 @@ from transition import WeightedTransition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, rollout_conf = None, logger_conf: dict[str, Any]=None, info_type: int | str="all"):
+    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, rollout_conf = None, logger_conf: dict[str, Any]=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -34,7 +34,7 @@ class MCTS(Generator):
         self.rollout_conf = rollout_conf or {"rollout_threshold": self.expansion_threshold}
         self.rollout_count = 0 #unused
         self._expand(self.root)
-        super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger_conf=logger_conf, info_type=info_type)
+        super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger_conf=logger_conf, info_interval=info_interval)
 
     def _expand(self, node: Node):
         if node.is_terminal():
@@ -55,7 +55,6 @@ class MCTS(Generator):
         return objective_values, reward
 
     def _rollout(self, node: Node):
-        # TODO: change here
         if node.depth >= self.max_length:
             return self.filtered_reward
         result = self.transition.rollout(node, **self.rollout_conf)
@@ -64,10 +63,7 @@ class MCTS(Generator):
 
     def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
         while node:
-            if use_dummy_reward:
-                node.observe(0)
-            else:
-                node.observe(value)
+            node.observe(0 if use_dummy_reward else value)
             node = node.parent
 
     # implement
@@ -75,7 +71,7 @@ class MCTS(Generator):
         node = self.root
         while node.children:
             node = max(node.children.values(), key=lambda n: self.policy.evaluate(n))
-            if node.sum_r == -float("inf"): # already exhausted every terminal under this
+            if node.sum_r == -float("inf"): # already exhausted every terminal under this node
                 self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
                 if self.exhaust_backpropagate:
                     value = self._eval(node)[1]

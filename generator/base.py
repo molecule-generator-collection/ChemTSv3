@@ -13,7 +13,7 @@ from reward import Reward, LogPReward
 from utils import camel2snake, moving_average, CSVHandler, ListFilter, NotListFilter
 
 class Generator(ABC):
-    def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None, info_type: int | str="all"):
+    def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None, info_interval: int=1):
         # transition is not passed: generator with multiple transition rules
         self._name = name
         self._name = self.name() # generate name if name=None
@@ -27,7 +27,7 @@ class Generator(ABC):
         self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
         self.passed_time = 0
         self.set_logger(logger_conf)
-        self.info_type = info_type
+        self.info_interval = info_interval
     
     @abstractmethod
     def _generate_impl(self, *kwargs):
@@ -106,11 +106,11 @@ class Generator(ABC):
         self.record[key]["time"] = self.passed_time
         self.record[key]["generation_order"] = len(self.unique_keys)
         
-        if type(self.info_type) == int:
-            if len(self.unique_keys)%self.info_type == 0:
-                rewards = [self.record[k]["reward"] for k in self.unique_keys[-self.info_type:]]
+        if self.info_interval > 1:
+            if len(self.unique_keys)%self.info_interval == 0:
+                rewards = [self.record[k]["reward"] for k in self.unique_keys[-self.info_interval:]]
                 average = np.average(rewards)
-                self.logger.info("generated: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_type) + ": " + "{:.4f}".format(average))
+                self.logger.info("generated: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_interval) + ": " + "{:.4f}".format(average))
         else:
             self.logger.info(str(len(self.unique_keys)) + "- time: " + "{:.2f}".format(self.passed_time) + ", reward: " + str(reward) + ", node: " + key)
         row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
