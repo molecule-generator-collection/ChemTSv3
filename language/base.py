@@ -98,7 +98,7 @@ class DynamicLanguage(Language):
         self._vocab: list[str] = []
         self._token2id = {}
         self._id2token = {}
-        super.__init__(device=device)
+        super().__init__(device=device)
 
     # split sentence to token strs, should include bos and eos
     @abstractmethod

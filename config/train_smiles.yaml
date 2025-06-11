@@ -4,9 +4,9 @@ dataset_path: data/smiles/250k_rndm_zinc_drugs_clean.smi
 interval: 1000
 # interval: "epoch"
 
-n_embd: 256
-n_layer: 4
-n_head: 8
+n_embd: 512
+n_layer: 6
+n_head: 4
 # additional_length: 0
 
 training_args:
