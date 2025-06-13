@@ -70,7 +70,6 @@ class MCTS(Generator):
         if node.depth >= self.max_length:
             return self.filtered_reward
         result = self.transition.rollout(node)
-        self.rollout_count += 1
         return self.grab_objective_values_and_reward(result)
 
     def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
@@ -107,7 +106,9 @@ class MCTS(Generator):
             pickle.dump(self._output_dir, fo)
             pickle.dump(self.unique_keys, fo)
             pickle.dump(self.record, fo)
-            pickle.dump(self.rollout_count, fo)
+            pickle.dump(self.grab_count, fo)
+            pickle.dump(self.duplicate_count, fo)
+            pickle.dump(self.filtered_count, fo)
             pickle.dump(self.passed_time, fo)
             pickle.dump(self.reward, fo)
             pickle.dump(self.policy, fo)
@@ -124,7 +125,9 @@ class MCTS(Generator):
             s._output_dir = pickle.load(f)
             s.unique_keys = pickle.load(f)
             s.record = pickle.load(f)
-            s.rollout_count = pickle.load(f)
+            s.grab_count = pickle.load(f)
+            s.duplicate_count = pickle.load(f)
+            s.filtered_count = pickle.load(f)
             s.passed_time = pickle.load(f)
             s.reward = pickle.load(f)
             s.policy = pickle.load(f)

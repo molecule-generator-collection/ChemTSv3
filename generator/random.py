@@ -21,4 +21,3 @@ class RandomGenerator(Generator):
     def _generate_impl(self):
         result = self.transition.rollout(self.root)
         self.grab_objective_values_and_reward(result)
-        self.rollout_count += 1

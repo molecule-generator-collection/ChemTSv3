@@ -24,7 +24,9 @@ class Generator(ABC):
         self.unique_keys = []
         self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
         self.passed_time = 0
-        self.rollout_count = 0
+        self.grab_count = 0
+        self.duplicate_count = 0
+        self.filtered_count = 0
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
         self.info_interval = info_interval
     
@@ -97,13 +99,16 @@ class Generator(ABC):
         self.logger.info(row)
 
     def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
+        self.grab_count += 1
         key = str(node)
         if key in self.record:
+            self.duplicate_count += 1
             self.logger.debug("Already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
         for filter in self.filters:
             if not filter.check(node):
+                self.filtered_count += 1
                 self.logger.debug("filtered by " + filter.__class__.__name__ + ": " + key)
                 return [-float("inf")], self.filtered_reward
             
@@ -195,7 +200,9 @@ class Generator(ABC):
 
     def analyze(self):
         self.logger.info("number of generated nodes: " + str(len(self.unique_keys)))
-        valid_rate = len(self.unique_keys) / self.rollout_count
+        valid_rate = 1 - (self.filtered_count / self.grab_count)
         self.logger.info("valid rate: " + str(valid_rate))
+        unique_rate = 1 - (self.duplicate_count / self.grab_count)
+        self.logger.info("unique rate: " + str(unique_rate))
         node_per_sec = len(self.unique_keys) / self.passed_time
         self.logger.info("node_per_sec: " + str(node_per_sec))
