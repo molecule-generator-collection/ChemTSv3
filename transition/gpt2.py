@@ -24,7 +24,7 @@ class GPT2Transition(LanguageModel):
         self.repetition_penalty = repetition_penalty
 
         super().__init__(lang=lang, name=name, logger=logger)
-        # self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
+        self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
 
     def load(self, model_dir: str, device: str=None) -> Self:
         if device is None:
