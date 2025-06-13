@@ -1,11 +1,11 @@
 output_dir: generation_result
-time_limit: 36000 # seconds
+time_limit: 10 # seconds
 max_generations : 200000
 
 transition_class: GPT2Transition
 transition_conf:
   model_dir: model/smiles/smiles_drugs_zinc_3.2m
-  top_p: 0.995
+  top_p: 0.95
   #top_k: 50
 
 reward_class: DScoreReward
@@ -47,7 +47,7 @@ policy_conf:
 generator_conf:
   expansion_threshold: 0.995
   n_rollouts: 3
-  info_interval: 100
+  info_interval: 1
 
 plot_conf:
   x_axis: generation_order
