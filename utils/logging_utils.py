@@ -1,5 +1,7 @@
-import logging
 import csv
+from datetime import datetime
+import logging
+import os
 
 class CSVHandler(logging.Handler):
     def __init__(self, filename):
@@ -22,3 +24,26 @@ class ListFilter(logging.Filter):
 class NotListFilter(logging.Filter):
     def filter(self, record):
         return not isinstance(record.msg, list)
+    
+def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, file_level=logging.INFO) -> logging.Logger:
+    if name is None:
+        name = datetime.now().strftime("%m-%d_%H-%M")
+    os.makedirs(output_dir, exist_ok=True)
+    
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logger.handlers.clear()
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(console_level)
+    console_handler.addFilter(NotListFilter())
+    file_handler = logging.FileHandler(os.path.join(output_dir, name) + ".log")
+    file_handler.setLevel(file_level)
+    file_handler.addFilter(NotListFilter())
+    csv_handler = CSVHandler(os.path.join(output_dir, name) + ".csv")
+    csv_handler.addFilter(ListFilter())
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+    logger.addHandler(csv_handler)
+    
+    return logger
