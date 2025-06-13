@@ -22,7 +22,7 @@ generator_conf:
   exhaust_backpropagate: false
   use_dummy_reward: false
   rollout_conf:
-    rollout_threshold: 0.95
+    top_p: 0.95
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure

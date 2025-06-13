@@ -49,15 +49,15 @@ class GPT2Transition(LanguageModel):
         return [(i, nodes[i], probs[i]) for i in range(len(probs))]
 
     # implement
-    def rollout(self, initial_node: SentenceNode, rollout_threshold=0.995) -> SentenceNode:
-    # rollout_threshold: [0-1], ignore children with low transition probabilities in rollout based on this value
+    def rollout(self, initial_node: SentenceNode, top_p=0.995) -> SentenceNode:
+    # top_p: [0-1], ignore children with low transition probabilities in rollout based on this value
         with torch.no_grad():
             result_tensor = self.model.generate(
                 initial_node.id_tensor,
                 max_length=self.max_length(),
                 do_sample=True, # sampling
                 # top_k=50, # top-k sampling
-                top_p=rollout_threshold, # nucleus sampling
+                top_p=top_p, # nucleus sampling
                 eos_token_id=self.lang.eos_id(),
                 pad_token_id=self.lang.pad_id(),
                 num_return_sequences=1
