@@ -14,3 +14,6 @@ class RNNTransition(LanguageModel):
     #implement
     def _transitions_with_probs_impl(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
         pass
+    
+    def rollout(self, initial_node: SentenceNode, top_p=0.995) -> SentenceNode:
+        pass

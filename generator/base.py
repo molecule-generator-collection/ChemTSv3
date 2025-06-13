@@ -136,8 +136,9 @@ class Generator(ABC):
     # visualize results
     def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.05, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, packed_objectives=None):
         self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims)
-        for po in packed_objectives:
-            self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim)
+        if packed_objectives:
+            for po in packed_objectives:
+                self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim)
 
     def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.05, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
         # x_axis ... use X in self.record["mol_key"]["X"]
