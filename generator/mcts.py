@@ -11,7 +11,7 @@ from transition import WeightedTransition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, rollout_conf = None, logger_conf: dict[str, Any]=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, logger_conf: dict[str, Any]=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -21,7 +21,6 @@ class MCTS(Generator):
             n_tries: how many tries before using filtered_reward
             exhaust_backpropagate: If true, backpropagate the reward when every terminal node under the node is already explored (only once, as that node won't be visited again)
             use_dummy_reward: If True, backpropagate value is fixed to 0, still calculates rewards and objective values
-            rollout_conf: config for rollout.
         """
         self.root = root
         self.transition = transition
@@ -31,7 +30,6 @@ class MCTS(Generator):
         self.n_tries = n_tries
         self.exhaust_backpropagate = exhaust_backpropagate
         self.use_dummy_reward = use_dummy_reward
-        self.rollout_conf = rollout_conf or {"top_p": self.expansion_threshold}
         self.rollout_count = 0 #unused
         self._expand(self.root)
         super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger_conf=logger_conf, info_interval=info_interval)
@@ -57,7 +55,7 @@ class MCTS(Generator):
     def _rollout(self, node: Node):
         if node.depth >= self.max_length:
             return self.filtered_reward
-        result = self.transition.rollout(node, **self.rollout_conf)
+        result = self.transition.rollout(node)
         self.rollout_count += 1
         return self.grab_objective_values_and_reward(result)
 
