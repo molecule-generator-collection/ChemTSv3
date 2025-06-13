@@ -24,6 +24,7 @@ class Generator(ABC):
         self.unique_keys = []
         self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
         self.passed_time = 0
+        self.rollout_count = 0
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
         self.info_interval = info_interval
     
@@ -49,7 +50,7 @@ class Generator(ABC):
             self.write_header()
         initial_count_generations = len(self.unique_keys)
         
-        self.logger.info("Starting search...")
+        self.logger.info("Starting generation...")
         while True:
             time_passed = time.time() - time_start
             self.passed_time = initial_time + time_passed
@@ -60,7 +61,7 @@ class Generator(ABC):
             
             self._generate_impl()
             
-        self.logger.info("Search completed.")
+        self.logger.info("Generation completed.")
 
     def make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__

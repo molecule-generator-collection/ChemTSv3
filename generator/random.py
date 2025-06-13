@@ -15,7 +15,6 @@ class RandomGenerator(Generator):
         self.root = root
         self.transition = transition
         self.max_length = max_length or transition.max_length()
-        self.rollout_count = 0
         super().__init__(**kwargs)
         
     # implement
