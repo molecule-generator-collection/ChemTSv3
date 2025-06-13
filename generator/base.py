@@ -10,23 +10,21 @@ import numpy as np
 from filter import Filter
 from node import Node
 from reward import Reward, LogPReward
-from utils import camel2snake, moving_average, CSVHandler, ListFilter, NotListFilter
+from utils import camel2snake, moving_average, make_logger
 
 class Generator(ABC):
-    def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger_conf: dict[str, Any]=None, info_interval: int=1):
+    def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger: logging.Logger=None, info_interval: int=1):
         # transition is not passed: generator with multiple transition rules
-        self._name = name
-        self._name = self.name() # generate name if name=None
+        self._name = name or self.make_name()
         self.reward: Reward = reward
         self.filters: list[Filter] = filters or []
         self.filtered_reward = filtered_reward
-        self._output_dir = output_dir if output_dir.endswith(os.sep) else output_dir + os.sep
-        os.makedirs(os.path.dirname(self._output_dir), exist_ok=True)
-        os.makedirs(os.path.dirname(self.output_dir()), exist_ok=True)
+        self._output_dir = output_dir
+        os.makedirs(self.output_dir(), exist_ok=True)
         self.unique_keys = []
         self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
         self.passed_time = 0
-        self.set_logger(logger_conf)
+        self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
         self.info_interval = info_interval
     
     @abstractmethod
@@ -64,33 +62,14 @@ class Generator(ABC):
             
         self.logger.info("Search completed.")
 
+    def make_name(self):
+        return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
+    
     def name(self):
-        if self._name is not None:
-            return self._name
-        else:
-            return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
+        return self._name
     
     def output_dir(self):
-        return self._output_dir + self.name() + os.sep
-
-    # support more option / yaml later
-    def set_logger(self, logger_conf: dict[str, Any]):
-        logger_conf = logger_conf or {}
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.handlers.clear()
-
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logger_conf.get("console_level", logging.INFO))
-        console_handler.addFilter(NotListFilter())
-        file_handler = logging.FileHandler(self.output_dir() + self.name() + ".log")
-        file_handler.setLevel(logger_conf.get("file_level", logging.DEBUG))
-        file_handler.addFilter(NotListFilter())
-        csv_handler = CSVHandler(self.output_dir() + self.name() + ".csv")
-        csv_handler.addFilter(ListFilter())
-        self.logger.addHandler(console_handler)
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(csv_handler)
+        return self._output_dir if self._output_dir.endswith(os.sep) else self._output_dir + os.sep
 
     def write_header(self):
         header = ["order", "time", "key"]
