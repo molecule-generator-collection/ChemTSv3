@@ -43,14 +43,20 @@ class MCTS(Generator):
         for a, n in zip(actions, nodes):
             node.add_child(a, n)
 
-    def _eval(self, node: Node):
+    def _eval(self, node: Node, n_tries=1):
         if node.is_terminal():
             objective_values, reward = self.grab_objective_values_and_reward(node)
             node.sum_r = node.mean_r = -float("inf")
             return objective_values, reward
-        if not bool(node.children): # if empty
+        if not node.children: # if empty
             self._expand(node)
-        objective_values, reward = self._rollout(node)
+            
+        for _ in range(self.n_tries):
+            child = node.sample_node()
+            objective_values, reward = self._rollout(child)
+            if objective_values[0] != -float("inf"): # not filtered
+                break
+        self._backpropagate(child, reward, self.use_dummy_reward)
         return objective_values, reward
 
     def _rollout(self, node: Node):
@@ -77,11 +83,7 @@ class MCTS(Generator):
                     self._backpropagate(node, value, self.use_dummy_reward)
                 node.parent.sum_r = node.parent.mean_r = -float("inf")
                 node = self.root
-        for _ in range(self.n_tries):
-            objective_values, reward = self._eval(node)
-            if objective_values[0] != -float("inf"): # not filtered
-                break
-        self._backpropagate(node, reward, self.use_dummy_reward)
+        self._eval(node)
 
     # override
     def name(self):

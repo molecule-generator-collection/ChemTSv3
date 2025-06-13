@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Self, Any
+import numpy as np
 from rdkit.Chem import Mol
 
 class Node(ABC):
@@ -27,13 +28,27 @@ class Node(ABC):
     def is_terminal(self) -> bool:
         pass
 
-    def add_child(self, action: Any, child: Self):
+    def add_child(self, action: Any, child: Self, override=False):
+        if override is False and action in self.children:
+            pass
         self.children[action] = child
     
     def observe(self, value: float):
         self.n += 1
         self.sum_r += value
         self.mean_r = self.sum_r / self.n
+        
+    def sample_node(self, additional_depth: int=1) -> Self:
+        if additional_depth == 1:
+            nodes = list(self.children.values())
+            if not nodes:
+                return None
+            weights = np.array([node.last_prob for node in nodes], dtype=np.float64)
+            total = weights.sum()
+            probabilities = weights / total
+            return np.random.choice(nodes, p=probabilities)
+        else:
+            return self.sample_node().sample_node(additional_depth=additional_depth-1)
     
     def clear_cache(self):
         self._cache = {}
