@@ -32,7 +32,6 @@ class MCTS(Generator):
         self.n_rollouts = n_rollouts
         self.exhaust_backpropagate = exhaust_backpropagate
         self.use_dummy_reward = use_dummy_reward
-        self.rollout_count = 0 #unused
         self._expand(self.root)
         super().__init__(output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger=logger, info_interval=info_interval)
 
