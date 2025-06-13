@@ -77,7 +77,6 @@ class MCTS(Generator):
                     self._backpropagate(node, value, self.use_dummy_reward)
                 node.parent.sum_r = node.parent.mean_r = -float("inf")
                 node = self.root
-                continue
         for _ in range(self.n_tries):
             objective_values, reward = self._eval(node)
             if objective_values[0] != -float("inf"): # not filtered
