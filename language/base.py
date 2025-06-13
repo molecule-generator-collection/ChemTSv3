@@ -88,7 +88,6 @@ class Language(ABC):
     def load(file: str, device: str=None) -> Self:
         with open(file, "rb") as f:
             lang = pickle.load(f)
-        if device is not None or not hasattr(lang, 'device'):
             lang.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         return lang
 

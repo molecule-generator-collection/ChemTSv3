@@ -12,7 +12,7 @@ from transition import WeightedTransition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, exhaust_backpropagate: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -29,6 +29,7 @@ class MCTS(Generator):
         self.policy = policy
         self.expansion_threshold = expansion_threshold
         self.n_tries = n_tries
+        self.n_rollouts = n_rollouts
         self.exhaust_backpropagate = exhaust_backpropagate
         self.use_dummy_reward = use_dummy_reward
         self.rollout_count = 0 #unused
@@ -50,13 +51,20 @@ class MCTS(Generator):
             return objective_values, reward
         if not node.children: # if empty
             self._expand(node)
-            
-        for _ in range(self.n_tries):
-            child = node.sample_node()
-            objective_values, reward = self._rollout(child)
-            if objective_values[0] != -float("inf"): # not filtered
-                break
-        self._backpropagate(child, reward, self.use_dummy_reward)
+        
+        to_backpropagate = []
+        for _ in range(self.n_rollouts):
+            for _ in range(self.n_tries):
+                child = node.sample_node()
+                objective_values, reward = self._rollout(child)
+                if objective_values[0] != -float("inf"): # not filtered
+                    break
+            if objective_values[0] != -float("inf"):
+                to_backpropagate.append((child, reward))
+        if not to_backpropagate:
+            self._backpropagate(node, self.filtered_reward, self.use_dummy_reward)
+        for child, reward in to_backpropagate:
+            self._backpropagate(child, reward, self.use_dummy_reward)
         return objective_values, reward
 
     def _rollout(self, node: Node):
