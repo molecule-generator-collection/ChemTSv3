@@ -38,11 +38,7 @@ class MCTS(Generator):
         for a, n in zip(actions, nodes):
             node.add_child(a, n)
 
-    def _eval(self, node: Node, n_tries=1):
-        if node.is_terminal(): #TODO: check on rollout, not here
-            objective_values, reward = self.grab_objective_values_and_reward(node)
-            node.sum_r = node.mean_r = -float("inf")
-            return
+    def _eval(self, node: Node):
         if not node.children: # if empty
             self._expand(node)
         
@@ -50,7 +46,11 @@ class MCTS(Generator):
         for _ in range(self.n_rollouts):
             for _ in range(self.n_tries):
                 child = node.sample_node()
-                objective_values, reward = self._rollout(child)
+                if child.is_terminal():
+                    objective_values, reward = self.grab_objective_values_and_reward(child)
+                    child.sum_r = child.mean_r = -float("inf")
+                else:   
+                    objective_values, reward = self._rollout(child)
                 if objective_values[0] != -float("inf"): # not filtered
                     break
             if objective_values[0] != -float("inf"):
