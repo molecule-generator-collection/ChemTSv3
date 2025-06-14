@@ -16,9 +16,10 @@ class MCTS(Generator):
 
         Args:
             root: root node
-            expansion_threshold: [0-1]. Ignore children with low transition probabilities in expansion based on this value
-            n_tries: how many tries before using filtered_reward
-            use_dummy_reward: If True, backpropagate value is fixed to 0, still calculates rewards and objective values
+            expansion_threshold: ([0,1]) ignore children with low transition probabilities in expansion based on this value
+            n_rollouts: the number of rollouts in one step
+            n_tries: the number of attempts to obtain an unfiltered node in a single rollout
+            use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
         """
         self.root = root
         self.max_length = max_length or transition.max_length()
@@ -34,8 +35,19 @@ class MCTS(Generator):
         actions, nodes, probs = zip(*self.transition.transitions_with_probs(node, threshold=self.expansion_threshold))
         for a, n in zip(actions, nodes):
             node.add_child(a, n)
+            
+    def _rollout(self, node: Node):
+        if node.depth >= self.max_length:
+            return self.filtered_reward
+        result = self.transition.rollout(node)
+        return self.grab_objective_values_and_reward(result)
 
-    def _eval(self, node: Node):
+    def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
+        while node:
+            node.observe(0 if use_dummy_reward else value)
+            node = node.parent
+
+    def _evaluate(self, node: Node):
         if node.is_terminal():
             objective_values, reward = self.grab_objective_values_and_reward(node)
             node.sum_r = node.mean_r = -float("inf")
@@ -57,17 +69,6 @@ class MCTS(Generator):
         for child, reward in to_backpropagate:
             self._backpropagate(child, reward, self.use_dummy_reward)
 
-    def _rollout(self, node: Node):
-        if node.depth >= self.max_length:
-            return self.filtered_reward
-        result = self.transition.rollout(node)
-        return self.grab_objective_values_and_reward(result)
-
-    def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
-        while node:
-            node.observe(0 if use_dummy_reward else value)
-            node = node.parent
-
     # implement
     def _generate_impl(self):
         node = self.root
@@ -77,4 +78,4 @@ class MCTS(Generator):
                 self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
                 node.parent.sum_r = node.parent.mean_r = -float("inf")
                 node = self.root
-        self._eval(node)
+        self._evaluate(node)
