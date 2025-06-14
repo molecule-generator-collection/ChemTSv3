@@ -38,7 +38,7 @@ class Node(ABC):
         self.sum_r += value
         self.mean_r = self.sum_r / self.n
         
-    def sample_node(self, additional_depth: int=1) -> Self:
+    def sample_child(self, additional_depth: int=1) -> Self:
         if additional_depth == 1:
             nodes = list(self.children.values())
             if not nodes:
@@ -48,7 +48,7 @@ class Node(ABC):
             probabilities = weights / total
             return np.random.choice(nodes, p=probabilities)
         else:
-            return self.sample_node().sample_node(additional_depth=additional_depth-1)
+            return self.sample_child().sample_child(additional_depth=additional_depth-1)
     
     def clear_cache(self):
         self._cache = {}

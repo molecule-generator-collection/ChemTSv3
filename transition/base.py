@@ -7,22 +7,15 @@ from utils import select_indices_by_threshold
 
 class Transition(ABC):
     def __init__(self, name=None, logger: logging.Logger=None):
-        self.name = name or self.name or self.default_name()
-        self.logger = logger or logging.getLogger(__name__)
+        self.name = name or self.name or self.make_name()
+        self.logger = logger or logging.getLogger(__name__)    
 
-    @abstractmethod
-    def transitions(self, node: Node) -> list[tuple[Any, Node]]:
-        pass
-
-    def default_name(self):
-        return "No Name"
-
-class WeightedTransition(Transition):
     @abstractmethod
     def _transitions_with_probs_impl(self, node: Node) -> list[tuple[Any, Node, float]]:
         pass
 
-    # can implement default execution later
+    # TODO: implement default execution
+    # should return the initial_node itself if it's terminal (in other words, ends with <EOS>)
     @abstractmethod
     def rollout(self, initial_node: Node, **kwargs) -> Node:
         pass
@@ -36,7 +29,6 @@ class WeightedTransition(Transition):
         else:
             return self._transitions_with_probs_impl(node)
 
-    # implement
     def transitions(self, node: Node) -> list[tuple[Any, Node]]:
         return self.transitions_with_probs(node)[:-1]
     
@@ -44,7 +36,10 @@ class WeightedTransition(Transition):
     def max_length(self) -> int:
         return 10**18
     
-class LanguageModel(WeightedTransition):
+    def make_name(self):
+        return self.__class__.__name__
+    
+class LanguageModel(Transition):
     def __init__(self, lang: Language, name=None, logger: logging.Logger=None):
         self.lang = lang
         super().__init__(name, logger)

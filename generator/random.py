@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from generator import Generator
 from node import Node
-from transition import WeightedTransition
+from transition import Transition
 from utils import camel2snake
 
 class RandomGenerator(Generator):
-    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, **kwargs):
+    def __init__(self, root: Node, transition: Transition, max_length=None, **kwargs):
         self.root = root
         self.max_length = max_length or transition.max_length()
         super().__init__(transition=transition, **kwargs)
