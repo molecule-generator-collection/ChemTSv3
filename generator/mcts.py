@@ -6,11 +6,11 @@ from generator import Generator
 from node import Node
 from policy import Policy, UCB
 from reward import Reward, LogPReward
-from transition import WeightedTransition
+from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: WeightedTransition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -31,26 +31,23 @@ class MCTS(Generator):
         self._expand(self.root)
 
     def _expand(self, node: Node):
-        if node.is_terminal():
-            return
-
         actions, nodes, probs = zip(*self.transition.transitions_with_probs(node, threshold=self.expansion_threshold))
         for a, n in zip(actions, nodes):
             node.add_child(a, n)
 
     def _eval(self, node: Node):
-        if not node.children: # if empty
+        if node.is_terminal():
+            objective_values, reward = self.grab_objective_values_and_reward(node)
+            node.sum_r = node.mean_r = -float("inf")
+            return
+        if not node.children:
             self._expand(node)
         
         to_backpropagate = []
         for _ in range(self.n_rollouts):
             for _ in range(self.n_tries):
-                child = node.sample_node()
-                if child.is_terminal():
-                    objective_values, reward = self.grab_objective_values_and_reward(child)
-                    child.sum_r = child.mean_r = -float("inf")
-                else:   
-                    objective_values, reward = self._rollout(child)
+                child = node.sample_child()
+                objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
                 if objective_values[0] != -float("inf"): # not filtered
                     break
             if objective_values[0] != -float("inf"):
