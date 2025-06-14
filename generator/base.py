@@ -1,20 +1,22 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 import logging
-import math
 import os
+import pickle
 import time
-from typing import Type, Any
+from typing import Type, Any, Self
 import matplotlib.pyplot as plt
 import numpy as np
 from filter import Filter
 from node import Node
 from reward import Reward, LogPReward
+from transition import Transition
 from utils import camel2snake, moving_average, make_logger
 
 class Generator(ABC):
-    def __init__(self, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger: logging.Logger=None, info_interval: int=1):
-        # transition is not passed: generator with multiple transition rules
+    def __init__(self, transition: Transition, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger: logging.Logger=None, info_interval: int=1):
+        # when implementing generator with multiple transition rules, add list[Transition] to type hint
+        self.transition = transition
         self._name = name or self.make_name()
         self.reward: Reward = reward
         self.filters: list[Filter] = filters or []
@@ -206,3 +208,19 @@ class Generator(ABC):
         self.logger.info("unique rate: " + str(unique_rate))
         node_per_sec = len(self.unique_keys) / self.passed_time
         self.logger.info("node_per_sec: " + str(node_per_sec))
+        
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        if "transition" in state:
+            del state["transition"]
+        return state
+    
+    def save(self, file: str):
+        with open(file, mode="wb") as fo:
+            pickle.dump(self, fo)
+
+    def load(file: str, transition: Transition) -> Self:
+        with open(file, "rb") as f:
+            generator = pickle.load(f)
+        generator.transition = transition
+        return generator
