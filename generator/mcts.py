@@ -30,6 +30,16 @@ class MCTS(Generator):
         self.use_dummy_reward = use_dummy_reward
         super().__init__(transition=transition, output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger=logger, info_interval=info_interval)
         self._expand(self.root)
+        
+    def _selection(self) -> Node:
+        node = self.root
+        while node.children:
+            node = max(node.children.values(), key=lambda n: self.policy.evaluate(n))
+            if node.sum_r == -float("inf"): # already exhausted every terminal under this node
+                self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
+                node.parent.sum_r = node.parent.mean_r = -float("inf")
+                node = self.root
+        return node
 
     def _expand(self, node: Node):
         actions, nodes, probs = zip(*self.transition.transitions_with_probs(node, threshold=self.expansion_threshold))
@@ -47,7 +57,9 @@ class MCTS(Generator):
             node.observe(0 if use_dummy_reward else value)
             node = node.parent
 
-    def _evaluate(self, node: Node):
+    # implement
+    def _generate_impl(self):
+        node = self._selection()
         if node.is_terminal():
             objective_values, reward = self.grab_objective_values_and_reward(node)
             node.sum_r = node.mean_r = -float("inf")
@@ -68,14 +80,3 @@ class MCTS(Generator):
             self._backpropagate(node, self.filtered_reward, self.use_dummy_reward)
         for child, reward in to_backpropagate:
             self._backpropagate(child, reward, self.use_dummy_reward)
-
-    # implement
-    def _generate_impl(self):
-        node = self.root
-        while node.children:
-            node = max(node.children.values(), key=lambda n: self.policy.evaluate(n))
-            if node.sum_r == -float("inf"): # already exhausted every terminal under this node
-                self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
-                node.parent.sum_r = node.parent.mean_r = -float("inf")
-                node = self.root
-        self._evaluate(node)
