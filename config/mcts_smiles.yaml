@@ -4,7 +4,7 @@ time_limit: 15 # seconds
 
 transition_class: GPT2Transition
 transition_conf:
-  model_dir: model/smiles/smiles_drugs_zinc_3.2m
+  model_dir: model/smiles/drugs_zinc_3.2m
   top_p: 0.995
 
 reward_class: JScoreReward

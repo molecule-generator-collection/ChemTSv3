@@ -48,7 +48,7 @@ class RNNLanguageModel(nn.Module):
         return logits, next_hidden
 
     @torch.inference_mode()
-    def generate(self,input_ids: torch.Tensor, max_length: int, eos_token_id: int, top_p: float = 0.995) -> torch.Tensor:
+    def generate(self,input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float = 0.995) -> torch.Tensor:
         self.eval()
         generated = input_ids.clone()
         hidden = None
@@ -89,10 +89,13 @@ class RNNLanguageModel(nn.Module):
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, max_length=None, name: str=None, device: str=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, max_length=None, top_p=0.995, name: str=None, device: str=None, logger: logging.Logger=None):
         if (model is not None) and (model_dir is not None):
             raise ValueError("specify one (or none) of model or model_dir, not both.")
         
+        super().__init__(lang=lang, name=name, logger=logger)
+        self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
+
         device = self.lang.device
         if model is not None:
             self.model = model.to(device)
@@ -100,8 +103,7 @@ class RNNTransition(LanguageModel):
             self.load(model_dir, device=device)
         
         self._max_length = max_length or 10**18
-        super().__init__(lang=lang, name=name, logger=logger)
-        self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
+        self.top_p = top_p        
         
     def load(self, model_dir: str, device: str=None) -> Self:
         """
@@ -128,24 +130,24 @@ class RNNTransition(LanguageModel):
     def _transitions_with_probs_impl(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
         self.model.eval()
         with torch.no_grad():
-            logits, _ = self.model(node.id_tensor.to(self.device))
+            logits, _ = self.model(node.id_tensor.to(self.lang.device))
             next_logits = logits[0, -1, :]  # [vocab]
             probs = F.softmax(next_logits, dim=-1).tolist()
 
         children = []
         for tok_id, prob in enumerate(probs):
-            next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
+            next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.lang.device)], dim=1)
             child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob)
             children.append((tok_id, child, prob))
         return children
     
-    def rollout(self, initial_node: SentenceNode, top_p=0.995) -> SentenceNode:
+    def rollout(self, initial_node: SentenceNode) -> SentenceNode:
         with torch.no_grad():
             generated_tensor = self.model.generate(
-                input_ids=initial_node.id_tensor.to(self.device),
+                input_ids=initial_node.id_tensor.to(self.lang.device),
                 max_length=self.max_length(),
                 eos_token_id=self.lang.eos_id(),
                 pad_token_id=self.lang.pad_id(),
-                top_p=top_p,
+                top_p=self.top_p,
             )
         return initial_node.__class__(id_tensor=generated_tensor.to(initial_node.id_tensor.device), lang=self.lang)

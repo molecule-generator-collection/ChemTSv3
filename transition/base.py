@@ -7,7 +7,7 @@ from utils import select_indices_by_threshold
 
 class Transition(ABC):
     def __init__(self, name=None, logger: logging.Logger=None):
-        self.name = name or self.name or self.make_name()
+        self.name = name or self.make_name()
         self.logger = logger or logging.getLogger(__name__)    
 
     @abstractmethod
