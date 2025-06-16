@@ -179,14 +179,14 @@ class Generator(ABC):
         plt.savefig(self.output_dir() + self.name() + "_" + y_axis + "_by_" + x_axis + ".png")
         plt.show()
         
-    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.05, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):
+    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.02, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None):
         ylims = ylims or {}
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for o in objective_names:
             self._plot(x_axis=x_axis, y_axis=o, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None))
         self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None))
 
-    def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.05, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
+    def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.02, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None):
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for ya in y_axes:
