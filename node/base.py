@@ -4,7 +4,9 @@ import numpy as np
 from rdkit.Chem import Mol
 
 class Node(ABC):
-    def __init__(self, parent=None, last_action: Any=None, last_prob=1.0, use_cache=True):
+    use_cache = True
+    
+    def __init__(self, parent=None, last_action: Any=None, last_prob=1.0):
         self.parent = parent
         if parent is not None:
             self.depth = parent.depth + 1
@@ -16,8 +18,6 @@ class Node(ABC):
         self.last_action = last_action
         self.n = 0 # visit count
         self.sum_r = 0.0 # sum of rewards
-        self.mean_r = 0.0 # mean of rewards
-        self.use_cache = use_cache
         self._cache = {} # str, Any
 
     @abstractmethod
@@ -36,7 +36,9 @@ class Node(ABC):
     def observe(self, value: float):
         self.n += 1
         self.sum_r += value
-        self.mean_r = self.sum_r / self.n
+        
+    def mean_r(self):
+        return self.sum_r / self.n
         
     def sample_node(self, additional_depth: int=1) -> Self:
         if additional_depth == 1:

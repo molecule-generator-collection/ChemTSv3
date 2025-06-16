@@ -1,4 +1,5 @@
 from typing import Self
+from rdkit import Chem
 from rdkit.Chem import Mol
 import torch
 from language import Language, MolLanguage
@@ -28,10 +29,21 @@ class SentenceNode(Node):
         return cls(id_tensor = lang.bos_tensor(), lang=lang)
 
 class MolSentenceNode(SentenceNode, MolNode):
+    use_canonical_smiles = True    
+
     def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent=None, last_prob=1.0):
-        self._is_valid_mol = None
+        self._canonical_smiles = None
         super().__init__(id_tensor, lang, parent, last_prob)
 
     # implement
     def _mol_impl(self) -> Mol:
         return self.lang.sentence2mol(self.__str__())
+    
+    #override
+    def __str__(self):
+        if self.use_canonical_smiles:
+            if self._canonical_smiles is None:
+                self._canonical_smiles = Chem.MolToSmiles(self.mol())
+            return self._canonical_smiles
+        else:
+            return super().__str__()

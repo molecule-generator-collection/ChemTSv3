@@ -29,4 +29,4 @@ class PUCT(Policy):
         u = c * node.last_prob * sqrt(node.parent.n) / (1 + node.n)
         if node.n == 0:
             return self.initial_mean + u
-        return node.mean_r + u
+        return node.mean_r() + u
