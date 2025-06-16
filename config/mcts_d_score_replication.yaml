@@ -2,11 +2,15 @@ output_dir: generation_result
 time_limit: 10 # seconds
 max_generations : 200000
 
+# transition_class: GPT2Transition
+# transition_conf:
+#   model_dir: model/smiles/drugs_zinc_gpt2_3.2m
+#   top_p: 0.95
+
 transition_class: RNNTransition
 transition_conf:
   model_dir: model/smiles/drugs_zinc_rnn
   top_p: 0.995
-  #top_k: 50
 
 reward_class: DScoreReward
 filtered_reward: -1
