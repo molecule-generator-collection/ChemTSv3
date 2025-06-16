@@ -1,4 +1,4 @@
-output_dir: "sandbox/training_result/model"
+output_dir: "sandbox/training_result/rnn_model"
 lang_class: SMILES
 dataset_path: data/smiles/250k_rndm_zinc_drugs_clean.smi
 

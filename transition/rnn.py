@@ -12,6 +12,7 @@ from transition import LanguageModel
 class RNNLanguageModel(nn.Module):
     def __init__(self, vocab_size: int, embed_size: int=None, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3):
         super().__init__()
+        self.vocab_size = vocab_size
         embed_size = embed_size or vocab_size
         self.embed = nn.Embedding(vocab_size, embed_size)
         rnn_cls = {"LSTM": nn.LSTM, "GRU": nn.GRU, "RNN": nn.RNN}[rnn_type]
@@ -78,7 +79,7 @@ class RNNLanguageModel(nn.Module):
         os.makedirs(model_dir, exist_ok=True)
         torch.save(self.state_dict(), os.path.join(model_dir, "model.pt"))
         cfg = {
-            "vocab_size": len(self.lang.vocab()),
+            "vocab_size": self.vocab_size,
             "embed_size": self.embed.embedding_dim,
             "hidden_size": self.hidden_size,
             "num_layers": self.num_layers,
