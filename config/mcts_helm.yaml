@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 10 # seconds
+time_limit: 60 # seconds
 # max_generations : 1500
 
 transition_class: GPT2Transition
@@ -7,7 +7,8 @@ transition_conf:
   model_dir: model/helm/pep_noperiod_1.2m
   top_p: 0.995
 
-reward_class: JScoreReward
+# reward_class: JScoreReward
+reward_class: LogPReward
 filtered_reward: -1
 
 policy_class: PUCT
@@ -21,7 +22,6 @@ policy_conf:
 
 generator_conf:
   expansion_threshold: 0.995
-  exhaust_backpropagate: false
   use_dummy_reward: false
   n_rollouts: 3
 
