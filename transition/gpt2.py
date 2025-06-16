@@ -10,8 +10,8 @@ from transition import LanguageModel
 
 class GPT2Transition(LanguageModel):
     def __init__(self, lang: Language, model=None, model_dir: str=None, name=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
-        assert (model is None) or (model_dir is None), \
-            "specify one (or none) of model or model_dir, not both."
+        if (model is not None) and (model_dir is not None):
+            raise ValueError("specify one (or none) of model or model_dir, not both.")
 
         if model is not None:
             self.model = model
@@ -74,5 +74,4 @@ class GPT2Transition(LanguageModel):
                 pad_token_id=self.lang.pad_id(),
                 num_return_sequences=1
             )
-        result = initial_node.__class__(id_tensor=result_tensor, lang=self.lang)
-        return result
+        return initial_node.__class__(id_tensor=result_tensor, lang=self.lang)
