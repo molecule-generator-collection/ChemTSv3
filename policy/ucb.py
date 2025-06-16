@@ -26,4 +26,4 @@ class UCB(Policy):
         if node.n == 0:
             return self.initial_mean + c * sqrt(2 * log(node.parent.n + 1) / (node.n + 1))
         u = c * sqrt(2 * log(node.parent.n) / (node.n))
-        return node.mean_r + u
+        return node.mean_r() + u

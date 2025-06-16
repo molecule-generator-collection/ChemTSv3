@@ -46,7 +46,7 @@ class MCTS(Generator):
     def _eval(self, node: Node, n_tries=1):
         if node.is_terminal():
             objective_values, reward = self.grab_objective_values_and_reward(node)
-            node.sum_r = node.mean_r = -float("inf")
+            node.sum_r = -float("inf")
             return objective_values, reward
         if not node.children: # if empty
             self._expand(node)
@@ -87,7 +87,7 @@ class MCTS(Generator):
                 if self.exhaust_backpropagate:
                     value = self._eval(node)[1]
                     self._backpropagate(node, value, self.use_dummy_reward)
-                node.parent.sum_r = node.parent.mean_r = -float("inf")
+                node.parent.sum_r = -float("inf")
                 node = self.root
         self._eval(node)
 
