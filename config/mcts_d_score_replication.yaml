@@ -13,7 +13,7 @@ transition_conf:
   top_p: 0.995
 
 reward_class: DScoreReward
-filtered_reward: -1
+filtered_reward: 0
 reward_conf:
   params:
     # egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
@@ -51,7 +51,7 @@ policy_conf:
 generator_conf:
   expansion_threshold: 0.995
   n_rollouts: 3
-  info_interval: 1
+  info_interval: 100
 
 plot_conf:
   x_axis: generation_order
