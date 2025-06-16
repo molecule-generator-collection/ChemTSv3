@@ -10,8 +10,9 @@ from node import SentenceNode
 from transition import LanguageModel
 
 class RNNLanguageModel(nn.Module):
-    def __init__(self, vocab_size: int, embed_size: int=256, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3):
+    def __init__(self, vocab_size: int, embed_size: int=None, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3):
         super().__init__()
+        embed_size = embed_size or vocab_size
         self.embed = nn.Embedding(vocab_size, embed_size)
         rnn_cls = {"LSTM": nn.LSTM, "GRU": nn.GRU, "RNN": nn.RNN}[rnn_type]
         self.rnn = rnn_cls(
@@ -46,7 +47,7 @@ class RNNLanguageModel(nn.Module):
         return logits, next_hidden
 
     @torch.inference_mode()
-    def generate(self,input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float = 0.9) -> torch.Tensor:
+    def generate(self,input_ids: torch.Tensor, max_length: int, eos_token_id: int, top_p: float = 0.995) -> torch.Tensor:
         self.eval()
         generated = input_ids.clone()
         hidden = None
@@ -87,7 +88,7 @@ class RNNLanguageModel(nn.Module):
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model=None, model_dir: str=None, name: str=None, device: str=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, max_length=None, name: str=None, device: str=None, logger: logging.Logger=None):
         if (model is not None) and (model_dir is not None):
             raise ValueError("specify one (or none) of model or model_dir, not both.")
         
@@ -97,6 +98,7 @@ class RNNTransition(LanguageModel):
         elif model_dir is not None:
             self.load(model_dir, device=device)
         
+        self._max_length = max_length or 10**18
         super().__init__(lang=lang, name=name, logger=logger)
         self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
         
@@ -117,6 +119,10 @@ class RNNTransition(LanguageModel):
         self.name = os.path.basename(os.path.normpath(model_dir))
         return self
     
+    # override
+    def max_length(self):
+        return self._max_length
+
     #implement
     def _transitions_with_probs_impl(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
         self.model.eval()
