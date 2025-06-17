@@ -11,11 +11,14 @@ from node import SentenceNode
 from transition import LanguageModel
 
 class RNNLanguageModel(nn.Module):
-    def __init__(self, vocab_size: int, embed_size: int=None, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3):
+    def __init__(self, pad_id: int, vocab_size: int, embed_size: int=None, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3, use_input_dropout=True):
         super().__init__()
         self.vocab_size = vocab_size
         embed_size = embed_size or vocab_size
-        self.embed = nn.Embedding(vocab_size, embed_size)
+        self.embed = nn.Embedding(vocab_size, embed_size, padding_idx=pad_id)
+        self.use_input_dropout = use_input_dropout
+        if use_input_dropout:
+            self.dropout_in = nn.Dropout(dropout)
         rnn_cls = {"LSTM": nn.LSTM, "GRU": nn.GRU, "RNN": nn.RNN}[rnn_type]
         self.rnn = rnn_cls(
             embed_size,
@@ -44,7 +47,10 @@ class RNNLanguageModel(nn.Module):
         lengths = (x != self.embed.padding_idx).sum(dim=1)
         if hidden is None:
             hidden = self._init_states(x.size(0), x.device)
-        emb = self.dropout_in(self.embed(x))
+        if self.use_input_dropout:
+            emb = self.dropout_in(self.embed(x))
+        else:
+            emb = self.embed(x)
         packed = pack_padded_sequence(emb, lengths, batch_first=True, enforce_sorted=False)
         packed_out, hidden = self.rnn(packed, hidden)
         out, _ = pad_packed_sequence(packed_out, batch_first=True)
