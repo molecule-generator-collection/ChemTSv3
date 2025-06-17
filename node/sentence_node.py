@@ -25,8 +25,8 @@ class SentenceNode(Node):
 
     # bos node, often used as root
     @classmethod
-    def bos_node(cls, lang: Language) -> Self:
-        return cls(id_tensor = lang.bos_tensor(), lang=lang)
+    def bos_node(cls, lang: Language, device: str=None) -> Self:
+        return cls(id_tensor = lang.bos_tensor(device), lang=lang)
 
 class MolSentenceNode(SentenceNode, MolNode):
     def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent=None, last_prob=1.0):
