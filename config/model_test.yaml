@@ -11,9 +11,40 @@ transition_class: RNNTransition
 transition_conf:
   model_dir: model/smiles/drugs_zinc_rnn
 
-reward_class: LogPReward
-filtered_reward: -0.5
-# reward_conf:
+# reward_class: LogPReward
+# filtered_reward: -0.5
+
+reward_class: DScoreReward
+filtered_reward: 0
+reward_conf:
+  params:
+    # egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    # erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    egfr: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    pdgfr_beta: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    solubility: {type: max_gauss, alpha: 1, mu: -2, sigma: 0.6, weight: 1}
+    permeability: {type: max_gauss, alpha: 1, mu: 1, sigma: 1, weight: 1}
+    metabolic_stability: {type: max_gauss, alpha: 1, mu: 75, sigma: 20, weight: 1}
+    toxicity: {type: min_gauss, alpha: 1, mu: 5.5, sigma: 0.5, weight: 1}
+    sa_score: {type: max_gauss, alpha: 1, mu: -3, sigma: 2, weight: 1} # negative when scaling as smaller values are more desirable.
+    qed: {type: max_gauss, alpha: 1, mu: 0.8, sigma: 0.25, weight: 1}
+    molecular_weight: {type: rectangular, min: 200, max: 600, weight: 1}
+    tox_alert: {type: identity, weight: 1}
+    has_chembl_substruct: {type: identity, weight: 1}
 
 generator_class: RandomGenerator
 
