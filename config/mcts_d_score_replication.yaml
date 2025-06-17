@@ -12,7 +12,7 @@ transition_conf:
   model_dir: model/smiles/drugs_zinc_rnn
 
 reward_class: DScoreReward
-filtered_reward: -1
+filtered_reward: 0
 reward_conf:
   params:
     # egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
@@ -47,6 +47,7 @@ policy_class: UCB
 policy_conf:
   c: 0.2
 
+generator_class: MCTS
 generator_conf:
   expansion_threshold: 0.995
   n_rollouts: 3
@@ -59,4 +60,4 @@ plot_conf:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
-  - filter_class: RadicalFilter
+  # - filter_class: RadicalFilter

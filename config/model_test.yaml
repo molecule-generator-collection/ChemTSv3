@@ -1,0 +1,22 @@
+output_dir: generation_result
+# time_limit: 15 # seconds
+max_generations : 100
+
+# transition_class: GPT2Transition
+# transition_conf:
+#   model_dir: model/smiles/drugs_zinc_gpt2_3.2m
+#   top_p: 0.995
+
+transition_class: RNNTransition
+transition_conf:
+  model_dir: model/smiles/drugs_zinc_rnn
+
+reward_class: LogPReward
+filtered_reward: -0.5
+# reward_conf:
+
+generator_class: RandomGenerator
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
