@@ -14,13 +14,10 @@ def select_indices_by_threshold(probs: list[float], threshold: float) -> list[in
 
 def moving_average(values: list[float], window: float=0.05) -> np.ndarray:
     if window < 1:
-        window = math.floor(len(values) * window)
+        window = max(1, math.floor(len(values) * window))
     head = [np.mean(values[:i+1]) for i in range(window - 1)]
-    if len(np.ones(window)/window) == 0:
-        return np.array(head)
-    else:
-        tail = np.convolve(values, np.ones(window)/window, mode='valid')
-        return np.array(head + list(tail))
+    tail = np.convolve(values, np.ones(window)/window, mode='valid')
+    return np.array(head + list(tail))
 
 def max_gauss(x, a=1, mu=8, sigma=2):
     if x > mu:
