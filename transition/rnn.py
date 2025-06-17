@@ -59,7 +59,8 @@ class RNNLanguageModel(nn.Module):
     def generate(self, input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float=1.0) -> torch.Tensor:
         self.eval()
         generated = input_ids.clone()
-        hidden = None
+        with torch.no_grad():
+            _, hidden = self(input_ids)
 
         for _ in range(max_length - input_ids.size(1)):
             logits, hidden = self(generated[:, -1:], hidden)
