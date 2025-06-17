@@ -7,6 +7,7 @@ time_limit: 15 # seconds
 #   model_dir: model/smiles/drugs_zinc_gpt2_3.2m
 #   top_p: 0.995
 
+device: cpu
 transition_class: RNNTransition
 transition_conf:
   model_dir: model/smiles/drugs_zinc_rnn
