@@ -86,6 +86,9 @@ class RNNLanguageModel(nn.Module):
 
         return generated
     
+    def count_all_parameters(self):
+        return sum(p.numel() for p in self.parameters())
+    
     def save(self, model_dir: str):
         os.makedirs(model_dir, exist_ok=True)
         torch.save(self.state_dict(), os.path.join(model_dir, "model.pt"))
