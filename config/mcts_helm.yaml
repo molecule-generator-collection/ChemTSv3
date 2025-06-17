@@ -20,6 +20,7 @@ policy_conf:
     - [5, 0.01]
   initial_mean: 0.5
 
+generator_class: MCTS
 generator_conf:
   expansion_threshold: 0.995
   use_dummy_reward: false

@@ -45,18 +45,15 @@ class RNNLanguageModel(nn.Module):
         x: [batch, seq_len] (LongTensor)
         returns logits: [batch, seq_len, vocab_size], next_hidden
         """
-        lengths = (x != self.embed.padding_idx).sum(dim=1).cpu()
         if hidden is None:
             hidden = self._init_states(x.size(0), x.device)
         if self.use_input_dropout:
             emb = self.dropout_in(self.embed(x))
         else:
             emb = self.embed(x)
-        packed = pack_padded_sequence(emb, lengths, batch_first=True, enforce_sorted=False)
-        packed_out, hidden = self.rnn(packed, hidden)
-        out, _ = pad_packed_sequence(packed_out, batch_first=True)
+        out, next_hidden = self.rnn(emb, hidden)
         logits = self.fc(out)
-        return logits, hidden
+        return logits, next_hidden
 
     @torch.inference_mode()
     def generate(self,input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float=1.0) -> torch.Tensor:
@@ -98,6 +95,7 @@ class RNNLanguageModel(nn.Module):
             "num_layers": self.num_layers,
             "rnn_type": self.rnn_type,
             "pad_id": self.pad_id,
+            "use_input_dropout": self.use_input_dropout
         }
         with open(os.path.join(model_dir, "config.json"), "w") as f:
             json.dump(cfg, f, indent=2)

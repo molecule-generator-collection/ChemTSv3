@@ -4,7 +4,7 @@ time_limit: 15 # seconds
 
 transition_class: GPT2Transition
 transition_conf:
-  model_dir: model/smiles/drugs_zinc_3.2m
+  model_dir: model/smiles/drugs_zinc_gpt2_3.2m
   top_p: 0.995
 
 reward_class: JScoreReward
@@ -19,6 +19,7 @@ policy_conf:
     - [10, 0.1]
     - [20, 0.01]
 
+generator_class: MCTS
 generator_conf:
   expansion_threshold: 0.995
   use_dummy_reward: false
