@@ -51,6 +51,10 @@ class Node(ABC):
             return np.random.choice(nodes, p=probabilities)
         else:
             return self.sample_child().sample_child(additional_depth=additional_depth-1)
+        
+    def show_children(self):
+        for child in sorted(self.children.values(), key=lambda c: c.last_prob, reverse=True):
+            print(f"{child.last_prob:.3f}", str(child))
     
     def clear_cache(self):
         self._cache = {}
