@@ -9,14 +9,14 @@ from node import SentenceNode
 from transition import LanguageModel
 
 class GPT2Transition(LanguageModel):
-    def __init__(self, lang: Language, model=None, model_dir: str=None, name=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
+    def __init__(self, lang: Language, model=None, model_dir: str=None, device: str=None, name=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
         if (model is not None) and (model_dir is not None):
-            raise ValueError("specify one (or none) of model or model_dir, not both.")
+            raise ValueError("specify one of model or model_dir, not both.")
 
         if model is not None:
             self.model = model
         elif model_dir is not None:
-            self.load(model_dir, device=lang.device)
+            self.load(model_dir, device=device)
             
         self.temperature = temperature
         self.top_k = top_k
@@ -27,9 +27,8 @@ class GPT2Transition(LanguageModel):
         self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
 
     def load(self, model_dir: str, device: str=None) -> Self:
-        if device is None:
-            device = self.lang.device
-        self.model = GPT2LMHeadModel.from_pretrained(model_dir, torch_dtype=torch.float16).to(torch.device(device))
+        self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.model = GPT2LMHeadModel.from_pretrained(model_dir, torch_dtype=torch.float16).to(torch.device(self.device))
         self.name = os.path.basename(os.path.normpath(model_dir))
         return self
 

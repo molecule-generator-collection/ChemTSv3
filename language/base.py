@@ -11,9 +11,6 @@ class Language(ABC):
     _eos_token = "<EOS>"
     _pad_token = "<PAD>"
     _unk_token = "<UNKNOWN>"
-    
-    def __init__(self, device: str=None):
-        self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
 
     @abstractmethod
     # convert sentence to token ids, used for training
@@ -62,8 +59,8 @@ class Language(ABC):
     def unk_id(self) -> int:
         return self.token2id(self.__class__._unk_token)
     
-    def list2tensor(self, li: list[int]) -> torch.Tensor:
-        return torch.tensor([li], device=torch.device(self.device))
+    def list2tensor(self, li: list[int], device: str=None) -> torch.Tensor:
+        return torch.tensor([li], device=torch.device(device or ("cuda:0" if torch.cuda.is_available() else "cpu")))
     
     @staticmethod
     def tensor2list(t: torch.Tensor) -> list[int]:
@@ -73,17 +70,17 @@ class Language(ABC):
         l = self.tensor2list(tensor)
         return self.ids2sentence(l)
     
-    def bos_tensor(self):
-        return self.list2tensor([self.bos_id()])
+    def bos_tensor(self, device: str=None):
+        return self.list2tensor([self.bos_id()], device=device)
     
-    def eos_tensor(self):
-        return self.list2tensor([self.eos_id()])
+    def eos_tensor(self, device: str=None):
+        return self.list2tensor([self.eos_id()], device=device)
     
-    def pad_tensor(self):
-        return self.list2tensor([self.pad_id()])
+    def pad_tensor(self, device: str=None):
+        return self.list2tensor([self.pad_id()], device=device)
     
-    def unk_tensor(self):
-        return self.list2tensor([self.unk_id()])
+    def unk_tensor(self, device: str=None):
+        return self.list2tensor([self.unk_id()], device=device)
     
     def save(self, file: str):
         with open(file, mode="wb") as fo:
@@ -92,16 +89,15 @@ class Language(ABC):
     def load(file: str, device: str=None) -> Self:
         with open(file, "rb") as f:
             lang = pickle.load(f)
-            lang.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         return lang
 
 # language that makes vocabulary from dataset
 class DynamicLanguage(Language):
-    def __init__(self, device: str=None):
+    def __init__(self):
         self._vocab: list[str] = []
         self._token2id = {}
         self._id2token = {}
-        super().__init__(device=device)
+        super().__init__()
 
     # split sentence to token strs, should include bos and eos
     @abstractmethod

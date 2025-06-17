@@ -15,6 +15,7 @@ class RNNLanguageModel(nn.Module):
         super().__init__()
         self.vocab_size = vocab_size
         embed_size = embed_size or vocab_size
+        self.pad_id = pad_id
         self.embed = nn.Embedding(vocab_size, embed_size, padding_idx=pad_id)
         self.use_input_dropout = use_input_dropout
         if use_input_dropout:
@@ -96,21 +97,21 @@ class RNNLanguageModel(nn.Module):
             "hidden_size": self.hidden_size,
             "num_layers": self.num_layers,
             "rnn_type": self.rnn_type,
+            "pad_id": self.pad_id,
         }
         with open(os.path.join(model_dir, "config.json"), "w") as f:
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, max_length=None, top_p=1.0, name: str=None, device: str=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, name: str=None, logger: logging.Logger=None):
         if (model is not None) and (model_dir is not None):
             raise ValueError("specify one (or none) of model or model_dir, not both.")
         
         super().__init__(lang=lang, name=name, logger=logger)
         self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
 
-        device = self.lang.device
         if model is not None:
-            self.model = model.to(device)
+            self.model = model
         elif model_dir is not None:
             self.load(model_dir, device=device)
         
@@ -123,13 +124,11 @@ class RNNTransition(LanguageModel):
             ├─ model.pt (state_dict)
             └─ config.json (RNN hyperparams)
         """
-        if device is None:
-            device = self.lang.device
-        device = torch.device(device or "cpu")
+        self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         with open(os.path.join(model_dir, "config.json")) as f:
             cfg = json.load(f)
-        self.model = RNNLanguageModel(**cfg).to(device)
-        state = torch.load(os.path.join(model_dir, "model.pt"), map_location=device)
+        self.model = RNNLanguageModel(**cfg).to(self.device)
+        state = torch.load(os.path.join(model_dir, "model.pt"), map_location=self.device)
         self.model.load_state_dict(state)
         self.name = os.path.basename(os.path.normpath(model_dir))
         return self
@@ -142,13 +141,13 @@ class RNNTransition(LanguageModel):
     def _transitions_with_probs_impl(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
         self.model.eval()
         with torch.no_grad():
-            logits, _ = self.model(node.id_tensor.to(self.lang.device))
+            logits, _ = self.model(node.id_tensor.to(self.device))
             next_logits = logits[0, -1, :]  # [vocab]
             probs = F.softmax(next_logits, dim=-1).tolist()
 
         children = []
         for tok_id, prob in enumerate(probs):
-            next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.lang.device)], dim=1)
+            next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
             child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob)
             children.append((tok_id, child, prob))
         return children
@@ -156,10 +155,10 @@ class RNNTransition(LanguageModel):
     def rollout(self, initial_node: SentenceNode) -> SentenceNode:
         with torch.no_grad():
             generated_tensor = self.model.generate(
-                input_ids=initial_node.id_tensor.to(self.lang.device),
+                input_ids=initial_node.id_tensor, # .to(self.device)
                 max_length=self.max_length(),
                 eos_token_id=self.lang.eos_id(),
                 pad_token_id=self.lang.pad_id(),
                 top_p=self.top_p,
             )
-        return initial_node.__class__(id_tensor=generated_tensor.to(initial_node.id_tensor.device), lang=self.lang)
+        return initial_node.__class__(id_tensor=generated_tensor, lang=self.lang) # .to(initial_node.id_tensor.device)

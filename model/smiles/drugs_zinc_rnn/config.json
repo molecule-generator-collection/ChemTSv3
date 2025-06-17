@@ -3,5 +3,6 @@
   "embed_size": 66,
   "hidden_size": 256,
   "num_layers": 2,
-  "rnn_type": "GRU"
+  "rnn_type": "GRU",
+  "pad_id": 64
 }
