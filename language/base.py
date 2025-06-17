@@ -69,6 +69,10 @@ class Language(ABC):
     def tensor2list(t: torch.Tensor) -> list[int]:
         return t[0].tolist()
     
+    def tensor2sentence(self, tensor: torch.Tensor) -> str:
+        l = self.tensor2list(tensor)
+        return self.ids2sentence(l)
+    
     def bos_tensor(self):
         return self.list2tensor([self.bos_id()])
     
@@ -110,7 +114,10 @@ class DynamicLanguage(Language):
 
     # implement
     def ids2sentence(self, idseq):
-        idseq = idseq[1:-1] #remove bos and eos
+        # remove bos and eos
+        idseq = idseq[1:]
+        if idseq[-1] == self.eos_id():
+            idseq = idseq[:-1]
         return "".join(self.id2token(i) for i in idseq)
 
     # can input dataset
