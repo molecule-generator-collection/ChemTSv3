@@ -48,7 +48,7 @@ class RNNLanguageModel(nn.Module):
         return logits, next_hidden
 
     @torch.inference_mode()
-    def generate(self,input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float = 0.995) -> torch.Tensor:
+    def generate(self,input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float=1.0) -> torch.Tensor:
         self.eval()
         generated = input_ids.clone()
         hidden = None
@@ -58,16 +58,18 @@ class RNNLanguageModel(nn.Module):
             next_logits = logits[:, -1, :]  # [1, vocab]
             probs = F.softmax(next_logits, dim=-1)
 
-            # nucleus sampling
-            sorted_probs, indices = torch.sort(probs, descending=True)
-            cumulative = torch.cumsum(sorted_probs, dim=-1)
-            mask = cumulative <= top_p
-            mask[..., 0] = True
-            filtered_indices = indices[mask]
-            filtered_probs = sorted_probs[mask]
-            filtered_probs = filtered_probs / filtered_probs.sum()
+            if top_p < 1.0:
+                sorted_probs, indices = torch.sort(probs, descending=True)
+                cumulative = torch.cumsum(sorted_probs, dim=-1)
+                mask = cumulative <= top_p
+                mask[..., 0] = True
+                filtered_indices = indices[mask]
+                filtered_probs = sorted_probs[mask]
+                filtered_probs = filtered_probs / filtered_probs.sum()
+                next_id = filtered_indices[torch.multinomial(filtered_probs, num_samples=1)].unsqueeze(0)
+            else:
+                next_id = torch.multinomial(probs, num_samples=1)               
 
-            next_id = filtered_indices[torch.multinomial(filtered_probs, num_samples=1)].unsqueeze(0)
             generated = torch.cat([generated, next_id], dim=1)
 
             if next_id.item() == eos_token_id:
@@ -89,7 +91,7 @@ class RNNLanguageModel(nn.Module):
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, max_length=None, top_p=0.995, name: str=None, device: str=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, max_length=None, top_p=1.0, name: str=None, device: str=None, logger: logging.Logger=None):
         if (model is not None) and (model_dir is not None):
             raise ValueError("specify one (or none) of model or model_dir, not both.")
         
