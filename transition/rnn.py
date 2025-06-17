@@ -44,7 +44,7 @@ class RNNLanguageModel(nn.Module):
         x: [batch, seq_len] (LongTensor)
         returns logits: [batch, seq_len, vocab_size], next_hidden
         """
-        lengths = (x != self.embed.padding_idx).sum(dim=1)
+        lengths = (x != self.embed.padding_idx).sum(dim=1).cpu()
         if hidden is None:
             hidden = self._init_states(x.size(0), x.device)
         if self.use_input_dropout:
