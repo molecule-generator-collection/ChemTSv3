@@ -3,8 +3,9 @@ from rdkit.Chem import Mol
 from node import Node, MolNode
 
 class Filter(ABC):
-    def __init__(self, filtered_reward_override: float = None):
+    def __init__(self, filtered_reward_override: float=None, regard_filtered_node_as_valid: bool=True):
         self.filtered_reward_override = filtered_reward_override
+        self.regard_filtered_node_as_valid = regard_filtered_node_as_valid
 
     @abstractmethod
     def check(self, node: Node) -> bool:
@@ -20,7 +21,7 @@ class MolFilter(Filter):
         return self.mol_check(node.mol())
 
 class ValueFilter(Filter):
-    def __init__(self, max=None, min=None, allowed: int | list[int]=None, disallowed: int | list[int]=None, filtered_reward_override: float=None):
+    def __init__(self, max=None, min=None, allowed: int | list[int]=None, disallowed: int | list[int]=None, filtered_reward_override: float=None, regard_filtered_node_as_valid: bool=True):
         self.max = float("inf") if max is None else max
         self.min = -float("inf") if min is None else min
         if type(allowed) == int:
@@ -29,7 +30,7 @@ class ValueFilter(Filter):
         if type(disallowed) == int:
             disallowed = [disallowed]
         self.disallowed = disallowed or []
-        super().__init__(filtered_reward_override=filtered_reward_override)
+        super().__init__(filtered_reward_override=filtered_reward_override, regard_filtered_node_as_valid=regard_filtered_node_as_valid)
 
     @abstractmethod
     def value(self, node: Node) -> int | float:
