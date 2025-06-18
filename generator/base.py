@@ -55,17 +55,22 @@ class Generator(ABC):
         initial_count_generations = len(self.unique_keys)
         
         self.logger.info("Starting generation...")
-        while True:
-            time_passed = time.time() - time_start
-            self.passed_time = initial_time + time_passed
-            if time_limit is not None and time_passed >= time_limit:
-                break
-            if max_generations is not None and len(self.unique_keys) - initial_count_generations >= max_generations:
-                break
-            
-            self._generate_impl()
-            
-        self.logger.info("Generation completed.")
+        try:
+            while True:
+                time_passed = time.time() - time_start
+                self.passed_time = initial_time + time_passed
+                if time_limit is not None and time_passed >= time_limit:
+                    break
+                if max_generations is not None and len(self.unique_keys) - initial_count_generations >= max_generations:
+                    break
+                self._generate_impl()
+        except KeyboardInterrupt:
+            self.logger.warning("Generation interrupted by user (KeyboardInterrupt).")
+        finally: # for MP
+            if hasattr(self, "executor"):
+                self.executor.shutdown(cancel_futures=True)
+                self.logger.info("Executor shutdown completed.")
+            self.logger.info("Generation completed.")
 
     def make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__

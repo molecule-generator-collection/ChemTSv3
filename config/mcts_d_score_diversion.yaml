@@ -13,27 +13,27 @@ transition_conf:
   model_dir: model/smiles/drugs_zinc_rnn
 
 reward_class: DScoreReward
-filtered_reward: -1
+filtered_reward: 0
 reward_conf:
   params:
-    egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
-    erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # egfr: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
     # erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     # abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     # src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     # lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # pdgfr_beta: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    # pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     # vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     # fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     # ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    egfr: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    pdgfr_beta: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     solubility: {type: max_gauss, alpha: 1, mu: -2, sigma: 0.6, weight: 1}
     permeability: {type: max_gauss, alpha: 1, mu: 1, sigma: 1, weight: 1}
     metabolic_stability: {type: max_gauss, alpha: 1, mu: 75, sigma: 20, weight: 1}
@@ -46,15 +46,18 @@ reward_conf:
 
 policy_class: UCB
 policy_conf:
-  c: 0.2
+  c:
+    - [3, 1]
+    - [4, 0.2]
 
 generator_class: MCTS
 generator_conf:
   expansion_threshold: 0.995
   n_rollouts: 3
-  info_interval: 200
-  terminal_reward: -1
-  freeze_terminal: false
+  info_interval: 100
+  terminal_reward: ignore
+  freeze_terminal: true
+  rollout_all_children: false
 
 plot_conf:
   x_axis: generation_order
