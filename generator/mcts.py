@@ -10,7 +10,7 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=-1, n_tries=1, n_rollouts=1, expansion_threshold=0.995, terminal_reward: float | str=None, freeze_terminal: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, terminal_reward: float | str=None, freeze_terminal: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -88,9 +88,12 @@ class MCTS(Generator):
         for child in children:
             for _ in range(self.n_tries):
                 objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
-                if objective_values[0] != -float("inf"): # not filtered
+                if type(objective_values[0]) != str: # not filtered
                     break
-            if objective_values[0] != -float("inf"):
-                self._backpropagate(child, reward, self.use_dummy_reward)
-            else:            
-                self._backpropagate(child, self.filtered_reward, self.use_dummy_reward)
+            if type(objective_values[0]) == str:
+                applied_filter = self.filters[int(objective_values[0])]
+                if applied_filter.filtered_reward_override is not None:
+                    reward = applied_filter.filtered_reward_override
+                else:
+                    reward = self.filtered_reward
+            self._backpropagate(child, reward, self.use_dummy_reward)

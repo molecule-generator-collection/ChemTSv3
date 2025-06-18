@@ -108,11 +108,11 @@ class Generator(ABC):
             self.logger.debug("Already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
-        for filter in self.filters:
+        for i, filter in enumerate(self.filters):
             if not filter.check(node):
                 self.filtered_count += 1
                 self.logger.debug("filtered by " + filter.__class__.__name__ + ": " + key)
-                return [-float("inf")], self.filtered_reward
+                return [str(i)], self.filtered_reward
             
         objective_values, reward = self.reward.objective_values_and_reward(node)
         self.log_unique_node(key, objective_values, reward)
