@@ -112,36 +112,6 @@ class MultiProcessMCTS(MCTS):
             self.executor.shutdown(wait=False)
             
     # override
-    def generate(self, time_limit: float = None, max_generations: int = None):
-        if time_limit is None and max_generations is None:
-            raise ValueError("Specify at least one of time_limit or max_generations.")
-
-        time_start = time.time()
-        initial_time = self.passed_time
-        if self.passed_time == 0:
-            self.write_header()
-        initial_count_generations = len(self.unique_keys)
-
-        self.logger.info("Starting generation...")
-
-        try:
-            while True:
-                time_passed = time.time() - time_start
-                self.passed_time = initial_time + time_passed
-                if time_limit is not None and time_passed >= time_limit:
-                    break
-                if max_generations is not None and len(self.unique_keys) - initial_count_generations >= max_generations:
-                    break
-
-                self._generate_impl()
-        except KeyboardInterrupt:
-            self.logger.warning("Generation interrupted by user (KeyboardInterrupt).")
-        finally:
-            self.executor.shutdown(cancel_futures=True)
-            self.logger.info("Executor shutdown completed.")
-            self.logger.info("Generation completed.")
-            
-    # override
     # TODO: make this override unneeded
     def analyze(self):
         self.logger.info("number of generated nodes: " + str(len(self.unique_keys)))
