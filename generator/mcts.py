@@ -45,8 +45,6 @@ class MCTS(Generator):
                 self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
                 node.parent.sum_r = -float("inf")
                 node = self.root
-        if node.n == 0:
-            node = node.parent
         return node
 
     def _expand(self, node: Node):
