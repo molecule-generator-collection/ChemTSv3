@@ -10,7 +10,7 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, terminal_handling: float | str="ice", use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=-1, n_tries=1, n_rollouts=1, expansion_threshold=0.995, terminal_reward: float | str=None, freeze_terminal: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -19,6 +19,8 @@ class MCTS(Generator):
             expansion_threshold: ([0,1]) ignore children with low transition probabilities in expansion based on this value
             n_rollouts: the number of rollouts in one step
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
+            terminal_reward: If None, uses filtered_reward instead. If "reward", backpropagate the reward. If "ignore", doesn't backpropagate anything.
+            freeze_terminal: If True, terminal node won't be visited twice.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
         """
         self.root = root
@@ -28,7 +30,10 @@ class MCTS(Generator):
         self.n_rollouts = n_rollouts
         self.expansion_threshold = expansion_threshold
         self.use_dummy_reward = use_dummy_reward
-        self.terminal_handling = terminal_handling
+        if terminal_reward is None:
+            terminal_reward = filtered_reward
+        self.terminal_reward = terminal_reward
+        self.freeze_terminal = freeze_terminal
         super().__init__(transition=transition, output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger=logger, info_interval=info_interval)
         self.root.n = 1
         
@@ -65,10 +70,12 @@ class MCTS(Generator):
         node = self._selection()
         if node.is_terminal():
             objective_values, reward = self.grab_objective_values_and_reward(node)
-            if self.terminal_handling == "ice":
+            if self.terminal_reward != "ignore":
+                if self.terminal_reward != "reward":
+                    reward = self.terminal_reward
+                self._backpropagate(node, reward, False)
+            if self.freeze_terminal:
                 node.sum_r = -float("inf")
-            else:
-                self._backpropagate(node, self.terminal_handling, False)
             return
         
         if not node.children:
