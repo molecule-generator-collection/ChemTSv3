@@ -35,15 +35,18 @@ import time
 from generator import MCTS
 
 class MultiProcessMCTS(MCTS):
-    def __init__(self, *args, n_workers: int=None, mp_context: str="fork", **kwargs):
+    def __init__(self, *args, n_workers: int=None, mp_context: str="fork", n_rollouts=None, **kwargs):
         """
         n_workers : the number of CPUs (os.cpu_count() if None)
         mp_context: "spawn"|"fork"|"forkserver", must be "spawn" on Windows
+        n_rollouts: = n_workers by default
         n_tries: disabled
         """
-        super().__init__(*args, **kwargs)
-
         self.n_workers  = n_workers or os.cpu_count()
+        if n_rollouts is None:
+            n_rollouts = n_workers
+        super().__init__(*args, n_rollouts=n_rollouts, **kwargs)
+        
         self.ctx        = mp.get_context(mp_context)
         self.executor   = ProcessPoolExecutor(
             max_workers=self.n_workers,
@@ -54,21 +57,22 @@ class MultiProcessMCTS(MCTS):
 
     def _generate_impl(self):
         node = self._selection()
-
         if node.is_terminal():
-            obj_vals, reward = self.grab_objective_values_and_reward(node)
-            node.sum_r = -float("inf")
+            objective_values, reward = self.grab_objective_values_and_reward(node)
+            if self.terminal_reward != "ignore":
+                if self.terminal_reward != "reward":
+                    reward = self.terminal_reward
+                self._backpropagate(node, reward, False)
+            if self.freeze_terminal:
+                node.sum_r = -float("inf")
             return
-
-        if not node.children and node.n != 0:
+        
+        if not node.children:
             self._expand(node)
-
-        if self.forced_rollout:
-            targets = list(node.children.values())
-        elif node.n == 0:
-            targets = [node]
-        else:
-            targets = [node.sample_child()]
+            
+        targets = []
+        for _ in range(self.n_rollouts):
+            targets.append(node.sample_child())
 
         # mp rollout
         rollout_futures = [self.executor.submit(_rollout_task, c) for c in targets for _ in range(self.n_rollouts)]
