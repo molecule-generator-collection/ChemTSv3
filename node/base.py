@@ -5,6 +5,8 @@ from rdkit.Chem import Mol
 
 class Node(ABC):
     use_cache = True
+    initial_sum_r = 0.0
+    initial_best_r = -1.0
     
     def __init__(self, parent=None, last_action: Any=None, last_prob=1.0):
         self.parent = parent
@@ -17,7 +19,8 @@ class Node(ABC):
         self.last_prob = last_prob # Prob(parent -> this node)
         self.last_action = last_action
         self.n = 0 # visit count
-        self.sum_r = 0.0 # sum of rewards
+        self.sum_r = self.initial_sum_r # sum of rewards
+        self.best_r = self.initial_best_r
         self._cache = {} # str, Any
 
     @abstractmethod
@@ -36,6 +39,7 @@ class Node(ABC):
     def observe(self, value: float):
         self.n += 1
         self.sum_r += value
+        self.best_r = max(self.best_r, value)
         
     def mean_r(self):
         return self.sum_r / self.n

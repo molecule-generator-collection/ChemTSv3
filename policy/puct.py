@@ -8,7 +8,7 @@ class PUCT(Policy):
     forced_rollout: bool # whether to return inf score for unexplored node or not
     initial_mean: float
     
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, initial_mean = 100):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, initial_mean = 1000000, best_ratio: float=0.0):
         if type(c) == Callable:
             self.c = c
         elif type(c) == list:
@@ -16,6 +16,7 @@ class PUCT(Policy):
         else:
             self.c = c
         self.initial_mean = initial_mean
+        self.best_ratio = best_ratio
         
     # implement
     def evaluate(self, node: Node):
@@ -29,4 +30,4 @@ class PUCT(Policy):
         u = c * node.last_prob * sqrt(node.parent.n) / (1 + node.n)
         if node.n == 0:
             return self.initial_mean + u
-        return node.mean_r() + u
+        return (1 - self.best_ratio) * node.mean_r() + self.best_ratio * node.best_r + u
