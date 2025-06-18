@@ -75,7 +75,7 @@ class MultiProcessMCTS(MCTS):
             targets.append(node.sample_child())
 
         # mp rollout
-        rollout_futures = [self.executor.submit(_rollout_task, c) for c in targets for _ in range(self.n_rollouts)]
+        rollout_futures = [self.executor.submit(_rollout_task, c) for c in targets]
         rollout_results = []
 
         for fut in as_completed(rollout_futures):
