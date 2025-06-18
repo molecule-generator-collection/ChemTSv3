@@ -44,11 +44,12 @@ reward_conf:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
-policy_class: UCB
+policy_class: PUCT
 policy_conf:
   c:
-    - [3, 1]
-    - [4, 0.2]
+    - [5, 1]
+    - [10, 0.1]
+  best_ratio: 0.5
 
 generator_class: MCTS
 generator_conf:
