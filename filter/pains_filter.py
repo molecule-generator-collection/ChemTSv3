@@ -5,9 +5,8 @@ from filter import MolFilter
 # ref: Baell et al. "New Substructure Filters for Removal of Pan Assay Interference Compounds (PAINS) from Screening Libraries and for Their Exclusion in Bioassays", Medical Chemistry (2009)
 
 class PainsFilter(MolFilter):
-    def __init__(self, families: list[str]=["A", "B", "C"], filtered_reward_override: float=None):
+    def __init__(self, families: list[str]=["A", "B", "C"]):
         self.families = [f.upper() for f in families]
-        super().__init__(filtered_reward_override=filtered_reward_override)
 
     # implement
     def mol_check(self, mol: Mol) -> bool:

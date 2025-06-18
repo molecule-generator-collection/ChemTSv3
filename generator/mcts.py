@@ -10,7 +10,7 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, use_filtered_reward: bool=True, invalid_reward: float=-1, terminal_reward: float | str=None, freeze_terminal: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, terminal_reward: float | str=None, freeze_terminal: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -19,8 +19,6 @@ class MCTS(Generator):
             expansion_threshold: ([0,1]) ignore children with low transition probabilities in expansion based on this value
             n_rollouts: the number of rollouts in one step
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
-            use_filtered_reward: whether to backpropagate filtered_reward or not
-            invalid_reward: the value to backpropagate when no backpropagation was conducted after the rollout
             terminal_reward: If None, uses invalid_reward instead. If "reward", backpropagate the reward. If "ignore", doesn't backpropagate anything.
             freeze_terminal: If True, terminal node won't be visited twice.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
@@ -31,8 +29,6 @@ class MCTS(Generator):
         self.n_tries = n_tries
         self.n_rollouts = n_rollouts
         self.expansion_threshold = expansion_threshold
-        self.use_filtered_reward = use_filtered_reward
-        self.invalid_reward = invalid_reward
         if terminal_reward is None:
             terminal_reward = invalid_reward
         self.terminal_reward = terminal_reward
@@ -60,7 +56,7 @@ class MCTS(Generator):
             
     def _rollout(self, node: Node):
         if node.depth >= self.max_length:
-            return self.filtered_reward
+            return ["0"], self.filtered_reward
         result = self.transition.rollout(node)
         return self.grab_objective_values_and_reward(result)
 
@@ -95,16 +91,8 @@ class MCTS(Generator):
                 objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
                 if type(objective_values[0]) != str: # not filtered
                     break
-            if type(objective_values[0]) == str:
-                applied_filter = self.filters[int(objective_values[0])]
-                if self.use_filtered_reward and applied_filter.regard_filtered_node_as_valid:
-                    got_valid_node = True
-                    if applied_filter.filtered_reward_override is not None:
-                        self._backpropagate(child, applied_filter.filtered_reward_override, self.use_dummy_reward)
-                    else:
-                        self._backpropagate(child, self.filtered_reward, self.use_dummy_reward)
-            else: # not filtered
+            if type(objective_values[0]) != str: # not filtered
                 got_valid_node = True
                 self._backpropagate(child, reward, self.use_dummy_reward)
         if not got_valid_node:
-            self._backpropagate(node, self.invalid_reward, False)
+            self._backpropagate(node, self.filtered_reward, False)
