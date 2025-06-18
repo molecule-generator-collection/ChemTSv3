@@ -25,7 +25,6 @@ generator_conf:
   expansion_threshold: 0.995
   use_dummy_reward: false
   n_rollouts: 3
-  forced_rollout: false
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure

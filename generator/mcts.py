@@ -10,7 +10,7 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, forced_rollout=True, n_tries=1, n_rollouts=1, expansion_threshold=0.995, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, terminal_handling: float | str="ice", use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -24,11 +24,11 @@ class MCTS(Generator):
         self.root = root
         self.max_length = max_length or transition.max_length()
         self.policy = policy
-        self.forced_rollout = forced_rollout
         self.n_tries = n_tries
         self.n_rollouts = n_rollouts
         self.expansion_threshold = expansion_threshold
         self.use_dummy_reward = use_dummy_reward
+        self.terminal_handling = terminal_handling
         super().__init__(transition=transition, output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger=logger, info_interval=info_interval)
         self.root.n = 1
         
@@ -40,6 +40,8 @@ class MCTS(Generator):
                 self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
                 node.parent.sum_r = -float("inf")
                 node = self.root
+        if node.n == 0:
+            node = node.parent
         return node
 
     def _expand(self, node: Node):
@@ -63,28 +65,25 @@ class MCTS(Generator):
         node = self._selection()
         if node.is_terminal():
             objective_values, reward = self.grab_objective_values_and_reward(node)
-            node.sum_r = -float("inf")
+            if self.terminal_handling == "ice":
+                node.sum_r = -float("inf")
+            else:
+                self._backpropagate(node, self.terminal_handling, False)
             return
-        if not node.children and node.n != 0:
+        
+        if not node.children:
             self._expand(node)
             
-        if self.forced_rollout:
-            children = list(node.children.values())
-        elif node.n == 0:
-            children = [node]
-        else:
-            children = [node.sample_child()]
+        children = []
+        for _ in range(self.n_rollouts):
+            children.append(node.sample_child())
 
         for child in children:
-            to_backpropagate = []
-            for _ in range(self.n_rollouts):
-                for _ in range(self.n_tries):
-                    objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
-                    if objective_values[0] != -float("inf"): # not filtered
-                        break
-                if objective_values[0] != -float("inf"):
-                    to_backpropagate.append((child, reward))
-            if not to_backpropagate:
-                self._backpropagate(child, self.filtered_reward, self.use_dummy_reward)
-            for child, reward in to_backpropagate:
+            for _ in range(self.n_tries):
+                objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
+                if objective_values[0] != -float("inf"): # not filtered
+                    break
+            if objective_values[0] != -float("inf"):
                 self._backpropagate(child, reward, self.use_dummy_reward)
+            else:            
+                self._backpropagate(child, self.filtered_reward, self.use_dummy_reward)
