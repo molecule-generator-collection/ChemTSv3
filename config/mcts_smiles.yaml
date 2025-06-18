@@ -13,7 +13,7 @@ transition_conf:
   model_dir: model/smiles/drugs_zinc_rnn
 
 reward_class: LogPReward
-filtered_reward: -0.5
+filtered_reward: 0
 # reward_conf:
 
 policy_class: UCB
@@ -38,6 +38,7 @@ generator_conf:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
+    filtered_reward_override: -1
   - filter_class: RadicalFilter
   # - filter_class: ChargeFilter
   # - filter_class: AromaticRingFilter

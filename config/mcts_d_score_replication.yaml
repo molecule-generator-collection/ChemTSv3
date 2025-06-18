@@ -13,7 +13,7 @@ transition_conf:
   model_dir: model/smiles/drugs_zinc_rnn
 
 reward_class: DScoreReward
-filtered_reward: -1
+filtered_reward: 0
 reward_conf:
   params:
     # egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
@@ -63,4 +63,5 @@ plot_conf:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
+    filtered_reward_override: -1
   - filter_class: RadicalFilter
