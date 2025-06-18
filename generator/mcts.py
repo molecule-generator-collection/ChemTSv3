@@ -78,11 +78,13 @@ class MCTS(Generator):
                 node.sum_r = -float("inf")
             return
         
-        if not node.children:
+        if not node.children and node.n != 0:
             self._expand(node)
 
         if self.rollout_all_children:
             children = list(node.children.values())
+        elif node.n == 0:
+            children = [node]
         else:
             children = [node.sample_child()]
         
@@ -97,4 +99,4 @@ class MCTS(Generator):
                     got_unfiltered_node = True
                     self._backpropagate(child, reward, self.use_dummy_reward)
             if not got_unfiltered_node:
-                self._backpropagate(node, self.filtered_reward, False)
+                self._backpropagate(child, self.filtered_reward, False)
