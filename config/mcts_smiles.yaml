@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 120 # seconds
+time_limit: 30 # seconds
 # max_generations : 1500
 
 # transition_class: GPT2Transition
@@ -18,24 +18,24 @@ filtered_reward: -0.5
 
 policy_class: UCB
 policy_conf:
-  c: 0.1
+  c: 0.2
   # c:
   #   - [5, 1]
   #   - [10, 0.1]
   #   - [20, 0.01]
 
-# generator_class: MCTS
-# generator_conf:
-#   expansion_threshold: 0.995
-#   use_dummy_reward: false
-#   forced_rollout: false
-
-generator_class: MultiProcessMCTS
+generator_class: MCTS
 generator_conf:
   expansion_threshold: 0.995
   use_dummy_reward: false
-  n_workers: 1
-  forced_rollout: false
+  terminal_handling: -1
+
+# generator_class: MultiProcessMCTS
+# generator_conf:
+#   expansion_threshold: 0.995
+#   use_dummy_reward: false
+#   n_workers: 1
+#   forced_rollout: false
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
