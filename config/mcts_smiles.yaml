@@ -28,7 +28,7 @@ generator_class: MCTS
 generator_conf:
   expansion_threshold: 0.995
   use_dummy_reward: false
-  terminal_handling: -1
+  terminal_reward: -1
 
 # generator_class: MultiProcessMCTS
 # generator_conf:

@@ -53,7 +53,8 @@ generator_conf:
   expansion_threshold: 0.995
   n_rollouts: 3
   info_interval: 200
-  terminal_handling: -1
+  terminal_reward: -1
+  freeze_terminal: false
 
 plot_conf:
   x_axis: generation_order
