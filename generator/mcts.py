@@ -10,7 +10,7 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, terminal_reward: float | str=None, freeze_terminal: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, rollout_all_children: bool=True, terminal_reward: float | str=None, freeze_terminal: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -19,6 +19,7 @@ class MCTS(Generator):
             expansion_threshold: ([0,1]) ignore children with low transition probabilities in expansion based on this value
             n_rollouts: the number of rollouts in one step
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
+            cut_unvisited_children: 
             terminal_reward: If None, uses invalid_reward instead. If "reward", backpropagate the reward. If "ignore", doesn't backpropagate anything.
             freeze_terminal: If True, terminal node won't be visited twice.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
@@ -29,6 +30,7 @@ class MCTS(Generator):
         self.n_tries = n_tries
         self.n_rollouts = n_rollouts
         self.expansion_threshold = expansion_threshold
+        self.rollout_all_children = rollout_all_children
         if terminal_reward is None:
             terminal_reward = invalid_reward
         self.terminal_reward = terminal_reward
@@ -48,7 +50,7 @@ class MCTS(Generator):
         return node
 
     def _expand(self, node: Node):
-        actions, nodes, probs = zip(*self.transition.transitions_with_probs(node, threshold=self.expansion_threshold))
+        actions, nodes, _ = zip(*self.transition.transitions_with_probs(node, threshold=self.expansion_threshold))
         for a, n in zip(actions, nodes):
             node.add_child(a, n)
             
@@ -78,19 +80,21 @@ class MCTS(Generator):
         
         if not node.children:
             self._expand(node)
-            
-        children = []
-        for _ in range(self.n_rollouts):
-            children.append(node.sample_child())
 
-        got_valid_node = False
+        if self.rollout_all_children:
+            children = list(node.children.values())
+        else:
+            children = [node.sample_child()]
+        
         for child in children:
-            for _ in range(self.n_tries):
-                objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
+            got_unfiltered_node = False
+            for _ in range(self.n_rollouts):
+                for _ in range(self.n_tries):
+                    objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
+                    if type(objective_values[0]) != str: # not filtered
+                        break
                 if type(objective_values[0]) != str: # not filtered
-                    break
-            if type(objective_values[0]) != str: # not filtered
-                got_valid_node = True
-                self._backpropagate(child, reward, self.use_dummy_reward)
-        if not got_valid_node:
-            self._backpropagate(node, self.filtered_reward, False)
+                    got_unfiltered_node = True
+                    self._backpropagate(child, reward, self.use_dummy_reward)
+            if not got_unfiltered_node:
+                self._backpropagate(node, self.filtered_reward, False)

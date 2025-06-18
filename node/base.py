@@ -52,6 +52,11 @@ class Node(ABC):
         else:
             return self.sample_child().sample_child(additional_depth=additional_depth-1)
         
+    def cut_unvisited_children(self):
+        unvisited_keys = [key for key, child in self.children.items() if child.n == 0]
+        for key in unvisited_keys:
+            del self.children[key]
+        
     def show_children(self):
         for child in sorted(self.children.values(), key=lambda c: c.last_prob, reverse=True):
             print(f"{child.last_prob:.3f}", str(child))
