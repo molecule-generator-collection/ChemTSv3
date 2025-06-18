@@ -53,6 +53,8 @@ generator_conf:
   expansion_threshold: 0.995
   n_rollouts: 3
   info_interval: 200
+  use_filtered_reward: false
+  invalid_reward: -1
   terminal_reward: -1
   freeze_terminal: false
 
@@ -63,5 +65,4 @@ plot_conf:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
-    filtered_reward_override: -1
   - filter_class: RadicalFilter

@@ -28,4 +28,3 @@ generator_conf:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
-    filtered_reward_override: -1
