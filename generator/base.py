@@ -200,6 +200,7 @@ class Generator(ABC):
             y = [self.record[molkey]["objective_values"][objective_idx] for molkey in self.unique_keys]
             y_ma = moving_average(y, moving_average_window)
             plt.plot(x, y_ma, label=label, linewidth=1.5)
+        plt.grid(axis="y")
         plt.title(self.name() + "_ma_window=" + str(moving_average_window))
         plt.legend(loc=loc)
         plt.savefig(self.output_dir() + self.name() + "_by_" + x_axis + ".png")
