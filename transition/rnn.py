@@ -56,7 +56,7 @@ class RNNLanguageModel(nn.Module):
         return logits, next_hidden
 
     @torch.inference_mode()
-    def generate(self, input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float=1.0) -> torch.Tensor:
+    def generate(self, input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float=1.0, temperature: float=1.0) -> torch.Tensor:
         self.eval()
         generated = input_ids.clone()
         with torch.no_grad():
@@ -65,6 +65,7 @@ class RNNLanguageModel(nn.Module):
         for _ in range(max_length - input_ids.size(1)):
             logits, hidden = self(generated[:, -1:], hidden)
             next_logits = logits[:, -1, :]  # [1, vocab]
+            next_logits = next_logits / temperature
             probs = F.softmax(next_logits, dim=-1)
 
             if top_p < 1.0:
