@@ -88,7 +88,8 @@ class MCTS(Generator):
         elif not node.children:
             children = [node]
         else:
-            children = [max(node.children.values(), key=lambda n: self.policy.evaluate(n))]
+            # children = [max(node.children.values(), key=lambda n: self.policy.evaluate(n))]
+            children = [node.sample_child()]
         
         for child in children:
             got_unfiltered_node = False
