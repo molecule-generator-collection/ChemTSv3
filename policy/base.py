@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import random
 from node import Node
 
 class Policy(ABC):
@@ -9,5 +10,13 @@ class Policy(ABC):
     def evaluate(self, node: Node, **kwargs):
         pass
     
-    def name(self):
-        return self.__class__.__name__
+    def select_child(self, node: Node):
+        values = node.children.values()
+        max_y = max(self.evaluate(child) for child in values)
+        candidates = [child for child in values if self.evaluate(child) == max_y]
+
+        total_prob = sum(child.last_prob for child in candidates)
+        if total_prob == 0:
+            return random.choice(candidates)
+        weights = [child.last_prob for child in candidates]
+        return random.choices(candidates, weights=weights, k=1)[0]

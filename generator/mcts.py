@@ -44,7 +44,7 @@ class MCTS(Generator):
     def _selection(self) -> Node:
         node = self.root
         while node.children:
-            node = max(node.children.values(), key=lambda n: self.policy.evaluate(n))
+            node = self.policy.select_child(node)
             if node.sum_r == -float("inf"): # already exhausted every terminal under this node
                 self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
                 node.parent.sum_r = -float("inf")
@@ -88,8 +88,7 @@ class MCTS(Generator):
         elif not node.children:
             children = [node]
         else:
-            # children = [max(node.children.values(), key=lambda n: self.policy.evaluate(n))]
-            children = [node.sample_child()]
+            children = [node.sample_child()] # [self.policy.select_child(node)]
         
         for child in children:
             got_unfiltered_node = False
