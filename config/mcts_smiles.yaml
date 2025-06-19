@@ -32,7 +32,6 @@ policy_conf:
 
 generator_class: MultiProcessMCTS
 generator_conf:
-  expansion_threshold: 0.995
   use_dummy_reward: false
   n_workers: 1
 

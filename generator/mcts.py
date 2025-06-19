@@ -10,13 +10,12 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, expansion_threshold=0.995, rollout_all_children: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, rollout_all_children: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=1):
         """
         Tries to maximize the reward by MCTS search.
 
         Args:
             root: root node
-            expansion_threshold: ([0,1]) ignore children with low transition probabilities in expansion based on this value
             n_rollouts: the number of rollouts in one step
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
             cut_unvisited_children: 
@@ -29,7 +28,6 @@ class MCTS(Generator):
         self.policy = policy
         self.n_tries = n_tries
         self.n_rollouts = n_rollouts
-        self.expansion_threshold = expansion_threshold
         self.rollout_all_children = rollout_all_children
         if not type(terminal_reward) == float and terminal_reward != "reward" and terminal_reward != "ignore":
             raise ValueError("terminal_reward must be one of the following: float value, 'ignore', or 'reward'.")
@@ -52,7 +50,7 @@ class MCTS(Generator):
         return node
 
     def _expand(self, node: Node):
-        actions, nodes, _ = zip(*self.transition.transitions_with_probs(node, threshold=self.expansion_threshold))
+        actions, nodes, _ = zip(*self.transition.transitions_with_probs(node))
         for a, n in zip(actions, nodes):
             node.add_child(a, n)
             

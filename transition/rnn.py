@@ -9,6 +9,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from language import Language
 from node import SentenceNode
 from transition import LanguageModel
+from utils import apply_top_p
 
 class RNNLanguageModel(nn.Module):
     def __init__(self, pad_id: int, vocab_size: int, embed_size: int=None, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3, use_input_dropout=True):
@@ -56,7 +57,7 @@ class RNNLanguageModel(nn.Module):
         return logits, next_hidden
 
     @torch.inference_mode()
-    def generate(self, input_ids: torch.Tensor, max_length: int, eos_token_id: int, pad_token_id: int, top_p: float=1.0, temperature: float=1.0) -> torch.Tensor:
+    def generate(self, input_ids: torch.Tensor, max_length: int, eos_token_id: int, top_p: float=1.0, temperature: float=1.0) -> torch.Tensor:
         self.eval()
         generated = input_ids.clone()
         with torch.no_grad():
@@ -67,21 +68,11 @@ class RNNLanguageModel(nn.Module):
             next_logits = logits[:, -1, :]  # [1, vocab]
             next_logits = next_logits / temperature
             probs = F.softmax(next_logits, dim=-1)
-
             if top_p < 1.0:
-                sorted_probs, indices = torch.sort(probs, descending=True)
-                cumulative = torch.cumsum(sorted_probs, dim=-1)
-                mask = cumulative <= top_p
-                mask[..., 0] = True
-                filtered_indices = indices[mask]
-                filtered_probs = sorted_probs[mask]
-                filtered_probs = filtered_probs / filtered_probs.sum()
-                next_id = filtered_indices[torch.multinomial(filtered_probs, num_samples=1)].unsqueeze(0)
-            else:
-                next_id = torch.multinomial(probs, num_samples=1)               
+                probs = apply_top_p(probs, top_p=top_p)
+            next_id = torch.multinomial(probs, num_samples=1)               
 
             generated = torch.cat([generated, next_id], dim=1)
-
             if next_id.item() == eos_token_id:
                 break
 
@@ -106,7 +97,7 @@ class RNNLanguageModel(nn.Module):
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, name: str=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, name: str=None, logger: logging.Logger=None):
         if (model is not None) and (model_dir is not None):
             raise ValueError("specify one (or none) of model or model_dir, not both.")
         
@@ -119,7 +110,8 @@ class RNNTransition(LanguageModel):
             self.load(model_dir, device=device)
         
         self._max_length = max_length or 10**18
-        self.top_p = top_p        
+        self.top_p = top_p
+        self.temperature = temperature
         
     def load(self, model_dir: str, device: str=None) -> Self:
         """
@@ -141,18 +133,23 @@ class RNNTransition(LanguageModel):
         return self._max_length
 
     #implement
-    def _transitions_with_probs_impl(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+    def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
         self.model.eval()
-        with torch.no_grad():
+        with torch.no_grad(): 
             logits, _ = self.model(node.id_tensor.to(self.device))
-            next_logits = logits[0, -1, :]  # [vocab]
-            probs = F.softmax(next_logits, dim=-1).tolist()
-
+            next_logits = logits[:, -1, :]
+            next_logits = next_logits / self.temperature
+            probs = F.softmax(next_logits, dim=-1)
+        if self.top_p < 1.0:
+            probs = self.model.apply_top_p(probs, top_p=self.top_p)
+        probs = probs.tolist()[0]
+        
         children = []
         for tok_id, prob in enumerate(probs):
             next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
-            child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob)
-            children.append((tok_id, child, prob))
+            if prob != 0:
+                child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob)
+                children.append((tok_id, child, prob))
         return children
     
     def rollout(self, initial_node: SentenceNode) -> SentenceNode:
@@ -161,7 +158,7 @@ class RNNTransition(LanguageModel):
                 input_ids=initial_node.id_tensor, # .to(self.device)
                 max_length=self.max_length(),
                 eos_token_id=self.lang.eos_id(),
-                pad_token_id=self.lang.pad_id(),
                 top_p=self.top_p,
+                temperature=self.temperature
             )
         return initial_node.__class__(id_tensor=generated_tensor, lang=self.lang) # .to(initial_node.id_tensor.device)

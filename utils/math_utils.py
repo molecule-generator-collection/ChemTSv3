@@ -2,15 +2,27 @@ from bisect import bisect_right
 import math
 from typing import Callable
 import numpy as np
+import torch
 
-#used for expansion_threshold
-def select_indices_by_threshold(probs: list[float], threshold: float) -> list[int]:
-    probs = np.array(probs)
-    sorted_indices = np.argsort(-probs)
-    sorted_probs = probs[sorted_indices]
-    cumulative_probs = np.cumsum(sorted_probs)
-    cutoff = np.searchsorted(cumulative_probs, threshold)
-    return sorted_indices[:cutoff + 1].tolist()
+def apply_top_p(probs: torch.Tensor, top_p: float) -> torch.Tensor:
+    sorted_probs, sorted_indices = torch.sort(probs, descending=True)
+    cumulative = torch.cumsum(sorted_probs, dim=-1)
+    mask = cumulative <= top_p
+    mask[..., 0] = True  # at least one
+
+    filtered_indices = sorted_indices[mask]
+    filtered_probs = sorted_probs[mask]
+
+    original_order = torch.argsort(filtered_indices)
+    filtered_indices = filtered_indices[original_order]
+    filtered_probs = filtered_probs[original_order]
+
+    filtered_probs = filtered_probs / filtered_probs.sum()
+
+    new_probs = torch.zeros_like(probs)
+    new_probs[0, filtered_indices] = filtered_probs
+
+    return new_probs
 
 def moving_average(values: list[float], window: float=0.05) -> np.ndarray:
     if window < 1:

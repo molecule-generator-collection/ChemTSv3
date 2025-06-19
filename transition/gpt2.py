@@ -7,6 +7,7 @@ from transformers import GPT2LMHeadModel, GenerationConfig
 from language import Language
 from node import SentenceNode
 from transition import LanguageModel
+from utils import apply_top_p
 
 class GPT2Transition(LanguageModel):
     def __init__(self, lang: Language, model=None, model_dir: str=None, device: str=None, name=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
@@ -37,20 +38,26 @@ class GPT2Transition(LanguageModel):
         return self.model.config.n_positions
 
     # implement
-    def _transitions_with_probs_impl(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+    def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
         nodes = []
 
         with torch.no_grad():
             outputs = self.model(node.id_tensor)
             logits = outputs.logits  # shape: [batch_size, seq_len, vocab_size]
-            next_token_logits = logits[0, -1, :]
-
-        probs = F.softmax(next_token_logits, dim=-1).tolist()
-
-        for i in range(len(probs)):
-            nodes.append(node.__class__(id_tensor=torch.cat([node.id_tensor, self.lang.list2tensor([i])], dim=1), lang=node.lang, parent=node, last_prob=probs[i]))
-
-        return [(i, nodes[i], probs[i]) for i in range(len(probs))]
+            next_logits = logits[:, -1, :]
+            next_logits = next_logits / self.temperature
+            probs = F.softmax(next_logits, dim=-1)
+        if self.top_p < 1.0:
+            probs = apply_top_p(probs, top_p=self.top_p)
+        probs = probs.tolist()[0]
+        
+        children = []
+        for tok_id, prob in enumerate(probs):
+            next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
+            if prob != 0:
+                child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob)
+                children.append((tok_id, child, prob))
+        return children
 
     # implement
     def rollout(self, initial_node: SentenceNode) -> SentenceNode:
