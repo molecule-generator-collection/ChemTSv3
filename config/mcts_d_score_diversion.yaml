@@ -1,17 +1,19 @@
 output_dir: generation_result
 time_limit: 36000 # seconds
 max_generations : 200000
+# debug: true
 
 # transition_class: GPT2Transition
 # transition_conf:
 #   model_dir: model/smiles/drugs_zinc_gpt2_19.0m
-#   top_p: 0.95
+#   top_p: 0.995
 
 device: cpu
 transition_class: RNNTransition
 transition_conf:
   model_dir: model/smiles/drugs_zinc_rnn
   top_p: 0.995
+  # temperature: 2
 
 reward_class: DScoreReward
 filtered_reward: 0
@@ -48,13 +50,12 @@ reward_conf:
 policy_class: UCB
 policy_conf:
   c: 0.2
-  # best_ratio: 0.5
+  best_ratio: 0.5
 
 generator_class: MCTS
 generator_conf:
   n_rollouts: 1
   n_tries: 1
-  expansion_threshold: 0.995
   info_interval: 100
   terminal_reward: ignore
   freeze_terminal: true

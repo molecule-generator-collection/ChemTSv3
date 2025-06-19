@@ -22,7 +22,6 @@ policy_conf:
 
 generator_class: MCTS
 generator_conf:
-  expansion_threshold: 0.995
   use_dummy_reward: false
   n_rollouts: 3
 

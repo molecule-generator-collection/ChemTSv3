@@ -50,7 +50,6 @@ policy_conf:
 
 generator_class: MCTS
 generator_conf:
-  expansion_threshold: 0.995
   n_rollouts: 3
   info_interval: 200
   terminal_reward: -1
