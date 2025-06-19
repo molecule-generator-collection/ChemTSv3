@@ -25,7 +25,7 @@ class UCB(Policy):
         else:
             c = self.c
 
-        if node.n == 0: # last_prob for tiebreaker
-            return self.initial_mean + 0.01 * node.last_prob + c * sqrt(2 * log(node.parent.n + 1) / (node.n + 1)) 
+        if node.n == 0:
+            return self.initial_mean + c * sqrt(2 * log(node.parent.n + 1) / (node.n + 1)) 
         u = c * sqrt(2 * log(node.parent.n) / (node.n))
         return (1 - self.best_ratio) * node.mean_r() + self.best_ratio * node.best_r + u
