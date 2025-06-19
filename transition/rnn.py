@@ -141,7 +141,7 @@ class RNNTransition(LanguageModel):
             next_logits = next_logits / self.temperature
             probs = F.softmax(next_logits, dim=-1)
         if self.top_p < 1.0:
-            probs = self.model.apply_top_p(probs, top_p=self.top_p)
+            probs = apply_top_p(probs, top_p=self.top_p)
         probs = probs.tolist()[0]
         
         children = []
