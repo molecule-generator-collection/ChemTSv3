@@ -4,8 +4,9 @@ from node import Node
 from policy import Policy
 from utils import PointCurve
 
+# not named "UCT" and has 2* before log in favor of ChemTSv2 compatibility 
 class UCB(Policy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, initial_mean = float("inf"), best_ratio: float=0.0):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, initial_mean = 10**9, best_ratio: float=0.0):
         if type(c) == Callable:
             self.c = c
         elif type(c) == list:
@@ -24,7 +25,7 @@ class UCB(Policy):
         else:
             c = self.c
 
-        if node.n == 0:
-            return self.initial_mean + c * sqrt(2 * log(node.parent.n + 1) / (node.n + 1))
+        if node.n == 0: # last_prob for tiebreaker
+            return self.initial_mean + 0.01 * node.last_prob + c * sqrt(2 * log(node.parent.n + 1) / (node.n + 1)) 
         u = c * sqrt(2 * log(node.parent.n) / (node.n))
         return (1 - self.best_ratio) * node.mean_r() + self.best_ratio * node.best_r + u
