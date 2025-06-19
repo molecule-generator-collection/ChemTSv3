@@ -85,10 +85,10 @@ class MCTS(Generator):
 
         if self.rollout_all_children:
             children = list(node.children.values())
-        elif node.n == 0:
+        elif not node.children:
             children = [node]
         else:
-            children = [node.sample_child()]
+            children = [max(node.children.values(), key=lambda n: self.policy.evaluate(n))]
         
         for child in children:
             got_unfiltered_node = False
