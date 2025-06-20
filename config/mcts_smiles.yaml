@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 30 # seconds
-# max_generations : 1500
+# time_limit: 30 # seconds
+max_generations : 10000
 
 # transition_class: GPT2Transition
 # transition_args:
@@ -11,13 +11,14 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc_rnn
+  top_p: 0.995
 
 reward_class: LogPReward
 # reward_args:
 
 policy_class: UCB
 policy_args:
-  c: 0.2
+  c: 1.0
   # c:
   #   - [5, 1]
   #   - [10, 0.1]
@@ -25,9 +26,8 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  expansion_threshold: 0.995
-  use_dummy_reward: false
-  filtered_reward: 0
+  n_rollouts: 3
+  filtered_reward: -1
   terminal_reward: -1
 
 # generator_class: MultiProcessMCTS
@@ -37,7 +37,7 @@ generator_args:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
-  - filter_class: RadicalFilter
+  # - filter_class: RadicalFilter
   # - filter_class: ChargeFilter
   # - filter_class: AromaticRingFilter
   # - filter_class: LipinskiFilter
