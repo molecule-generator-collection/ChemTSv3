@@ -14,7 +14,7 @@ transition_args:
   model_dir: model/smiles/drugs_zinc_rnn
   top_p: 0.995
 
-reward_class: LogPReward
+reward_class: JScoreReward
 # reward_args:
 
 policy_class: UCB
