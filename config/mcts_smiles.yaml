@@ -39,6 +39,7 @@ generator_args:
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
+  - filter_class: PubChemFilter
   # - filter_class: ChargeFilter
   # - filter_class: AromaticRingFilter
   # - filter_class: LipinskiFilter
@@ -53,8 +54,8 @@ filters:
   # - filter_class: RotatableBondsFilter
   #   min: 2
   # - filter_class: TPSAFilter
-  - filter_class: SAScoreFilter
-    min: 3.5
+  # - filter_class: SAScoreFilter
+  #   min: 3.5
   # - filter_class: WeightFilter
   #   min: 30
   # - filter_class: HBAFilter

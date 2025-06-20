@@ -2,9 +2,10 @@ from rdkit.Chem import Mol, FilterCatalog
 from rdkit.Chem.FilterCatalog import FilterCatalogParams
 from filter import MolFilter
 
-# ref: Baell et al. "New Substructure Filters for Removal of Pan Assay Interference Compounds (PAINS) from Screening Libraries and for Their Exclusion in Bioassays", Medical Chemistry (2009)
-
 class PainsFilter(MolFilter):
+    """
+    ref: Baell et al. "New Substructure Filters for Removal of Pan Assay Interference Compounds (PAINS) from Screening Libraries and for Their Exclusion in Bioassays", Medical Chemistry (2009)
+    """
     def __init__(self, families: list[str]=["A", "B", "C"]):
         self.families = [f.upper() for f in families]
 
