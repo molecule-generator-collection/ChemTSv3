@@ -25,6 +25,7 @@ class Generator(ABC):
         os.makedirs(self.output_dir(), exist_ok=True)
         self.unique_keys = []
         self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
+        self.best_reward = -float("inf")
         self.passed_time = 0
         self.grab_count = 0
         self.duplicate_count = 0
@@ -95,13 +96,19 @@ class Generator(ABC):
         self.record[key]["time"] = self.passed_time
         self.record[key]["generation_order"] = len(self.unique_keys)
         
-        if self.info_interval > 1:
+        if self.info_interval <= 1 or reward > self.best_reward:
+            if reward > self.best_reward:
+                self.best_reward = reward
+                prefix = "<best reward updated> "
+            else:
+                prefix = ""
+            self.logger.info(prefix + "order: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", reward: " + "{:.4f}".format(reward) + ", node: " + key)
+        else:
             if len(self.unique_keys)%self.info_interval == 0:
                 rewards = [self.record[k]["reward"] for k in self.unique_keys[-self.info_interval:]]
                 average = np.average(rewards)
                 self.logger.info("generated: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_interval) + ": " + "{:.4f}".format(average))
-        else:
-            self.logger.info(str(len(self.unique_keys)) + "- time: " + "{:.2f}".format(self.passed_time) + ", reward: " + str(reward) + ", node: " + key)
+
         row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
         self.logger.info(row)
 
