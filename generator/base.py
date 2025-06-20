@@ -71,7 +71,7 @@ class Generator(ABC):
             if hasattr(self, "executor"):
                 self.executor.shutdown(cancel_futures=True)
                 self.logger.info("Executor shutdown completed.")
-            self.logger.info("Generation completed.")
+            self.logger.info("Generation finished.")
 
     def make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
