@@ -56,6 +56,7 @@ plot_args:
   x_axis: generation_order
   packed_objectives:
     - [egfr, erbb2, abl, src, lck, pdgfr_beta, vegfr2, fgfr1, ephb4]
+  moving_average_window: 0.005
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
