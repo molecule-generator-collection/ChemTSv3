@@ -18,7 +18,8 @@ reward_class: LogPReward
 
 policy_class: UCB
 policy_args:
-  c: 1.0
+  c: 0.2
+  best_rate: 0.5
   # c:
   #   - [5, 1]
   #   - [10, 0.1]
@@ -26,9 +27,9 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  n_rollouts: 3
+  n_rollouts: 1
   filtered_reward: -1
-  terminal_reward: -1
+  terminal_reward: ignore
 
 # generator_class: MultiProcessMCTS
 # generator_args:
@@ -37,7 +38,7 @@ generator_args:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
-  # - filter_class: RadicalFilter
+  - filter_class: RadicalFilter
   # - filter_class: ChargeFilter
   # - filter_class: AromaticRingFilter
   # - filter_class: LipinskiFilter
