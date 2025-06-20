@@ -17,9 +17,9 @@ from reward import MolReward
 from utils import max_gauss, min_gauss, rectangular
 from utils.third_party import sascorer
 
-LGB_MODELS_PATH = "../data/reward/d_score/lgb_models.pickle"
-SURE_CHEMBL_ALERTS_PATH = "../data/reward/d_score/sure_chembl_alerts.txt"
-CHEMBL_FPS_PATH = "../data/reward/d_score/chembl_fps.npy"
+LGB_MODELS_PATH = "../data/d_score/lgb_models.pickle"
+SURE_CHEMBL_ALERTS_PATH = "../data/d_score/sure_chembl_alerts.txt"
+CHEMBL_FPS_PATH = "../data/d_score/chembl_fps.npy"
 
 with open(LGB_MODELS_PATH, mode='rb') as models,\
     open(SURE_CHEMBL_ALERTS_PATH, mode='rb') as alerts, \

@@ -9,7 +9,7 @@ max_generations: 200000
 
 device: cpu
 transition_class: RNNTransition
-transition_conf:
+transition_args:
   model_dir: model/smiles/drugs_zinc_rnn
 
 reward_class: DScoreReward
