@@ -1,6 +1,7 @@
 output_dir: generation_result
-# time_limit: 30 # seconds
-max_generations : 10000
+time_limit: 30 # seconds
+# max_generations: 10000
+debug: true
 
 # transition_class: GPT2Transition
 # transition_args:
@@ -19,7 +20,6 @@ reward_class: LogPReward
 policy_class: UCB
 policy_args:
   c: 0.2
-  best_rate: 0.5
   # c:
   #   - [5, 1]
   #   - [10, 0.1]
@@ -27,9 +27,9 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  n_rollouts: 1
+  n_rollouts: 3
   filtered_reward: -1
-  terminal_reward: ignore
+  terminal_reward: -1
 
 # generator_class: MultiProcessMCTS
 # generator_args:
@@ -53,6 +53,8 @@ filters:
   # - filter_class: RotatableBondsFilter
   #   min: 2
   # - filter_class: TPSAFilter
+  - filter_class: SAScoreFilter
+    min: 3.5
   # - filter_class: WeightFilter
   #   min: 30
   # - filter_class: HBAFilter
