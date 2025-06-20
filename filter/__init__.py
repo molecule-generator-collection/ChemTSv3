@@ -7,6 +7,7 @@ from .hbd_filter import HBDFilter
 from .lipinski_filter import LipinskiFilter
 from .log_p_filter import LogPFilter
 from .pains_filter import PainsFilter
+from .pubchem_filter import PubChemFilter
 from .radical_filter import RadicalFilter
 from .ring_size_filter import MaxRingSizeFilter, MinRingSizeFilter
 from .rotatable_bonds_filter import RotatableBondsFilter
@@ -15,4 +16,4 @@ from .tpsa_filter import TPSAFilter
 from .validity_filter import ValidityFilter
 from .weight_filter import WeightFilter
 
-__all__ = ["Filter", "MolFilter", "ValueFilter", "MolValueFilter", "AromaticRingFilter", "AttachmentPointsFilter", "ChargeFilter", "HBAFilter", "HBDFilter", "LipinskiFilter", "LogPFilter", "PainsFilter", "RadicalFilter", "SAScoreFilter", "MaxRingSizeFilter", "MinRingSizeFilter", "RotatableBondsFilter", "TPSAFilter", "ValidityFilter", "WeightFilter"]
+__all__ = ["Filter", "MolFilter", "ValueFilter", "MolValueFilter", "AromaticRingFilter", "AttachmentPointsFilter", "ChargeFilter", "HBAFilter", "HBDFilter", "LipinskiFilter", "LogPFilter", "PainsFilter", "PubChemFilter", "RadicalFilter", "SAScoreFilter", "MaxRingSizeFilter", "MinRingSizeFilter", "RotatableBondsFilter", "TPSAFilter", "ValidityFilter", "WeightFilter"]
