@@ -16,7 +16,6 @@ transition_args:
   # temperature: 2
 
 reward_class: DScoreReward
-filtered_reward: 0
 reward_args:
   params:
     egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
@@ -45,12 +44,13 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  n_rollouts: 1
   n_tries: 1
-  info_interval: 100
+  n_rollouts: 1
+  rollout_all_children: false
+  filtered_reward: 0
   terminal_reward: ignore
   freeze_terminal: true
-  rollout_all_children: false
+  info_interval: 100
 
 plot_args:
   x_axis: generation_order
