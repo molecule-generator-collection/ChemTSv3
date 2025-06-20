@@ -105,12 +105,17 @@ class Generator(ABC):
             self.logger.info(prefix + "order: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", reward: " + "{:.4f}".format(reward) + ", node: " + key)
         else:
             if len(self.unique_keys)%self.info_interval == 0:
-                rewards = [self.record[k]["reward"] for k in self.unique_keys[-self.info_interval:]]
-                average = np.average(rewards)
+                average = self.mean_reward(self.info_interval)
                 self.logger.info("generated: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_interval) + ": " + "{:.4f}".format(average))
 
         row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
         self.logger.info(row)
+        
+    def mean_reward(self, window: int=None):
+        if window is None:
+            window = len(self.unique_keys)
+        rewards = [self.record[k]["reward"] for k in self.unique_keys[-window:]]
+        return np.average(rewards)
 
     def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
         self.grab_count += 1
