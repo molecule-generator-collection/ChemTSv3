@@ -9,7 +9,6 @@ transition_args:
 
 # reward_class: JScoreReward
 reward_class: LogPReward
-filtered_reward: 0
 
 policy_class: PUCT
 policy_args:
@@ -22,8 +21,8 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  use_dummy_reward: false
   n_rollouts: 3
+  filtered_reward: 0
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
