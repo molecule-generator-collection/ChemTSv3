@@ -14,7 +14,7 @@ transition_conf:
 
 reward_class: DScoreReward
 filtered_reward: -1
-reward_conf:
+reward_args:
   params:
     # egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
     # erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
@@ -45,17 +45,17 @@ reward_conf:
     has_chembl_substruct: {type: identity, weight: 1}
 
 policy_class: UCB
-policy_conf:
+policy_args:
   c: 0.2
 
 generator_class: MCTS
-generator_conf:
+generator_args:
   n_rollouts: 3
   info_interval: 200
   terminal_reward: -1
   freeze_terminal: false
 
-plot_conf:
+plot_args:
   x_axis: generation_order
   packed_objectives:
     - [egfr, erbb2, abl, src, lck, pdgfr_beta, vegfr2, fgfr1, ephb4]

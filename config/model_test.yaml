@@ -3,12 +3,12 @@ output_dir: generation_result
 max_generations : 1000
 
 # transition_class: GPT2Transition
-# transition_conf:
+# transition_args:
 #   model_dir: model/smiles/drugs_zinc_gpt2_19.0m
 
 device: cpu
 transition_class: RNNTransition
-transition_conf:
+transition_args:
   model_dir: model/smiles/drugs_zinc_rnn
 
 reward_class: LogPReward
