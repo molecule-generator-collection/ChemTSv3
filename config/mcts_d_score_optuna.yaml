@@ -1,5 +1,8 @@
+n_trials: 200
+mean_reward_window: 2000
+
 output_dir: generation_result
-max_generations: 20000
+max_generations: 10000
 
 device: cpu
 transition_class: RNNTransition
