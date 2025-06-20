@@ -27,6 +27,7 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
+  rollout_width: 1
   n_rollouts: 3
   filtered_reward: -1
   terminal_reward: -1
