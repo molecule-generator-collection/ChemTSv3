@@ -114,6 +114,7 @@ class Generator(ABC):
     def mean_reward(self, window: int=None):
         if window is None:
             window = len(self.unique_keys)
+        window = min(window, len(self.unique_keys))
         rewards = [self.record[k]["reward"] for k in self.unique_keys[-window:]]
         return np.average(rewards)
 
