@@ -10,7 +10,7 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, n_tries=1, n_rollouts=1, rollout_all_children: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -26,9 +26,10 @@ class MCTS(Generator):
         self.root = root
         self.max_length = max_length or transition.max_length()
         self.policy = policy
-        self.n_tries = n_tries
+        self.rollout_width = rollout_width
+        self.allow_rollout_overlaps = allow_rollout_overlaps
         self.n_rollouts = n_rollouts
-        self.rollout_all_children = rollout_all_children
+        self.n_tries = n_tries
         if not isinstance(terminal_reward, (float, int)) and terminal_reward not in ("ignore", "reward"):
             raise ValueError("terminal_reward must be one of the following: float value, 'ignore', or 'reward'.")
         if terminal_reward == "ignore" and not freeze_terminal:
@@ -81,12 +82,10 @@ class MCTS(Generator):
         if not node.children and node.n != 0:
             self._expand(node)
 
-        if self.rollout_all_children:
-            children = list(node.children.values())
-        elif not node.children:
+        if not node.children:
             children = [node]
         else:
-            children = [node.sample_child()] # [self.policy.select_child(node)]
+            children = node.sample_children(max_size=self.rollout_width, replace=self.allow_rollout_overlaps)
         
         for child in children:
             got_unfiltered_node = False

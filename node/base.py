@@ -43,18 +43,25 @@ class Node(ABC):
         
     def mean_r(self):
         return self.sum_r / self.n
-        
-    def sample_child(self, additional_depth: int=1) -> Self:
-        if additional_depth == 1:
-            nodes = list(self.children.values())
-            if not nodes:
-                return None
-            weights = np.array([node.last_prob for node in nodes], dtype=np.float64)
-            total = weights.sum()
-            probabilities = weights / total
-            return np.random.choice(nodes, p=probabilities)
+    
+    def sample_children(self, max_size: int=1, replace: bool=False):
+        nodes = list(self.children.values())
+        size = min(max_size, len(nodes))
+        if not nodes:
+            return None
+        weights = np.array([node.last_prob for node in nodes], dtype=np.float64)
+        total = weights.sum()
+        probabilities = weights / total
+        return np.random.choice(nodes, size=size, replace=replace, p=probabilities)
+    
+    def sample_child(self):
+        return self.sample_children(max_size=1)[0]
+    
+    def sample_offspring(self, depth: int=1):
+        if depth == 1:
+            return self.sample_children(max_size=1)[0]
         else:
-            return self.sample_child().sample_child(additional_depth=additional_depth-1)
+            return self.sample_children(max_size=1)[0].sample_offspring(depth=depth-1)
         
     def cut_unvisited_children(self):
         unvisited_keys = [key for key, child in self.children.items() if child.n == 0]
