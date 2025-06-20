@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 from rdkit import Chem, RDLogger
 from rdkit.Chem import Mol
 
+POLYMER_TYPES = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
+
 class MonomersLib():
     def __init__(self, monomers_lib: dict={}, cap_group_mols: dict={}, disable_RDLogger=True):
         self.lib = monomers_lib
@@ -95,7 +97,7 @@ class MonomersLib():
         Roughly removes monomer entries if they are not in the list. Unused monomers with the same ID in the other polymer types won't be removed.)
         """
         culled_lib = {}
-        for polymer_type in HELMConverter.polymer_types:
+        for polymer_type in POLYMER_TYPES:
             if not polymer_type in self.lib:
                 continue
             culled_lib[polymer_type] = {}
@@ -183,7 +185,6 @@ class MonomersLib():
             return "[*][H] |$_R1;$|"
 
 class HELMConverter():
-    polymer_types = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
     skip_tokens = [".", "{", "(", ")"]
 
     def __init__(self, monomers_lib: MonomersLib=None):
@@ -292,7 +293,7 @@ class HELMConverter():
             if t == "}":
                 break
             if polymer_type is None:
-                for pt in self.polymer_types:
+                for pt in POLYMER_TYPES:
                     if t.startswith(pt):
                         polymer_type = pt
                         polymer_name = t
@@ -347,7 +348,7 @@ class HELMConverter():
         polymer_tokens = HELMConverter.split_helm(polymer_part)
         parsed_polymers = []
         for i in range(len(polymer_tokens)):
-            if polymer_tokens[i].startswith(tuple(self.polymer_types)):
+            if polymer_tokens[i].startswith(tuple(POLYMER_TYPES)):
                 j = i+2
                 while polymer_tokens[j] != "}":
                     j += 1
@@ -361,7 +362,7 @@ class HELMConverter():
         for i in range(len(bond_tokens)):
             if len(bond_tokens) - 1 < i + 10:
                 break
-            if bond_tokens[i].startswith(tuple(self.polymer_types)) and bond_tokens[i+2].startswith(tuple(self.polymer_types)):
+            if bond_tokens[i].startswith(tuple(POLYMER_TYPES)) and bond_tokens[i+2].startswith(tuple(POLYMER_TYPES)):
                 parsed_bonds.append((bond_tokens[i], bond_tokens[i+4], bond_tokens[i+6], bond_tokens[i+2], bond_tokens[i+8], bond_tokens[i+10]))
 
         return parsed_bonds
