@@ -117,7 +117,7 @@ class Generator(ABC):
         key = str(node)
         if key in self.record:
             self.duplicate_count += 1
-            self.logger.debug("Already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
+            self.logger.debug("already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
         for i, filter in enumerate(self.filters):
@@ -151,7 +151,7 @@ class Generator(ABC):
         else:
             objective_names = [f.__name__ for f in self.reward.objective_functions()]
             if not y_axis in objective_names:
-                self.logger.warning("Couldn't find objective name " + y_axis + ": uses reward instead")
+                self.logger.warning("Couldn't find objective name " + y_axis + ": uses reward instead.")
                 y_axis = "reward"
                 y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
             else:
