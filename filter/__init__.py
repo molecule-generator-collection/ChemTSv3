@@ -10,8 +10,9 @@ from .pains_filter import PainsFilter
 from .radical_filter import RadicalFilter
 from .ring_size_filter import MaxRingSizeFilter, MinRingSizeFilter
 from .rotatable_bonds_filter import RotatableBondsFilter
+from .sa_score_filter import SAScoreFilter
 from .tpsa_filter import TPSAFilter
 from .validity_filter import ValidityFilter
 from .weight_filter import WeightFilter
 
-__all__ = ["Filter", "MolFilter", "ValueFilter", "MolValueFilter", "AromaticRingFilter", "AttachmentPointsFilter", "ChargeFilter", "HBAFilter", "HBDFilter", "LipinskiFilter", "LogPFilter", "PainsFilter", "RadicalFilter", "MaxRingSizeFilter", "MinRingSizeFilter", "RotatableBondsFilter", "TPSAFilter", "ValidityFilter", "WeightFilter"]
+__all__ = ["Filter", "MolFilter", "ValueFilter", "MolValueFilter", "AromaticRingFilter", "AttachmentPointsFilter", "ChargeFilter", "HBAFilter", "HBDFilter", "LipinskiFilter", "LogPFilter", "PainsFilter", "RadicalFilter", "SAScoreFilter", "MaxRingSizeFilter", "MinRingSizeFilter", "RotatableBondsFilter", "TPSAFilter", "ValidityFilter", "WeightFilter"]
