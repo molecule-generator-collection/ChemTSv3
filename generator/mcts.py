@@ -29,7 +29,7 @@ class MCTS(Generator):
         self.n_tries = n_tries
         self.n_rollouts = n_rollouts
         self.rollout_all_children = rollout_all_children
-        if not type(terminal_reward) == float and terminal_reward != "reward" and terminal_reward != "ignore":
+        if not isinstance(terminal_reward, (float, int)) and terminal_reward not in ("ignore", "reward"):
             raise ValueError("terminal_reward must be one of the following: float value, 'ignore', or 'reward'.")
         if terminal_reward == "ignore" and not freeze_terminal:
             raise ValueError("Set freeze_terminal to True, or set terminal_reward to something else.")
