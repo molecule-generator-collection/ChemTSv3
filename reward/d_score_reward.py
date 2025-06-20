@@ -1,5 +1,5 @@
 """
-edited from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/reward/dscore_reward.py
+ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/reward/dscore_reward.py
 requires: lightgbm==3.2.1~3.3.5
 recommended: conda install -c conda-forge lightgbm=3.3.5
 """

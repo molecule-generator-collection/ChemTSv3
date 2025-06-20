@@ -6,7 +6,7 @@ from rdkit.Chem import AllChem
 from filter import MolFilter
 from data.pubchem_filter import metadata
 
-# from ChemTSv2
+# ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/filter/pubchem_filter.py
 
 class Neutralizer:
     reactions = None
