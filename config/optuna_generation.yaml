@@ -1,11 +1,11 @@
-study_name: d_score
-n_trials: 200
+study_name: d_score_25000
+n_trials: 100
 best_reward_rate: 0.3
-mean_reward_window: 2000
+mean_reward_window: 5000
 
 output_dir: generation_result
-max_generations: 10000
-time_limit: 600
+max_generations: 25000
+time_limit: 1000
 
 device: cpu
 transition_class: RNNTransition
