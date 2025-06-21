@@ -12,8 +12,8 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc_rnn
-  top_p: 0.99724843987
-  temperature: 0.9033460956034985
+  top_p: 0.9978914497
+  temperature: 0.9197267616670681
 
 reward_class: DScoreReward
 reward_args:
@@ -37,18 +37,18 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
-policy_class: PUCT
+policy_class: UCB
 policy_args:
-  c: 0.043281598127913976
-  best_rate: 0.33927830916834834
+  c: 0.06858791115345038
+  best_rate: 0.34480794970416806
 
 generator_class: MCTS
 generator_args:
-  rollout_width: 6
+  rollout_width: 8
   allow_rollout_overlaps: false
-  n_rollouts: 9
+  n_rollouts: 7
   n_tries: 2
-  filtered_reward: -0.64717855160515
+  filtered_reward: -0.6005929670108003
   terminal_reward: ignore
   freeze_terminal: true
   info_interval: 100
