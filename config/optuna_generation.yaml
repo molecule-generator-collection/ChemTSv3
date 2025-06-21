@@ -1,9 +1,10 @@
-n_trials: 10
+study_name: d_score
+n_trials: 200
 best_reward_rate: 0.3
-mean_reward_window: 20
+mean_reward_window: 2000
 
 output_dir: generation_result
-max_generations: 100
+max_generations: 10000
 time_limit: 600
 
 device: cpu
