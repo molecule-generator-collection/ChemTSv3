@@ -1,11 +1,12 @@
-study_name: d_score_25000
-n_trials: 100
+study_name: d_score_200000
+n_trials: 5
+n_steps: 20
 best_reward_rate: 0.3
-mean_reward_window: 5000
+mean_reward_window: 0.2
 
 output_dir: generation_result
-max_generations: 25000
-time_limit: 1000
+max_generations: 200000
+time_limit: 8000
 
 device: cpu
 transition_class: RNNTransition
@@ -39,3 +40,11 @@ generator_class: MCTS
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
+
+plot_args:
+  x_axis: generation_order
+  packed_objectives:
+    - [egfr, erbb2, abl, src, lck, pdgfr_beta, vegfr2, fgfr1, ephb4]
+  moving_average_window: 0.005
+  linewidth: 1.0
+  save_only: true
