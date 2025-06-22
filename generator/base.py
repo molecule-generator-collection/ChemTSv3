@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 import logging
+import math
 import os
 import pickle
 import time
@@ -111,9 +112,11 @@ class Generator(ABC):
         row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
         self.logger.info(row)
         
-    def mean_reward(self, window: int=None):
+    def mean_reward(self, window: int | float=None):
         if window is None:
             window = len(self.unique_keys)
+        elif window < 1:
+            window = max(1, math.floor(window * len(self.unique_keys)))
         window = min(window, len(self.unique_keys))
         rewards = [self.record[k]["reward"] for k in self.unique_keys[-window:]]
         return np.average(rewards)
@@ -139,13 +142,13 @@ class Generator(ABC):
         return objective_values, reward
 
     # visualize results
-    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None):
-        self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, linewidth=linewidth)
+    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False):
+        self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, linewidth=linewidth, save_only=save_only)
         if packed_objectives:
             for po in packed_objectives:
-                self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim, linewidth=linewidth)
+                self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim, linewidth=linewidth, save_only=save_only)
 
-    def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0):
+    def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False):
         # x_axis ... use X in self.record["mol_key"]["X"]
 
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
@@ -195,16 +198,16 @@ class Generator(ABC):
         
         plt.legend(loc=loc)
         plt.savefig(self.output_dir() + self.name() + "_" + y_axis + "_by_" + x_axis + ".png")
-        plt.show()
-        
-    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01):
+        plt.close() if save_only else plt.show()
+
+    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False):
         ylims = ylims or {}
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for o in objective_names:
-            self._plot(x_axis=x_axis, y_axis=o, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth)
-        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), loc=loc, linewidth=linewidth)
+            self._plot(x_axis=x_axis, y_axis=o, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only)
+        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), loc=loc, linewidth=linewidth, save_only=save_only)
 
-    def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=1.0):
+    def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=1.0, save_only: bool=False):
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for ya in y_axes:
@@ -217,7 +220,7 @@ class Generator(ABC):
         plt.title(self.name() + "_ma_window=" + str(moving_average_window))
         plt.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0))
         plt.savefig(self.output_dir() + self.name() + "_by_" + x_axis + ".png")
-        plt.show()
+        plt.close() if save_only else plt.show()
 
     def analyze(self):
         self.logger.info("number of generated nodes: " + str(len(self.unique_keys)))

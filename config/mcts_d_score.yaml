@@ -12,8 +12,8 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc_rnn
-  top_p: 0.9978914497
-  temperature: 0.9197267616670681
+  top_p: 0.99639164215
+  temperature: 0.8211391483382019
 
 reward_class: DScoreReward
 reward_args:
@@ -39,16 +39,16 @@ reward_args:
 
 policy_class: UCB
 policy_args:
-  c: 0.06858791115345038
-  best_rate: 0.34480794970416806
+  c: 0.3340317433204655
+  best_rate: 0.6609037116400465
 
 generator_class: MCTS
 generator_args:
-  rollout_width: 8
+  rollout_width: 17
   allow_rollout_overlaps: false
-  n_rollouts: 7
+  n_rollouts: 5
   n_tries: 2
-  filtered_reward: -0.6005929670108003
+  filtered_reward:  0.18414229054260106
   terminal_reward: ignore
   freeze_terminal: true
   info_interval: 100
