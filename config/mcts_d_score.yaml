@@ -11,7 +11,7 @@ max_generations: 200000
 device: cpu
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/smiles/drugs_zinc_rnn
+  model_dir: model/smiles/drugs_zinc_gru
   top_p: 0.99639164215
   temperature: 0.8211391483382019
 

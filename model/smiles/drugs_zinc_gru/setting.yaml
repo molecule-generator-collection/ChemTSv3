@@ -1,0 +1,13 @@
+output_dir: "sandbox/training_result/rnn_model"
+lang_class: SMILES
+dataset_path: data/smiles/250k_rndm_zinc_drugs_clean.smi
+
+test_size: 0.1
+batch_size: 512
+lr: 0.001
+num_epochs: 100
+rnn_type: "GRU"
+# embed_size: 64
+hidden_size: 256
+num_layers: 2
+dropout: 0.3
