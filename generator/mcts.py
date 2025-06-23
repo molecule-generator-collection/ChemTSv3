@@ -16,10 +16,13 @@ class MCTS(Generator):
 
         Args:
             root: root node
+            rollout_width: the number of children to sample for rollout (to rollout all children, set this to higher values than the number of the tokens)
+            allow_rollout_overlaps: whether to allow overlap nodes when sampling rollout candidates
             n_rollouts: the number of rollouts in one step
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
             cut_unvisited_children: 
             terminal_reward: If "ignore", doesn't backpropagate anything. If "reward", backpropagate the reward. If float value, backpropagate specified value.
+            filtered_reward: Backpropagate this value when all rollouts are failed from the node.
             freeze_terminal: If True, terminal node won't be visited twice.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
         """
