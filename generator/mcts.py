@@ -38,6 +38,8 @@ class MCTS(Generator):
             raise ValueError("terminal_reward must be one of the following: float value, 'ignore', or 'reward'.")
         if terminal_reward == "ignore" and not freeze_terminal:
             raise ValueError("Set freeze_terminal to True, or set terminal_reward to something else.")
+        if remove_failed_child and allow_rollout_overlaps:
+            raise ValueError("Set one of these values to False: remove_failed_child or allow_rollout_overlaps.")
         self.terminal_reward = terminal_reward
         self.freeze_terminal = freeze_terminal
         self.use_dummy_reward = use_dummy_reward
