@@ -148,7 +148,7 @@ class RNNTransition(LanguageModel):
         for tok_id, prob in enumerate(probs):
             next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
             if prob != 0:
-                child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob)
+                child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob, last_action=tok_id)
                 children.append((tok_id, child, prob))
         return children
     
