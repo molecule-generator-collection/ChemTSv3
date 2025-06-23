@@ -17,7 +17,7 @@ transition_args:
 reward_class: JScoreReward
 # reward_args:
 
-policy_class: UCB
+policy_class: UCB1
 policy_args:
   c: 0.2
   # c:
