@@ -1,0 +1,9 @@
+{
+  "vocab_size": 34,
+  "embed_size": 34,
+  "hidden_size": 256,
+  "num_layers": 2,
+  "rnn_type": "GRU",
+  "pad_id": 32,
+  "use_input_dropout": true
+}

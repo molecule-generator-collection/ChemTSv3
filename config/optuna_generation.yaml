@@ -11,7 +11,7 @@ time_limit: 8000
 device: cpu
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/smiles/drugs_zinc_rnn
+  model_dir: model/smiles/drugs_zinc_gru
 
 reward_class: DScoreReward
 reward_args:
