@@ -10,7 +10,7 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
+    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB(), filters: list[Filter]=None, filtered_reward: float=0, rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -33,6 +33,7 @@ class MCTS(Generator):
         self.allow_rollout_overlaps = allow_rollout_overlaps
         self.n_rollouts = n_rollouts
         self.n_tries = n_tries
+        self.remove_failed_child = remove_failed_child
         if not isinstance(terminal_reward, (float, int)) and terminal_reward not in ("ignore", "reward"):
             raise ValueError("terminal_reward must be one of the following: float value, 'ignore', or 'reward'.")
         if terminal_reward == "ignore" and not freeze_terminal:
@@ -102,3 +103,5 @@ class MCTS(Generator):
                     self._backpropagate(child, reward, self.use_dummy_reward)
             if not got_unfiltered_node:
                 self._backpropagate(child, self.filtered_reward, False)
+                if self.remove_failed_child:
+                    del node.children[child.last_action]

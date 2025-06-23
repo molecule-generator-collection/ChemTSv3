@@ -6,10 +6,10 @@ from language import Language, MolLanguage
 from node import Node, MolNode
 
 class SentenceNode(Node):
-    def __init__(self, id_tensor: torch.Tensor, lang: Language, parent=None, last_prob=1.0):
+    def __init__(self, id_tensor: torch.Tensor, lang: Language, parent=None, last_prob=1.0, last_action=None):
         self.id_tensor = id_tensor
         self.lang = lang
-        super().__init__(parent=parent, last_prob=last_prob)
+        super().__init__(parent=parent, last_prob=last_prob, last_action=last_action)
 
     # implement
     def __str__(self):
@@ -29,9 +29,8 @@ class SentenceNode(Node):
         return cls(id_tensor = lang.bos_tensor(device), lang=lang)
 
 class MolSentenceNode(SentenceNode, MolNode):
-    def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent=None, last_prob=1.0):
-        self._canonical_smiles = None
-        super().__init__(id_tensor, lang, parent, last_prob)
+    def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent=None, last_prob=1.0, last_action=None):
+        super().__init__(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
     # implement
     def _mol_impl(self) -> Mol:
