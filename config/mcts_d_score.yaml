@@ -37,7 +37,7 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
-policy_class: UCB
+policy_class: UCB1
 policy_args:
   c: 0.3340317433204655
   best_rate: 0.6609037116400465

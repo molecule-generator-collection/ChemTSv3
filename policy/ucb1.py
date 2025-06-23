@@ -5,7 +5,7 @@ from policy import Policy
 from utils import PointCurve
 
 # not named "UCT" and has 2* before log in favor of ChemTSv2 compatibility 
-class UCB(Policy):
+class UCB1(Policy):
     def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, initial_mean = 10**9, best_rate: float=0.0):
         if type(c) == Callable:
             self.c = c
