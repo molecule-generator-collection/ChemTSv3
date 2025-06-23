@@ -16,24 +16,24 @@ transition_args:
 reward_class: DScoreReward
 reward_args:
   params:
-    # egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
-    # erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    egfr: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
     erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    pdgfr_beta: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # egfr: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # pdgfr_beta: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    # vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    # ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     solubility: {type: max_gauss, alpha: 1, mu: -2, sigma: 0.6, weight: 1}
     permeability: {type: max_gauss, alpha: 1, mu: 1, sigma: 1, weight: 1}
     metabolic_stability: {type: max_gauss, alpha: 1, mu: 75, sigma: 20, weight: 1}
