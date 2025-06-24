@@ -30,19 +30,22 @@ class Node(ABC):
     @abstractmethod
     def is_terminal(self) -> bool:
         pass
+    
+    @classmethod
+    def node_from_string(cls, string: str) -> Self:
+        raise NotImplementedError("node_from_string() is not supported in this class.")
 
-    def add_child(self, action: Any, child: Self, override=False):
-        if override is False and action in self.children:
+    def add_child(self, action: Any, child: Self, override_child=False, override_parent=False):
+        if override_child is False and action in self.children:
             pass
         self.children[action] = child
+        if child.parent is None or override_parent:
+            child.parent = self
     
     def observe(self, value: float):
         self.n += 1
         self.sum_r += value
         self.best_r = max(self.best_r, value)
-        
-    def mean_r(self):
-        return self.sum_r / self.n
     
     def sample_children(self, max_size: int=1, replace: bool=False):
         nodes = list(self.children.values())
@@ -95,3 +98,13 @@ class MolNode(Node):
             mol = self._mol_impl()
             self._cache["mol"] = mol
             return mol
+        
+class SurrogateNode(Node):
+    """surrogate node for multiple roots"""
+    # implement
+    def __str__(self) -> str:
+        return "surrogate node"
+
+    # implement
+    def is_terminal(self) -> bool:
+        return False

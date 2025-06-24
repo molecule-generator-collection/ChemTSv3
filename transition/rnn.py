@@ -9,7 +9,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from language import Language
 from node import SentenceNode
 from transition import LanguageModel
-from utils import apply_top_p
+from utils import apply_top_p, apply_power
 
 class RNNLanguageModel(nn.Module):
     def __init__(self, pad_id: int, vocab_size: int, embed_size: int=None, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3, use_input_dropout=True):
@@ -57,7 +57,7 @@ class RNNLanguageModel(nn.Module):
         return logits, next_hidden
 
     @torch.inference_mode()
-    def generate(self, input_ids: torch.Tensor, max_length: int, eos_token_id: int, top_p: float=1.0, temperature: float=1.0) -> torch.Tensor:
+    def generate(self, input_ids: torch.Tensor, max_length: int, eos_token_id: int, top_p: float=1.0, temperature: float=1.0, power: float=1.0) -> torch.Tensor:
         self.eval()
         generated = input_ids.clone()
         with torch.no_grad():
@@ -69,8 +69,10 @@ class RNNLanguageModel(nn.Module):
             next_logits = next_logits / temperature
             probs = F.softmax(next_logits, dim=-1)
             if top_p < 1.0:
-                probs = apply_top_p(probs, top_p=top_p)
-            next_id = torch.multinomial(probs, num_samples=1)               
+                probs = apply_top_p(probs, top_p)
+            if power != 1.0:
+                probs = apply_power(probs, power)
+            next_id = torch.multinomial(probs, num_samples=1)            
 
             generated = torch.cat([generated, next_id], dim=1)
             if next_id.item() == eos_token_id:
@@ -97,12 +99,13 @@ class RNNLanguageModel(nn.Module):
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, name: str=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, power=1.0, name: str=None, logger: logging.Logger=None):
         if (model is not None) and (model_dir is not None):
             raise ValueError("specify one (or none) of model or model_dir, not both.")
         
         super().__init__(lang=lang, name=name, logger=logger)
-        self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
+        if device != "cpu":
+            self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
 
         if model is not None:
             self.model = model
@@ -112,6 +115,7 @@ class RNNTransition(LanguageModel):
         self._max_length = max_length or 10**18
         self.top_p = top_p
         self.temperature = temperature
+        self.power = power
         
     def load(self, model_dir: str, device: str=None) -> Self:
         """
@@ -142,6 +146,8 @@ class RNNTransition(LanguageModel):
             probs = F.softmax(next_logits, dim=-1)
         if self.top_p < 1.0:
             probs = apply_top_p(probs, top_p=self.top_p)
+        if self.power != 1.0:
+            probs = apply_power(probs, self.power)
         probs = probs.tolist()[0]
         
         children = []
@@ -159,6 +165,7 @@ class RNNTransition(LanguageModel):
                 max_length=self.max_length(),
                 eos_token_id=self.lang.eos_id(),
                 top_p=self.top_p,
-                temperature=self.temperature
+                temperature=self.temperature,
+                power= self.power
             )
         return initial_node.__class__(id_tensor=generated_tensor, lang=self.lang) # .to(initial_node.id_tensor.device)

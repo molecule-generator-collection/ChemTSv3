@@ -24,6 +24,11 @@ def apply_top_p(probs: torch.Tensor, top_p: float) -> torch.Tensor:
 
     return new_probs
 
+def apply_power(probs: torch.Tensor, power: float) -> torch.Tensor:
+    powered = torch.pow(probs, power)
+    normalized = powered / powered.sum(dim=-1, keepdim=True)
+    return normalized
+
 def moving_average(values: list[float], window: float=0.05) -> np.ndarray:
     if window < 1:
         window = max(1, math.floor(len(values) * window))

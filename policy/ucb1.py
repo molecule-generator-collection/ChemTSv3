@@ -6,15 +6,16 @@ from utils import PointCurve
 
 # not named "UCT" and has 2* before log in favor of ChemTSv2 compatibility 
 class UCB1(Policy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, initial_mean = 10**9, best_rate: float=0.0):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=1):
         if type(c) == Callable:
             self.c = c
         elif type(c) == list:
             self.c = PointCurve(c)
         else:
             self.c = c
-        self.initial_mean = initial_mean
         self.best_ratio = best_rate
+        self.prior = prior
+        self.prior_weight = prior_weight
     
     # implement
     def evaluate(self, node: Node):
@@ -25,7 +26,17 @@ class UCB1(Policy):
         else:
             c = self.c
 
+        n = node.n
+        parent_n = node.parent.n
+        sum_r = node.sum_r
+        if self.prior is not None:
+            n += self.prior_weight
+            parent_n += self.prior_weight
+            sum_r += self.prior * self.prior_weight
+
         if node.n == 0:
-            return self.initial_mean + c * sqrt(2 * log(node.parent.n + 1) / (node.n + 1)) 
-        u = c * sqrt(2 * log(node.parent.n) / (node.n))
-        return (1 - self.best_ratio) * node.mean_r() + self.best_ratio * node.best_r + u
+            return 10**9 # tiebreaker is implemented in policy base
+        
+        u = c * sqrt(2 * log(parent_n) / (n))
+        mean_r = sum_r / n
+        return (1 - self.best_ratio) * mean_r + self.best_ratio * node.best_r + u
