@@ -1,7 +1,9 @@
 output_dir: generation_result
-time_limit: 30 # seconds
+time_limit: 20 # seconds
 # max_generations: 10000
 debug: true
+# root: "N"
+# root: ["Nc", "NC"]
 
 # transition_class: GPT2Transition
 # transition_args:
@@ -13,12 +15,14 @@ transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc_gru
   top_p: 0.995
+  # power: 1.2
 
 reward_class: JScoreReward
 # reward_args:
 
 policy_class: UCB1
 policy_args:
+  best_rate: 0.5
   c: 0.2
   # c:
   #   - [5, 1]
@@ -28,14 +32,9 @@ policy_args:
 generator_class: MCTS
 generator_args:
   rollout_width: 1
-  n_rollouts: 3
-  filtered_reward: -1
+  n_rollouts: 1
+  filtered_reward: 0
   terminal_reward: -1
-
-# generator_class: MultiProcessMCTS
-# generator_args:
-#   use_dummy_reward: false
-#   n_workers: 1
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
