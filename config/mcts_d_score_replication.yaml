@@ -11,7 +11,7 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc_gru
-  top_p: 0.997
+  top_p: 0.9965
 
 reward_class: DScoreReward
 reward_args:
