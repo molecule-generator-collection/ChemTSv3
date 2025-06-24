@@ -18,14 +18,20 @@ class SentenceNode(Node):
     # implement
     def is_terminal(self):
         return self.id_tensor[0][-1] == self.lang.eos_id()
+    
+    # implement
+    @classmethod
+    def node_from_str(cls, lang: Language, string: str, include_eos: bool=False, parent=None, last_prob=1.0, last_action=None) -> Self:
+        id_tensor = lang.sentence2tensor(string, include_eos=include_eos)
+        return cls(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
-    # output token id sequence as a list
     def id_list(self) -> list[int]:
+        """output token id sequence as a list"""
         return self.id_tensor[0].tolist()
 
-    # bos node, often used as root
     @classmethod
     def bos_node(cls, lang: Language, device: str=None) -> Self:
+        """make bos node, often used as root"""
         return cls(id_tensor = lang.bos_tensor(device), lang=lang)
 
 class MolSentenceNode(SentenceNode, MolNode):

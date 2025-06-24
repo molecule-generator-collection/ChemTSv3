@@ -13,8 +13,8 @@ class Language(ABC):
     _unk_token = "<UNKNOWN>"
 
     @abstractmethod
-    # convert sentence to token ids, used for training
-    def sentence2ids(self, sentence: str) -> list[int]:
+    def sentence2ids(self, sentence: str, include_eos: bool=True) -> list[int]:
+        """convert sentence to token ids"""
         pass
     
     @abstractmethod
@@ -26,13 +26,13 @@ class Language(ABC):
         pass
 
     @abstractmethod
-    # list of all possible tokens, can be dynamic (thus not a static method)
     def vocab(self) -> list[str]:
+        """ist of all possible tokens, can be dynamic (thus not a static method)"""
         pass
 
     @abstractmethod
-    # revert the token id sequence to sentence
     def ids2sentence(self, idseq: list[int]) -> str:
+        """revert the token id sequence to sentence"""
         pass
     
     def bos_token(self) -> str:
@@ -59,8 +59,8 @@ class Language(ABC):
     def unk_id(self) -> int:
         return self.token2id(self.__class__._unk_token)
     
-    def list2tensor(self, li: list[int], device: str=None) -> torch.Tensor:
-        return torch.tensor([li], device=torch.device(device or ("cuda:0" if torch.cuda.is_available() else "cpu")))
+    def list2tensor(self, ids: list[int], device: str=None) -> torch.Tensor:
+        return torch.tensor([ids], device=torch.device(device or ("cuda:0" if torch.cuda.is_available() else "cpu")))
     
     @staticmethod
     def tensor2list(t: torch.Tensor) -> list[int]:
@@ -69,6 +69,10 @@ class Language(ABC):
     def tensor2sentence(self, tensor: torch.Tensor) -> str:
         l = self.tensor2list(tensor)
         return self.ids2sentence(l)
+    
+    def sentence2tensor(self, sentence: str, include_eos: bool=True) -> torch.Tensor:
+        l = self.sentence2ids(sentence, include_eos=include_eos)
+        return self.list2tensor(l)
     
     def bos_tensor(self, device: str=None):
         return self.list2tensor([self.bos_id()], device=device)
@@ -91,33 +95,33 @@ class Language(ABC):
             lang = pickle.load(f)
         return lang
 
-# language that makes vocabulary from dataset
 class DynamicLanguage(Language):
+    """language that constructs vocabulary from dataset"""
     def __init__(self):
         self._vocab: list[str] = []
         self._token2id = {}
         self._id2token = {}
         super().__init__()
 
-    # split sentence to token strs, should include bos and eos
     @abstractmethod
-    def sentence2tokens(self, sentence: str) -> list[str]:
+    def sentence2tokens(self, sentence: str, include_eos: bool=True) -> list[str]:
+        """split sentence to token strs, should include bos"""
         pass
     
     # implement
-    def sentence2ids(self, sentence):
-        return [self.token2id(tok) for tok in self.sentence2tokens(sentence)]
+    def sentence2ids(self, sentence, include_eos: bool=True):
+        return [self.token2id(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
 
     # implement
     def ids2sentence(self, idseq):
         # remove bos and eos
         idseq = idseq[1:]
-        if idseq[-1] == self.eos_id():
+        if idseq and idseq[-1] == self.eos_id():
             idseq = idseq[:-1]
         return "".join(self.id2token(i) for i in idseq)
 
-    # can input dataset
     def build_vocab(self, splits: dict[str, list[dict]]):
+        """splits: dataset (ds)"""
         counter = Counter()
         for split_name, examples in splits.items():
             for ex in examples:
@@ -143,8 +147,8 @@ class DynamicLanguage(Language):
 
 class MolLanguage(Language):
     @abstractmethod
-    #convert sentence to token ids, used for training
     def sentence2ids(self, sentence: str) -> list[int]:
+        """convert sentence to token ids"""
         pass
     
     @abstractmethod
@@ -156,13 +160,13 @@ class MolLanguage(Language):
         pass
 
     @abstractmethod
-    # list of all possible tokens, can be dynamic (thus not a static method)
     def vocab(self) -> list[str]:
+        """list of all possible tokens, can be dynamic (thus not a static method)"""
         pass
 
     @abstractmethod
-    # revert the token id sequence to sentence
     def ids2sentence(self, idseq: list[int]) -> str:
+        """revert the token id sequence to sentence"""
         pass
     
     @abstractmethod
@@ -171,9 +175,9 @@ class MolLanguage(Language):
 
 # Should be (DynamicLanguage, MolConvertibleLanguage) for MRO
 class DynamicMolLanguage(DynamicLanguage, MolLanguage):
-    # split sentence to token strs, should include bos and eos
     @abstractmethod
     def sentence2tokens(self, sentence: str) -> list[str]:
+        """split sentence to token strs, should include bos and eos"""
         pass
 
     @abstractmethod

@@ -217,7 +217,7 @@ class Generator(ABC):
             y_ma = moving_average(y, moving_average_window)
             plt.plot(x, y_ma, label=label, linewidth=linewidth)
         plt.grid(axis="y")
-        plt.title(self.name() + "_ma_window=" + str(moving_average_window))
+        plt.title(self.name())
         plt.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0))
         plt.savefig(self.output_dir() + self.name() + "_by_" + x_axis + ".png")
         plt.close() if save_only else plt.show()

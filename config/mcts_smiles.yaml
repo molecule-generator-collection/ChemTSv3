@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 30 # seconds
+time_limit: 10 # seconds
 # max_generations: 10000
 debug: true
 
@@ -19,6 +19,7 @@ reward_class: JScoreReward
 
 policy_class: UCB1
 policy_args:
+  best_rate: 0.5
   c: 0.2
   # c:
   #   - [5, 1]
@@ -28,14 +29,9 @@ policy_args:
 generator_class: MCTS
 generator_args:
   rollout_width: 1
-  n_rollouts: 3
-  filtered_reward: -1
+  n_rollouts: 1
+  filtered_reward: 0
   terminal_reward: -1
-
-# generator_class: MultiProcessMCTS
-# generator_args:
-#   use_dummy_reward: false
-#   n_workers: 1
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
