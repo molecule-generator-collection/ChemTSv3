@@ -241,7 +241,8 @@ class HELMConverter():
             r")"
         )
         tokens = re.findall(pattern, helm)
-        assert helm == "".join(tokens)
+        if helm != "".join(tokens):
+            raise ValueError("HELM parsing failed. This might be caused by invalid HELM sentence")
         return tokens
 
     @staticmethod
