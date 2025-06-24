@@ -121,7 +121,7 @@ class Generator(ABC):
         rewards = [self.record[k]["reward"] for k in self.unique_keys[-window:]]
         return np.average(rewards)
 
-    def grab_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
+    def get_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
         self.grab_count += 1
         key = str(node)
         if key in self.record:
