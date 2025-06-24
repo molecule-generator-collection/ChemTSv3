@@ -79,7 +79,7 @@ class MCTS(Generator):
         node = self._selection()
         if node.is_terminal():
             objective_values, reward = self.get_objective_values_and_reward(node)
-            if isinstance(self.terminal_reward, (float, int)):
+            if self.terminal_reward != "ignore":
                 reward = self.terminal_reward
                 self._backpropagate(node, reward, False)
             if self.freeze_terminal:
