@@ -2,7 +2,7 @@ study_name: d_score_200000
 n_trials: 300
 n_steps: 40
 best_reward_rate: 0.3
-mean_reward_window: 0.2
+recent_mean_window: 0.2
 
 output_dir: generation_result
 max_generations: 200000
