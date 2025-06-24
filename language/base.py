@@ -70,9 +70,9 @@ class Language(ABC):
         l = self.tensor2list(tensor)
         return self.ids2sentence(l)
     
-    def sentence2tensor(self, sentence: str, include_eos: bool=True) -> torch.Tensor:
+    def sentence2tensor(self, sentence: str, include_eos: bool=True, device: str=None) -> torch.Tensor:
         l = self.sentence2ids(sentence, include_eos=include_eos)
-        return self.list2tensor(l)
+        return self.list2tensor(l, device=device)
     
     def bos_tensor(self, device: str=None):
         return self.list2tensor([self.bos_id()], device=device)
