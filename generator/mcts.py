@@ -83,6 +83,7 @@ class MCTS(Generator):
                 reward = self.terminal_reward
                 self._backpropagate(node, reward, False)
             if self.freeze_terminal:
+                node.n += 1 # to avoid n=0 score
                 node.sum_r = -float("inf")
             return
         

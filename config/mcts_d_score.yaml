@@ -2,7 +2,6 @@ output_dir: generation_result
 time_limit: 36000 # seconds
 max_generations: 200000
 # debug: true
-root: c1sc2ncncc2c1
 
 # transition_class: GPT2Transition
 # transition_conf:
@@ -26,8 +25,7 @@ generator_args:
   n_rollouts: 1
   n_tries: 1
   filtered_reward:  0
-  terminal_reward: -1
-  freeze_terminal: false
+  freeze_terminal: true
   info_interval: 100
 
 reward_class: DScoreReward
