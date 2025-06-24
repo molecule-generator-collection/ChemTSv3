@@ -2,7 +2,8 @@ output_dir: generation_result
 time_limit: 20 # seconds
 # max_generations: 10000
 debug: true
-root: "N"
+# root: "N"
+# root: ["Nc", "NC"]
 
 # transition_class: GPT2Transition
 # transition_args:
