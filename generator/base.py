@@ -15,8 +15,7 @@ from transition import Transition
 from utils import camel2snake, moving_average, make_logger
 
 class Generator(ABC):
-    def __init__(self, transition: Transition, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float=0, logger: logging.Logger=None, info_interval: int=1):
-        # when implementing generator with multiple transition rules, add list[Transition] to type hint
+    def __init__(self, transition: Transition, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float | str=0, logger: logging.Logger=None, info_interval: int=1):
         self.transition = transition
         self._name = name or self.make_name()
         self.reward: Reward = reward
