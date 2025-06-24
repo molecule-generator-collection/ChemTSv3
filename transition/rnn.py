@@ -102,7 +102,8 @@ class RNNTransition(LanguageModel):
             raise ValueError("specify one (or none) of model or model_dir, not both.")
         
         super().__init__(lang=lang, name=name, logger=logger)
-        self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
+        if device != "cpu":
+            self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
 
         if model is not None:
             self.model = model
