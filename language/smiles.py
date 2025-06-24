@@ -12,7 +12,8 @@ class SMILES(DynamicMolLanguage):
         pattern = "(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
         regex = re.compile(pattern)
         tokens = [token for token in regex.findall(sentence)]
-        assert sentence == ''.join(tokens)
+        if sentence != ''.join(tokens):
+            raise ValueError("SMILES parsing failed. This might be caused by invalid SMILES sentence.")
 
         tokens.insert(0, self.bos_token())
         if include_eos:
