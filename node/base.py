@@ -46,9 +46,6 @@ class Node(ABC):
         self.n += 1
         self.sum_r += value
         self.best_r = max(self.best_r, value)
-        
-    def mean_r(self):
-        return self.sum_r / self.n
     
     def sample_children(self, max_size: int=1, replace: bool=False):
         nodes = list(self.children.values())
