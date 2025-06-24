@@ -19,4 +19,4 @@ class RandomGenerator(Generator):
     # implement
     def _generate_impl(self):
         result = self.transition.rollout(self.root)
-        self.grab_objective_values_and_reward(result)
+        self.get_objective_values_and_reward(result)

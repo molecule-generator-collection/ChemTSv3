@@ -65,7 +65,7 @@ class MCTS(Generator):
         if node.depth >= self.max_length:
             return ["0"], self.filtered_reward
         result = self.transition.rollout(node)
-        return self.grab_objective_values_and_reward(result)
+        return self.get_objective_values_and_reward(result)
 
     def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
         while node:
@@ -76,7 +76,7 @@ class MCTS(Generator):
     def _generate_impl(self):
         node = self._selection()
         if node.is_terminal():
-            objective_values, reward = self.grab_objective_values_and_reward(node)
+            objective_values, reward = self.get_objective_values_and_reward(node)
             if self.terminal_reward != "ignore":
                 if type(self.terminal_reward) == float:
                     reward = self.terminal_reward

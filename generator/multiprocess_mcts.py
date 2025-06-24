@@ -62,7 +62,7 @@ class MultiProcessMCTS(MCTS):
     def _generate_impl(self):
         node = self._selection()
         if node.is_terminal():
-            objective_values, reward = self.grab_objective_values_and_reward(node)
+            objective_values, reward = self.get_objective_values_and_reward(node)
             if self.terminal_reward != "ignore":
                 if self.terminal_reward != "reward":
                     reward = self.terminal_reward
