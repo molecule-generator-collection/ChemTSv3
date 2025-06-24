@@ -21,7 +21,7 @@ class SentenceNode(Node):
     
     # implement
     @classmethod
-    def node_from_str(cls, lang: Language, string: str, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
+    def node_from_string(cls, lang: Language, string: str, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         id_tensor = lang.sentence2tensor(string, include_eos=include_eos, device=device)
         return cls(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
@@ -32,7 +32,7 @@ class SentenceNode(Node):
     @classmethod
     def bos_node(cls, lang: Language, device: str=None) -> Self:
         """make bos node, often used as root"""
-        return cls(id_tensor = lang.bos_tensor(device), lang=lang)
+        return cls.node_from_string(lang=lang, string="", device=device, include_eos=False)
 
 class MolSentenceNode(SentenceNode, MolNode):
     def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent=None, last_prob=1.0, last_action=None):
