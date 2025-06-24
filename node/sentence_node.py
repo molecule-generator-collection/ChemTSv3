@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Any
 from rdkit import Chem
 from rdkit.Chem import Mol
 import torch
@@ -6,7 +6,7 @@ from language import Language, MolLanguage
 from node import Node, MolNode
 
 class SentenceNode(Node):
-    def __init__(self, id_tensor: torch.Tensor, lang: Language, parent=None, last_prob=1.0, last_action=None):
+    def __init__(self, id_tensor: torch.Tensor, lang: Language, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         self.id_tensor = id_tensor
         self.lang = lang
         super().__init__(parent=parent, last_prob=last_prob, last_action=last_action)
@@ -21,8 +21,8 @@ class SentenceNode(Node):
     
     # implement
     @classmethod
-    def node_from_str(cls, lang: Language, string: str, include_eos: bool=False, parent=None, last_prob=1.0, last_action=None) -> Self:
-        id_tensor = lang.sentence2tensor(string, include_eos=include_eos)
+    def node_from_str(cls, lang: Language, string: str, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
+        id_tensor = lang.sentence2tensor(string, include_eos=include_eos, device=device)
         return cls(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
     def id_list(self) -> list[int]:
