@@ -110,6 +110,6 @@ class MCTS(Generator):
                 if self.filtered_reward != "ignore":
                     self._backpropagate(child, self.filtered_reward, False)
                 if self.remove_failed_child:
-                    del node.children[child.last_action]
+                    del child.parent.children[child.last_action]
         if not parent_got_unfiltered_node and self.all_filtered_reward != "ignore":
             self._backpropagate(node, self.all_filtered_reward, False)
