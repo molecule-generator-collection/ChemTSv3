@@ -19,19 +19,20 @@ class HELM(DynamicMolLanguage):
             self.converter.lib.cull(self.vocab())
 
     # implement
-    def sentence2tokens(self, sentence):
-        helm = HELM.eos_culling(sentence)
+    def sentence2tokens(self, sentence, include_eos: bool=True):
+        helm = HELM.cull_postfix(sentence)
 
         tokens = HELMConverter.split_helm(helm)
 
         tokens.insert(0, self.bos_token())
-        tokens.append(self.eos_token())
+        if include_eos:
+            tokens.append(self.eos_token())
         
         return tokens
 
     # override
-    def sentence2ids(self, sentence):
-        raw_tokenids = [self.token2id(tok) for tok in self.sentence2tokens(sentence)]
+    def sentence2ids(self, sentence, include_eos: bool=True):
+        raw_tokenids = [self.token2id(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
         if self.has_period:
             return raw_tokenids
 
@@ -66,7 +67,7 @@ class HELM(DynamicMolLanguage):
         return s
 
     @staticmethod
-    def eos_culling(sentence: str) -> str:
+    def cull_postfix(sentence: str) -> str:
         if sentence.endswith("V2.0"):
             sentence = sentence[:-4]
         if sentence.endswith("$$$$"):

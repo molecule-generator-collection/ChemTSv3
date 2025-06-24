@@ -7,7 +7,7 @@ from language import DynamicMolLanguage
 
 class SMILES(DynamicMolLanguage):
     # implement
-    def sentence2tokens(self, sentence):
+    def sentence2tokens(self, sentence: str, include_eos: bool=True):
         # pattern from ChemTSv2: modified by Shoichi Ishida based on https://github.com/pschwllr/MolecularTransformer#pre-processing
         pattern = "(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
         regex = re.compile(pattern)
@@ -15,7 +15,8 @@ class SMILES(DynamicMolLanguage):
         assert sentence == ''.join(tokens)
 
         tokens.insert(0, self.bos_token())
-        tokens.append(self.eos_token())
+        if include_eos:
+            tokens.append(self.eos_token())
         
         return tokens
 

@@ -30,6 +30,10 @@ class Node(ABC):
     @abstractmethod
     def is_terminal(self) -> bool:
         pass
+    
+    @classmethod
+    def node_from_str(cls, string: str) -> Self:
+        raise NotImplementedError("node_from_string() is not supported in this class.")
 
     def add_child(self, action: Any, child: Self, override=False):
         if override is False and action in self.children:
