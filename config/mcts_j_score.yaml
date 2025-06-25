@@ -1,0 +1,59 @@
+output_dir: generation_result
+# time_limit: 20 # seconds
+max_generations: 10000
+debug: true
+# ChemTSv1: 0.868 (6.56) at 8h / around 19200gen
+
+device: cpu
+transition_class: RNNTransition
+transition_args:
+  model_dir: model/smiles/drugs_zinc_gru
+  top_p: 0.995
+  # power: 1.2
+
+reward_class: JScoreReward
+# reward_args:
+
+policy_class: UCB1
+policy_args:
+  best_rate: 0.5
+  c: 0.2
+  # c:
+  #   - [5, 1]
+  #   - [10, 0.1]
+  #   - [20, 0.01]
+
+generator_class: MCTS
+generator_args:
+  rollout_width: 1
+  n_rollouts: 1
+  filtered_reward: 0
+  terminal_reward: -1
+  freeze_terminal: true
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
+  - filter_class: PubChemFilter
+  # - filter_class: ChargeFilter
+  # - filter_class: AromaticRingFilter
+  # - filter_class: LipinskiFilter
+  #   rule_of: 5
+  # - filter_class: PainsFilter
+  #   families:
+  #     - A
+  #     - B
+  #     - C
+  # - filter_class: MaxRingSizeFilter
+  #   max: 6
+  # - filter_class: RotatableBondsFilter
+  #   min: 2
+  # - filter_class: TPSAFilter
+  # - filter_class: SAScoreFilter
+  #   min: 3.5
+  # - filter_class: WeightFilter
+  #   min: 30
+  # - filter_class: HBAFilter
+  #   max: 5
+  # - filter_class: HBDFilter
+  #   max: 5
