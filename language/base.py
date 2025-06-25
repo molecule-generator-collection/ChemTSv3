@@ -101,7 +101,6 @@ class DynamicLanguage(Language):
         self._vocab: list[str] = []
         self._token2id = {}
         self._id2token = {}
-        super().__init__()
 
     @abstractmethod
     def sentence2tokens(self, sentence: str, include_eos: bool=True) -> list[str]:
@@ -144,6 +143,17 @@ class DynamicLanguage(Language):
     # implement
     def id2token(self, tokenid):
         return self._id2token[tokenid]
+    
+    @classmethod
+    def load_tokens_list(cls, tokens: list) -> Self:
+        lang = cls()
+        lang._vocab = tokens
+
+        for i, t in enumerate(tokens):
+            lang._token2id[t] = i
+            lang._id2token[i] = t
+        
+        return lang
 
 class MolLanguage(Language):
     @abstractmethod
