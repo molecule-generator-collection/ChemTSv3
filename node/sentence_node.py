@@ -35,7 +35,7 @@ class SentenceNode(Node):
         return cls.node_from_string(lang=lang, string="", device=device, include_eos=False)
 
 class MolSentenceNode(SentenceNode, MolNode):
-    def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent=None, last_prob=1.0, last_action=None):
+    def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         super().__init__(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
     # implement
