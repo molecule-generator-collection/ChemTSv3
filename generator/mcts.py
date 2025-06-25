@@ -106,10 +106,10 @@ class MCTS(Generator):
                 if type(objective_values[0]) != str: # not filtered
                     child_got_unfiltered_node = parent_got_unfiltered_node = True
                     self._backpropagate(child, reward, self.use_dummy_reward)
-            if not child_got_unfiltered_node:
-                if self.filtered_reward != "ignore":
+                elif self.filtered_reward != "ignore":
                     self._backpropagate(child, self.filtered_reward, False)
-                if self.remove_failed_child:
-                    del child.parent.children[child.last_action]
-        if not parent_got_unfiltered_node and self.all_filtered_reward != "ignore":
+            if self.remove_failed_child and not child_got_unfiltered_node:
+                del child.parent.children[child.last_action]
+        if self.all_filtered_reward != "ignore" and not parent_got_unfiltered_node:
             self._backpropagate(node, self.all_filtered_reward, False)
+            self.logger.debug("All rollouts failed from: " + str(node))
