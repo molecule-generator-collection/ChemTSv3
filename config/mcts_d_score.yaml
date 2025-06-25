@@ -60,3 +60,10 @@ plot_args:
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
+  - filter_class: LipinskiFilter
+    rule_of: 5
+  - filter_class: MaxRingSizeFilter
+    max: 6
+  - filter_class: SAScoreFilter
+    max: 3.5
+  - filter_class: PubChemFilter

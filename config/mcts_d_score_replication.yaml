@@ -1,6 +1,7 @@
 output_dir: generation_result
 time_limit: 36000 # seconds
 max_generations: 200000
+# debug: true
 
 # transition_class: GPT2Transition
 # transition_conf:
@@ -25,15 +26,6 @@ reward_args:
     vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # egfr: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # pdgfr_beta: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
-    # vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
-    # ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
     solubility: {type: max_gauss, alpha: 1, mu: -2, sigma: 0.6, weight: 1}
     permeability: {type: max_gauss, alpha: 1, mu: 1, sigma: 1, weight: 1}
     metabolic_stability: {type: max_gauss, alpha: 1, mu: 75, sigma: 20, weight: 1}
@@ -54,6 +46,7 @@ generator_args:
   n_rollouts: 3
   remove_failed_child: true
   info_interval: 200
+  # filtered_reward: 0
   filtered_reward: ignore
   all_filtered_reward: -1
   terminal_reward: -1
@@ -68,3 +61,10 @@ plot_args:
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
+  - filter_class: LipinskiFilter
+    rule_of: 5
+  - filter_class: MaxRingSizeFilter
+    max: 6
+  - filter_class: SAScoreFilter
+    max: 3.5
+  - filter_class: PubChemFilter
