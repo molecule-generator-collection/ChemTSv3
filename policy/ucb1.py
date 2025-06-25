@@ -6,7 +6,7 @@ from utils import PointCurve
 
 # not named "UCT" and has 2* before log in favor of ChemTSv2 compatibility 
 class UCB1(Policy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=1):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=1, max_prior: float=None):
         if type(c) == Callable:
             self.c = c
         elif type(c) == list:
@@ -16,6 +16,7 @@ class UCB1(Policy):
         self.best_ratio = best_rate
         self.prior = prior
         self.prior_weight = prior_weight
+        self.max_prior = max_prior
     
     # implement
     def evaluate(self, node: Node):
@@ -39,4 +40,7 @@ class UCB1(Policy):
         
         u = c * sqrt(2 * log(parent_n) / (n))
         mean_r = sum_r / n
-        return (1 - self.best_ratio) * mean_r + self.best_ratio * node.best_r + u
+        best_r = node.best_r
+        if self.max_prior is not None:
+            best_r = max(self.max_prior, best_r)
+        return (1 - self.best_ratio) * mean_r + self.best_ratio * best_r + u
