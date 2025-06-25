@@ -1,6 +1,6 @@
 output_dir: generation_result
 # time_limit: 15 # seconds
-max_generations: 1000
+max_generations: 10000
 
 # transition_class: GPT2Transition
 # transition_args:
@@ -9,7 +9,9 @@ max_generations: 1000
 device: cpu
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/smiles/drugs_zinc_rnn
+  # model_dir: model/smiles/tf25_ported
+  model_dir: model/smiles/drugs_zinc_gru
+  # model_dir: model/smiles/drugs_zinc_lstm
 
 reward_class: LogPReward
 filtered_reward: -0.5
