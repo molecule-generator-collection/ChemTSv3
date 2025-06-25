@@ -94,22 +94,24 @@ class MCTS(Generator):
             children = [node]
         else:
             children = node.sample_children(max_size=self.rollout_width, replace=self.allow_rollout_overlaps)
-        
-        parent_got_unfiltered_node = False
-        for child in children:
-            child_got_unfiltered_node = False
-            for _ in range(self.n_rollouts):
+            
+        unfiltered_children = set()
+        for _ in range(self.n_rollouts):
+            success_count = 0
+            for child in children:
                 for _ in range(self.n_tries):
                     objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
                     if type(objective_values[0]) != str: # not filtered
                         break
                 if type(objective_values[0]) != str: # not filtered
-                    child_got_unfiltered_node = parent_got_unfiltered_node = True
+                    unfiltered_children.add(child)
+                    success_count += 1
                     self._backpropagate(child, reward, self.use_dummy_reward)
-            if not child_got_unfiltered_node:
-                if self.filtered_reward != "ignore":
+                elif self.filtered_reward != "ignore":
                     self._backpropagate(child, self.filtered_reward, False)
-                if self.remove_failed_child:
+            if success_count == 0 and self.all_filtered_reward != "ignore":
+                self._backpropagate(node, self.all_filtered_reward, False)
+        if self.remove_failed_child:
+            for child in children:
+                if not child in unfiltered_children:
                     del child.parent.children[child.last_action]
-        if not parent_got_unfiltered_node and self.all_filtered_reward != "ignore":
-            self._backpropagate(node, self.all_filtered_reward, False)
