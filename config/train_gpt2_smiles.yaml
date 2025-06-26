@@ -1,24 +1,21 @@
 output_dir: "sandbox/training_result/model"
 lang_class: SMILES
 dataset_path: data/smiles/250k_rndm_zinc_drugs_clean.smi
-interval: 1000
-# interval: "epoch"
+interval: "epoch"
 
-n_embd: 512
+n_embd: 128
 n_layer: 6
 n_head: 4
 # additional_length: 0
 
 training_args:
   overwrite_output_dir: True
-  num_train_epochs: 1
-  per_device_train_batch_size: 8
-  per_device_eval_batch_size: 8
-  save_steps: 1000
+  num_train_epochs: 100
+  per_device_train_batch_size: 512
+  per_device_eval_batch_size: 512
   save_total_limit: 2
-  learning_rate: 0.00005
+  learning_rate: 0.001
   weight_decay: 0.01
-  warmup_steps: 100
   fp16: true
   report_to: none
   load_best_model_at_end: true
