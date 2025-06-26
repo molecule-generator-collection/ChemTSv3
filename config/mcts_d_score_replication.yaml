@@ -46,7 +46,6 @@ generator_args:
   n_rollouts: 3
   remove_failed_child: true
   info_interval: 200
-  # filtered_reward: 0
   filtered_reward: ignore
   all_filtered_reward: -1
   terminal_reward: -1

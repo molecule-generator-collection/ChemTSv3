@@ -32,7 +32,7 @@ def apply_power(probs: torch.Tensor, power: float) -> torch.Tensor:
 def moving_average(values: list[float], window: float=0.05) -> np.ndarray:
     if window < 1:
         window = max(1, math.floor(len(values) * window))
-    head = [np.mean(values[:i+1]) for i in range(window - 1)]
+    head = [np.nan] * (window - 1)
     tail = np.convolve(values, np.ones(window)/window, mode='valid')
     return np.array(head + list(tail))
 

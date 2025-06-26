@@ -11,8 +11,8 @@ max_generations: 200000
 device: cpu
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/smiles/tf25_ported
-  # model_dir: model/smiles/drugs_zinc_gru
+  # model_dir: model/smiles/tf25_ported
+  model_dir: model/smiles/drugs_zinc_gru
   top_p: 0.995
 
 policy_class: UCB1
