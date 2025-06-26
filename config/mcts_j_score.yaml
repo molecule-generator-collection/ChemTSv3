@@ -28,13 +28,12 @@ generator_args:
   rollout_width: 1
   n_rollouts: 1
   filtered_reward: 0
-  terminal_reward: -1
   freeze_terminal: true
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
-  - filter_class: RadicalFilter
-  - filter_class: PubChemFilter
+  # - filter_class: RadicalFilter
+  # - filter_class: PubChemFilter
   # - filter_class: ChargeFilter
   # - filter_class: AromaticRingFilter
   # - filter_class: LipinskiFilter
