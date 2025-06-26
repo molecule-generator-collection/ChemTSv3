@@ -4,7 +4,8 @@ max_generations: 10000
 
 transition_class: GPT2Transition
 transition_args:
-  model_dir: model/helm/pep_noperiod_1.2m
+  # model_dir: model/helm/pep_noperiod_gpt2_1.2m
+  model_dir: model/helm/pep_noperiod_gru
   top_p: 0.995
 
 # reward_class: JScoreReward
