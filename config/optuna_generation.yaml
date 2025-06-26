@@ -6,13 +6,10 @@ recent_mean_window: 0.2
 
 output_dir: generation_result
 max_generations: 200000
-time_limit: 7200
+time_limit: 18000
 
 device: cpu
 transition_class: RNNTransition
-transition_args:
-  model_dir: model/smiles/tf25_ported
-  top_p: 0.995
 
 reward_class: DScoreReward
 reward_args:
