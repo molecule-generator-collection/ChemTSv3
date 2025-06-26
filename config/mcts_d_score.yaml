@@ -12,17 +12,18 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/tf25_ported
+  # model_dir: model/smiles/drugs_zinc_gru
   top_p: 0.995
 
 policy_class: UCB1
 policy_args:
-  c: 0.2
-  best_rate: 0.5
+  c: 0.35
+  best_rate: 0.6
 
 generator_class: MCTS
 generator_args:
-  rollout_width: 1
-  n_rollouts: 1
+  rollout_width: 20
+  n_rollouts: 5
   n_tries: 1
   filtered_reward:  0
   freeze_terminal: true
