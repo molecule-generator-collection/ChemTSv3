@@ -1,17 +1,22 @@
 output_dir: generation_result
 # time_limit: 15 # seconds
-max_generations: 10000
+max_generations: 1000
+debug: true
 
 # transition_class: GPT2Transition
 # transition_args:
-#   model_dir: model/smiles/drugs_zinc_gpt2_19.0m
+#   # model_dir: model/smiles/drugs_zinc_gpt2_19.0m
+#   model_dir: model/helm/pep_noperiod_gpt2_1.2m
 
 device: cpu
 transition_class: RNNTransition
 transition_args:
   # model_dir: model/smiles/tf25_ported
-  model_dir: model/smiles/drugs_zinc_gru
+  # model_dir: model/smiles/drugs_zinc_gru
   # model_dir: model/smiles/drugs_zinc_lstm
+  model_dir: model/helm/pep_noperiod_gru
+  top_p: 0.995
+
 
 reward_class: LogPReward
 filtered_reward: -0.5

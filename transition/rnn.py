@@ -60,23 +60,29 @@ class RNNLanguageModel(nn.Module):
     def generate(self, input_ids: torch.Tensor, max_length: int, eos_token_id: int, top_p: float=1.0, temperature: float=1.0, power: float=1.0) -> torch.Tensor:
         self.eval()
         generated = input_ids.clone()
-        with torch.no_grad():
-            _, hidden = self(input_ids)
 
-        for _ in range(max_length - input_ids.size(1)):
-            logits, hidden = self(generated[:, -1:], hidden)
-            next_logits = logits[:, -1, :]  # [1, vocab]
-            next_logits = next_logits / temperature
+        logits, hidden = self.forward(generated)
+        next_logits = logits[:, -1, :] / temperature
+        probs = F.softmax(next_logits, dim=-1)
+        if top_p < 1.0:
+            probs = apply_top_p(probs, top_p)
+        if power != 1.0:
+            probs = apply_power(probs, power)
+
+        next_id = torch.multinomial(probs, num_samples=1)
+        generated = torch.cat([generated, next_id], dim=1)
+
+        while (generated.size(1) < max_length and (next_id != eos_token_id).all()):
+            logits, hidden = self.forward(next_id, hidden)
+            next_logits = logits[:, -1, :] / temperature
             probs = F.softmax(next_logits, dim=-1)
             if top_p < 1.0:
                 probs = apply_top_p(probs, top_p)
             if power != 1.0:
                 probs = apply_power(probs, power)
-            next_id = torch.multinomial(probs, num_samples=1)            
 
+            next_id = torch.multinomial(probs, num_samples=1)
             generated = torch.cat([generated, next_id], dim=1)
-            if next_id.item() == eos_token_id:
-                break
 
         return generated
     
