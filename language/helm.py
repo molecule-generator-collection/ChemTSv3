@@ -51,7 +51,12 @@ class HELM(DynamicMolLanguage):
     
     # override
     def ids2sentence(self, idseq):
-        idseq = idseq[1:-1]
+        if idseq[0] == self.bos_id():
+            if len(idseq) == 1:
+                return self.id2token(idseq[0])
+            idseq = idseq[1:]
+        if idseq[-1] == self.eos_id():
+            idseq = idseq[:-1]
         # add periods
         if not self.has_period:
             newidseq = []
