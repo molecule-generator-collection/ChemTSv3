@@ -242,7 +242,7 @@ class HELMConverter():
         )
         tokens = re.findall(pattern, helm)
         if helm != "".join(tokens):
-            raise ValueError("HELM parsing failed. This might be caused by invalid HELM sentence")
+            raise ValueError("HELM parsing failed: " + helm)
         return tokens
 
     @staticmethod
