@@ -24,8 +24,8 @@ def apply_top_p(probs: torch.Tensor, top_p: float) -> torch.Tensor:
 
     return new_probs
 
-def apply_power(probs: torch.Tensor, power: float) -> torch.Tensor:
-    powered = torch.pow(probs, power)
+def apply_sharpness(probs: torch.Tensor, sharpness: float) -> torch.Tensor:
+    powered = torch.pow(probs, sharpness)
     normalized = powered / powered.sum(dim=-1, keepdim=True)
     return normalized
 

@@ -15,7 +15,6 @@ transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc_gru
   top_p: 0.995
-  # power: 1.2
 
 reward_class: JScoreReward
 # reward_args:
