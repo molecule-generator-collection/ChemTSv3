@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 10 # seconds
-# max_generations: 1500
+# time_limit: 10 # seconds
+max_generations: 10000
 
 transition_class: GPT2Transition
 transition_args:
@@ -10,19 +10,19 @@ transition_args:
 # reward_class: JScoreReward
 reward_class: LogPReward
 
-policy_class: UCB1
+policy_class: PUCT
 policy_args:
-  c:
-    - [2, 0.0001]
-    - [3, 1]
-    - [4, 0.1]
-    - [5, 0.01]
-  initial_mean: 0.5
+  c: 1
+  # c:
+  #   - [2, 0.0001]
+  #   - [3, 1]
+  #   - [4, 0.1]
+  #   - [5, 0.01]
 
 generator_class: MCTS
 generator_args:
-  n_rollouts: 3
-  filtered_reward: 0
+  n_rollouts: 1
+  filtered_reward: -1
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
