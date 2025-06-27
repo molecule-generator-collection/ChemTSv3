@@ -1,5 +1,5 @@
 study_name: d_score_200000
-n_trials: 300
+n_trials: 10000
 n_steps: 40
 best_reward_rate: 0.3
 recent_average_window: 0.2
