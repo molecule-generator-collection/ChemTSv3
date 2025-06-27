@@ -15,7 +15,7 @@ from transition import Transition
 from utils import camel2snake, moving_average, make_logger
 
 class Generator(ABC):
-    def __init__(self, transition: Transition, output_dir="generation_result", name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float | str | list=0, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, transition: Transition, output_dir=None, name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float | str | list=0, logger: logging.Logger=None, info_interval: int=1):
         self.transition = transition
         self._name = name or self.make_name()
         self.reward: Reward = reward
@@ -24,7 +24,7 @@ class Generator(ABC):
             self.filtered_reward = [filtered_reward for _ in range(len(self.filters))]
         else:
             self.filtered_reward = filtered_reward
-        self._output_dir = output_dir
+        self._output_dir = output_dir or "generation_result"
         os.makedirs(self.output_dir(), exist_ok=True)
         self.unique_keys = []
         self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
