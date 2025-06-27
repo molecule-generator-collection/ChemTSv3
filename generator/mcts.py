@@ -10,7 +10,7 @@ from transition import Transition
 from utils import class_from_class_path
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_length=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB1(), filters: list[Filter]=None, filtered_reward: float | str=0, all_filtered_reward: float | str="ignore", rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
+    def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir="generation_result", name=None, reward: Reward=LogPReward(), policy: Policy=UCB1(), filters: list[Filter]=None, filtered_reward: float | str | list=0, all_filtered_reward: float | str="ignore", rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
         """
         Tries to maximize the reward by MCTS search.
 
@@ -28,7 +28,7 @@ class MCTS(Generator):
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
         """
         self.root = root
-        self.max_length = max_length or transition.max_length()
+        self.max_tree_depth = max_tree_depth or transition.max_length()
         self.policy = policy
         self.rollout_width = rollout_width
         self.allow_rollout_overlaps = allow_rollout_overlaps
@@ -64,8 +64,6 @@ class MCTS(Generator):
             node.add_child(a, n)
             
     def _rollout(self, node: Node):
-        if node.depth >= self.max_length:
-            return ["0"], self.filtered_reward
         result = self.transition.rollout(node)
         return self.get_objective_values_and_reward(result)
 
@@ -77,11 +75,10 @@ class MCTS(Generator):
     # implement
     def _generate_impl(self):
         node = self._selection()
-        if node.is_terminal():
-            objective_values, reward = self.get_objective_values_and_reward(node)
+        if node.is_terminal() or node.depth > self.max_tree_depth:
             if self.terminal_reward != "ignore":
                 reward = self.terminal_reward
-                self._backpropagate(node, reward, False)
+                self._backpropagate(node, self.terminal_reward, False)
             if self.freeze_terminal:
                 node.n += 1 # to avoid n=0 score
                 node.sum_r = -float("inf")
@@ -106,8 +103,8 @@ class MCTS(Generator):
                 if type(objective_values[0]) != str: # not filtered
                     child_got_unfiltered_node = parent_got_unfiltered_node = True
                     self._backpropagate(child, reward, self.use_dummy_reward)
-                elif self.filtered_reward != "ignore":
-                    self._backpropagate(child, self.filtered_reward, False)
+                elif self.filtered_reward[int(objective_values[0])] != "ignore":
+                    self._backpropagate(child, self.filtered_reward[int(objective_values[0])], False)
             if self.remove_failed_child and not child_got_unfiltered_node:
                 del child.parent.children[child.last_action]
         if self.all_filtered_reward != "ignore" and not parent_got_unfiltered_node:

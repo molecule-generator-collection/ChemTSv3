@@ -56,7 +56,7 @@ class MultiProcessMCTS(MCTS):
             max_workers=self.n_workers,
             mp_context=self.ctx,
             initializer=_init_worker,
-            initargs=(self.transition, self.reward, self.filters, self.max_length, self.filtered_reward)
+            initargs=(self.transition, self.reward, self.filters, self.max_tree_depth, self.filtered_reward)
         )
 
     def _generate_impl(self):

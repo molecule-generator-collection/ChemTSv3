@@ -33,7 +33,7 @@ generator_class: MCTS
 generator_args:
   rollout_width: 1
   n_rollouts: 1
-  filtered_reward: 0
+  filtered_reward: [-1,0,0.3]
   terminal_reward: -1
 
 filters:
