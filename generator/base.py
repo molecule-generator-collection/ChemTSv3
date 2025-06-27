@@ -105,13 +105,13 @@ class Generator(ABC):
             self.logger.info(prefix + "order: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", reward: " + "{:.4f}".format(reward) + ", node: " + key)
         else:
             if len(self.unique_keys)%self.info_interval == 0:
-                average = self.mean_reward(self.info_interval)
+                average = self.average_reward(self.info_interval)
                 self.logger.info("generated: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_interval) + ": " + "{:.4f}".format(average))
 
         row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
         self.logger.info(row)
         
-    def mean_reward(self, window: int | float=None):
+    def average_reward(self, window: int | float=None):
         if window is None:
             window = len(self.unique_keys)
         elif window < 1:
@@ -229,6 +229,8 @@ class Generator(ABC):
         self.logger.info("unique rate: " + str(unique_rate))
         node_per_sec = len(self.unique_keys) / self.passed_time
         self.logger.info("node_per_sec: " + str(node_per_sec))
+        self.logger.info("best_reward: " + str(self.best_reward))
+        self.logger.info("average_reward: " + str(self.average_reward()))
         
     def __getstate__(self):
         state = self.__dict__.copy()

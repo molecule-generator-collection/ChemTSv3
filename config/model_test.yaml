@@ -13,8 +13,8 @@ debug: true
 transition_class: RNNTransition
 transition_args:
   # model_dir: model/smiles/tf25_ported
-  model_dir: model/smiles/drugs_zinc_gru
-  # model_dir: model/smiles/drugs_zinc_lstm
+  # model_dir: model/smiles/drugs_zinc_gru
+  model_dir: model/smiles/drugs_zinc_lstm
   # model_dir: model/helm/pep_noperiod_gru
   # top_p: 0.995
 
