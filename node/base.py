@@ -29,9 +29,9 @@ class Node(ABC):
     def is_terminal(self) -> bool:
         pass
     
-    # should be overridden if 
+    @abstractmethod
     def has_reward(self) -> bool:
-        return self.is_terminal()
+        pass
     
     # should be overridden if root specification is needed
     @classmethod
@@ -92,6 +92,10 @@ class MolNode(Node):
     @abstractmethod
     def is_terminal(self) -> bool:
         pass
+    
+    @abstractmethod
+    def has_reward(self) -> bool:
+        pass
 
     @abstractmethod
     def _mol_impl(self) -> Mol:
@@ -113,4 +117,8 @@ class SurrogateNode(Node):
 
     # implement
     def is_terminal(self) -> bool:
+        return False
+    
+    # implement
+    def has_reward(self) -> bool:
         return False
