@@ -12,7 +12,7 @@ class SentenceNode(Node):
         super().__init__(parent=parent, last_prob=last_prob, last_action=last_action)
 
     # implement
-    def __str__(self):
+    def key(self):
         return self.lang.ids2sentence(self.id_list())
 
     # implement
@@ -21,7 +21,7 @@ class SentenceNode(Node):
     
     # implement
     @classmethod
-    def node_from_string(cls, lang: Language, string: str, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
+    def node_from_key(cls, lang: Language, string: str, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         id_tensor = lang.sentence2tensor(string, include_eos=include_eos, device=device)
         return cls(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
@@ -32,12 +32,23 @@ class SentenceNode(Node):
     @classmethod
     def bos_node(cls, lang: Language, device: str=None) -> Self:
         """make bos node, often used as root"""
-        return cls.node_from_string(lang=lang, string="", device=device, include_eos=False)
+        return cls.node_from_key(lang=lang, string="", device=device, include_eos=False)
 
 class MolSentenceNode(SentenceNode, MolNode):
+    use_canonical_smiles_as_key = True
+
     def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         super().__init__(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
     # implement
     def _mol_impl(self) -> Mol:
         return self.lang.sentence2mol(self.lang.ids2sentence(self.id_list()))
+    
+    # override
+    def key(self):
+        from filter import ValidityFilter
+        if not self.use_canonical_smiles_as_key or not ValidityFilter().check(self):
+            return super().key()
+        else:
+            return Chem.MolToSmiles(self.mol(), canonical=True)
+    

@@ -126,18 +126,19 @@ class Generator(ABC):
         if key in self.record:
             self.duplicate_count += 1
             self.logger.debug("already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
+            node.clear_cache()
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
         for i, filter in enumerate(self.filters):
             if not filter.check(node):
                 self.filtered_count += 1
                 self.logger.debug("filtered by " + filter.__class__.__name__ + ": " + key)
+                node.clear_cache()
                 return [str(i)], self.filtered_reward
             
         objective_values, reward = self.reward.objective_values_and_reward(node)
         self.log_unique_node(key, objective_values, reward)
         node.clear_cache()
-
         return objective_values, reward
 
     # visualize results
