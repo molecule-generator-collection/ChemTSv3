@@ -10,9 +10,9 @@ from transition import LanguageModel
 from utils import apply_top_p
 
 class GPT2Transition(LanguageModel):
-    def __init__(self, lang: Language, model=None, model_dir: str=None, device: str=None, name=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
-        # TODO: either remove top_p / top_k or implement to transition_with_probs
-        # TODO: might move shared codes with RNN in transition_with_probs
+    def __init__(self, lang: Language, model=None, model_dir: str=None, device: str=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
+        # TODO: either remove repetition_penalty / top_k or implement to transition_with_probs
+        # TODO: might move shared codes with RNN
         if (model is not None) and (model_dir is not None):
             raise ValueError("specify one of model or model_dir, not both.")
 
@@ -26,7 +26,7 @@ class GPT2Transition(LanguageModel):
         self.top_p = top_p
         self.repetition_penalty = repetition_penalty
 
-        super().__init__(lang=lang, name=name, logger=logger)
+        super().__init__(lang=lang, logger=logger)
         if device != "cpu":
             self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
 

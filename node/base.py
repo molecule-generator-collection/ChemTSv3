@@ -14,7 +14,6 @@ class Node(ABC):
         else:
             self.depth = 0
         self.children: dict[Any, Self] = {}
-        self._probs = [] # call probs()
         self.last_prob = last_prob # Prob(parent -> this node)
         self.last_action = last_action
         self.n = 0 # visit count
