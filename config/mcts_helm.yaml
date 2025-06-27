@@ -1,6 +1,7 @@
 output_dir: generation_result
 # time_limit: 10 # seconds
-max_generations: 10000
+max_generations: 1000
+seed: 0
 
 # transition_class: GPT2Transition
 # transition_args:
