@@ -12,5 +12,5 @@ class LogPReward(MolReward):
         return [log_p]
 
     # implement
-    def reward_from_objective_values(self, values):
-        return np.tanh(values[0] / 10)
+    def reward_from_objective_values(self, objective_values):
+        return np.tanh(objective_values[0] / 10)

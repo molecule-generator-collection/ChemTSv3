@@ -37,8 +37,8 @@ class JScoreReward(MolReward):
         return [log_p, sa_score, ring_size_penalty]
 
     # implement
-    def reward_from_objective_values(self, values):
-        logP, sascore, ring_size_penalty = values
+    def reward_from_objective_values(self, objective_values):
+        logP, sascore, ring_size_penalty = objective_values
         logP_norm = (logP - LOG_P_MEAN) / LOG_P_STD
         sascore_norm = (-sascore - SA_MEAN) / SA_STD
         rs_penalty_norm = (-ring_size_penalty - CS_MEAN) / CS_STD
