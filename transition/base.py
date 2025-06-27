@@ -16,7 +16,7 @@ class Transition(ABC):
     # TODO: implement default execution
     # should return the initial_node itself if it's terminal
     @abstractmethod
-    def rollout(self, initial_node: Node, **kwargs) -> Node:
+    def rollout(self, initial_node: Node) -> Node:
         """randomly samples a node with has_reward() = True"""
         pass
 
@@ -37,7 +37,7 @@ class LanguageModel(Transition):
         pass
 
     @abstractmethod
-    def rollout(self, initial_node: SentenceNode, **kwargs) -> SentenceNode:
+    def rollout(self, initial_node: SentenceNode) -> SentenceNode:
         pass
 
     # override
