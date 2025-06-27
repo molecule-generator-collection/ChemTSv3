@@ -40,7 +40,7 @@ generator_args:
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
-  - filter_class: PubChemFilter
+  # - filter_class: PubChemFilter
   # - filter_class: ChargeFilter
   # - filter_class: AromaticRingFilter
   # - filter_class: LipinskiFilter

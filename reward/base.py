@@ -13,7 +13,7 @@ class Reward(ABC):
         pass
 
     @abstractmethod
-    def reward_from_objective_values(self, values: List[float]) -> float:
+    def reward_from_objective_values(self, objective_values: List[float]) -> float:
         pass
 
     def objective_values(self, node: Node):
@@ -30,7 +30,7 @@ class MolReward(Reward):
         pass
 
     @abstractmethod
-    def reward_from_objective_values(self, values: List[float]) -> float:
+    def reward_from_objective_values(self, objective_values: List[float]) -> float:
         pass
 
     @staticmethod
