@@ -21,7 +21,7 @@ class Generator(ABC):
         self.reward: Reward = reward
         self.filters: list[Filter] = filters or []
         if type(filtered_reward) != list:
-            self.filtered_reward = [filtered_reward for _ in range(len(filters))]
+            self.filtered_reward = [filtered_reward for _ in range(len(self.filters))]
         else:
             self.filtered_reward = filtered_reward
         self._output_dir = output_dir
@@ -207,7 +207,7 @@ class Generator(ABC):
         ylims = ylims or {}
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for o in objective_names:
-            self._plot(x_axis=x_axis, y_axis=o, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only)
+            self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only)
         self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), loc=loc, linewidth=linewidth, save_only=save_only)
 
     def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=1.0, save_only: bool=False):

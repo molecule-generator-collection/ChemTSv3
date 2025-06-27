@@ -62,7 +62,7 @@ class GPT2Transition(LanguageModel):
                 children.append((tok_id, child, prob))
         return children
 
-    # implement
+    # override
     def rollout(self, initial_node: SentenceNode) -> SentenceNode:
         """
         Args:
