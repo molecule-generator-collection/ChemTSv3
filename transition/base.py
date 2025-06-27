@@ -5,34 +5,31 @@ from language import Language
 from node import Node, SentenceNode
 
 class Transition(ABC):
-    def __init__(self, name=None, logger: logging.Logger=None):
-        self.name = name or self.make_name()
+    def __init__(self, logger: logging.Logger=None):
         self.logger = logger or logging.getLogger(__name__)    
-
-    # TODO: implement default execution
-    # should return the initial_node itself if it's terminal (in other words, ends with <EOS>)
-    @abstractmethod
-    def rollout(self, initial_node: Node, **kwargs) -> Node:
-        pass
 
     @abstractmethod
     def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
+        """returns the list of (action, node, probability)"""
+        pass
+    
+    # TODO: implement default execution
+    # should return the initial_node itself if it's terminal
+    @abstractmethod
+    def rollout(self, initial_node: Node, **kwargs) -> Node:
         pass
 
     def transitions(self, node: Node) -> list[tuple[Any, Node]]:
         return self.transitions_with_probs(node)[:-1]
     
-    # should override if not inf
+    # should be overridden if not inf
     def max_length(self) -> int:
         return 10**18
     
-    def make_name(self):
-        return self.__class__.__name__
-    
 class LanguageModel(Transition):
-    def __init__(self, lang: Language, name=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, logger: logging.Logger=None):
         self.lang = lang
-        super().__init__(name, logger)
+        super().__init__(logger)
 
     @abstractmethod
     def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
@@ -42,7 +39,6 @@ class LanguageModel(Transition):
     def rollout(self, initial_node: SentenceNode, **kwargs) -> SentenceNode:
         pass
 
-    # should override if not inf
     # override
     def max_length(self) -> int:
         return 10**18
