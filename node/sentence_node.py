@@ -20,6 +20,10 @@ class SentenceNode(Node):
         return self.id_tensor[0][-1] == self.lang.eos_id()
     
     # implement
+    def has_reward(self):
+        return self.is_terminal()
+    
+    # implement
     @classmethod
     def node_from_key(cls, lang: Language, string: str, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         id_tensor = lang.sentence2tensor(string, include_eos=include_eos, device=device)
