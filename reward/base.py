@@ -4,7 +4,6 @@ from rdkit.Chem import Mol
 from node import Node, MolNode
 
 class Reward(ABC):
-    #Callable[[Node], float] instead of Callable[[Mol], float] for better compatibility    
     def __init__(self, **kwargs):
         pass
     
