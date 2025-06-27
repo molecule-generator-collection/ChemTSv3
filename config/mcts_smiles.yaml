@@ -3,7 +3,7 @@ time_limit: 20 # seconds
 # max_generations: 10000
 debug: true
 seed: 0
-use_canonical_smiles_as_key: false
+use_canonical_smiles_as_key: true
 # root: "N"
 # root: ["Nc", "NC"]
 
