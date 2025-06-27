@@ -20,10 +20,10 @@ class MCTS(Generator):
             allow_rollout_overlaps: whether to allow overlap nodes when sampling rollout candidates
             n_rollouts: the number of rollouts in one step
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
-            cut_unvisited_children: 
+            remove_failed_child: If True, child nodes are will be removed when {n_rollouts * n_tries} rollouts are filtered.
             terminal_reward: If "ignore", doesn't backpropagate anything. If "reward", backpropagate the reward. If float value, backpropagate specified value.
-            filtered_reward: Backpropagate this value when all rollouts are failed from the child. Set "ignore" not to backpropagate.
-            all_filtered_reward: Backpropagate this value when all rollouts are failed from the node.
+            filtered_reward: Backpropagate this value when {n_tries} rollouts are filtered from the child. Set "ignore" not to backpropagate.
+            all_filtered_reward: Backpropagate this value when {rollout_width * n_rollouts * n_tries} rollouts are filtered from the node.
             freeze_terminal: If True, terminal node won't be visited twice.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
         """
@@ -41,6 +41,8 @@ class MCTS(Generator):
             raise ValueError("Set freeze_terminal to True, or set terminal_reward to something else.")
         if remove_failed_child and allow_rollout_overlaps:
             raise ValueError("Set one of these values to False: remove_failed_child or allow_rollout_overlaps.")
+        if type(filtered_reward) is list and n_tries != 1:
+            raise ValueError("list input for filtered_reward is not supported on n_tries > 1.")
         self.terminal_reward = terminal_reward
         self.freeze_terminal = freeze_terminal
         self.use_dummy_reward = use_dummy_reward
