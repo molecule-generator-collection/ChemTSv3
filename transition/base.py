@@ -17,6 +17,7 @@ class Transition(ABC):
     # should return the initial_node itself if it's terminal
     @abstractmethod
     def rollout(self, initial_node: Node, **kwargs) -> Node:
+        """randomly samples a node with has_reward() = True"""
         pass
 
     def transitions(self, node: Node) -> list[tuple[Any, Node]]:

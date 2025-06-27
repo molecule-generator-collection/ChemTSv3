@@ -24,14 +24,16 @@ class Node(ABC):
     @abstractmethod
     def key(self) -> str:
         pass
-    
-    def __str__(self) -> str:
-        return self.key()
 
     @abstractmethod
     def is_terminal(self) -> bool:
         pass
     
+    # should be overridden if 
+    def has_reward(self) -> bool:
+        return self.is_terminal()
+    
+    # should be overridden if root specification is needed
     @classmethod
     def node_from_key(cls, string: str) -> Self:
         raise NotImplementedError("node_from_key() is not supported in this class.")
@@ -78,6 +80,9 @@ class Node(ABC):
     
     def clear_cache(self):
         self._cache = {}
+        
+    def __str__(self) -> str:
+        return self.key()
     
 class MolNode(Node):
     @abstractmethod
