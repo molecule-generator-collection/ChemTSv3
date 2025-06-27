@@ -5,7 +5,7 @@ import math
 import os
 import pickle
 import time
-from typing import Type, Any, Self
+from typing import Self
 import matplotlib.pyplot as plt
 import numpy as np
 from filter import Filter
