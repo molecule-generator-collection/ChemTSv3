@@ -164,6 +164,7 @@ class RNNTransition(LanguageModel):
                 children.append((tok_id, child, prob))
         return children
     
+    # override
     def rollout(self, initial_node: SentenceNode) -> SentenceNode:
         with torch.no_grad():
             generated_tensor = self.model.generate(

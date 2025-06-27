@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
+import random
 from typing import Any
 from language import Language
 from node import Node, SentenceNode
@@ -12,13 +13,24 @@ class Transition(ABC):
     def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
         """returns the list of (action, node, probability)"""
         pass
-    
-    # TODO: implement default execution
-    # should return the initial_node itself if it's terminal
-    @abstractmethod
+
     def rollout(self, initial_node: Node) -> Node:
-        """randomly samples a node with has_reward() = True"""
-        pass
+        if initial_node.is_terminal():
+            return initial_node
+        
+        current_node = initial_node
+        while True:
+            transitions = self.transitions_with_probs(current_node)
+            if not transitions:
+                return current_node
+            
+            _, next_nodes, probs = zip(*transitions)
+            next_node = random.choices(next_nodes, weights=probs, k=1)[0]
+            
+            if next_node.has_reward():
+                return next_node
+            
+            current_node = next_node
 
     def transitions(self, node: Node) -> list[tuple[Any, Node]]:
         return self.transitions_with_probs(node)[:-1]
@@ -34,10 +46,6 @@ class LanguageModel(Transition):
 
     @abstractmethod
     def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
-        pass
-
-    @abstractmethod
-    def rollout(self, initial_node: SentenceNode) -> SentenceNode:
         pass
 
     # override
