@@ -21,18 +21,21 @@ class Node(ABC):
         self.sum_r = 0 # sum of rewards
         self.best_r = self.initial_best_r
         self._cache = {} # str, Any
-
+    
     @abstractmethod
-    def __str__(self) -> str:
+    def key(self) -> str:
         pass
+    
+    def __str__(self) -> str:
+        return self.key()
 
     @abstractmethod
     def is_terminal(self) -> bool:
         pass
     
     @classmethod
-    def node_from_string(cls, string: str) -> Self:
-        raise NotImplementedError("node_from_string() is not supported in this class.")
+    def node_from_key(cls, string: str) -> Self:
+        raise NotImplementedError("node_from_key() is not supported in this class.")
 
     def add_child(self, action: Any, child: Self, override_child=False, override_parent=False):
         if override_child is False and action in self.children:
@@ -79,7 +82,7 @@ class Node(ABC):
     
 class MolNode(Node):
     @abstractmethod
-    def __str__(self) -> str:
+    def key(self) -> str:
         pass
 
     @abstractmethod
@@ -101,7 +104,7 @@ class MolNode(Node):
 class SurrogateNode(Node):
     """surrogate node for multiple roots"""
     # implement
-    def __str__(self) -> str:
+    def key(self) -> str:
         return "surrogate node"
 
     # implement
