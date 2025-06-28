@@ -42,7 +42,8 @@ class GPT2Transition(LanguageModel):
 
     # implement
     def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
-        nodes = []
+        if node.id_tensor[0][-1] == self.lang.eos_id():
+            return []
 
         with torch.no_grad():
             outputs = self.model(node.id_tensor)

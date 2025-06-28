@@ -16,12 +16,8 @@ class SentenceNode(Node):
         return self.lang.ids2sentence(self.id_list())
 
     # implement
-    def is_terminal(self):
-        return self.id_tensor[0][-1] == self.lang.eos_id()
-    
-    # implement
     def has_reward(self):
-        return self.is_terminal()
+        return self.id_tensor[0][-1] == self.lang.eos_id()
     
     # implement
     @classmethod

@@ -19,14 +19,11 @@ class Node(ABC):
         self.n = 0 # visit count
         self.sum_r = 0 # sum of rewards
         self.best_r = self.initial_best_r
+        self._is_terminal = False # set this to True in generator if transition_with_probs returned an empty list
         self._cache = {} # str, Any
     
     @abstractmethod
     def key(self) -> str:
-        pass
-
-    @abstractmethod
-    def is_terminal(self) -> bool:
         pass
     
     @abstractmethod
@@ -37,6 +34,9 @@ class Node(ABC):
     @classmethod
     def node_from_key(cls, string: str) -> Self:
         raise NotImplementedError("node_from_key() is not supported in this class.")
+    
+    def is_terminal(self) -> bool:
+        return self._is_terminal
 
     def add_child(self, action: Any, child: Self, override_child=False, override_parent=False):
         if override_child is False and action in self.children:
@@ -88,10 +88,6 @@ class MolNode(Node):
     @abstractmethod
     def key(self) -> str:
         pass
-
-    @abstractmethod
-    def is_terminal(self) -> bool:
-        pass
     
     @abstractmethod
     def has_reward(self) -> bool:
@@ -114,10 +110,6 @@ class SurrogateNode(Node):
     # implement
     def key(self) -> str:
         return "surrogate node"
-
-    # implement
-    def is_terminal(self) -> bool:
-        return False
     
     # implement
     def has_reward(self) -> bool:
