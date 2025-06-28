@@ -18,7 +18,7 @@ class MCTS(Generator):
             n_rollouts: the number of rollouts in one step
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
             remove_failed_child: If True, child nodes are will be removed when {n_rollouts * n_tries} rollouts are filtered.
-            terminal_reward: If "ignore", doesn't backpropagate anything. If "reward", backpropagate the reward. If float value, backpropagate specified value.
+            terminal_reward: If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
             filtered_reward: Backpropagate this value when {n_tries} rollouts are filtered from the child. Set "ignore" not to backpropagate.
             all_filtered_reward: Backpropagate this value when {rollout_width * n_rollouts * n_tries} rollouts are filtered from the node.
             freeze_terminal: If True, terminal node won't be visited twice.
@@ -54,7 +54,7 @@ class MCTS(Generator):
         while node.children:
             node = self.policy.select_child(node)
             if node.sum_r == -float("inf"): # already exhausted every terminal under this node
-                self.logger.debug("Exhausted every terminal under: " + str(node.parent) + "")
+                self.logger.debug("exhausted every terminal under: " + str(node.parent) + "")
                 node.parent.sum_r = -float("inf")
                 node = self.root
         return node
@@ -67,10 +67,13 @@ class MCTS(Generator):
         for a, n in zip(actions, nodes):
             node.add_child(a, n)
         return True
-            
-    def _rollout(self, node: Node):
-        result = self.transition.rollout(node)
-        return self.get_objective_values_and_reward(result)
+    
+    def _eval(self, node: Node):
+        if node.has_reward():
+            return self.get_objective_values_and_reward(node)
+        else:
+            offspring = self.transition.rollout(node)
+            return self.get_objective_values_and_reward(offspring)
 
     def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
         while node:
@@ -80,19 +83,18 @@ class MCTS(Generator):
     # implement
     def _generate_impl(self):
         node = self._selection()
-        if node.is_terminal() or node.depth > self.max_tree_depth:
-            if self.terminal_reward != "ignore":
-                reward = self.terminal_reward
-                self._backpropagate(node, self.terminal_reward, False)
-            if self.freeze_terminal:
-                node.n += 1 # to avoid n=0 score
-                node.sum_r = -float("inf")
-            return
         
+        if node.depth > self.max_tree_depth:
+            node.mark_as_terminal(freeze=self.freeze_terminal)
+
         if not node.children and node.n != 0:
             if not self._expand(node):
-                node._is_terminal = True
-                return
+                node.mark_as_terminal(freeze=self.freeze_terminal)
+    
+        if node.is_terminal():
+            if self.terminal_reward != "ignore":
+                self._backpropagate(node, self.terminal_reward, False)
+            return
 
         if not node.children:
             children = [node]
@@ -104,7 +106,7 @@ class MCTS(Generator):
             child_got_unfiltered_node = False
             for _ in range(self.n_rollouts):
                 for _ in range(self.n_tries):
-                    objective_values, reward = self._rollout(child) # rollout returns the child itself if terminal
+                    objective_values, reward = self._eval(child) # rollout returns the child itself if terminal
                     if type(objective_values[0]) != str: # not filtered
                         break
                 if type(objective_values[0]) != str: # not filtered

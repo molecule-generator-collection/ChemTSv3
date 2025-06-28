@@ -15,13 +15,15 @@ class Transition(ABC):
         pass
 
     def rollout(self, initial_node: Node) -> Node:
-        if initial_node.is_terminal() or initial_node.has_reward():
+        """samples an offspring with has_reward() = True"""
+        if initial_node.is_terminal():
             return initial_node
         
         current_node = initial_node
         while True:
             transitions = self.transitions_with_probs(current_node)
             if not transitions:
+                current_node.mark_as_terminal()
                 return current_node
             
             _, next_nodes, probs = zip(*transitions)

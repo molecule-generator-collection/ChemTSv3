@@ -35,6 +35,12 @@ class Node(ABC):
     def node_from_key(cls, string: str) -> Self:
         raise NotImplementedError("node_from_key() is not supported in this class.")
     
+    def mark_as_terminal(self, freeze=False) -> bool:
+        self._is_terminal = True
+        if freeze:
+            self.n += 1 # to avoid n=0 score
+            self.sum_r = -float("inf")
+
     def is_terminal(self) -> bool:
         return self._is_terminal
 

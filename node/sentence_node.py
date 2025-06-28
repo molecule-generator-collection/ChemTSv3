@@ -35,7 +35,7 @@ class SentenceNode(Node):
         return cls.node_from_key(lang=lang, string="", device=device, include_eos=False)
 
 class MolSentenceNode(SentenceNode, MolNode):
-    use_canonical_smiles_as_key = True
+    use_canonical_smiles_as_key = False
 
     def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         super().__init__(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
