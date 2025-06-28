@@ -59,10 +59,14 @@ class MCTS(Generator):
                 node = self.root
         return node
 
-    def _expand(self, node: Node):
-        actions, nodes, _ = zip(*self.transition.transitions_with_probs(node))
+    def _expand(self, node: Node) -> bool:
+        transitions = self.transition.transitions_with_probs(node)
+        if len(transitions) == 0:
+            return False
+        actions, nodes, _ = zip(*transitions)
         for a, n in zip(actions, nodes):
             node.add_child(a, n)
+        return True
             
     def _rollout(self, node: Node):
         result = self.transition.rollout(node)
@@ -86,7 +90,9 @@ class MCTS(Generator):
             return
         
         if not node.children and node.n != 0:
-            self._expand(node)
+            if not self._expand(node):
+                node._is_terminal = True
+                return
 
         if not node.children:
             children = [node]

@@ -144,6 +144,9 @@ class RNNTransition(LanguageModel):
 
     #implement
     def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+        if node.id_tensor[0][-1] == self.lang.eos_id():
+            return []
+        
         self.model.eval()
         with torch.no_grad(): 
             logits, _ = self.model(node.id_tensor.to(self.device))
