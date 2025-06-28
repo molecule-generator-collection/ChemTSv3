@@ -24,14 +24,7 @@ class MCTS(Generator):
             freeze_terminal: If True, terminal node won't be visited twice.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
         """
-        self.root = root
-        self.max_tree_depth = max_tree_depth or transition.max_length()
-        self.policy = policy
-        self.rollout_width = rollout_width
-        self.allow_rollout_overlaps = allow_rollout_overlaps
-        self.n_rollouts = n_rollouts
-        self.n_tries = n_tries
-        self.remove_failed_child = remove_failed_child
+
         if not isinstance(terminal_reward, (float, int)) and terminal_reward not in ("ignore", "reward"):
             raise ValueError("terminal_reward must be one of the following: float value, 'ignore', or 'reward'.")
         if terminal_reward == "ignore" and not freeze_terminal:
@@ -42,6 +35,15 @@ class MCTS(Generator):
             raise ValueError("the size of list input for filtered_reward should match the number of filters.")
         if type(filtered_reward) == list and n_tries != 1:
             raise ValueError("list input for filtered_reward is not supported on n_tries > 1.")
+
+        self.root = root
+        self.max_tree_depth = max_tree_depth or transition.max_length()
+        self.policy = policy
+        self.rollout_width = rollout_width
+        self.allow_rollout_overlaps = allow_rollout_overlaps
+        self.n_rollouts = n_rollouts
+        self.n_tries = n_tries
+        self.remove_failed_child = remove_failed_child
         self.terminal_reward = terminal_reward
         self.freeze_terminal = freeze_terminal
         self.use_dummy_reward = use_dummy_reward
@@ -85,12 +87,11 @@ class MCTS(Generator):
         node = self._selection()
         
         if node.depth > self.max_tree_depth:
-            node.mark_as_terminal(freeze=self.freeze_terminal)
-
-        if not node.children and node.n != 0:
+            node.mark_as_terminal(freeze=self.freeze_terminal)  
+        elif not node.children and node.n != 0:
             if not self._expand(node):
                 node.mark_as_terminal(freeze=self.freeze_terminal)
-    
+                
         if node.is_terminal():
             if self.terminal_reward != "ignore":
                 self._backpropagate(node, self.terminal_reward, False)
