@@ -15,7 +15,7 @@ class Transition(ABC):
         pass
 
     def rollout(self, initial_node: Node) -> Node:
-        if initial_node.is_terminal():
+        if initial_node.is_terminal() or initial_node.has_reward():
             return initial_node
         
         current_node = initial_node
