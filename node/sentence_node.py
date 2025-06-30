@@ -13,7 +13,7 @@ class SentenceNode(Node):
 
     # implement
     def key(self):
-        return self.lang.ids2sentence(self.id_list())
+        return self.lang.indices2sentence(self.id_list())
 
     # implement
     def has_reward(self):
@@ -42,7 +42,7 @@ class MolSentenceNode(SentenceNode, MolNode):
 
     # implement
     def _mol_impl(self) -> Mol:
-        return self.lang.sentence2mol(self.lang.ids2sentence(self.id_list()))
+        return self.lang.sentence2mol(self.lang.indices2sentence(self.id_list()))
     
     # override
     def key(self):

@@ -6,6 +6,7 @@ from rdkit.Chem import Mol
 from language import DynamicMolLanguage
 from utils import HELMConverter
 
+# TODO: rewrite without using self.backbone_monomer_ids
 class HELM(DynamicMolLanguage):
     def __init__(self, has_period=False, converter: HELMConverter=None):
         self.has_period = has_period
@@ -19,7 +20,7 @@ class HELM(DynamicMolLanguage):
             self.converter.lib.cull(self.vocab())
 
     # implement
-    def sentence2tokens(self, sentence, include_eos: bool=True):
+    def sentence2tokens(self, sentence: str, include_eos: bool=True) -> list[str]:
         helm = HELM.cull_postfix(sentence)
 
         tokens = HELMConverter.split_helm(helm)
@@ -31,14 +32,14 @@ class HELM(DynamicMolLanguage):
         return tokens
 
     # override
-    def sentence2ids(self, sentence, include_eos: bool=True):
-        raw_tokenids = [self.token2id(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
+    def sentence2indices(self, sentence: str, include_eos: bool=True):
+        raw_tokenids = [self.token2idx(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
         if self.has_period:
             return raw_tokenids
 
         noperiod_tokenids = []
         for i, tokenid in enumerate(raw_tokenids):
-            if tokenid == self.token2id("."):
+            if tokenid == self.token2idx("."):
                 # index conditions shouldn't be needed for valid helm sentence
                 if i > 0:
                     self.backbone_monomer_ids.add(raw_tokenids[i-1])
@@ -50,24 +51,24 @@ class HELM(DynamicMolLanguage):
         return noperiod_tokenids
     
     # override
-    def ids2sentence(self, idseq):
-        if idseq[0] == self.bos_id():
-            if len(idseq) == 1:
-                return self.id2token(idseq[0])
-            idseq = idseq[1:]
-        if idseq[-1] == self.eos_id():
-            idseq = idseq[:-1]
+    def indices2sentence(self, indices: list[int]):
+        if indices[0] == self.bos_id():
+            if len(indices) == 1:
+                return self.idx2token(indices[0])
+            indices = indices[1:]
+        if indices[-1] == self.eos_id():
+            indices = indices[:-1]
         # add periods
         if not self.has_period:
             newidseq = []
-            for i, tokenid in enumerate(idseq):
+            for i, tokenid in enumerate(indices):
                 newidseq.append(tokenid)
-                if i < len(idseq) - 1:
-                    if idseq[i] in self.backbone_monomer_ids and idseq[i+1] in self.backbone_monomer_ids:
-                        newidseq.append(self.token2id("."))
-            s = "".join(self.id2token(i) for i in newidseq)
+                if i < len(indices) - 1:
+                    if indices[i] in self.backbone_monomer_ids and indices[i+1] in self.backbone_monomer_ids:
+                        newidseq.append(self.token2idx("."))
+            s = "".join(self.idx2token(i) for i in newidseq)
         else:
-            s = "".join(self.id2token(i) for i in idseq)
+            s = "".join(self.idx2token(i) for i in indices)
         s += "$$$$"
         return s
 

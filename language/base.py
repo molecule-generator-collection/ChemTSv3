@@ -13,16 +13,16 @@ class Language(ABC):
     _unk_token = "<UNKNOWN>"
 
     @abstractmethod
-    def sentence2ids(self, sentence: str, include_eos: bool=True) -> list[int]:
+    def sentence2indices(self, sentence: str, include_eos: bool=True) -> list[int]:
         """convert sentence to token ids"""
         pass
     
     @abstractmethod
-    def token2id(self, token: str) -> int:
+    def token2idx(self, token: str) -> int:
         pass
 
     @abstractmethod
-    def id2token(tokenid: int) -> str:
+    def idx2token(tokenid: int) -> str:
         pass
 
     @abstractmethod
@@ -31,7 +31,7 @@ class Language(ABC):
         pass
 
     @abstractmethod
-    def ids2sentence(self, idseq: list[int]) -> str:
+    def indices2sentence(self, indices: list[int]) -> str:
         """revert the token id sequence to sentence"""
         pass
     
@@ -48,16 +48,16 @@ class Language(ABC):
         return self.__class__._unk_token
     
     def eos_id(self) -> int:
-        return self.token2id(self.__class__._eos_token)
+        return self.token2idx(self.__class__._eos_token)
     
     def bos_id(self) -> int:
-        return self.token2id(self.__class__._bos_token)
+        return self.token2idx(self.__class__._bos_token)
     
     def pad_id(self) -> int:
-        return self.token2id(self.__class__._pad_token)
+        return self.token2idx(self.__class__._pad_token)
     
     def unk_id(self) -> int:
-        return self.token2id(self.__class__._unk_token)
+        return self.token2idx(self.__class__._unk_token)
     
     def list2tensor(self, ids: list[int], device: str=None) -> torch.Tensor:
         return torch.tensor([ids], device=torch.device(device or ("cuda:0" if torch.cuda.is_available() else "cpu")))
@@ -68,10 +68,10 @@ class Language(ABC):
     
     def tensor2sentence(self, tensor: torch.Tensor) -> str:
         l = self.tensor2list(tensor)
-        return self.ids2sentence(l)
+        return self.indices2sentence(l)
     
     def sentence2tensor(self, sentence: str, include_eos: bool=True, device: str=None) -> torch.Tensor:
-        l = self.sentence2ids(sentence, include_eos=include_eos)
+        l = self.sentence2indices(sentence, include_eos=include_eos)
         return self.list2tensor(l, device=device)
     
     def bos_tensor(self, device: str=None):
@@ -108,16 +108,16 @@ class DynamicLanguage(Language):
         pass
     
     # implement
-    def sentence2ids(self, sentence, include_eos: bool=True):
-        return [self.token2id(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
+    def sentence2indices(self, sentence: str, include_eos: bool=True) -> list[int]:
+        return [self.token2idx(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
 
     # implement
-    def ids2sentence(self, idseq):
+    def indices2sentence(self, indices: list[int]) -> str:
         # remove bos and eos
-        idseq = idseq[1:]
-        if idseq and idseq[-1] == self.eos_id():
-            idseq = idseq[:-1]
-        return "".join(self.id2token(i) for i in idseq)
+        indices = indices[1:]
+        if indices and indices[-1] == self.eos_id():
+            indices = indices[:-1]
+        return "".join(self.idx2token(i) for i in indices)
 
     def build_vocab(self, splits: dict[str, list[dict]]):
         """splits: dataset (ds)"""
@@ -137,15 +137,15 @@ class DynamicLanguage(Language):
         return self._vocab
 
     # implement
-    def token2id(self, token):
+    def token2idx(self, token: str) -> int:
         return self._token2id.get(token, self._token2id[self.unk_token()])
 
     # implement
-    def id2token(self, tokenid):
-        return self._id2token[tokenid]
+    def idx2token(self, token_idx: int) -> str:
+        return self._id2token[token_idx]
     
     @classmethod
-    def load_tokens_list(cls, tokens: list) -> Self:
+    def load_tokens_list(cls, tokens: list[str]) -> Self:
         lang = cls()
         lang._vocab = tokens
 
@@ -157,16 +157,16 @@ class DynamicLanguage(Language):
 
 class MolLanguage(Language):
     @abstractmethod
-    def sentence2ids(self, sentence: str) -> list[int]:
+    def sentence2indices(self, sentence: str) -> list[int]:
         """convert sentence to token ids"""
         pass
     
     @abstractmethod
-    def token2id(self, token: str) -> int:
+    def token2idx(self, token: str) -> int:
         pass
 
     @abstractmethod
-    def id2token(tokenid: int) -> str:
+    def idx2token(token_idx: int) -> str:
         pass
 
     @abstractmethod
@@ -175,7 +175,7 @@ class MolLanguage(Language):
         pass
 
     @abstractmethod
-    def ids2sentence(self, idseq: list[int]) -> str:
+    def indices2sentence(self, indices: list[int]) -> str:
         """revert the token id sequence to sentence"""
         pass
     
