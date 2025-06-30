@@ -14,28 +14,35 @@ class Node(ABC):
         else:
             self.depth = 0
         self.children: dict[Any, Self] = {}
-        self._probs = [] # call probs()
         self.last_prob = last_prob # Prob(parent -> this node)
         self.last_action = last_action
         self.n = 0 # visit count
         self.sum_r = 0 # sum of rewards
         self.best_r = self.initial_best_r
+        self._is_terminal = False # set this to True in generator if transition_with_probs returned an empty list
         self._cache = {} # str, Any
     
     @abstractmethod
     def key(self) -> str:
         pass
     
-    def __str__(self) -> str:
-        return self.key()
-
     @abstractmethod
-    def is_terminal(self) -> bool:
+    def has_reward(self) -> bool:
         pass
     
+    # should be overridden if root specification is needed
     @classmethod
     def node_from_key(cls, string: str) -> Self:
         raise NotImplementedError("node_from_key() is not supported in this class.")
+    
+    def mark_as_terminal(self, freeze=False) -> bool:
+        self._is_terminal = True
+        if freeze:
+            self.n += 1 # to avoid n=0 score
+            self.sum_r = -float("inf")
+
+    def is_terminal(self) -> bool:
+        return self._is_terminal
 
     def add_child(self, action: Any, child: Self, override_child=False, override_parent=False):
         if override_child is False and action in self.children:
@@ -79,14 +86,17 @@ class Node(ABC):
     
     def clear_cache(self):
         self._cache = {}
+        
+    def __str__(self) -> str:
+        return self.key()
     
 class MolNode(Node):
     @abstractmethod
     def key(self) -> str:
         pass
-
+    
     @abstractmethod
-    def is_terminal(self) -> bool:
+    def has_reward(self) -> bool:
         pass
 
     @abstractmethod
@@ -106,7 +116,7 @@ class SurrogateNode(Node):
     # implement
     def key(self) -> str:
         return "surrogate node"
-
+    
     # implement
-    def is_terminal(self) -> bool:
+    def has_reward(self) -> bool:
         return False
