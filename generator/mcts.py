@@ -9,20 +9,22 @@ from transition import Transition
 class MCTS(Generator):
     def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCB1(), filters: list[Filter]=None, filtered_reward: float | str | list=0, all_filtered_reward: float | str="ignore", rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
         """
-        Tries to maximize the reward by MCTS search.
+        Performs MCTS to maximize the reward.
 
         Args:
-            root: root node
-            rollout_width: the number of children to sample for rollout (to rollout all children, set this to higher values than the number of the tokens)
-            allow_rollout_overlaps: whether to allow overlap nodes when sampling rollout candidates
-            n_rollouts: the number of rollouts in one step
+            root: root The root node. Use a SurrogateNode to search from multiple nodes.
+            rollout_width: The number of children to sample during rollout. To perform rollouts for all children, set this to a value higher than the number of tokens.
+            allow_rollout_overlaps: whether to allow overlap nodes when sampling rollout candidates (recommended: False)
+            n_rollouts: the number of rollouts from one child node
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
-            remove_failed_child: If True, child nodes are will be removed when {n_rollouts * n_tries} rollouts are filtered.
-            terminal_reward: If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
-            filtered_reward: Backpropagate this value when {n_tries} rollouts are filtered from the child. Set "ignore" not to backpropagate.
-            all_filtered_reward: Backpropagate this value when {rollout_width * n_rollouts * n_tries} rollouts are filtered from the node.
-            freeze_terminal: If True, terminal node won't be visited twice.
+            filtered_reward: Backpropagate this value when {n_tries} rollouts are filtered from the child. Set "ignore" not to backpropagate. Use list input if you want to set different rewards for each filter step.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
+            
+            --- The following variables are provided for ChemTSv2 replication, and are generally recommended to leave at their default values. ---
+            all_filtered_reward: Backpropagate this value when {rollout_width * n_rollouts * n_tries} rollouts are filtered from the node.
+            remove_failed_child: If True, child nodes will be removed when {n_rollouts * n_tries} rollouts are filtered.
+            freeze_terminal: If True, terminal node won't be visited twice.
+            terminal_reward: If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
         """
 
         if not isinstance(terminal_reward, (float, int)) and terminal_reward not in ("ignore", "reward"):
