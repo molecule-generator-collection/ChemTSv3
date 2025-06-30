@@ -145,15 +145,15 @@ class DScoreReward(MolReward):
                 toxicity, sa_score, qed, molecular_weight, tox_alert, has_chembl_substruct]
 
     # implement
-    def reward_from_objective_values(self, values):
-        if None in values:
+    def reward_from_objective_values(self, objective_values):
+        if None in objective_values:
             return -1
 
         objectives = [f.__name__ for f in self.mol_objective_functions()]
 
         scaled_values = []
         weights = []
-        for objective, value in zip(objectives, values):
+        for objective, value in zip(objectives, objective_values):
             if objective == "SAscore":
                 # SAscore is made negative when scaling because a smaller value is more desirable.
                 scaled_values.append(scale_objective_value(self.params[objective], -1 * value))

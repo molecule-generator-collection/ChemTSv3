@@ -105,11 +105,11 @@ class RNNLanguageModel(nn.Module):
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, name: str=None, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, logger: logging.Logger=None):
         if (model is not None) and (model_dir is not None):
             raise ValueError("specify one (or none) of model or model_dir, not both.")
         
-        super().__init__(lang=lang, name=name, logger=logger)
+        super().__init__(lang=lang, logger=logger)
         if device != "cpu":
             self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
 
@@ -144,6 +144,9 @@ class RNNTransition(LanguageModel):
 
     #implement
     def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+        if node.id_tensor[0][-1] == self.lang.eos_id():
+            return []
+        
         self.model.eval()
         with torch.no_grad(): 
             logits, _ = self.model(node.id_tensor.to(self.device))
@@ -164,6 +167,7 @@ class RNNTransition(LanguageModel):
                 children.append((tok_id, child, prob))
         return children
     
+    # override
     def rollout(self, initial_node: SentenceNode) -> SentenceNode:
         with torch.no_grad():
             generated_tensor = self.model.generate(

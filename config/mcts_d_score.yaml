@@ -13,12 +13,13 @@ transition_class: RNNTransition
 transition_args:
   # model_dir: model/smiles/tf25_ported
   model_dir: model/smiles/drugs_zinc_gru
-  top_p: 0.995
+  # model_dir: model/smiles/drugs_zinc_lstm
+  top_p: 0.999
 
 policy_class: UCB1
 policy_args:
   c: 0.2
-  prior: 0.4
+  prior: 0.6
   best_rate: 0.5
 
 generator_class: MCTS

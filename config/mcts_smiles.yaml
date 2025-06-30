@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 20 # seconds
+time_limit: 1000 # seconds
 # max_generations: 10000
 debug: true
 use_canonical_smiles_as_key: true
@@ -40,7 +40,7 @@ generator_args:
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
-  - filter_class: PubChemFilter
+  # - filter_class: PubChemFilter
   # - filter_class: ChargeFilter
   # - filter_class: AromaticRingFilter
   # - filter_class: LipinskiFilter

@@ -4,7 +4,6 @@ from rdkit.Chem import Mol
 from node import Node, MolNode
 
 class Reward(ABC):
-    #Callable[[Node], float] instead of Callable[[Mol], float] for better compatibility    
     def __init__(self, **kwargs):
         pass
     
@@ -13,7 +12,7 @@ class Reward(ABC):
         pass
 
     @abstractmethod
-    def reward_from_objective_values(self, values: List[float]) -> float:
+    def reward_from_objective_values(self, objective_values: List[float]) -> float:
         pass
 
     def objective_values(self, node: Node):
@@ -30,7 +29,7 @@ class MolReward(Reward):
         pass
 
     @abstractmethod
-    def reward_from_objective_values(self, values: List[float]) -> float:
+    def reward_from_objective_values(self, objective_values: List[float]) -> float:
         pass
 
     @staticmethod
