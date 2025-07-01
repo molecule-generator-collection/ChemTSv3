@@ -55,7 +55,7 @@ class LanguageModel(Transition):
         return 10**18
     
 class BlackBoxTransition(Transition):
-    def __init__(self, n_samples=1, logger: logging.Logger=None):
+    def __init__(self, n_samples=2, logger: logging.Logger=None):
         self.n_samples = n_samples
         super().__init__(logger)    
 
@@ -68,5 +68,7 @@ class BlackBoxTransition(Transition):
         transitions = []
         for i in range(self.n_samples):
             next_node = self.sample_transition(node)
+            next_node.last_action = i
+            next_node.last_prob = 1 / self.n_samples
             transitions.append((i, next_node, 1 / self.n_samples))
         return transitions
