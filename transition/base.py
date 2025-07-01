@@ -53,3 +53,20 @@ class LanguageModel(Transition):
     # override
     def max_length(self) -> int:
         return 10**18
+    
+class BlackBoxTransition(Transition):
+    def __init__(self, n_samples=1, logger: logging.Logger=None):
+        self.n_samples = n_samples
+        super().__init__(logger)    
+
+    @abstractmethod
+    def sample_transition(self, node: Node) -> Node:
+        pass    
+
+    # implement
+    def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
+        transitions = []
+        for i in range(self.n_samples):
+            next_node = self.sample_transition(node)
+            transitions.append((i, next_node, 1 / self.n_samples))
+        return transitions
