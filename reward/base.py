@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Callable
+from typing import List, Callable
 from rdkit.Chem import Mol
 from node import Node, MolNode
 

@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from rdkit.Chem import Descriptors
 from reward import MolReward
