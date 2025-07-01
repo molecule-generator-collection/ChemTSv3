@@ -1,10 +1,10 @@
 from math import sqrt
 from node import Node
-from policy import Policy
+from policy import ValuePolicy
 from typing import Callable
 from utils import PointCurve
 
-class PUCT(Policy):
+class PUCT(ValuePolicy):
     forced_rollout: bool # whether to return inf score for unexplored node or not
     initial_mean: float
     
@@ -21,7 +21,7 @@ class PUCT(Policy):
         self.max_prior = max_prior
         
     # implement
-    def evaluate(self, node: Node):
+    def evaluate(self, node: Node) -> float:
         if type(self.c) == Callable:
             c = self.c(node.depth)
         elif type(self.c) == PointCurve:

@@ -5,12 +5,18 @@ from node import Node
 class Policy(ABC):
     def __init__(self, **kwargs):
         pass
-    
+
     @abstractmethod
-    def evaluate(self, node: Node, **kwargs):
+    def select_child(self, node: Node) -> Node:
         pass
     
-    def select_child(self, node: Node):
+class ValuePolicy(Policy):
+    """policy that chooses the node with the highest score"""
+    @abstractmethod
+    def evaluate(self, node: Node, **kwargs) -> float:
+        pass
+    
+    def select_child(self, node: Node) -> Node:
         values = node.children.values()
         max_y = max(self.evaluate(child) for child in values)
         candidates = [child for child in values if self.evaluate(child) == max_y]
