@@ -1,14 +1,13 @@
-study_name: d_score_200000
+study_name: d_score_test
 n_trials: 10000
 n_steps: 40
 best_reward_rate: 0.3
-recent_average_window: 0.2
 seed: 0
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: false
 
 output_dir: generation_result
-max_generations: 200000
+max_generations: 200
 time_limit: 72000
 
 device: cpu
