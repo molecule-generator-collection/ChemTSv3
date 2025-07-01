@@ -1,6 +1,5 @@
 from typing import Self, Any
 from rdkit.Chem import Mol
-import torch
 from language import MolLanguage
 from node import MolNode
 
