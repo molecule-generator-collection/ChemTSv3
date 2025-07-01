@@ -2,11 +2,7 @@
 ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/reward/dscore_reward.py
 requires: lightgbm==3.2.1~3.3.5
 """
-
-import os
 import pickle
-import sys
-
 import numpy as np
 import pandas as pd
 from rdkit import Chem
