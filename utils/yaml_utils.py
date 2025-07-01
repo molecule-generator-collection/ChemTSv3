@@ -11,7 +11,7 @@ import yaml
 from rdkit import RDLogger
 from generator import Generator
 from language import Language
-from node import SurrogateNode, SentenceNode, MolSentenceNode
+from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode
 from utils import add_sep, class_from_package, make_logger
 
 def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
@@ -42,7 +42,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
     if node_class == MolSentenceNode:
         MolSentenceNode.use_canonical_smiles_as_key = conf.get("use_canonical_smiles_as_key", False)
 
-    # set transition (and lang if needed)
+    # set transition lang
     transition_args = conf.get("transition_args", {})
     if "model_dir" in transition_args:
         transition_args["model_dir"] = os.path.join(repo_root, transition_args["model_dir"])
@@ -55,6 +55,10 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
             lang_path = add_sep(transition_args["model_dir"]) + lang_name
         lang = Language.load(lang_path)
         transition_args["lang"] = lang
+    elif issubclass(node_class, MolStringNode):
+        language_class = class_from_package("language", conf["language_class"])
+        language_args = conf.get("language_args", {})
+        lang = language_class(**language_args)
 
     transition = transition_class(logger=logger, device=conf.get("device"), **transition_args)
     
