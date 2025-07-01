@@ -222,7 +222,7 @@ class Generator(ABC):
         plt.grid(axis="y")
         plt.title(self.name())
         plt.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0))
-        plt.savefig(self.output_dir() + self.name() + "_by_" + x_axis + ".png")
+        plt.savefig(self.output_dir() + self.name() + "_by_" + x_axis + ".png", bbox_inches="tight")
         plt.close() if save_only else plt.show()
 
     def analyze(self):
