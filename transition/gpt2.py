@@ -3,7 +3,7 @@ import os
 from typing import Any, Self
 import torch
 import torch.nn.functional as F
-from transformers import GPT2LMHeadModel, GenerationConfig
+from transformers import GPT2LMHeadModel
 from language import Language
 from node import SentenceNode
 from transition import LanguageModel

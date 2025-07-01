@@ -5,7 +5,6 @@ from typing import Any, Self
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from language import Language
 from node import SentenceNode
 from transition import LanguageModel
