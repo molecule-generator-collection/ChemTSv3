@@ -3,11 +3,7 @@ output_dir: generation_result
 max_generations: 10000
 seed: 0
 debug: true
-
-# transition_class: GPT2Transition
-# transition_args:
-#   model_dir: model/helm/pep_noperiod_gpt2_1.2m
-#   top_p: 0.995
+node_class: MolSentenceNode
 
 device: cpu
 transition_class: RNNTransition

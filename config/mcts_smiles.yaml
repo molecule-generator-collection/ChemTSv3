@@ -2,6 +2,7 @@ output_dir: generation_result
 time_limit: 10 # seconds
 # max_generations: 10000
 debug: true
+node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
 # root: "N"
 # root: ["Nc", "NC"]
