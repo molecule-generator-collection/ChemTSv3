@@ -3,14 +3,14 @@ output_dir: generation_result
 max_generations: 1000
 debug: true
 seed: 0
+node_class: MolSentenceNode
 
 # transition_class: GPT2Transition
 # transition_args:
 #   model_dir: model/smiles/drugs_zinc_gpt2_1.2m
   # model_dir: model/helm/pep_noperiod_gpt2_1.2m
 
-# device: cpu
-
+device: cpu
 transition_class: RNNTransition
 transition_args:
   # model_dir: model/smiles/tf25_ported
