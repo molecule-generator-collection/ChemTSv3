@@ -7,16 +7,16 @@ node_class: MolSentenceNode
 
 # transition_class: GPT2Transition
 # transition_args:
-#   model_dir: model/smiles/drugs_zinc_gpt2_1.2m
-  # model_dir: model/helm/pep_noperiod_gpt2_1.2m
+#   model_dir: model/smiles/drugs_zinc/gpt2_1.2m
+#   model_dir: model/helm/chembl_peptide/gpt2_1.2m
 
 device: cpu
 transition_class: RNNTransition
 transition_args:
-  # model_dir: model/smiles/tf25_ported
-  # model_dir: model/smiles/drugs_zinc_gru
-  model_dir: model/smiles/drugs_zinc_lstm
-  # model_dir: model/helm/pep_noperiod_gru
+  # model_dir: model/smiles/drugs_zinc/tf25_ported
+  # model_dir: model/smiles/drugs_zinc/gru
+  model_dir: model/smiles/drugs_zinc/lstm
+  # model_dir: model/helm/chembl_peptide/gru
   # top_p: 0.995
 
 

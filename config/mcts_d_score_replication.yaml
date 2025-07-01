@@ -7,7 +7,7 @@ node_class: MolSentenceNode
 device: cpu
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/smiles/tf25_ported
+  model_dir: model/smiles/drugs_zinc/tf25_ported
   top_p: 0.995
 
 reward_class: DScoreReward
