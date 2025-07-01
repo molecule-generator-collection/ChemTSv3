@@ -1,4 +1,3 @@
-from rdkit.Chem import Mol, Descriptors
 from filter import ValueFilter
 from node import SentenceNode
 
