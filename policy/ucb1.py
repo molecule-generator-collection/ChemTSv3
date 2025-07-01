@@ -1,11 +1,11 @@
 from math import log, sqrt
 from typing import Callable
 from node import Node
-from policy import Policy
+from policy import ValuePolicy
 from utils import PointCurve
 
 # not named "UCT" and has 2* before log in favor of ChemTSv2 compatibility 
-class UCB1(Policy):
+class UCB1(ValuePolicy):
     def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=1, max_prior: float=None):
         if type(c) == Callable:
             self.c = c
@@ -19,7 +19,7 @@ class UCB1(Policy):
         self.max_prior = max_prior
     
     # implement
-    def evaluate(self, node: Node):
+    def evaluate(self, node: Node) -> float:
         if type(self.c) == Callable:
             c = self.c(node.depth)
         elif type(self.c) == PointCurve:
