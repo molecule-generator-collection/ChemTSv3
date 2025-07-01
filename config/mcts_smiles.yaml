@@ -7,15 +7,10 @@ use_canonical_smiles_as_key: true
 # root: "N"
 # root: ["Nc", "NC"]
 
-# transition_class: GPT2Transition
-# transition_args:
-#   model_dir: model/smiles/drugs_zinc_gpt2_3.2m
-#   top_p: 0.995
-
 device: cpu
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/smiles/drugs_zinc_gru
+  model_dir: model/smiles/drugs_zinc/gru
   top_p: 0.995
 
 reward_class: JScoreReward

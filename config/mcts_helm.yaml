@@ -8,7 +8,7 @@ node_class: MolSentenceNode
 device: cpu
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/helm/pep_noperiod_gru
+  model_dir: model/helm/chembl_peptide/gru
   top_p: 0.995
 
 reward_class: JScoreReward
