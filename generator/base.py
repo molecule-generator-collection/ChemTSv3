@@ -70,6 +70,8 @@ class Generator(ABC):
                 self._generate_impl()
         except KeyboardInterrupt:
             self.logger.warning("Generation interrupted by user (KeyboardInterrupt).")
+        except SystemExit:
+            pass
         finally:
             if hasattr(self, "executor"): # for MP
                 self.executor.shutdown(cancel_futures=True)
