@@ -7,7 +7,7 @@ from reward import Reward, LogPReward
 from transition import Transition
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCB1(), filters: list[Filter]=None, filtered_reward: float | str | list=0, all_filtered_reward: float | str="ignore", rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
+    def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCB1(), filters: list[Filter]=None, filtered_reward: float | str | list=0, all_filtered_reward: float | str="ignore", rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, check_loop: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
         """
         Perform MCTS to maximize the reward.
 
@@ -18,6 +18,7 @@ class MCTS(Generator):
             n_rollouts: the number of rollouts from one child node
             n_tries: the number of attempts to obtain an unfiltered node in a single rollout
             filtered_reward: Backpropagate this value when {n_tries} rollouts are filtered from the child. Set "ignore" not to backpropagate. Use list input if you want to set different rewards for each filter step.
+            check_loop: If True, duplicate nodes won't be added to the search tree.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             
             --- The following variables are provided for ChemTSv2 replication, and are generally recommended to leave at their default values. ---
@@ -48,6 +49,9 @@ class MCTS(Generator):
         self.remove_failed_child = remove_failed_child
         self.terminal_reward = terminal_reward
         self.freeze_terminal = freeze_terminal
+        self.check_loop = check_loop
+        if self.check_loop:
+            self.nodes = set()
         self.use_dummy_reward = use_dummy_reward
         self.all_filtered_reward = all_filtered_reward
         super().__init__(transition=transition, output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger=logger, info_interval=info_interval)
@@ -67,10 +71,17 @@ class MCTS(Generator):
         transitions = self.transition.transitions_with_probs(node)
         if len(transitions) == 0:
             return False
+        expanded = False
         actions, nodes, _ = zip(*transitions)
         for a, n in zip(actions, nodes):
+            if self.check_loop:
+                if n in self.nodes:
+                    continue
+                else:
+                    self.nodes.add(n)
             node.add_child(a, n)
-        return True
+            expanded = True
+        return expanded
     
     def _eval(self, node: Node):
         if node.has_reward():
