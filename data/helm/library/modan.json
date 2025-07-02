@@ -92,15 +92,20 @@
           "label": "R2",
           "capGroupSMILES": "O[*:2]",
           "capGroupName": "OH"
+        },
+        {
+          "label": "R3",
+          "capGroupSMILES": "C[*:3]",
+          "capGroupName": "C"
         }
       ],
-      "smiles": "[*:1]N[C@@H](CCOC\\C=C)C(=O)[*:2]",
+      "smiles": "[*:1]N[C@@H](CCOC\\C=[*:3])C(=O)[*:2]",
       "name": "L-homoserine-(O-allyl)",
       "polymerType": "PEPTIDE"
     },
     {
       "monomerType": "Backbone",
-      "symbol": "S5Left",
+      "symbol": "S5",
       "rgroups": [
         {
           "label": "R1",
@@ -114,35 +119,11 @@
         },
         {
           "label": "R3",
-          "capGroupSMILES": "[*:3][H]",
+          "capGroupSMILES": "[*:3][*]",
           "capGroupName": "H"
         }
       ],
-      "smiles": "[*:1]N[C@@](C)(CCC/C=C\\C[*:3])C(=O)[*:2]",
-      "name": "(S)-2-(4-Pentenyl)alanine",
-      "polymerType": "PEPTIDE"
-    },
-    {
-      "monomerType": "Backbone",
-      "symbol": "S5Right",
-      "rgroups": [
-        {
-          "label": "R1",
-          "capGroupSMILES": "[*:1][H]",
-          "capGroupName": "H"
-        },
-        {
-          "label": "R2",
-          "capGroupSMILES": "O[*:2]",
-          "capGroupName": "OH"
-        },
-        {
-          "label": "R3",
-          "capGroupSMILES": "[*:3][H]",
-          "capGroupName": "H"
-        }
-      ],
-      "smiles": "[*:1]N[C@@](C)(CC[*:3])C(=O)[*:2]",
+      "smiles": "[*:1]N[C@@](C)(CCCC=[*:3])C(=O)[*:2]",
       "name": "(S)-2-(4-Pentenyl)alanine",
       "polymerType": "PEPTIDE"
     },
@@ -162,11 +143,11 @@
         },
         {
           "label": "R3",
-          "capGroupSMILES": "[*:3][H]",
+          "capGroupSMILES": "[*:3][*]",
           "capGroupName": "H"
         }
       ],
-      "smiles": "[*:1]N[C@](C)(CCCCCC/C=C\\C[*:3])(C(=O)[*:2])",
+      "smiles": "[*:1]N[C@](C)(CCCCCC/C=[*:3])(C(=O)[*:2])",
       "name": "(R)-2-(7-octenly)alanine",
       "polymerType": "PEPTIDE"
     }
