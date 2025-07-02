@@ -63,6 +63,9 @@ class MCTS(Generator):
             node = self.policy.select_child(node)
             if node.sum_r == -float("inf"): # already exhausted every terminal under this node
                 self.logger.debug("exhausted every terminal under: " + str(node.parent))
+                if node.parent == self.root:
+                    self.logger.info("Search tree exhausted.")
+                    raise SystemExit
                 node.parent.sum_r = -float("inf")
                 node = self.root
         return node
