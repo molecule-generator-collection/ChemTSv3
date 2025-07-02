@@ -11,7 +11,9 @@ language_class: SELFIES
 transition_class: BioT5Transition
 transition_args:
   n_samples: 2
-  target_objective: improve LogP
+  prompt_prefix: "Definition: You are given a SELFIES representation of a molecule. Your task is to generate a SELFIES string corresponding to a molecule that"
+  target_objective: improve LogP value
+  prompt_postfix: ", while preserving the original molecular scaffold as much as possible and applying only minimal modifications"
 
 reward_class: LogPReward
 
