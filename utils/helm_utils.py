@@ -225,6 +225,8 @@ class HELMConverter():
     
     def check_monomer(self, monomer_token: str, polymer_type: str) -> Mol:
         """Return a specified monomer in the monomer library."""
+        if len(monomer_token) > 1 and not monomer_token.startswith("["):
+            monomer_token = "[" + monomer_token + "]"
         helm = polymer_type + "1{" + monomer_token + "}$$$$"
         return self._convert(helm, close=False)
 
