@@ -4,7 +4,7 @@ from .smiles import SMILES
 
 # lazy import
 def __getattr__(name):
-    if name == "DScoreReward":
+    if name == "SELFIES":
         from .selfies import SELFIES
         return SELFIES
     raise AttributeError(f"module {__name__} has no attribute {name}")
