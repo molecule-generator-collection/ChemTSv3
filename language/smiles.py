@@ -1,6 +1,4 @@
-import pickle
 import re
-from typing import Self
 from rdkit import Chem
 from rdkit.Chem import Mol
 from language import DynamicMolLanguage
