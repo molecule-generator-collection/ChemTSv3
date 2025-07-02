@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 1200 # seconds
+time_limit: 1800 # seconds
 max_generations: 10000
 debug: true
 
@@ -30,6 +30,7 @@ generator_args:
   n_rollouts: 1
   filtered_reward: -1
   freeze_terminal: true
+  check_loop: true
   remove_failed_child: true
   info_interval: 1
 
