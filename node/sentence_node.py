@@ -21,8 +21,8 @@ class SentenceNode(Node):
     
     # implement
     @classmethod
-    def node_from_key(cls, string: str, lang: Language, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
-        id_tensor = lang.sentence2tensor(string, include_eos=include_eos, device=device)
+    def node_from_key(cls, key: str, lang: Language, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
+        id_tensor = lang.sentence2tensor(key, include_eos=include_eos, device=device)
         return cls(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
     def id_list(self) -> list[int]:
@@ -32,7 +32,7 @@ class SentenceNode(Node):
     @classmethod
     def bos_node(cls, lang: Language, device: str=None) -> Self:
         """make bos node, often used as root"""
-        return cls.node_from_key(string="", lang=lang, device=device, include_eos=False)
+        return cls.node_from_key(key="", lang=lang, device=device, include_eos=False)
 
 class MolSentenceNode(SentenceNode, MolNode):
     use_canonical_smiles_as_key = False

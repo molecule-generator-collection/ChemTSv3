@@ -18,8 +18,8 @@ class MolStringNode(MolNode):
         return self.string
     
     @classmethod
-    def node_from_key(key: str, lang: MolLanguage=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
-        return MolStringNode(key, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
+    def node_from_key(cls, key: str, lang: MolLanguage=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+        return MolStringNode(string=key, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
     
     # implement
     def _mol_impl(self) -> Mol:

@@ -32,7 +32,7 @@ class Node(ABC):
     
     # should be overridden if root specification is needed
     @classmethod
-    def node_from_key(cls, string: str) -> Self:
+    def node_from_key(cls, key: str) -> Self:
         raise NotImplementedError("node_from_key() is not supported in this class.")
     
     def mark_as_terminal(self, freeze=False) -> bool:
