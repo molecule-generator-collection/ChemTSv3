@@ -1,4 +1,4 @@
-from rdkit.Chem import Mol, Descriptors
+from rdkit.Chem import Descriptors
 from filter import MolValueFilter
 
 class RadicalFilter(MolValueFilter):
