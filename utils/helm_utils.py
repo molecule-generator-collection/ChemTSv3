@@ -8,8 +8,9 @@ from rdkit.Chem import Mol
 POLYMER_TYPES = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
 
 class MonomerLibrary():
-    def __init__(self, monomers_lib: dict={}, cap_group_mols: dict={}, disable_RDLogger=True):
-        self.lib = monomers_lib
+    """Monomer library. Internally used in HELMConverter."""
+    def __init__(self, monomer_library: dict={}, cap_group_mols: dict={}, disable_RDLogger=True):
+        self.lib = monomer_library
         self.cap_group_mols = cap_group_mols # smiles - mol
         if disable_RDLogger:
             RDLogger.DisableLog('rdApp.*')
@@ -28,9 +29,9 @@ class MonomerLibrary():
                 self._load_json(s)
         return self
     
-    def _load_xml(self, monomers_lib_path: str):
+    def _load_xml(self, monomer_library_path: str):
         """Load xml in ChEMBL format. One instance can load multiple libraries."""
-        root = ET.parse(monomers_lib_path).getroot()
+        root = ET.parse(monomer_library_path).getroot()
         MonomerLibrary.strip_namespace(root)
         polymers = root.find("PolymerList")
         lib = self.lib or {}
@@ -62,11 +63,11 @@ class MonomerLibrary():
         self.lib = lib
         self.cap_group_mols = cap_group_mols
     
-    def _load_json(self, monomers_lib_path:str):
+    def _load_json(self, monomer_library_path:str):
         """Load json in Pistoia Alliance format."""
         lib = self.lib or {}
         cap_group_mols = self.cap_group_mols or {}
-        with open(monomers_lib_path, 'r', encoding='utf-8') as f:
+        with open(monomer_library_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         for m in data:
@@ -181,8 +182,8 @@ class MonomerLibrary():
 class HELMConverter():
     skip_tokens = [".", "{", "(", ")"]
 
-    def __init__(self, monomers_lib: MonomerLibrary=None):
-        self.lib = monomers_lib or MonomerLibrary()
+    def __init__(self, monomer_library: MonomerLibrary=None):
+        self.lib = monomer_library or MonomerLibrary()
     
     def load(self, *args: str) -> Self:
         """
@@ -204,22 +205,22 @@ class HELMConverter():
     def _convert(self, helm: str, close=True, verbose=False) -> Mol:
         helm = self.standardize_helm(helm)
         helm_parts = helm.rsplit("$", 4)
-        parsed_polymers = self.parse_polymers(helm_parts[0])
-        parsed_bonds = self.parse_bonds(helm_parts[1])
+        parsed_polymers = self._parse_polymers(helm_parts[0])
+        parsed_bonds = self._parse_bonds(helm_parts[1])
         mol = None        
 
         for p in parsed_polymers:
             if mol is None:
-                mol = self.mol_from_single_polymer(p)
+                mol = self._mol_from_single_polymer(p)
             else:
-                mol2 = self.mol_from_single_polymer(p)
+                mol2 = self._mol_from_single_polymer(p)
                 mol = Chem.molzip(mol, mol2)
         
         for b in parsed_bonds:
-            mol = self.add_bond(mol, *b)
+            mol = self._add_bond(mol, *b)
 
         if close: 
-            mol = self.close_residual_attachment_points(mol)
+            mol = self._close_residual_attachment_points(mol)
             mol = Chem.RemoveHs(mol)
         return mol
     
@@ -232,6 +233,7 @@ class HELMConverter():
 
     @staticmethod
     def split_helm(helm: str) -> list[str]:
+        """Split helm string to a list of tokens."""
         pattern = (
             r"("
             r"\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]"
@@ -244,7 +246,7 @@ class HELMConverter():
             #r"|V2.0"
             r"|[A-Z]"
             r"|[a-z]"
-            r"|-c-|-t-" # cis / trans bond type
+            r"|-c-|-t-" # cis / trans double bond type (unofficial)
             r"|\||\(|\)|\{|\}|-|\$|:|,|\."
             r"|\d{2}|\d"
             r")"
@@ -262,7 +264,7 @@ class HELMConverter():
 
     # should be called only if each r_num is unique within that mol
     @staticmethod
-    def combine_monomers_with_unique_r_nums(m1: Mol, m1_r_num: int, m2: Mol, m2_r_num: int) -> Mol:
+    def _combine_monomers_with_unique_r_nums(m1: Mol, m1_r_num: int, m2: Mol, m2_r_num: int) -> Mol:
         m1_r_str = "_R" + str(m1_r_num)
         m2_r_str = "_R" + str(m2_r_num)
         for a in m1.GetAtoms():
@@ -274,10 +276,10 @@ class HELMConverter():
         return Chem.molzip(m1, m2)
 
     @classmethod
-    def combine_backbone_monomers(cls, m_left: Mol, m_right: Mol) -> Mol:
-        return cls.combine_monomers_with_unique_r_nums(m_left, 2, m_right, 1)
+    def _combine_backbone_monomers(cls, m_left: Mol, m_right: Mol) -> Mol:
+        return cls._combine_monomers_with_unique_r_nums(m_left, 2, m_right, 1)
 
-    def generate_mol(self, polymer_type: str, polymer_name: str, monomer_token: str, monomer_idx: int) -> Mol:
+    def _generate_mol(self, polymer_type: str, polymer_name: str, monomer_token: str, monomer_idx: int) -> Mol:
         smiles = self.lib.get_monomer_smiles(polymer_type, monomer_token)
         mol = Chem.MolFromSmiles(smiles)
 
@@ -292,7 +294,7 @@ class HELMConverter():
         return mol
     
     #mol form splitted POLYMERNAME{......}
-    def mol_from_single_polymer(self, helm_tokens_list: list[str]) -> Mol:
+    def _mol_from_single_polymer(self, helm_tokens_list: list[str]) -> Mol:
         polymer_type = None
         polymer_name = None
         monomer_idx = 1 # 1-based index
@@ -309,27 +311,27 @@ class HELMConverter():
                         polymer_name = t
                         continue
             elif monomer_idx == 1:
-                mol = self.generate_mol(polymer_type, polymer_name, t, monomer_idx)
+                mol = self._generate_mol(polymer_type, polymer_name, t, monomer_idx)
                 if helm_tokens_list[i+1] == "(":
-                    branch_mol = self.generate_mol(polymer_type, polymer_name, helm_tokens_list[i+2], -1)
-                    mol = self.combine_monomers_with_unique_r_nums(mol, 3, branch_mol, 1)
+                    branch_mol = self._generate_mol(polymer_type, polymer_name, helm_tokens_list[i+2], -1)
+                    mol = self._combine_monomers_with_unique_r_nums(mol, 3, branch_mol, 1)
                     monomer_idx += 1
                 monomer_idx += 1
             else:
                 if helm_tokens_list[i-1] == "(":
                     continue
-                last_mol = self.generate_mol(polymer_type, polymer_name, t, monomer_idx)
+                last_mol = self._generate_mol(polymer_type, polymer_name, t, monomer_idx)
                 if helm_tokens_list[i+1] == "(":
-                    branch_mol = self.generate_mol(polymer_type, polymer_name, helm_tokens_list[i+2], -1)
-                    last_mol = self.combine_monomers_with_unique_r_nums(last_mol, 3, branch_mol, 1)
+                    branch_mol = self._generate_mol(polymer_type, polymer_name, helm_tokens_list[i+2], -1)
+                    last_mol = self._combine_monomers_with_unique_r_nums(last_mol, 3, branch_mol, 1)
                     monomer_idx += 1
-                mol = self.combine_backbone_monomers(mol, last_mol)
+                mol = self._combine_backbone_monomers(mol, last_mol)
                 monomer_idx += 1
 
         return mol
     
     @staticmethod
-    def add_bond(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str) -> Mol:
+    def _add_bond(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str) -> Mol:
         idx_1 = idx_2 = idx_r_1 = idx_r_2 = bond_type = None
         for a in polymer.GetAtoms():
             if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_1:
@@ -354,7 +356,7 @@ class HELMConverter():
             emol.RemoveAtom(idx_r_2 - 1 if idx_r_2 > idx_r_1 else idx_r_2)
             return emol.GetMol()
     
-    def parse_polymers(self, polymer_part: str) -> list[str]:
+    def _parse_polymers(self, polymer_part: str) -> list[str]:
         polymer_tokens = HELMConverter.split_helm(polymer_part)
         parsed_polymers = []
         for i in range(len(polymer_tokens)):
@@ -366,7 +368,7 @@ class HELMConverter():
                 
         return parsed_polymers
         
-    def parse_bonds(self, bond_part: str) -> list[tuple[str, str, str, str, str, str]]:
+    def _parse_bonds(self, bond_part: str) -> list[tuple[str, str, str, str, str, str]]:
         bond_tokens = HELMConverter.split_helm(bond_part)
         parsed_bonds = [] # list[(initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str)]
         for i in range(len(bond_tokens)):
@@ -377,7 +379,7 @@ class HELMConverter():
 
         return parsed_bonds
     
-    def close_residual_attachment_points(self, mol: Mol) -> Mol:
+    def _close_residual_attachment_points(self, mol: Mol) -> Mol:
         remaining = True
         while remaining:
             remaining = False
