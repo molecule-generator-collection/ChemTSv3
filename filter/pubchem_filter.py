@@ -25,7 +25,6 @@ class Neutralizer:
         mol.SetProp("neutralized", str(replaced))
         return mol
 
-
 class Evaluater:
     a_dict = {}
     b_dict = {}
