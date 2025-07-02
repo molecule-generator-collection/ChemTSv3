@@ -1,4 +1,5 @@
 from datetime import datetime
+import inspect
 import numpy as np
 import logging
 import os
@@ -48,32 +49,38 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
         transition_args["model_dir"] = os.path.join(repo_root, transition_args["model_dir"])
     transition_class = class_from_package("transition", conf["transition_class"])
         
-    if issubclass(node_class, SentenceNode):
+    if issubclass(node_class, SentenceNode) or "lang_path" in conf:
         lang_path = conf.get("lang_path")
         if lang_path is None:
             lang_name = os.path.basename(os.path.normpath(transition_args["model_dir"])) + ".lang"
             lang_path = add_sep(transition_args["model_dir"]) + lang_name
         lang = Language.load(lang_path)
         transition_args["lang"] = lang
-    elif issubclass(node_class, MolStringNode):
+    elif issubclass(node_class, MolStringNode) or "language_class" in conf:
         language_class = class_from_package("language", conf["language_class"])
         language_args = conf.get("language_args", {})
         lang = language_class(**language_args)
 
-    transition = transition_class(logger=logger, device=conf.get("device"), **transition_args)
+    if "device" in inspect.signature(transition_class.__init__).parameters:
+        transition_args["device"] = conf.get("device")
+    if "logger" in inspect.signature(transition_class.__init__).parameters:
+        transition_args["logger"] = logger
+    transition = transition_class(**transition_args)
     
     # set root
     root_args = {}
-    if "lang" in locals():
+    if "lang" in locals() :
         root_args["lang"] = lang
-        
+    if "device" in inspect.signature(node_class.node_from_key).parameters:
+        root_args["device"] = conf.get("device")
+    
     if type(conf.get("root")) == list:
         root = SurrogateNode()
         for s in conf.get("root"):
-            node = node_class.node_from_key(string=s, device=conf.get("device"), **root_args)
+            node = node_class.node_from_key(key=s, parent=root, last_prob=1/len(conf.get("root")), last_action=s, **root_args)
             root.add_child(action=s, child=node)
     else:
-        root = node_class.node_from_key(string=conf.get("root", ""), device=conf.get("device"), **root_args)
+        root = node_class.node_from_key(key=conf.get("root", ""), **root_args)
 
     # set reward
     reward_class = class_from_package("reward", conf.get("reward_class"))
