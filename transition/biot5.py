@@ -1,10 +1,12 @@
 import logging
-from transformers import AutoTokenizer, T5ForConditionalGeneration
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from node import MolStringNode
 from transition import BlackBoxTransition
 
-TOKENIZER = AutoTokenizer.from_pretrained("QizhiPei/biot5-plus-base-mol-instructions-molecule")
-MODEL = T5ForConditionalGeneration.from_pretrained('QizhiPei/biot5-plus-base-mol-instructions-molecule')
+print("Loading BioT5 models...")
+TOKENIZER = AutoTokenizer.from_pretrained("QizhiPei/biot5-base-text2mol")
+MODEL = AutoModelForSeq2SeqLM.from_pretrained("QizhiPei/biot5-base-text2mol")
+print("Model loading completed.")
 
 class BioT5Transition(BlackBoxTransition):
     def __init__(self, target_objective: str, prompt_prefix: str=None, n_samples=2, logger: logging.Logger=None):
@@ -18,6 +20,6 @@ class BioT5Transition(BlackBoxTransition):
         
         input_ids = TOKENIZER(prompt, return_tensors="pt").input_ids
         outputs = MODEL.generate(input_ids, max_length=512, do_sample=True)
-        output_selfies = TOKENIZER.decode(outputs[0], skip_special_tokens=True).replace(" ", "")
+        output_selfies = TOKENIZER.decode(outputs[0], skip_special_tokens=True).replace(' ', '')
         
         return MolStringNode(string=output_selfies, lang=node.lang, parent=node)
