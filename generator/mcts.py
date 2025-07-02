@@ -51,7 +51,7 @@ class MCTS(Generator):
         self.freeze_terminal = freeze_terminal
         self.check_loop = check_loop
         if self.check_loop:
-            self.nodes = set()
+            self.node_keys = set()
         self.use_dummy_reward = use_dummy_reward
         self.all_filtered_reward = all_filtered_reward
         super().__init__(transition=transition, output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger=logger, info_interval=info_interval)
@@ -75,10 +75,10 @@ class MCTS(Generator):
         actions, nodes, _ = zip(*transitions)
         for a, n in zip(actions, nodes):
             if self.check_loop:
-                if n in self.nodes:
+                if n.key() in self.node_keys:
                     continue
                 else:
-                    self.nodes.add(n)
+                    self.node_keys.add(n.key())
             node.add_child(a, n)
             expanded = True
         return expanded
