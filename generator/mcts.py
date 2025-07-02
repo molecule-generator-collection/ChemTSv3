@@ -58,7 +58,7 @@ class MCTS(Generator):
         while node.children:
             node = self.policy.select_child(node)
             if node.sum_r == -float("inf"): # already exhausted every terminal under this node
-                self.logger.debug("exhausted every terminal under: " + str(node.parent) + "")
+                self.logger.debug("exhausted every terminal under: " + str(node.parent))
                 node.parent.sum_r = -float("inf")
                 node = self.root
         return node
