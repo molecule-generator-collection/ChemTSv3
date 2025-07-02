@@ -7,7 +7,7 @@ from rdkit.Chem import Mol
 
 POLYMER_TYPES = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
 
-class MonomersLib():
+class MonomerLibrary():
     def __init__(self, monomers_lib: dict={}, cap_group_mols: dict={}, disable_RDLogger=True):
         self.lib = monomers_lib
         self.cap_group_mols = cap_group_mols # smiles - mol
@@ -16,7 +16,7 @@ class MonomersLib():
     
     def load(self, *args: str) -> Self:
         """
-        Load monomer library. Supports xml in chembl format and json in the official format.
+        Load monomer library. Supports xml in chembl format, and json in the official format.
         
         Args:
             *args: File path(s). If the same token is defined multiple times, prioritize the last definition. ex. /data/helm/library/chembl_35_monomer_library.xml
@@ -29,11 +29,9 @@ class MonomersLib():
         return self
     
     def _load_xml(self, monomers_lib_path: str):
-        """
-        Load xml in ChEMBL format. One instance can load multiple libraries.
-        """
+        """Load xml in ChEMBL format. One instance can load multiple libraries."""
         root = ET.parse(monomers_lib_path).getroot()
-        MonomersLib.strip_namespace(root)
+        MonomerLibrary.strip_namespace(root)
         polymers = root.find("PolymerList")
         lib = self.lib or {}
         cap_group_mols = self.cap_group_mols or {}
@@ -59,15 +57,13 @@ class MonomersLib():
                                     cap_group_smiles = a_tag.text
                                     lib[polymer_type][monomer_token]["Attachments"][attachment_label] = cap_group_smiles
                                     if not cap_group_smiles in cap_group_mols:
-                                        cap_group_mols[cap_group_smiles] = MonomersLib.prepare_attachment_cap(cap_group_smiles)
+                                        cap_group_mols[cap_group_smiles] = MonomerLibrary.prepare_attachment_cap(cap_group_smiles)
                                     
         self.lib = lib
         self.cap_group_mols = cap_group_mols
     
     def _load_json(self, monomers_lib_path:str):
-        """
-        Load json in Pistoia Alliance format.
-        """
+        """Load json in Pistoia Alliance format."""
         lib = self.lib or {}
         cap_group_mols = self.cap_group_mols or {}
         with open(monomers_lib_path, 'r', encoding='utf-8') as f:
@@ -78,14 +74,14 @@ class MonomersLib():
             lib[polymer_type] = lib.get(polymer_type) or {}
             monomer_token = m.get("symbol")
             lib[polymer_type][monomer_token] = lib[polymer_type].get(monomer_token) or {}
-            lib[polymer_type][monomer_token]["MonomerSmiles"] = MonomersLib.atom_mapped_to_cx(m.get("smiles"))
+            lib[polymer_type][monomer_token]["MonomerSmiles"] = MonomerLibrary.atom_mapped_to_cx(m.get("smiles"))
             lib[polymer_type][monomer_token]["Attachments"] = lib[polymer_type][monomer_token].get("Attachments") or {}
             for r in m.get("rgroups"):
                 attachment_label = r.get("label")
                 cap_group_smiles = r.get("capGroupSmiles") or r.get("capGroupSMILES") #can be both
                 lib[polymer_type][monomer_token]["Attachments"][attachment_label] = cap_group_smiles
                 if not cap_group_smiles in cap_group_mols:
-                    cap_group_mols[cap_group_smiles] = MonomersLib.prepare_attachment_cap_from_atom_mapped_smiles(cap_group_smiles, attachment_label)
+                    cap_group_mols[cap_group_smiles] = MonomerLibrary.prepare_attachment_cap_from_atom_mapped_smiles(cap_group_smiles, attachment_label)
             if polymer_type == "RNA" and monomer_token in ["r", "p"]: #for convenience: both capitalizations are commonly used
                 lib[polymer_type][monomer_token.upper()] = lib[polymer_type][monomer_token]
     
@@ -93,9 +89,7 @@ class MonomersLib():
         self.cap_group_mols = cap_group_mols        
     
     def cull(self, monomer_tokens: list[str]):
-        """
-        Roughly removes monomer entries if they are not in the list. Unused monomers with the same ID in the other polymer types won't be removed.)
-        """
+        """Roughly removes monomer entries if they are not in the list. Unused monomers with the same ID in the other polymer types won't be removed"""
         culled_lib = {}
         for polymer_type in POLYMER_TYPES:
             if not polymer_type in self.lib:
@@ -175,7 +169,7 @@ class MonomersLib():
             if "$" in monomer_token:
                 return monomer_token
             else:
-                return MonomersLib.atom_mapped_to_cx(monomer_token)
+                return MonomerLibrary.atom_mapped_to_cx(monomer_token)
 
     def get_cap_group_smiles(self, polymer_type: str, monomer_token: str, attachment_label: str) -> str:
         monomer_token = self.standardize_monomer_token(monomer_token)
@@ -187,14 +181,21 @@ class MonomersLib():
 class HELMConverter():
     skip_tokens = [".", "{", "(", ")"]
 
-    def __init__(self, monomers_lib: MonomersLib=None):
-        self.lib = monomers_lib or MonomersLib()
+    def __init__(self, monomers_lib: MonomerLibrary=None):
+        self.lib = monomers_lib or MonomerLibrary()
     
     def load(self, *args: str) -> Self:
+        """
+        Load monomer library. Supports xml in chembl format, and json in the official format.
+        
+        Args:
+            *args: File path(s). If the same token is defined multiple times, prioritize the last definition. ex. /data/helm/library/chembl_35_monomer_library.xml
+        """
         self.lib.load(*args)
         return self
     
     def convert(self, helm: str) -> Mol:
+        """Convert a helm string to an RDKit Mol object."""
         try:
             return self._convert(helm)
         except:
@@ -221,6 +222,11 @@ class HELMConverter():
             mol = self.close_residual_attachment_points(mol)
             mol = Chem.RemoveHs(mol)
         return mol
+    
+    def check_monomer(self, monomer_token: str, polymer_type: str) -> Mol:
+        """Return a specified monomer in the monomer library."""
+        helm = polymer_type + "1{" + monomer_token + "}$$$$"
+        return self._convert(helm, close=False)
 
     @staticmethod
     def split_helm(helm: str) -> list[str]:
@@ -236,6 +242,7 @@ class HELMConverter():
             #r"|V2.0"
             r"|[A-Z]"
             r"|[a-z]"
+            r"|-c-|-t-" # cis / trans bond type
             r"|\||\(|\)|\{|\}|-|\$|:|,|\."
             r"|\d{2}|\d"
             r")"

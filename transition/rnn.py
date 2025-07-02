@@ -42,8 +42,11 @@ class RNNLanguageModel(nn.Module):
 
     def forward(self, x: torch.Tensor, hidden: tuple[torch.Tensor, torch.Tensor] | torch.Tensor | None = None):
         """
-        x: [batch, seq_len] (LongTensor)
-        returns logits: [batch, seq_len, vocab_size], next_hidden
+        Args:
+            x: [batch, seq_len] (LongTensor)  
+        Returns:
+            logits: [batch, seq_len, vocab_size]
+            next_hidden
         """
         if hidden is None:
             hidden = self._init_states(x.size(0), x.device)

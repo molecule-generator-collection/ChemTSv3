@@ -115,7 +115,7 @@ class DScoreReward(MolReward):
 
         # taken from　https://github.com/jrwnter/mso.
         def molecular_weight(mol):
-            """molecular weight"""
+            """Molecular weight"""
             mw = Chem.Descriptors.MolWt(mol)
             return mw
 

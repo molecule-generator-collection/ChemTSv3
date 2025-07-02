@@ -112,7 +112,7 @@ class MolNode(Node):
             return mol
         
 class SurrogateNode(Node):
-    """surrogate node for multiple roots"""
+    """Surrogate node for multiple roots."""
     # implement
     def key(self) -> str:
         return "surrogate node"

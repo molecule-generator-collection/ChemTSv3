@@ -4,7 +4,7 @@ from reward import MolReward
 from utils.third_party import sascorer
 
 """
-ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/reward/Jscore_reward.py
+Ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/reward/Jscore_reward.py
 ref: https://github.com/tsudalab/ChemTS/blob/4174c3600ebb47ed136b433b22a29c879824a6ba/mcts_logp_improved_version/add_node_type.py#L172
 """
 
