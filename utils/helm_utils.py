@@ -331,7 +331,7 @@ class HELMConverter():
         return mol
     
     @staticmethod
-    def _add_bond(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str) -> Mol:
+    def _add_bond(polymer: Mol, initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str, bond_token: str) -> Mol:
         idx_1 = idx_2 = idx_r_1 = idx_r_2 = bond_type = None
         for a in polymer.GetAtoms():
             if a.HasProp("polymerName") and a.GetProp("polymerName") == initial_polymer_name_1:
@@ -350,10 +350,32 @@ class HELMConverter():
         if idx_1 is None or idx_2 is None:
             return None
         else:
-            emol = Chem.EditableMol(polymer)
-            emol.AddBond(idx_1, idx_2, bond_type)
-            emol.RemoveAtom(idx_r_1) # changes indices
-            emol.RemoveAtom(idx_r_2 - 1 if idx_r_2 > idx_r_1 else idx_r_2)
+            if bond_token == "-":
+                emol = Chem.EditableMol(polymer)
+                emol.AddBond(idx_1, idx_2, bond_type)
+                emol.RemoveAtom(idx_r_1) # changes indices
+                emol.RemoveAtom(idx_r_2 - 1 if idx_r_2 > idx_r_1 else idx_r_2)
+            else:
+                emol = Chem.EditableMol(polymer)
+                emol.AddBond(idx_1, idx_2, bond_type)
+                mol = emol.GetMol()
+                bond = mol.GetBondBetweenAtoms(idx_1, idx_2)
+                atom1 = mol.GetAtomWithIdx(idx_1)
+                atom2 = mol.GetAtomWithIdx(idx_2)
+                nbrs1 = [nbr.GetIdx() for nbr in atom1.GetNeighbors() if nbr.GetIdx() != idx_2 and nbr.GetIdx() != idx_r_1]
+                nbrs2 = [nbr.GetIdx() for nbr in atom2.GetNeighbors() if nbr.GetIdx() != idx_1 and nbr.GetIdx() != idx_r_2]
+                if len(nbrs1) > 0 and len(nbrs2) > 0:
+                    side1 = nbrs1[0]
+                    side2 = nbrs2[0]
+                    bond.SetStereoAtoms(side1, side2)
+                    if bond_token == "-c-":
+                        bond.SetStereo(Chem.BondStereo.STEREOCIS)
+                    elif bond_token == "-t-":
+                        bond.SetStereo(Chem.BondStereo.STEREOTRANS)
+                    
+                emol = Chem.EditableMol(mol)
+                emol.RemoveAtom(idx_r_1) # changes indices
+                emol.RemoveAtom(idx_r_2 - 1 if idx_r_2 > idx_r_1 else idx_r_2)
             return emol.GetMol()
     
     def _parse_polymers(self, polymer_part: str) -> list[str]:
@@ -368,14 +390,14 @@ class HELMConverter():
                 
         return parsed_polymers
         
-    def _parse_bonds(self, bond_part: str) -> list[tuple[str, str, str, str, str, str]]:
+    def _parse_bonds(self, bond_part: str) -> list[tuple[str, str, str, str, str, str, str]]:
         bond_tokens = HELMConverter.split_helm(bond_part)
-        parsed_bonds = [] # list[(initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str)]
+        parsed_bonds = [] # list[(initial_polymer_name_1: str, initial_monomer_idx_1: str, attachment_label_1: str, initial_polymer_name_2: str, initial_monomer_idx_2: str, attachment_label_2: str, bond_token: str)]
         for i in range(len(bond_tokens)):
             if len(bond_tokens) - 1 < i + 10:
                 break
             if bond_tokens[i].startswith(tuple(POLYMER_TYPES)) and bond_tokens[i+2].startswith(tuple(POLYMER_TYPES)):
-                parsed_bonds.append((bond_tokens[i], bond_tokens[i+4], bond_tokens[i+6], bond_tokens[i+2], bond_tokens[i+8], bond_tokens[i+10]))
+                parsed_bonds.append((bond_tokens[i], bond_tokens[i+4], bond_tokens[i+6], bond_tokens[i+2], bond_tokens[i+8], bond_tokens[i+10], bond_tokens[i+7]))
 
         return parsed_bonds
     
