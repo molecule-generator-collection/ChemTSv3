@@ -2,9 +2,7 @@ import os, logging, multiprocessing as mp
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from node import Node
 
-"""
-currently not maintained
-"""
+"""Currently not maintained"""
 
 # top-level def
 _transition = None

@@ -14,7 +14,7 @@ class Language(ABC):
 
     @abstractmethod
     def sentence2indices(self, sentence: str, include_eos: bool=True) -> list[int]:
-        """convert sentence to token ids"""
+        """Convert sentence to token ids"""
         pass
     
     @abstractmethod
@@ -27,12 +27,12 @@ class Language(ABC):
 
     @abstractmethod
     def vocab(self) -> list[str]:
-        """ist of all possible tokens, can be dynamic (thus not a static method)"""
+        """List of all possible tokens, can be dynamic (thus not a static method)"""
         pass
 
     @abstractmethod
     def indices2sentence(self, indices: list[int]) -> str:
-        """revert the token id sequence to sentence"""
+        """Revert the token id sequence to sentence"""
         pass
     
     def bos_token(self) -> str:
@@ -96,7 +96,7 @@ class Language(ABC):
         return lang
 
 class DynamicLanguage(Language):
-    """language that constructs vocabulary from dataset"""
+    """Language that constructs vocabulary from dataset"""
     def __init__(self):
         self._vocab: list[str] = []
         self._token2id = {}
@@ -104,7 +104,7 @@ class DynamicLanguage(Language):
 
     @abstractmethod
     def sentence2tokens(self, sentence: str, include_eos: bool=True) -> list[str]:
-        """split sentence to token strs, should include bos"""
+        """Split sentence to token strs, should include bos"""
         pass
     
     # implement
@@ -158,7 +158,7 @@ class DynamicLanguage(Language):
 class MolLanguage(Language):
     @abstractmethod
     def sentence2indices(self, sentence: str) -> list[int]:
-        """convert sentence to token ids"""
+        """Convert sentence to token ids"""
         pass
     
     @abstractmethod
@@ -171,12 +171,12 @@ class MolLanguage(Language):
 
     @abstractmethod
     def vocab(self) -> list[str]:
-        """list of all possible tokens, can be dynamic (thus not a static method)"""
+        """List of all possible tokens. Can be dynamic (thus not a static method)"""
         pass
 
     @abstractmethod
     def indices2sentence(self, indices: list[int]) -> str:
-        """revert the token id sequence to sentence"""
+        """Revert the token id sequence to sentence"""
         pass
     
     @abstractmethod
@@ -187,7 +187,7 @@ class MolLanguage(Language):
 class DynamicMolLanguage(DynamicLanguage, MolLanguage):
     @abstractmethod
     def sentence2tokens(self, sentence: str) -> list[str]:
-        """split sentence to token strs, should include bos and eos"""
+        """Split sentence to token strs, should include bos and eos"""
         pass
 
     @abstractmethod

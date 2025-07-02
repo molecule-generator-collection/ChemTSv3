@@ -11,7 +11,7 @@ class Policy(ABC):
         pass
     
 class ValuePolicy(Policy):
-    """policy that selects the node with the highest score"""
+    """Policy that selects the node with the highest score"""
     @abstractmethod
     def evaluate(self, node: Node, **kwargs) -> float:
         pass

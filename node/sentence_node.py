@@ -26,12 +26,12 @@ class SentenceNode(Node):
         return cls(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
     def id_list(self) -> list[int]:
-        """output token id sequence as a list"""
+        """Output token id sequence as a list"""
         return self.id_tensor[0].tolist()
 
     @classmethod
     def bos_node(cls, lang: Language, device: str=None) -> Self:
-        """make bos node, often used as root"""
+        """Make bos node. Often used as root."""
         return cls.node_from_key(key="", lang=lang, device=device, include_eos=False)
 
 class MolSentenceNode(SentenceNode, MolNode):

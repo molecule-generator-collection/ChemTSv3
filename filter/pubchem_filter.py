@@ -65,10 +65,12 @@ class Evaluater:
         self.det_fail_mol(mol)
         return mol
 
-    def type_atoms(self, mol):
-        """assigns each atom in a molecule to an EState type
-        **Returns:**
-        list of tuples (atoms can possibly match multiple patterns) with atom types
+    def type_atoms(self, mol) -> list[tuple]:
+        """
+        Assign each atom in a molecule to an EState type.
+        
+        Returns:
+            list[tuple]: list of tuples (atoms can possibly match multiple patterns) with atom types
         """
         nAtoms = mol.GetNumAtoms()
         res = [None] * nAtoms
@@ -253,7 +255,7 @@ EVALUATER = Evaluater()
 
 class PubChemFilter(MolFilter):
     """
-    based on the frequency of occurrence of molecular patterns in the PubChem database
+    Filter based on the frequency of occurrence of molecular patterns in the PubChem database.
     ref: Ma et al. "Structure-Based de Novo Molecular Generator Combined with Artificial Intelligence and Docking Simulations.", Journal of Chemical Information and Modeling (2021)
     """
     # override

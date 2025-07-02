@@ -11,11 +11,11 @@ class Transition(ABC):
 
     @abstractmethod
     def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
-        """returns the list of (action, node, probability)"""
+        """Return the list of (action, node, probability)"""
         pass
 
     def rollout(self, initial_node: Node) -> Node:
-        """samples an offspring with has_reward() = True"""
+        """Sample an offspring with has_reward() = True"""
         if initial_node.is_terminal():
             return initial_node
         
