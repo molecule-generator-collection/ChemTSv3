@@ -1,6 +1,10 @@
 from .base import Transition, LanguageModel, BlackBoxTransition
-from .biot5 import BioT5Transition
 from .gpt2 import GPT2Transition
 from .rnn import RNNLanguageModel, RNNTransition
 
-__all__ = ["Transition", "LanguageModel", "BlackBoxTransition", "BioT5Transition", "GPT2Transition", "RNNLanguageModel", "RNNTransition"]
+# lazy import
+def __getattr__(name):
+    if name == "BioT5Transition":
+        from .biot5 import BioT5Transition
+        return BioT5Transition
+    raise AttributeError(f"module {__name__} has no attribute {name}")

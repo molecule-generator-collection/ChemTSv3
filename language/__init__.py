@@ -1,6 +1,10 @@
 from .base import Language, DynamicLanguage, MolLanguage, DynamicMolLanguage
 from .helm import HELM
-from .selfies import SELFIES
 from .smiles import SMILES
 
-__all__ = ["Language", "DynamicLanguage", "MolLanguage", "DynamicMolLanguage", "HELM", "SELFIES", "SMILES"]
+# lazy import
+def __getattr__(name):
+    if name == "DScoreReward":
+        from .selfies import SELFIES
+        return SELFIES
+    raise AttributeError(f"module {__name__} has no attribute {name}")
