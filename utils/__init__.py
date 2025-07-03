@@ -9,7 +9,7 @@ def __getattr__(name):
     if name == "conf_from_yaml":
         from .yaml_utils import conf_from_yaml
         return conf_from_yaml
-    if name == "BioT5PlusTransition":
+    if name == "generator_from_conf":
         from .yaml_utils import generator_from_conf
         return generator_from_conf
     raise AttributeError(f"module {__name__} has no attribute {name}")
