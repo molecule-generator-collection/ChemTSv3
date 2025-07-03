@@ -10,10 +10,10 @@ class BioT5Transition(BlackBoxTransition):
         self.prompt_postfix = prompt_postfix or ". Now complete the following example"
         super().__init__(logger=logger)
         
-        logger.info("Loading BioT5 models...")
+        self.logger.info("Loading BioT5 models...")
         self.tokenizer = AutoTokenizer.from_pretrained("QizhiPei/biot5-base-text2mol")
         self.model = AutoModelForSeq2SeqLM.from_pretrained("QizhiPei/biot5-base-text2mol")
-        logger.info("Model loading completed.")
+        self.logger.info("Model loading completed.")
         
     def sample_transition(self, node: MolStringNode) -> MolStringNode:
         parent_selfies = node.string
