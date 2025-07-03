@@ -17,5 +17,5 @@ class SELFIES(DynamicMolLanguage):
         try:
             smiles = selfies.decoder(sentence)
             return Chem.MolFromSmiles(smiles)
-        except selfies.EncoderError:
+        except:
             return None
