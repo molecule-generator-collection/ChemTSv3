@@ -21,6 +21,6 @@ class BioT5Transition(BlackBoxTransition):
         
         input_ids = TOKENIZER(prompt, return_tensors="pt").input_ids
         outputs = MODEL.generate(input_ids, max_length=512, do_sample=True)
-        output_selfies = TOKENIZER.decode(outputs[0], skip_special_tokens=True).replace(' ', '')
+        output_selfies = TOKENIZER.decode(outputs[0], skip_special_tokens=True).replace(" ", "")
         
         return MolStringNode(string=output_selfies, lang=node.lang, parent=node)

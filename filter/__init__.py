@@ -2,6 +2,7 @@ from .base import Filter, MolFilter, ValueFilter, MolValueFilter
 from .aromatic_ring_filter import AromaticRingFilter
 from .attachment_points_filter import AttachmentPointsFilter
 from .charge_filter import ChargeFilter
+from .connectivity_filter import ConnectivityFilter
 from .hba_filter import HBAFilter
 from .hbd_filter import HBDFilter
 from .log_p_filter import LogPFilter
