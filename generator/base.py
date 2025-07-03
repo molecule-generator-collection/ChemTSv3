@@ -104,14 +104,14 @@ class Generator(ABC):
         if self.info_interval <= 1 or reward > self.best_reward:
             if reward > self.best_reward:
                 self.best_reward = reward
-                prefix = "<best reward updated> "
+                prefix = "<Best reward updated> "
             else:
                 prefix = ""
-            self.logger.info(prefix + "order: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", reward: " + "{:.4f}".format(reward) + ", node: " + key)
+            self.logger.info(prefix + str(len(self.unique_keys)) + " - time: " + "{:.2f}".format(self.passed_time) + ", reward: " + "{:.4f}".format(reward) + ", node: " + key)
         else:
             if len(self.unique_keys)%self.info_interval == 0:
                 average = self.average_reward(self.info_interval)
-                self.logger.info("generated: " + str(len(self.unique_keys)) + ", time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_interval) + ": " + "{:.4f}".format(average))
+                self.logger.info(str(len(self.unique_keys)) + " - time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_interval) + ": " + "{:.4f}".format(average))
 
         row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
         self.logger.info(row)

@@ -35,9 +35,9 @@ class MCTS(Generator):
         if remove_failed_child and allow_rollout_overlaps:
             raise ValueError("Set one of these values to False: remove_failed_child or allow_rollout_overlaps.")
         if type(filtered_reward) == list and len(filtered_reward) != len(filters):
-            raise ValueError("the size of list input for filtered_reward should match the number of filters.")
+            raise ValueError("The size of list input for filtered_reward should match the number of filters.")
         if type(filtered_reward) == list and n_tries != 1:
-            raise ValueError("list input for filtered_reward is not supported on n_tries > 1.")
+            raise ValueError("List input for filtered_reward is not supported on n_tries > 1.")
 
         self.root = root
         self.max_tree_depth = max_tree_depth or transition.max_length()
@@ -62,7 +62,7 @@ class MCTS(Generator):
         while node.children:
             node = self.policy.select_child(node)
             if node.sum_r == -float("inf"): # already exhausted every terminal under this node
-                self.logger.debug("exhausted every terminal under: " + str(node.parent))
+                self.logger.debug("Exhausted every terminal under: " + str(node.parent))
                 if node.parent == self.root:
                     self.logger.info("Search tree exhausted.")
                     raise SystemExit
