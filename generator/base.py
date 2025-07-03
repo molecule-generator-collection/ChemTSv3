@@ -130,14 +130,14 @@ class Generator(ABC):
         key = str(node)
         if key in self.record:
             self.duplicate_count += 1
-            self.logger.debug("already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
+            self.logger.debug("Already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
             node.clear_cache()
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
         for i, filter in enumerate(self.filters):
             if not filter.check(node):
                 self.filtered_count += 1
-                self.logger.debug("filtered by " + filter.__class__.__name__ + ": " + key)
+                self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
                 node.clear_cache()
                 return [str(i)], self.filtered_reward[i]
             
