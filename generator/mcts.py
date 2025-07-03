@@ -12,7 +12,7 @@ class MCTS(Generator):
         Perform MCTS to maximize the reward.
 
         Args:
-            root: root The root node. Use a SurrogateNode to search from multiple nodes.
+            root: The root node. Use SurrogateNode to search from multiple nodes.
             rollout_width: The number of children to sample during rollout. To perform rollouts for all children, set this to a value higher than the number of tokens.
             allow_rollout_overlaps: whether to allow overlap nodes when sampling rollout candidates (recommended: False)
             n_rollouts: the number of rollouts from one child node
@@ -123,7 +123,7 @@ class MCTS(Generator):
             child_got_unfiltered_node = False
             for _ in range(self.n_rollouts):
                 for _ in range(self.n_tries):
-                    objective_values, reward = self._eval(child) # rollout returns the child itself if terminal
+                    objective_values, reward = self._eval(child) # returns the child itself if terminal
                     if type(objective_values[0]) != str: # not filtered
                         break
                 if type(objective_values[0]) != str: # not filtered
