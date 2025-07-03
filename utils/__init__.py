@@ -3,4 +3,13 @@ from .math_utils import apply_top_p, apply_sharpness, moving_average, max_gauss,
 from .helm_utils import MonomerLibrary, HELMConverter
 from .logging_utils import CSVHandler, NotListFilter, ListFilter, make_logger
 from .mol_utils import is_same_mol, get_main_mol, remove_isotopes, print_atoms_and_labels, draw_mol
-from .yaml_utils import conf_from_yaml, generator_from_conf
+
+# lazy import
+def __getattr__(name):
+    if name == "conf_from_yaml":
+        from .yaml_utils import conf_from_yaml
+        return conf_from_yaml
+    if name == "BioT5PlusTransition":
+        from .yaml_utils import generator_from_conf
+        return generator_from_conf
+    raise AttributeError(f"module {__name__} has no attribute {name}")
