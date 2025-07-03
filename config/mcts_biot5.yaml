@@ -11,9 +11,9 @@ language_class: SELFIES
 transition_class: BioT5Transition
 transition_args:
   n_samples: 3
-  target_objective: improve J score, which combines LogP, SA score, and ring size penalty.
+  target_objective: improve LogP value
 
-reward_class: JScoreReward
+reward_class: LogPReward
 
 policy_class: UCB1
 policy_args:
