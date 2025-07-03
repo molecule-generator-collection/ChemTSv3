@@ -32,9 +32,9 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
-policy_class: UCB1
+policy_class: UCT
 policy_args:
-  c: 0.2
+  c: 0.282842712475 # 0.2 * sqrt(2)
 
 generator_class: MCTS
 generator_args:
