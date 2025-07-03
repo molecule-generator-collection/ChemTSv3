@@ -19,7 +19,6 @@ transition_args:
   # model_dir: model/helm/chembl_peptide/gru
   # top_p: 0.995
 
-
 reward_class: LogPReward
 filtered_reward: -0.5
 

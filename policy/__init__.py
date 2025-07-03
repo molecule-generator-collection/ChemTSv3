@@ -1,3 +1,3 @@
 from .base import Policy, ValuePolicy
-from .ucb1 import UCB1
+from .uct import UCT
 from .puct import PUCT

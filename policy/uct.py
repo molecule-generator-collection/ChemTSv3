@@ -4,8 +4,7 @@ from node import Node
 from policy import ValuePolicy
 from utils import PointCurve
 
-# not named "UCT" and has 2* before log in favor of ChemTSv2 compatibility 
-class UCB1(ValuePolicy):
+class UCT(ValuePolicy):
     def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=1, max_prior: float=None):
         if type(c) == Callable:
             self.c = c
@@ -38,7 +37,7 @@ class UCB1(ValuePolicy):
         if node.n == 0:
             return 10**9 # tiebreaker is implemented in policy base
         
-        u = c * sqrt(2 * log(parent_n) / (n))
+        u = c * sqrt(log(parent_n) / (n))
         mean_r = sum_r / n
         best_r = node.best_r
         if self.max_prior is not None:

@@ -14,7 +14,7 @@ transition_args:
 reward_class: JScoreReward
 # reward_args:
 
-policy_class: UCB1
+policy_class: UCT
 policy_args:
   best_rate: 0.5
   c: 0.2
