@@ -3,11 +3,6 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from node import MolStringNode
 from transition import BlackBoxTransition
 
-print("Loading BioT5 models...")
-TOKENIZER = AutoTokenizer.from_pretrained("QizhiPei/biot5-base-text2mol")
-MODEL = AutoModelForSeq2SeqLM.from_pretrained("QizhiPei/biot5-base-text2mol")
-print("Model loading completed.")
-
 class BioT5Transition(BlackBoxTransition):
     def __init__(self, target_objective: str, prompt_prefix: str=None, prompt_postfix: str=None, n_samples=2, logger: logging.Logger=None):
         self.target_objective = target_objective
@@ -15,12 +10,17 @@ class BioT5Transition(BlackBoxTransition):
         self.prompt_postfix = prompt_postfix or ". Now complete the following example"
         super().__init__(logger=logger)
         
-    def sample_transition(self, node: MolStringNode) -> MolStringNode:
-        sel = node.string
-        prompt = self.prompt_prefix + " " + self.target_objective + self.prompt_postfix + " - Input: <bom>" + sel + "<eom> Output: "
+        logger.info("Loading BioT5 models...")
+        self.tokenizer = AutoTokenizer.from_pretrained("QizhiPei/biot5-base-text2mol")
+        self.model = AutoModelForSeq2SeqLM.from_pretrained("QizhiPei/biot5-base-text2mol")
+        logger.info("Model loading completed.")
         
-        input_ids = TOKENIZER(prompt, return_tensors="pt").input_ids
-        outputs = MODEL.generate(input_ids, max_length=512, do_sample=True)
-        output_selfies = TOKENIZER.decode(outputs[0], skip_special_tokens=True).replace(" ", "")
+    def sample_transition(self, node: MolStringNode) -> MolStringNode:
+        parent_selfies = node.string
+        prompt = self.prompt_prefix + " " + self.target_objective + self.prompt_postfix + " - Input: <bom>" + parent_selfies + "<eom> Output: "
+        
+        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
+        outputs = self.model.generate(input_ids, max_length=512, do_sample=True)
+        output_selfies = self.tokenizer.decode(outputs[0], skip_special_tokens=True).replace(" ", "")
         
         return MolStringNode(string=output_selfies, lang=node.lang, parent=node)
