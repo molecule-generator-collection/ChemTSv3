@@ -13,17 +13,17 @@ class MCTS(Generator):
 
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
-            eval_width: The number of children to sample during rollout. To perform rollouts for all children, set this to a value higher than the number of tokens.
-            allow_rollout_overlaps: whether to allow overlap nodes when sampling rollout candidates (recommended: False)
+            eval_width: The number of children to sample during eval step. To perform evals for all children, set this to a value higher than the number of tokens.
+            allow_eval_overlaps: whether to allow overlap nodes when sampling eval candidates (recommended: False)
             n_evals: the number of child node evaluations (rollouts for children that has_reward = False)
-            n_tries: the number of attempts to obtain an unfiltered node in a single rollout
-            filter_reward: Backpropagate this value when {n_tries} rollouts are filtered from the child. Set "ignore" not to backpropagate. Use list input if you want to set different rewards for each filter step.
+            n_tries: the number of attempts to obtain an unfiltered node in a single eval (should be 1 unless has_reward() can be False or filters are probabilistic)
+            filter_reward: Backpropagate this value when {n_tries} evals are filtered from the child. Set "ignore" not to backpropagate. Use list input if you want to set different rewards for each filter step.
             check_loop: If True, duplicate nodes won't be added to the search tree.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             
             --- The following variables are provided for ChemTSv2 replication, and are generally recommended to leave at their default values. ---
-            failed_parent_reward: Backpropagate this value when {eval_width * n_evals * n_tries} rollouts are filtered from the node.
-            remove_failed_child: If True, child nodes will be removed when {n_evals * n_tries} rollouts are filtered.
+            failed_parent_reward: Backpropagate this value when {eval_width * n_evals * n_tries} evals are filtered from the node.
+            remove_failed_child: If True, child nodes will be removed when {n_evals * n_tries} evals are filtered.
             freeze_terminal: If True, terminal node won't be visited twice.
             terminal_reward: If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
         """
@@ -33,7 +33,7 @@ class MCTS(Generator):
         if terminal_reward == "ignore" and not freeze_terminal:
             raise ValueError("Set freeze_terminal to True, or set terminal_reward to something else.")
         if remove_failed_child and allow_eval_overlaps:
-            raise ValueError("Set one of these values to False: remove_failed_child or allow_rollout_overlaps.")
+            raise ValueError("Set one of these values to False: remove_failed_child or allow_eval_overlaps.")
         if type(filter_reward) == list and len(filter_reward) != len(filters):
             raise ValueError("The size of list input for filter_reward should match the number of filters.")
         if type(filter_reward) == list and n_tries != 1:
@@ -135,4 +135,4 @@ class MCTS(Generator):
                 del child.parent.children[child.last_action]
         if self.failed_parent_reward != "ignore" and not parent_got_unfiltered_node:
             self._backpropagate(node, self.failed_parent_reward, False)
-            self.logger.debug("All rollouts failed from: " + str(node))
+            self.logger.debug("All evals failed from: " + str(node))
