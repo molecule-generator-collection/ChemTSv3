@@ -27,10 +27,10 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  rollout_width: 1
-  n_rollouts: 1
+  eval_width: 1
+  n_evals: 1
   n_tries: 1
-  filtered_reward: -1
+  filter_reward: -1
   terminal_reward: -1
 
 filters:
