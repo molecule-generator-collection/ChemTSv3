@@ -6,7 +6,7 @@ node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 
-transition_class: SMARTSTransition
+transition_class: SMIRKSTransition
 
 reward_class: DScoreReward
 reward_args:

@@ -3,7 +3,7 @@ from rdkit.Chem import AllChem
 from node import SMILESStringNode
 from transition import Transition
 
-class SMARTSTransition(Transition):
+class SMIRKSTransition(Transition):
     def __init__(self, smarts_list=None):
         self.smarts_list = smarts_list or [
     "[cH:1]>>[c:1]C", "[cH:1]>>[c:1]CC", "[cH:1]>>[c:1]F", "[cH:1]>>[c:1]Cl", "[cH:1]>>[c:1]O", "[cH:1]>>[c:1][N+](=O)[O-]", # benzene-derivative
