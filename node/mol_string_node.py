@@ -33,7 +33,7 @@ class SMILESStringNode(MolStringNode):
     
     @classmethod
     def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
-        return SMILESStringNode(string=key, lang=cls.smiles_lang, parent=parent, last_prob=last_prob, last_action=last_action)
+        return SMILESStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
     
 class SELFIESStringNode(MolStringNode):
     from language import SELFIES # lazy import
@@ -44,4 +44,4 @@ class SELFIESStringNode(MolStringNode):
     
     @classmethod
     def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
-        return SELFIESStringNode(string=key, lang=cls.selfies_lang, parent=parent, last_prob=last_prob, last_action=last_action)
+        return SELFIESStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)

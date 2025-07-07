@@ -56,7 +56,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
             lang_path = add_sep(transition_args["model_dir"]) + lang_name
         lang = Language.load(lang_path)
         transition_args["lang"] = lang
-    elif issubclass(node_class, MolStringNode) or "language_class" in conf:
+    elif "language_class" in conf:
         language_class = class_from_package("language", conf["language_class"])
         language_args = conf.get("language_args", {})
         lang = language_class(**language_args)
