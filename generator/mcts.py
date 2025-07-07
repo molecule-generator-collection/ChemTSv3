@@ -18,7 +18,7 @@ class MCTS(Generator):
             n_evals: the number of child node evaluations (rollouts for children that has_reward = False)
             n_tries: the number of attempts to obtain an unfiltered node in a single eval (should be 1 unless has_reward() can be False or filters are probabilistic)
             filter_reward: Backpropagate this value when {n_tries} evals are filtered from the child. Set "ignore" not to backpropagate. Use list input if you want to set different rewards for each filter step.
-            check_loop: If True, duplicate nodes won't be added to the search tree.
+            check_loop: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             
             --- The following variables are provided for ChemTSv2 replication, and are generally recommended to leave at their default values. ---
