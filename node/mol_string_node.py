@@ -1,6 +1,6 @@
 from typing import Self, Any
 from rdkit.Chem import Mol
-from language import MolLanguage
+from language import MolLanguage, SMILES
 from node import MolNode
 
 class MolStringNode(MolNode):
@@ -24,3 +24,24 @@ class MolStringNode(MolNode):
     # implement
     def _mol_impl(self) -> Mol:
         return self.lang.sentence2mol(self.string)
+    
+class SMILESStringNode(MolStringNode):
+    smiles_lang = SMILES()
+    
+    def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+        super().__init__(string=string, lang=self.smiles_lang, parent=parent, last_prob=last_prob, last_action=last_action)
+    
+    @classmethod
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+        return SMILESStringNode(string=key, lang=cls.smiles_lang, parent=parent, last_prob=last_prob, last_action=last_action)
+    
+class SELFIESStringNode(MolStringNode):
+    from language import SELFIES # lazy import
+    selfies_lang = SELFIES()
+    
+    def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+        super().__init__(string=string, lang=self.selfies_lang, parent=parent, last_prob=last_prob, last_action=last_action)
+    
+    @classmethod
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+        return SELFIESStringNode(string=key, lang=cls.selfies_lang, parent=parent, last_prob=last_prob, last_action=last_action)
