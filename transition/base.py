@@ -11,7 +11,7 @@ class Transition(ABC):
 
     @abstractmethod
     def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
-        """Return the list of (action, node, probability)"""
+        """Return the list of (action, node, probability) tuples. If the node is terminal, an empty list [] should be returned"""
         pass
 
     def rollout(self, initial_node: Node) -> Node:
