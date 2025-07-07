@@ -1,7 +1,7 @@
 from .base import Transition, LanguageModel, BlackBoxTransition
 from .gpt2 import GPT2Transition
 from .rnn import RNNLanguageModel, RNNTransition
-from .smarts import SMARTSTransition
+from .smirks import SMIRKSTransition
 
 # lazy import
 def __getattr__(name):
