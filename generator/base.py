@@ -15,15 +15,15 @@ from transition import Transition
 from utils import camel2snake, moving_average, make_logger
 
 class Generator(ABC):
-    def __init__(self, transition: Transition, output_dir=None, name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filtered_reward: float | str | list=0, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, transition: Transition, output_dir=None, name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, logger: logging.Logger=None, info_interval: int=1):
         self.transition = transition
         self._name = name or self.make_name()
         self.reward: Reward = reward
         self.filters: list[Filter] = filters or []
-        if type(filtered_reward) != list:
-            self.filtered_reward = [filtered_reward for _ in range(len(self.filters))]
+        if type(filter_reward) != list:
+            self.filter_reward = [filter_reward for _ in range(len(self.filters))]
         else:
-            self.filtered_reward = filtered_reward
+            self.filter_reward = filter_reward
         self._output_dir = output_dir or "generation_result"
         os.makedirs(self.output_dir(), exist_ok=True)
         self.unique_keys = []
@@ -139,7 +139,7 @@ class Generator(ABC):
                 self.filtered_count += 1
                 self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
                 node.clear_cache()
-                return [str(i)], self.filtered_reward[i]
+                return [str(i)], self.filter_reward[i]
             
         objective_values, reward = self.reward.objective_values_and_reward(node)
         self.log_unique_node(key, objective_values, reward)

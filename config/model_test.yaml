@@ -20,7 +20,7 @@ transition_args:
   # top_p: 0.995
 
 reward_class: LogPReward
-filtered_reward: -0.5
+filter_reward: -0.5
 
 generator_class: RandomGenerator
 

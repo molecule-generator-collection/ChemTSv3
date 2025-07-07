@@ -7,23 +7,23 @@ from reward import Reward, LogPReward
 from transition import Transition
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, filtered_reward: float | str | list=0, all_filtered_reward: float | str="ignore", rollout_width: int=1, allow_rollout_overlaps: bool=False, n_rollouts: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, check_loop: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
+    def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, check_loop: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
         """
         Perform MCTS to maximize the reward.
 
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
-            rollout_width: The number of children to sample during rollout. To perform rollouts for all children, set this to a value higher than the number of tokens.
-            allow_rollout_overlaps: whether to allow overlap nodes when sampling rollout candidates (recommended: False)
-            n_rollouts: the number of rollouts from one child node
-            n_tries: the number of attempts to obtain an unfiltered node in a single rollout
-            filtered_reward: Backpropagate this value when {n_tries} rollouts are filtered from the child. Set "ignore" not to backpropagate. Use list input if you want to set different rewards for each filter step.
+            eval_width: The number of children to sample during eval step. To perform evals for all children, set this to a value higher than the number of tokens.
+            allow_eval_overlaps: whether to allow overlap nodes when sampling eval candidates (recommended: False)
+            n_evals: the number of child node evaluations (rollouts for children that has_reward = False)
+            n_tries: the number of attempts to obtain an unfiltered node in a single eval (should be 1 unless has_reward() can be False or filters are probabilistic)
+            filter_reward: Backpropagate this value when {n_tries} evals are filtered from the child. Set "ignore" not to backpropagate. Use list input if you want to set different rewards for each filter step.
             check_loop: If True, duplicate nodes won't be added to the search tree.
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             
             --- The following variables are provided for ChemTSv2 replication, and are generally recommended to leave at their default values. ---
-            all_filtered_reward: Backpropagate this value when {rollout_width * n_rollouts * n_tries} rollouts are filtered from the node.
-            remove_failed_child: If True, child nodes will be removed when {n_rollouts * n_tries} rollouts are filtered.
+            failed_parent_reward: Backpropagate this value when {eval_width * n_evals * n_tries} evals are filtered from the node.
+            remove_failed_child: If True, child nodes will be removed when {n_evals * n_tries} evals are filtered.
             freeze_terminal: If True, terminal node won't be visited twice.
             terminal_reward: If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
         """
@@ -32,19 +32,19 @@ class MCTS(Generator):
             raise ValueError("terminal_reward must be one of the following: float value, 'ignore', or 'reward'.")
         if terminal_reward == "ignore" and not freeze_terminal:
             raise ValueError("Set freeze_terminal to True, or set terminal_reward to something else.")
-        if remove_failed_child and allow_rollout_overlaps:
-            raise ValueError("Set one of these values to False: remove_failed_child or allow_rollout_overlaps.")
-        if type(filtered_reward) == list and len(filtered_reward) != len(filters):
-            raise ValueError("The size of list input for filtered_reward should match the number of filters.")
-        if type(filtered_reward) == list and n_tries != 1:
-            raise ValueError("List input for filtered_reward is not supported on n_tries > 1.")
+        if remove_failed_child and allow_eval_overlaps:
+            raise ValueError("Set one of these values to False: remove_failed_child or allow_eval_overlaps.")
+        if type(filter_reward) == list and len(filter_reward) != len(filters):
+            raise ValueError("The size of list input for filter_reward should match the number of filters.")
+        if type(filter_reward) == list and n_tries != 1:
+            raise ValueError("List input for filter_reward is not supported on n_tries > 1.")
 
         self.root = root
         self.max_tree_depth = max_tree_depth or transition.max_length()
         self.policy = policy
-        self.rollout_width = rollout_width
-        self.allow_rollout_overlaps = allow_rollout_overlaps
-        self.n_rollouts = n_rollouts
+        self.eval_width = eval_width
+        self.allow_eval_overlaps = allow_eval_overlaps
+        self.n_evals = n_evals
         self.n_tries = n_tries
         self.remove_failed_child = remove_failed_child
         self.terminal_reward = terminal_reward
@@ -53,8 +53,8 @@ class MCTS(Generator):
         if self.check_loop:
             self.node_keys = set()
         self.use_dummy_reward = use_dummy_reward
-        self.all_filtered_reward = all_filtered_reward
-        super().__init__(transition=transition, output_dir=output_dir, name=name, reward=reward, filters=filters, filtered_reward=filtered_reward, logger=logger, info_interval=info_interval)
+        self.failed_parent_reward = failed_parent_reward
+        super().__init__(transition=transition, output_dir=output_dir, name=name, reward=reward, filters=filters, filter_reward=filter_reward, logger=logger, info_interval=info_interval)
         self.root.n = 1
         
     def _selection(self) -> Node:
@@ -116,12 +116,12 @@ class MCTS(Generator):
         if not node.children:
             children = [node]
         else:
-            children = node.sample_children(max_size=self.rollout_width, replace=self.allow_rollout_overlaps)
+            children = node.sample_children(max_size=self.eval_width, replace=self.allow_eval_overlaps)
         
         parent_got_unfiltered_node = False
         for child in children:
             child_got_unfiltered_node = False
-            for _ in range(self.n_rollouts):
+            for _ in range(self.n_evals):
                 for _ in range(self.n_tries):
                     objective_values, reward = self._eval(child) # returns the child itself if terminal
                     if type(objective_values[0]) != str: # not filtered
@@ -129,10 +129,10 @@ class MCTS(Generator):
                 if type(objective_values[0]) != str: # not filtered
                     child_got_unfiltered_node = parent_got_unfiltered_node = True
                     self._backpropagate(child, reward, self.use_dummy_reward)
-                elif self.filtered_reward[int(objective_values[0])] != "ignore":
-                    self._backpropagate(child, self.filtered_reward[int(objective_values[0])], False)
+                elif self.filter_reward[int(objective_values[0])] != "ignore":
+                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
             if self.remove_failed_child and not child_got_unfiltered_node:
                 del child.parent.children[child.last_action]
-        if self.all_filtered_reward != "ignore" and not parent_got_unfiltered_node:
-            self._backpropagate(node, self.all_filtered_reward, False)
-            self.logger.debug("All rollouts failed from: " + str(node))
+        if self.failed_parent_reward != "ignore" and not parent_got_unfiltered_node:
+            self._backpropagate(node, self.failed_parent_reward, False)
+            self.logger.debug("All evals failed from: " + str(node))
