@@ -4,7 +4,11 @@ from node import SMILESStringNode
 from transition import Transition
 
 class SMIRKSTransition(Transition):
-    def __init__(self, smarts_list=None):
+    def __init__(self, smarts_list: list[str] | str=None):
+        """
+        Args:
+            smarts_list: A list of SMIRKS patterns, or the path to a .txt file containing them. If None, default patterns will be used.
+        """
         self.smarts_list = smarts_list or [
     "[cH:1]>>[c:1]C", "[cH:1]>>[c:1]CC", "[cH:1]>>[c:1]F", "[cH:1]>>[c:1]Cl", "[cH:1]>>[c:1]O", "[cH:1]>>[c:1][N+](=O)[O-]", # benzene-derivative
     "[O:1][H]>>[O:1]C(C)=O", "[O:1][H]>>[O:1]C", "[O:1][H]>>[O:1]S(=O)(=O)c1ccc(C)cc1", # alcohol
