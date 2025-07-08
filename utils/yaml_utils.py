@@ -45,8 +45,9 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
 
     # set transition lang
     transition_args = conf.get("transition_args", {})
-    if "model_dir" in transition_args and not os.path.isabs(transition_args["model_dir"]):
-        transition_args["model_dir"] = os.path.join(repo_root, transition_args["model_dir"])
+    for key, val in transition_args.items():
+        if isinstance(val, str) and not os.path.isabs(val) and (key.endswith("_dir") or key.endswith("_path")):
+            transition_args[key] = os.path.join(repo_root, val)
     transition_class = class_from_package("transition", conf["transition_class"])
         
     if issubclass(node_class, SentenceNode) or "lang_path" in conf:
