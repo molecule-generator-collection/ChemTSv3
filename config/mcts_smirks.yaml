@@ -1,7 +1,6 @@
 output_dir: generation_result
 # time_limit: 30 # seconds
 max_generations: 200000
-debug: true
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 # root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
@@ -50,31 +49,7 @@ generator_args:
   n_evals: 1
   n_tries: 1
   filter_reward: -1
-  terminal_reward: -1
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
-  # - filter_class: PubChemFilter
-  # - filter_class: ChargeFilter
-  # - filter_class: AromaticRingFilter
-  # - filter_class: LipinskiFilter
-  #   rule_of: 5
-  # - filter_class: PainsFilter
-  #   families:
-  #     - A
-  #     - B
-  #     - C
-  # - filter_class: MaxRingSizeFilter
-  #   max: 6
-  # - filter_class: RotatableBondsFilter
-  #   min: 2
-  # - filter_class: TPSAFilter
-  # - filter_class: SAScoreFilter
-  #   min: 3.5
-  # - filter_class: WeightFilter
-  #   min: 30
-  # - filter_class: HBAFilter
-  #   max: 5
-  # - filter_class: HBDFilter
-  #   max: 5
