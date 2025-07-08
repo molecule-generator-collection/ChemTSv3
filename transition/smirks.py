@@ -4,11 +4,12 @@ from node import SMILESStringNode
 from transition import Transition
 
 class SMIRKSTransition(Transition):
-    def __init__(self, smirks_list_path: str=None, smirks_list: list[str]=None):
+    def __init__(self, smirks_list_path: str=None, smirks_list: list[str]=None, check_Hs: bool=True):
         """
         Args:
-            smirks_list_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '#' are ignored.
+            smirks_list_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '//' are ignored.
             smirks_list: A list of SMIRKS patterns.
+            check_Hs: If True, SMIRKS reactions are also applied to a version of the molecule with explicit hydrogens (via `Chem.AddHs`). Defaults to True.
         
         Raises:
             ValueError: If both or neither of 'smirks_list_path' and 'smirks_list' are specified.
@@ -21,24 +22,29 @@ class SMIRKSTransition(Transition):
             self.smirks_list = smirks_list
         else:
             raise ValueError("Specify either 'smirks_list_path' or 'smirks_list'.")
+        self.check_Hs = check_Hs
             
     def load_smirks(self, path: str):
         self.smirks_list = []
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
-                line = line.split("#", 1)[0].strip() # remove comments and space
+                line = line.split("//", 1)[0].strip() # remove comments and space
                 if line:  # if not empty
                     self.smirks_list.append(line)
         
     # implement
     def transitions_with_probs(self, node: SMILESStringNode):
         initial_mol = node.mol()
+        if self.check_Hs:
+            initial_mol_H = Chem.AddHs(initial_mol)
         generated_mols = []
         for smirks in self.smirks_list:
             try:
                 rxn = AllChem.ReactionFromSmarts(smirks)
 
                 products = rxn.RunReactants((initial_mol,))
+                if self.check_Hs:
+                    products += rxn.RunReactants((initial_mol_H,))
                 for ps in products:
                     for p in ps:
                         generated_mols.append(p)
@@ -48,6 +54,8 @@ class SMIRKSTransition(Transition):
         unique_smiles = set()
 
         for mol in generated_mols:
+            if self.check_Hs:
+                mol = Chem.RemoveHs(mol)
             smiles = Chem.MolToSmiles(mol)
             if smiles not in unique_smiles:
                 unique_smiles.add(smiles)
