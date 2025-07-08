@@ -19,6 +19,7 @@ class Node(ABC):
         self.n = 0 # visit count
         self.sum_r = 0 # sum of rewards
         self.best_r = self.initial_best_r
+        self.reward = None # used only if has_reward() = True
         self._is_terminal = False # set this to True in generator if transition_with_probs returned an empty list
         self._cache = {} # str, Any
     

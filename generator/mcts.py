@@ -89,11 +89,12 @@ class MCTS(Generator):
     def _eval(self, node: Node):
         if node.has_reward():
             objective_values, reward = self.get_objective_values_and_reward(node)
-            return self.get_objective_values_and_reward(node)
+            node.reward = reward
         else:
             offspring = self.transition.rollout(node)
             objective_values, reward = self.get_objective_values_and_reward(offspring)
-        self.policy.observe(parent=node.parent, action=node.last_action, child=node, objective_values=objective_values, reward=reward)
+        
+        self.policy.observe(child=node, objective_values=objective_values, reward=reward)
         return objective_values, reward
 
     def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
