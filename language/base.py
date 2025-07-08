@@ -90,7 +90,7 @@ class Language(ABC):
         with open(file, mode="wb") as fo:
             pickle.dump(self, fo)
 
-    def load(file: str, device: str=None) -> Self:
+    def load(file: str) -> Self:
         with open(file, "rb") as f:
             lang = pickle.load(f)
         return lang
