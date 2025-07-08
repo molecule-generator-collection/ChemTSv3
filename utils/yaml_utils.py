@@ -24,8 +24,9 @@ def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
 
 def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator:
     output_dir=os.path.join(repo_root, "sandbox", conf["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
+    console_level = logging.ERROR if conf.get("silent") else logging.INFO
     file_level = logging.DEBUG if conf.get("debug") else logging.INFO
-    logger = make_logger(output_dir, file_level=file_level)
+    logger = make_logger(output_dir, console_level=console_level, file_level=file_level)
     generator_args = conf.get("generator_args", {})
 
     # set seed

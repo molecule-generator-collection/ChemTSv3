@@ -1,17 +1,23 @@
-study_name: d_score_test
+study_name: smirks_10000
 n_trials: 10000
 n_steps: 40
 best_reward_rate: 0.3
+silent: true
 seed: 0
-node_class: MolSentenceNode
-use_canonical_smiles_as_key: false
+
+node_class: SMILESStringNode
+use_canonical_smiles_as_key: true
+root: C
 
 output_dir: generation_result
-max_generations: 200
+max_generations: 100000
 time_limit: 72000
 
 device: cpu
-transition_class: RNNTransition
+transition_class: SMIRKSTransition
+transition_args:
+  smirks_list_path:  data/smirks/default.txt
+  check_Hs: true
 
 reward_class: DScoreReward
 reward_args:
@@ -35,7 +41,18 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
+policy_class: UCTAP
+policy_args:
+  use_parent_reward: true
+
 generator_class: MCTS
+generator_args:
+  check_loop: true
+  cut_failed_child: true
+  eval_width: 0
+  n_evals: 1
+  n_tries: 1
+  filter_reward: -1
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
