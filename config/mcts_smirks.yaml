@@ -7,6 +7,8 @@ use_canonical_smiles_as_key: true
 root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 
 transition_class: SMIRKSTransition
+transition_args:
+  smirks_list_path:  data/smirks/test.txt
 
 reward_class: DScoreReward
 reward_args:
