@@ -13,7 +13,7 @@ from rdkit import RDLogger
 from generator import Generator
 from language import Language
 from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode
-from utils import add_sep, class_from_package, make_logger
+from utils import class_from_package, make_logger
 
 def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
     with open(os.path.join(repo_root, yaml_path)) as f:
@@ -45,7 +45,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
 
     # set transition lang
     transition_args = conf.get("transition_args", {})
-    if "model_dir" in transition_args:
+    if "model_dir" in transition_args and not os.path.isabs(transition_args["model_dir"]):
         transition_args["model_dir"] = os.path.join(repo_root, transition_args["model_dir"])
     transition_class = class_from_package("transition", conf["transition_class"])
         
@@ -53,7 +53,9 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
         lang_path = conf.get("lang_path")
         if lang_path is None:
             lang_name = os.path.basename(os.path.normpath(transition_args["model_dir"])) + ".lang"
-            lang_path = add_sep(transition_args["model_dir"]) + lang_name
+            lang_path = os.path.join(transition_args["model_dir"], lang_name)
+        elif not os.path.isabs(lang_path):
+            lang_path = os.path.join(repo_root, lang_path)
         lang = Language.load(lang_path)
         transition_args["lang"] = lang
     elif "language_class" in conf:
