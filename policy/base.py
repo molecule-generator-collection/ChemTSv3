@@ -11,7 +11,7 @@ class Policy(ABC):
     def select_child(self, node: Node) -> Node:
         pass
     
-    def observe(self, parent: Node, action: Any, child: Node, objective_values: list[float], reward: float):
+    def observe(self, child: Node, objective_values: list[float], reward: float):
         return
     
 class ValuePolicy(Policy):

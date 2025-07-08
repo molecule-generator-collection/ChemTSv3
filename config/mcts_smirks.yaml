@@ -35,8 +35,10 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
-policy_class: UCT
+policy_class: UCTAP
 policy_args:
+  prior_offset: 0.1
+  use_parent_reward: true
   c: 0.01
   best_rate: 0.9
 
@@ -44,7 +46,7 @@ generator_class: MCTS
 generator_args:
   check_loop: true
   cut_failed_child: true
-  eval_width: .inf
+  eval_width: 1
   n_evals: 1
   n_tries: 1
   filter_reward: -1
