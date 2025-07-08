@@ -67,7 +67,7 @@ class SMIRKSTransition(Transition):
         transitions = []
         for i, smiles in enumerate(unique_smiles):
             # TODO: set meaningful action labels
-            node = SMILESStringNode(string=smiles, parent=node, last_prob=1/len(unique_smiles), last_action=i)
-            transitions.append((i, node, 1/len(unique_smiles)))
+            child = SMILESStringNode(string=smiles, parent=node, last_prob=1/len(unique_smiles), last_action=i)
+            transitions.append((i, child, 1/len(unique_smiles)))
             
         return transitions
