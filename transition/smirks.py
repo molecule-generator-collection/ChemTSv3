@@ -47,27 +47,26 @@ class SMIRKSTransition(Transition):
                     products += rxn.RunReactants((initial_mol_H,))
                 for ps in products:
                     for p in ps:
-                        generated_mols.append(p)
+                        generated_mols.append((smirks, p))
             except:
                 continue
                 
-        unique_smiles = set()
+        unique_smiles_set = set()
+        unique_transitions = []
 
-        for mol in generated_mols:
+        for smirks, mol in generated_mols:
             try:
                 mol = Chem.RemoveHs(mol)
                 smiles = Chem.MolToSmiles(mol)
-                if smiles not in unique_smiles:
-                    unique_smiles.add(smiles)
+                if smiles not in unique_smiles_set:
+                    unique_smiles_set.add(smiles)
+                    unique_transitions.append((smirks, smiles))
             except:
                 continue
-
-        unique_smiles = list(unique_smiles)
         
         transitions = []
-        for i, smiles in enumerate(unique_smiles):
-            # TODO: set meaningful action labels
-            child = SMILESStringNode(string=smiles, parent=node, last_prob=1/len(unique_smiles), last_action=i)
-            transitions.append((i, child, 1/len(unique_smiles)))
+        for i, (smirks, smiles) in enumerate(unique_transitions):
+            child = SMILESStringNode(string=smiles, parent=node, last_prob=1/len(unique_transitions), last_action=(smirks, i))
+            transitions.append(((smirks, i), child, 1/len(unique_transitions)))
             
         return transitions
