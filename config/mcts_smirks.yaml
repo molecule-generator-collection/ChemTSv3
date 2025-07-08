@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 30 # seconds
-# max_generations: 10000
+# time_limit: 30 # seconds
+max_generations: 200000
 debug: true
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
@@ -8,7 +8,8 @@ root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 
 transition_class: SMIRKSTransition
 transition_args:
-  smirks_list_path:  data/smirks/test.txt
+  smirks_list_path:  data/smirks/default.txt
+  check_Hs: true
 
 reward_class: DScoreReward
 reward_args:
@@ -34,15 +35,11 @@ reward_args:
 
 policy_class: UCT
 policy_args:
-  best_rate: 0.5
   c: 0.2
-  # c:
-  #   - [5, 1]
-  #   - [10, 0.1]
-  #   - [20, 0.01]
 
 generator_class: MCTS
 generator_args:
+  check_loop: true
   eval_width: 100
   n_evals: 1
   n_tries: 1
