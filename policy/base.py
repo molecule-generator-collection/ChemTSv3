@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import random
+from typing import Any
 from node import Node
 
 class Policy(ABC):
@@ -9,6 +10,9 @@ class Policy(ABC):
     @abstractmethod
     def select_child(self, node: Node) -> Node:
         pass
+    
+    def observe(self, parent: Node, action: Any, child: Node, objective_values: list[float], reward: float):
+        return
     
 class ValuePolicy(Policy):
     """Policy that selects the node with the highest score"""
