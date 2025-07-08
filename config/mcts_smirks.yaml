@@ -41,7 +41,7 @@ generator_class: MCTS
 generator_args:
   check_loop: true
   cut_failed_child: true
-  eval_width: 100
+  eval_width: .inf
   n_evals: 1
   n_tries: 1
   filter_reward: -1
