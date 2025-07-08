@@ -50,8 +50,3 @@ class UCT(ValuePolicy):
         if self.max_prior is not None:
             best_r = max(self.max_prior, best_r)
         return (1 - self.best_ratio) * mean_r + self.best_ratio * best_r + u
-    
-class PUCT(UCT):
-    # override
-    def get_exploration_term(self, c: float, parent_n: int, n: int, last_prob: float):
-        return c * last_prob * sqrt(parent_n) / (1 + n)

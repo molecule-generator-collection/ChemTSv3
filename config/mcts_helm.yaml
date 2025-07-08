@@ -14,7 +14,7 @@ transition_args:
 reward_class: JScoreReward
 # reward_class: LogPReward
 
-policy_class: UCT
+policy_class: UCTAP
 policy_args:
   c: 0.1
   best_rate: 0.5
