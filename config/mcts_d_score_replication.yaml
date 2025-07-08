@@ -40,7 +40,7 @@ generator_class: MCTS
 generator_args:
   eval_width: 100
   n_evals: 3
-  remove_failed_child: true
+  cut_failed_child: true
   info_interval: 200
   filter_reward: ignore
   failed_parent_reward: -1

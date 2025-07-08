@@ -32,7 +32,7 @@ generator_args:
   filter_reward: -1
   freeze_terminal: true
   check_loop: true
-  remove_failed_child: true
+  cut_failed_child: true
   info_interval: 1
 
 filters:

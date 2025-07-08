@@ -7,7 +7,7 @@ from reward import Reward, LogPReward
 from transition import Transition
 
 class MCTS(Generator):
-    def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int =1, remove_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, check_loop: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
+    def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int =1, cut_failed_child: bool=False, terminal_reward: float | str="ignore", freeze_terminal: bool=True, check_loop: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
         """
         Perform MCTS to maximize the reward.
 
@@ -23,7 +23,7 @@ class MCTS(Generator):
             
             --- The following variables are provided for ChemTSv2 replication, and are generally recommended to leave at their default values. ---
             failed_parent_reward: Backpropagate this value when {eval_width * n_evals * n_tries} evals are filtered from the node.
-            remove_failed_child: If True, child nodes will be removed when {n_evals * n_tries} evals are filtered.
+            cut_failed_child: If True, child nodes will be removed when {n_evals * n_tries} evals are filtered.
             freeze_terminal: If True, terminal node won't be visited twice.
             terminal_reward: If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
         """
@@ -32,8 +32,8 @@ class MCTS(Generator):
             raise ValueError("terminal_reward must be one of the following: float value, 'ignore', or 'reward'.")
         if terminal_reward == "ignore" and not freeze_terminal:
             raise ValueError("Set freeze_terminal to True, or set terminal_reward to something else.")
-        if remove_failed_child and allow_eval_overlaps:
-            raise ValueError("Set one of these values to False: remove_failed_child or allow_eval_overlaps.")
+        if cut_failed_child and allow_eval_overlaps:
+            raise ValueError("Set one of these values to False: cut_failed_child or allow_eval_overlaps.")
         if type(filter_reward) == list and len(filter_reward) != len(filters):
             raise ValueError("The size of list input for filter_reward should match the number of filters.")
         if type(filter_reward) == list and n_tries != 1:
@@ -46,7 +46,7 @@ class MCTS(Generator):
         self.allow_eval_overlaps = allow_eval_overlaps
         self.n_evals = n_evals
         self.n_tries = n_tries
-        self.remove_failed_child = remove_failed_child
+        self.cut_failed_child = cut_failed_child
         self.terminal_reward = terminal_reward
         self.freeze_terminal = freeze_terminal
         self.check_loop = check_loop
@@ -131,7 +131,7 @@ class MCTS(Generator):
                     self._backpropagate(child, reward, self.use_dummy_reward)
                 elif self.filter_reward[int(objective_values[0])] != "ignore":
                     self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
-            if self.remove_failed_child and not child_got_unfiltered_node:
+            if self.cut_failed_child and not child_got_unfiltered_node:
                 del child.parent.children[child.last_action]
         if self.failed_parent_reward != "ignore" and not parent_got_unfiltered_node:
             self._backpropagate(node, self.failed_parent_reward, False)
