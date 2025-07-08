@@ -1,6 +1,6 @@
 output_dir: generation_result
-# time_limit: 30 # seconds
-max_generations: 200000
+time_limit: 36000 # seconds
+# max_generations: 200000
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 # root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
@@ -36,10 +36,11 @@ reward_args:
 
 policy_class: UCTAP
 policy_args:
-  prior_offset: 0.1
+  action_c: 0.1
+  prior_offset: 0
   use_parent_reward: true
   c: 0.01
-  best_rate: 0.9
+  best_rate: 0.5
 
 generator_class: MCTS
 generator_args:
