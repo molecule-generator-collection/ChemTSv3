@@ -54,8 +54,7 @@ class SMIRKSTransition(Transition):
         unique_smiles = set()
 
         for mol in generated_mols:
-            if self.check_Hs:
-                mol = Chem.RemoveHs(mol)
+            mol = Chem.RemoveHs(mol)
             smiles = Chem.MolToSmiles(mol)
             if smiles not in unique_smiles:
                 unique_smiles.add(smiles)
