@@ -104,7 +104,6 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
     generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, output_dir=output_dir, logger=logger, **generator_args)
     
     # copy yaml to the output directory
-    output_dir=os.path.join(repo_root, "sandbox", conf["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
     src = os.path.join(repo_root, conf["yaml_path"]) # added in conf_from_yaml
     dst = os.path.join(output_dir, "setting.yaml")
     shutil.copy(src, dst)
