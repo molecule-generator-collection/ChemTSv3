@@ -4,7 +4,6 @@ import numpy as np
 from rdkit.Chem import Mol
 
 class Node(ABC):
-    use_cache = True
     initial_best_r = -1.0
     
     def __init__(self, parent=None, last_action: Any=None, last_prob=1.0):
@@ -13,7 +12,7 @@ class Node(ABC):
             self.depth = parent.depth + 1
         else:
             self.depth = 0
-        self.children: dict[Any, Self] = {}
+        self.children = []
         self.last_prob = last_prob # Prob(parent -> this node)
         self.last_action = last_action
         self.n = 0 # visit count
@@ -21,7 +20,7 @@ class Node(ABC):
         self.best_r = self.initial_best_r
         self.reward = None # used only if has_reward() = True
         self._is_terminal = False # set this to True in generator if transition_with_probs returned an empty list
-        self._cache = {} # str, Any
+        self._cache = None # use self.cache and self.clear_cache() (dict)
     
     @abstractmethod
     def key(self) -> str:
@@ -45,10 +44,8 @@ class Node(ABC):
     def is_terminal(self) -> bool:
         return self._is_terminal
 
-    def add_child(self, action: Any, child: Self, override_child=False, override_parent=False):
-        if override_child is False and action in self.children:
-            pass
-        self.children[action] = child
+    def add_child(self, child: Self, override_parent=False):
+        self.children.append(child)
         if child.parent is None or override_parent:
             child.parent = self
     
@@ -58,14 +55,13 @@ class Node(ABC):
         self.best_r = max(self.best_r, value)
     
     def sample_children(self, max_size: int=1, replace: bool=False):
-        nodes = list(self.children.values())
-        size = min(max_size, len(nodes))
-        if not nodes:
+        if not self.children:
             return None
-        weights = np.array([node.last_prob for node in nodes], dtype=np.float64)
+        size = min(max_size, len(self.children))
+        weights = np.array([node.last_prob for node in self.children], dtype=np.float64)
         total = weights.sum()
         probabilities = weights / total
-        return np.random.choice(nodes, size=size, replace=replace, p=probabilities)
+        return np.random.choice(self.children, size=size, replace=replace, p=probabilities)
     
     def sample_child(self):
         return self.sample_children(max_size=1)[0]
@@ -75,18 +71,22 @@ class Node(ABC):
             return self.sample_children(max_size=1)[0]
         else:
             return self.sample_children(max_size=1)[0].sample_offspring(depth=depth-1)
-        
+
     def cut_unvisited_children(self):
-        unvisited_keys = [key for key, child in self.children.items() if child.n == 0]
-        for key in unvisited_keys:
-            del self.children[key]
+        self.children = [node for node in self.children if node.n != 0]
         
     def show_children(self):
-        for child in sorted(self.children.values(), key=lambda c: c.last_prob, reverse=True):
+        for child in sorted(self.children, key=lambda c: c.last_prob, reverse=True):
             print(f"{child.last_prob:.3f}", str(child))
+            
+    @property
+    def cache(self):
+        if self._cache is None:
+            self._cache = {}
+        return self._cache
     
     def clear_cache(self):
-        self._cache = {}
+        self._cache = None
         
     def __str__(self) -> str:
         return self.key()
@@ -105,13 +105,13 @@ class MolNode(Node):
         pass
     
     def mol(self) -> Mol:
-        if self.use_cache and "mol" in self._cache:
-            return self._cache["mol"]
+        if "mol" in self.cache:
+            return self.cache["mol"]
         else:
             mol = self._mol_impl()
-            self._cache["mol"] = mol
+            self.cache["mol"] = mol
             return mol
-        
+
 class SurrogateNode(Node):
     """Surrogate node for multiple roots."""
     # implement

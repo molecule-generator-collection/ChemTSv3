@@ -82,7 +82,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
         root = SurrogateNode()
         for s in conf.get("root"):
             node = node_class.node_from_key(key=s, parent=root, last_prob=1/len(conf.get("root")), last_action=s, **root_args)
-            root.add_child(action=s, child=node)
+            root.add_child(child=node)
     else:
         root = node_class.node_from_key(key=conf.get("root", ""), **root_args)
 
