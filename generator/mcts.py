@@ -138,7 +138,7 @@ class MCTS(Generator):
                 elif self.filter_reward[int(objective_values[0])] != "ignore":
                     self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
             if self.cut_failed_child and not child_got_unfiltered_node:
-                del child.parent.children[child.last_action]
+                child.leave()
         if self.failed_parent_reward != "ignore" and not parent_got_unfiltered_node:
             self._backpropagate(node, self.failed_parent_reward, False)
             self.logger.debug("All evals failed from: " + str(node))
