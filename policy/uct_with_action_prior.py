@@ -5,7 +5,7 @@ from policy import UCT
     
 class UCTAP(UCT):
     """UCT with Action Prior"""
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, action_c:float=1.0, prior_offset: float=0.2, prior_weight: int=1, max_prior: float=None, use_parent_reward: bool=True):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, action_c:float=0.1, prior_offset: float=0.1, prior_weight: int=1, max_prior: float=None, use_parent_reward: bool=True):
         self.sum_action_n = 0
         self.action_n = {}
         self.action_sum_r = {}
