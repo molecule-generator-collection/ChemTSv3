@@ -57,6 +57,7 @@ generator_args:
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
+  - filter_class: ChargeFilter
 
 plot_args:
   x_axis: generation_order
