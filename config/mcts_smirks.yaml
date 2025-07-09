@@ -6,8 +6,8 @@ use_canonical_smiles_as_key: true
 debug: true
 # root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 # root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
-# root: C
-root: c1ccccc1
+root: C
+# root: c1ccccc1
 
 transition_class: SMIRKSTransition
 transition_args:
@@ -42,13 +42,12 @@ policy_args:
   prior_offset: 0.02
   use_parent_reward: true
   c: 0.25
-  best_rate: 0.5
+  best_rate: 0.9
 
 generator_class: MCTS
 generator_args:
   check_loop: true
   cut_failed_child: true
-  reward_cutoff: 0.01
   eval_width: 0
   n_evals: 1
   n_tries: 1
