@@ -23,29 +23,36 @@ class UCT(ValuePolicy):
             return self.prior, self.prior_weight
         else:
             return 0, 0
-        
-    def get_exploration_term(self, c: float, parent_n: int, n: int, last_prob: float):
-        return c * sqrt(log(parent_n) / (n))
-    
-    # implement
-    def evaluate(self, node: Node) -> float:
+
+    def get_c_value(self, node: Node) -> float:
         if type(self.c) == Callable:
             c = self.c(node.depth)
         elif type(self.c) == PointCurve:
             c = self.c.curve(node.depth)
         else:
             c = self.c
-
+        return c
+    
+    def get_exploration_term(self, node: Node):
+        c = self.get_c_value(node)
+        _, prior_weight = self.get_prior(node)
+        n = node.n + prior_weight
+        parent_n = node.parent.n + prior_weight
+        return c * sqrt(log(parent_n) / (n))
+    
+    def get_mean_r(self, node: Node):
         prior, prior_weight = self.get_prior(node)
         sum_r = node.sum_r + prior * prior_weight
         n = node.n + prior_weight
-        parent_n = node.parent.n + prior_weight
+        return sum_r / n
 
+    # implement
+    def evaluate(self, node: Node) -> float:
         if node.n == 0:
             return 10**9 # tiebreaker is implemented in policy base
         
-        u = self.get_exploration_term(c=c, parent_n=parent_n, n=n, last_prob=node.last_prob)
-        mean_r = sum_r / n
+        u = self.get_exploration_term(node)
+        mean_r = self.get_mean_r(node)
         best_r = node.best_r
         if self.max_prior is not None:
             best_r = max(self.max_prior, best_r)
