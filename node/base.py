@@ -35,6 +35,15 @@ class Node(ABC):
     def node_from_key(cls, key: str) -> Self:
         raise NotImplementedError("node_from_key() is not supported in this class.")
     
+    @property
+    def cache(self):
+        if self._cache is None:
+            self._cache = {}
+        return self._cache
+    
+    def clear_cache(self):
+        self._cache = None
+    
     def mark_as_terminal(self, freeze=False) -> bool:
         self._is_terminal = True
         if freeze:
@@ -75,18 +84,13 @@ class Node(ABC):
     def cut_unvisited_children(self):
         self.children = [node for node in self.children if node.n != 0]
         
+    def leave(self):
+        if self in self.parent.children:
+            self.parent.children.remove(self)
+        
     def show_children(self):
         for child in sorted(self.children, key=lambda c: c.last_prob, reverse=True):
             print(f"{child.last_prob:.3f}", str(child))
-            
-    @property
-    def cache(self):
-        if self._cache is None:
-            self._cache = {}
-        return self._cache
-    
-    def clear_cache(self):
-        self._cache = None
         
     def __str__(self) -> str:
         return self.key()
