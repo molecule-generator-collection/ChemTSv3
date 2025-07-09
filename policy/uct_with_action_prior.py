@@ -32,7 +32,7 @@ class UCTAP(UCT):
             self.action_sum_r[action] += reward
 
     # override
-    def get_prior(self, node: Node) -> tuple[float, int]:
+    def get_prior(self, node: Node) -> float:
         last_action = node.last_action
         if type(last_action) == tuple:
             last_action = last_action[0]
@@ -45,5 +45,5 @@ class UCTAP(UCT):
             prior += self.prior_offset
             if self.use_parent_reward and node.parent.reward is not None:
                 prior += node.parent.reward
-            return prior, self.prior_weight
+            return prior
         

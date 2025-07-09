@@ -17,12 +17,12 @@ class UCT(ValuePolicy):
         self.prior_weight = prior_weight
         self.max_prior = max_prior
         
-    def get_prior(self, node: Node) -> tuple[float, int]:
+    def get_prior(self, node: Node) -> float:
         """Return prior value and prior weight."""
         if self.prior is not None:
-            return self.prior, self.prior_weight
+            return self.prior
         else:
-            return 0, 0
+            return 0
 
     def get_c_value(self, node: Node) -> float:
         if type(self.c) == Callable:
@@ -35,15 +35,14 @@ class UCT(ValuePolicy):
     
     def get_exploration_term(self, node: Node):
         c = self.get_c_value(node)
-        _, prior_weight = self.get_prior(node)
-        n = node.n + prior_weight
-        parent_n = node.parent.n + prior_weight
+        n = node.n + self.prior_weight
+        parent_n = node.parent.n + self.prior_weight
         return c * sqrt(log(parent_n) / (n))
     
     def get_mean_r(self, node: Node):
-        prior, prior_weight = self.get_prior(node)
-        sum_r = node.sum_r + prior * prior_weight
-        n = node.n + prior_weight
+        prior = self.get_prior(node)
+        sum_r = node.sum_r + prior * self.prior_weight
+        n = node.n + self.prior_weight
         return sum_r / n
 
     # implement
