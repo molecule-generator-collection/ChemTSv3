@@ -7,7 +7,7 @@ class SMIRKSTransition(Transition):
     def __init__(self, smirks_list_path: str=None, smirks_list: list[str]=None, check_Hs: bool=True):
         """
         Args:
-            smirks_list_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '//' are ignored.
+            smirks_list_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored.
             smirks_list: A list of SMIRKS patterns.
             check_Hs: If True, SMIRKS reactions are also applied to a version of the molecule with explicit hydrogens (via `Chem.AddHs`). Defaults to True.
         
@@ -28,7 +28,7 @@ class SMIRKSTransition(Transition):
         self.smirks_list = []
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
-                line = line.split("//", 1)[0].strip() # remove comments and space
+                line = line.split("##", 1)[0].strip() # remove comments and space
                 if line:  # if not empty
                     self.smirks_list.append(line)
         
