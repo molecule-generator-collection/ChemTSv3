@@ -5,11 +5,11 @@ from policy import UCT
     
 class UCTAP(UCT):
     """UCT with Action Prior"""
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, action_c:float=0.1, prior_offset: float=0.1, prior_weight: int=1, max_prior: float=None, use_parent_reward: bool=True):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, c_action:float=0.1, prior_offset: float=0.1, prior_weight: int=1, max_prior: float=None, use_parent_reward: bool=True):
         self.sum_action_n = 0
         self.action_n = {}
         self.action_sum_r = {}
-        self.action_c = action_c
+        self.c_action = c_action
         self.prior_offset = prior_offset
         self.use_parent_reward = use_parent_reward
         super().__init__(c=c, best_rate=best_rate, prior_weight=prior_weight, max_prior=max_prior)
@@ -41,7 +41,7 @@ class UCTAP(UCT):
             return 0, 0
         else:
             prior = self.action_sum_r[last_action] / self.action_n[last_action]
-            prior += self.action_c * sqrt(log(self.sum_action_n) / (self.action_n[last_action]))
+            prior += self.c_action * sqrt(log(self.sum_action_n) / (self.action_n[last_action]))
             prior += self.prior_offset
             if self.use_parent_reward and node.parent.reward is not None:
                 prior += node.parent.reward

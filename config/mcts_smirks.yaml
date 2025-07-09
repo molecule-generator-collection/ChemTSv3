@@ -38,7 +38,7 @@ reward_args:
 
 policy_class: UCTAP
 policy_args:
-  action_c: 0.2
+  c_action: 0.2
   prior_offset: 0.02
   use_parent_reward: true
   c: 0.25
