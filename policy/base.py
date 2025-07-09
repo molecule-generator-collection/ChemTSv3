@@ -21,9 +21,8 @@ class ValuePolicy(Policy):
         pass
     
     def select_child(self, node: Node) -> Node:
-        values = node.children.values()
-        max_y = max(self.evaluate(child) for child in values)
-        candidates = [child for child in values if self.evaluate(child) == max_y]
+        max_y = max(self.evaluate(child) for child in node.children)
+        candidates = [child for child in node.children if self.evaluate(child) == max_y]
 
         total_prob = sum(child.last_prob for child in candidates)
         if total_prob == 0:

@@ -75,14 +75,14 @@ class MCTS(Generator):
         if len(transitions) == 0:
             return False
         expanded = False
-        actions, nodes, _ = zip(*transitions)
-        for a, n in zip(actions, nodes):
+        _, nodes, _ = zip(*transitions)
+        for n in nodes:
             if self.check_loop:
                 if n.key() in self.node_keys:
                     continue
                 else:
                     self.node_keys.add(n.key())
-            node.add_child(a, n)
+            node.add_child(n)
             expanded = True
         return expanded
     
