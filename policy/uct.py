@@ -5,7 +5,7 @@ from policy import ValuePolicy
 from utils import PointCurve
 
 class UCT(ValuePolicy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=None, max_prior: float=None):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=None, no_prior_for_unvisited: bool=True, max_prior: float=None):
         if prior_weight is not None and prior_weight < 0:
             raise ValueError("'prior_weight' must be >= 0.")        
 
@@ -24,6 +24,7 @@ class UCT(ValuePolicy):
         else:
             self.prior_weight = 0
         self.max_prior = max_prior
+        self.no_prior_for_unvisited = no_prior_for_unvisited
         
     def get_prior(self, node: Node) -> float:
         """Return prior value (None if not using prior)."""
@@ -63,7 +64,7 @@ class UCT(ValuePolicy):
     def evaluate(self, node: Node) -> float:
         mean_r = self.get_mean_r(node)
         
-        if mean_r == None:
+        if mean_r == None or node.n == 0 and self.no_prior_for_unvisited:
             return 10**9 # tiebreaker is implemented in policy base
         
         u = self.get_exploration_term(node)
