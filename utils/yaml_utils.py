@@ -12,7 +12,7 @@ import yaml
 from rdkit import RDLogger
 from generator import Generator
 from language import Language
-from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode
+from node import SurrogateNode, SentenceNode, MolSentenceNode
 from utils import class_from_package, make_logger
 
 def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
