@@ -3,7 +3,6 @@ time_limit: 36000 # seconds
 # max_generations: 200000
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
-debug: true
 # root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 # root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
 root: C
@@ -54,7 +53,7 @@ generator_class: MCTS
 generator_args:
   check_loop: true
   cut_failed_child: true
-  eval_width: 0
+  # eval_width: 0
   n_evals: 1
   n_tries: 1
   filter_reward: -1
