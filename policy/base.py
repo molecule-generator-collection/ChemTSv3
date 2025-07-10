@@ -23,9 +23,5 @@ class ValuePolicy(Policy):
     def select_child(self, node: Node) -> Node:
         max_y = max(self.evaluate(child) for child in node.children)
         candidates = [child for child in node.children if self.evaluate(child) == max_y]
-
-        total_prob = sum(child.last_prob for child in candidates)
-        if total_prob == 0:
-            return random.choice(candidates)
         weights = [child.last_prob for child in candidates]
         return random.choices(candidates, weights=weights, k=1)[0]
