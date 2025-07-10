@@ -5,13 +5,13 @@ from policy import UCT
     
 class UCTAP(UCT):
     """UCT with Action Prior"""
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, c_action:float=0.1, prior_offset: float=0.1, prior_weight: int=1, force_first_visit: bool=True, max_prior: float=None):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, c_action:float=0.1, prior_offset: float=0.1, prior_weight: int=1, prioritize_first_visit: bool=True, max_prior: float=None):
         self.sum_action_n = 0
         self.action_n = {}
         self.action_sum_r = {}
         self.c_action = c_action
         self.prior_offset = prior_offset
-        super().__init__(c=c, best_rate=best_rate, prior_weight=prior_weight, force_first_visit=force_first_visit, max_prior=max_prior)
+        super().__init__(c=c, best_rate=best_rate, prior_weight=prior_weight, prioritize_first_visit=prioritize_first_visit, max_prior=max_prior)
 
     # override
     def observe(self, child: Node, objective_values: list[float], reward: float):
