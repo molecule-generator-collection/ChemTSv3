@@ -5,8 +5,8 @@ from policy import ValuePolicy
 from utils import PointCurve
 
 class UCT(ValuePolicy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=1, max_prior: float=None):
-        if prior_weight < 0:
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, prior: float=None, prior_weight: int=None, max_prior: float=None):
+        if prior_weight is not None and prior_weight < 0:
             raise ValueError("'prior_weight' must be >= 0.")        
 
         if type(c) == Callable:
@@ -17,7 +17,12 @@ class UCT(ValuePolicy):
             self.c = c
         self.best_ratio = best_rate
         self.prior = prior
-        self.prior_weight = prior_weight
+        if prior_weight is not None:
+            self.prior_weight = prior_weight
+        elif prior is not None:
+            self.prior_weight = 1
+        else:
+            self.prior_weight = 0
         self.max_prior = max_prior
         
     def get_prior(self, node: Node) -> float:
@@ -35,7 +40,7 @@ class UCT(ValuePolicy):
     
     def get_exploration_term(self, node: Node):
         c = self.get_c_value(node)
-        n = max(node.n + self.prior_weight, 1) # prior_weight can be 0
+        n = max(node.n + self.prior_weight, 1) # can be 0+0 with prior value (use prior only for n=0)
         parent_n = max(node.parent.n + self.prior_weight, 1)
         return c * sqrt(log(parent_n) / (n))
     
