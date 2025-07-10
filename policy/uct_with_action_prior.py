@@ -5,14 +5,13 @@ from policy import UCT
     
 class UCTAP(UCT):
     """UCT with Action Prior"""
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, c_action:float=0.1, prior_offset: float=0.1, prior_weight: int=1, max_prior: float=None, use_parent_reward: bool=True):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=1, best_rate: float=0.0, c_action:float=0.1, prior_offset: float=0.1, prior_weight: int=1, no_prior_for_unvisited: bool=True, max_prior: float=None):
         self.sum_action_n = 0
         self.action_n = {}
         self.action_sum_r = {}
         self.c_action = c_action
         self.prior_offset = prior_offset
-        self.use_parent_reward = use_parent_reward
-        super().__init__(c=c, best_rate=best_rate, prior_weight=prior_weight, max_prior=max_prior)
+        super().__init__(c=c, best_rate=best_rate, prior_weight=prior_weight, no_prior_for_unvisited=no_prior_for_unvisited, max_prior=max_prior)
 
     # override
     def observe(self, child: Node, objective_values: list[float], reward: float):
@@ -21,15 +20,17 @@ class UCTAP(UCT):
         if type(action) == tuple:
             action = action[0]
             
-        if self.use_parent_reward and child.parent.reward is not None:
-            reward = reward - child.parent.reward
+        if child.parent.reward is not None:
+            reward_dif = reward - child.parent.reward
+        else:
+            return
         
         if not action in self.action_n:
             self.action_n[action] = 1
-            self.action_sum_r[action] = reward
+            self.action_sum_r[action] = reward_dif
         else:
             self.action_n[action] += 1
-            self.action_sum_r[action] += reward
+            self.action_sum_r[action] += reward_dif
 
     # override
     def get_prior(self, node: Node) -> float:
@@ -37,12 +38,11 @@ class UCTAP(UCT):
         if type(last_action) == tuple:
             last_action = last_action[0]
             
-        if not last_action in self.action_n:
+        if not last_action in self.action_n or node.parent.reward is None:
             return None
         else:
-            prior = self.action_sum_r[last_action] / self.action_n[last_action]
+            prior = node.parent.reward
+            prior += self.action_sum_r[last_action] / self.action_n[last_action]
             prior += self.c_action * sqrt(log(self.sum_action_n) / (self.action_n[last_action]))
             prior += self.prior_offset
-            if self.use_parent_reward and node.parent.reward is not None:
-                prior += node.parent.reward
             return prior

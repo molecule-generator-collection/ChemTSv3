@@ -8,6 +8,7 @@ debug: true
 # root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
 root: C
 # root: c1ccccc1
+# root: c1cccc2cncnc12
 
 transition_class: SMIRKSTransition
 transition_args:
@@ -36,14 +37,18 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
+# policy_class: UCT
+# policy_args:
+#   c: 0.2
+#   best_rate: 0.9
+
 policy_class: UCTAP
 policy_args:
-  c_action: 0.2
-  prior_offset: 0.5
-  prior_width: 0
-  use_parent_reward: true
   c: 0.25
   best_rate: 0.9
+  c_action: 0.2
+  prior_offset: 0.02
+  prior_weight: 1
 
 generator_class: MCTS
 generator_args:
