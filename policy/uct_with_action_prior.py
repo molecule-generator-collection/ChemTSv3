@@ -38,7 +38,7 @@ class UCTAP(UCT):
             last_action = last_action[0]
             
         if not last_action in self.action_n:
-            return 0, 0
+            return None
         else:
             prior = self.action_sum_r[last_action] / self.action_n[last_action]
             prior += self.c_action * sqrt(log(self.sum_action_n) / (self.action_n[last_action]))
@@ -46,4 +46,3 @@ class UCTAP(UCT):
             if self.use_parent_reward and node.parent.reward is not None:
                 prior += node.parent.reward
             return prior
-        
