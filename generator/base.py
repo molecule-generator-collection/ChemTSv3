@@ -145,19 +145,6 @@ class Generator(ABC):
         self.log_unique_node(key, objective_values, reward)
         node.clear_cache()
         return objective_values, reward
-    
-    def eval(self, node: Node):
-        if node.has_reward():
-            objective_values, reward = self._get_objective_values_and_reward(node)
-            node.reward = reward
-            if self.reward_cutoff is not None and reward < self.reward_cutoff:
-                node.leave(logger=self.logger)
-        else:
-            offspring = self.transition.rollout(node)
-            objective_values, reward = self._get_objective_values_and_reward(offspring)
-        
-        self.policy.observe(child=node, objective_values=objective_values, reward=reward)
-        return objective_values, reward
 
     # visualize results
     def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False):

@@ -67,6 +67,19 @@ class MCTS(Generator):
         while node.children:
             node = self.policy.select_child(node)
         return node
+    
+    def _eval(self, node: Node):
+        if node.has_reward():
+            objective_values, reward = self._get_objective_values_and_reward(node)
+            node.reward = reward
+            if self.reward_cutoff is not None and reward < self.reward_cutoff:
+                node.leave(logger=self.logger)
+        else:
+            offspring = self.transition.rollout(node)
+            objective_values, reward = self._get_objective_values_and_reward(offspring)
+        
+        self.policy.observe(child=node, objective_values=objective_values, reward=reward)
+        return objective_values, reward
 
     def _expand(self, node: Node) -> bool:
         transitions = self.transition.transitions_with_probs(node)
