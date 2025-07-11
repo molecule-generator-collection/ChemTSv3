@@ -29,11 +29,21 @@ def apply_sharpness(probs: torch.Tensor, sharpness: float) -> torch.Tensor:
     normalized = powered / powered.sum(dim=-1, keepdim=True)
     return normalized
 
-def moving_average(values: list[float], window: float=0.05) -> np.ndarray:
+def moving_average(values: list[float], window: float=0.05, top_p: float=None) -> np.ndarray:
     if window < 1:
         window = max(1, math.floor(len(values) * window))
+    window = min(window, len(values))
+    
     head = [np.nan] * (window - 1)
-    tail = np.convolve(values, np.ones(window)/window, mode='valid')
+    if top_p is not None and 0 < top_p < 1:
+        tail = []
+        for i in range(len(values) - window + 1):
+            window_values = values[i:i+window]
+            sorted_vals = sorted(window_values, reverse=True)
+            top_k = max(1, math.floor(len(sorted_vals) * top_p))
+            tail.append(np.mean(sorted_vals[:top_k]))
+    else:
+        tail = np.convolve(values, np.ones(window)/window, mode='valid')
     return np.array(head + list(tail))
 
 def max_gauss(x, a=1, mu=8, sigma=2):
