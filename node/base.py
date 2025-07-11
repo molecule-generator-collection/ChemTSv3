@@ -5,7 +5,7 @@ import numpy as np
 from rdkit.Chem import Mol
 
 class Node(ABC):
-    initial_best_r = -1.0
+    initial_best_r = 0.0
     
     def __init__(self, parent=None, last_action: Any=None, last_prob=1.0):
         self.parent = parent
@@ -17,7 +17,7 @@ class Node(ABC):
         self.last_prob = last_prob # Prob(parent -> this node)
         self.last_action = last_action
         self.n = 0 # visit count
-        self.sum_r = 0 # sum of rewards
+        self.sum_r = 0.0 # sum of rewards
         self.best_r = self.initial_best_r
         self.reward = None # used only if has_reward() = True
         self._is_terminal = False # set this to True in generator if transition_with_probs returned an empty list
