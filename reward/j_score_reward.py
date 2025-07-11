@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from rdkit.Chem import Descriptors
 from reward import MolReward
@@ -8,15 +9,15 @@ Ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/
 ref: https://github.com/tsudalab/ChemTS/blob/4174c3600ebb47ed136b433b22a29c879824a6ba/mcts_logp_improved_version/add_node_type.py#L172
 """
 
-LOG_P_BASELINE = np.loadtxt("../data/j_score/logP_values.txt")
+LOG_P_BASELINE = np.loadtxt(os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/j_score/logP_values.txt")))
 LOG_P_MEAN = np.mean(LOG_P_BASELINE)
 LOG_P_STD = np.std(LOG_P_BASELINE)
 
-SA_BASELINE = np.loadtxt("../data/j_score/SA_scores.txt")
+SA_BASELINE = np.loadtxt(os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/j_score/SA_scores.txt")))
 SA_MEAN = np.mean(SA_BASELINE)
 SA_STD = np.std(SA_BASELINE)
 
-CA_BASELINE = np.loadtxt("../data/j_score/cycle_scores.txt")
+CA_BASELINE = np.loadtxt(os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/j_score/cycle_scores.txt")))
 CS_MEAN = np.mean(CA_BASELINE)
 CS_STD = np.std(CA_BASELINE)
 

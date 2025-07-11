@@ -4,6 +4,7 @@ requires: lightgbm==3.2.1~3.3.5
 """
 import pickle
 import numpy as np
+import os
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -12,9 +13,9 @@ from reward import MolReward
 from utils import max_gauss, min_gauss, rectangular
 from utils.third_party import sascorer
 
-LGB_MODELS_PATH = "../data/d_score/lgb_models.pickle"
-SURE_CHEMBL_ALERTS_PATH = "../data/d_score/sure_chembl_alerts.txt"
-CHEMBL_FPS_PATH = "../data/d_score/chembl_fps.npy"
+LGB_MODELS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/lgb_models.pickle"))
+SURE_CHEMBL_ALERTS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/sure_chembl_alerts.txt"))
+CHEMBL_FPS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/chembl_fps.npy"))
 
 with open(LGB_MODELS_PATH, mode='rb') as models,\
     open(SURE_CHEMBL_ALERTS_PATH, mode='rb') as alerts, \

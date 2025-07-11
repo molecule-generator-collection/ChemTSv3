@@ -35,7 +35,7 @@ class Evaluater:
     dict_atEstate = metadata.atEstate
 
     def __init__(self):
-        data_dir = os.path.join("../data/pubchem_filter")
+        data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/pubchem_filter"))
         dfb = pd.read_csv(os.path.join(data_dir, "bonds_dict.txt"), delimiter="\t")
         for i, f in dfb.iterrows():
             if f["BondIs"] == 1:
