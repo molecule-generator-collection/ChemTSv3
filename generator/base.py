@@ -27,7 +27,7 @@ class Generator(ABC):
         self._output_dir = output_dir or "generation_result"
         os.makedirs(self.output_dir(), exist_ok=True)
         self.unique_keys = []
-        self.record: dict[str, dict] = {} # save at least all of the following for unique molkeys: "objective_values", "reward", "generation_order", "time"
+        self.record: dict[str, dict] = {} # save at least all of the following for unique keys: "objective_values", "reward", "generation_order", "time"
         self.best_reward = -float("inf")
         self.passed_time = 0
         self.grab_count = 0
