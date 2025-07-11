@@ -1,9 +1,8 @@
 output_dir: generation_result
-time_limit: 36000 # seconds
+time_limit: 68000 # seconds
 max_generations: 200000
-# debug: true
 node_class: MolSentenceNode
-use_canonical_smiles_as_key: true
+use_canonical_smiles_as_key: false
 
 device: cpu
 transition_class: RNNTransition
@@ -12,20 +11,6 @@ transition_args:
   # model_dir: model/smiles/drugs_zinc/gru
   # model_dir: model/smiles/drugs_zinc/lstm
   top_p: 0.995
-
-policy_class: UCT
-policy_args:
-  c: 0.25
-  best_rate: 0.5
-
-generator_class: MCTS
-generator_args:
-  eval_width: 1
-  n_evals: 1
-  n_tries: 2
-  filter_reward:  0
-  cut_terminal: true
-  info_interval: 100
 
 reward_class: DScoreReward
 reward_args:
@@ -49,13 +34,12 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
-plot_args:
-  x_axis: generation_order
-  packed_objectives:
-    - [egfr, erbb2, abl, src, lck, pdgfr_beta, vegfr2, fgfr1, ephb4]
-  moving_average_window: 0.005
-  linewidth: 1.0
+generator_class: HeapQueueGenerator
+generator_args:
+  filter_reward: -1
+  info_interval: 100
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
+  # - filter_class: ChargeFilter
