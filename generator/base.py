@@ -125,7 +125,7 @@ class Generator(ABC):
         rewards = [self.record[k]["reward"] for k in self.unique_keys[-window:]]
         return np.average(rewards)
 
-    def get_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
+    def _get_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
         self.grab_count += 1
         key = str(node)
         if key in self.record:
@@ -144,6 +144,19 @@ class Generator(ABC):
         objective_values, reward = self.reward.objective_values_and_reward(node)
         self.log_unique_node(key, objective_values, reward)
         node.clear_cache()
+        return objective_values, reward
+    
+    def eval(self, node: Node):
+        if node.has_reward():
+            objective_values, reward = self._get_objective_values_and_reward(node)
+            node.reward = reward
+            if self.reward_cutoff is not None and reward < self.reward_cutoff:
+                node.leave(logger=self.logger)
+        else:
+            offspring = self.transition.rollout(node)
+            objective_values, reward = self._get_objective_values_and_reward(offspring)
+        
+        self.policy.observe(child=node, objective_values=objective_values, reward=reward)
         return objective_values, reward
 
     # visualize results
