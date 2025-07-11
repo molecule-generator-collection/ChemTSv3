@@ -116,13 +116,29 @@ class Generator(ABC):
         row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
         self.logger.info(row)
         
-    def average_reward(self, window: int | float=None):
+    def average_reward(self, window: int | float=None, top_p: float = None):
+        """
+        Compute the average reward over the most recent `window` entries.
+        If `top_p` is specified (e.g., 0.1), return the average of the top `top_p * 100%` rewards within that window.
+
+        Args:
+            window: Number or rate of recent entries to consider.
+            top_p: Fraction of top rewards to average, e.g., 0.1 means top 10%.
+        """
         if window is None:
             window = len(self.unique_keys)
         elif window < 1:
             window = max(1, math.floor(window * len(self.unique_keys)))
         window = min(window, len(self.unique_keys))
         rewards = [self.record[k]["reward"] for k in self.unique_keys[-window:]]
+        
+        if top_p is not None:
+            if top_p <= 0 or 1 <= top_p:
+                self.logger.warning("'top_p' is ignored as it is not within (0, 1).")
+            else:
+                rewards = sorted(rewards, reverse=True)
+                top_k = max(1, math.floor(len(rewards) * top_p))
+                rewards = rewards[:top_k]
         return np.average(rewards)
 
     def _get_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
@@ -147,13 +163,13 @@ class Generator(ABC):
         return objective_values, reward
 
     # visualize results
-    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False):
-        self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, linewidth=linewidth, save_only=save_only)
+    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=[0.1, 0.5]):
+        self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps)
         if packed_objectives:
             for po in packed_objectives:
                 self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim, linewidth=linewidth, save_only=save_only)
 
-    def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False):
+    def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None):
         # x_axis ... use X in self.record["mol_key"]["X"]
 
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
@@ -191,6 +207,14 @@ class Generator(ABC):
             label = f"moving average ({moving_average_window})"
             y_ma = moving_average(y, moving_average_window)
             plt.plot(x, y_ma, label=label, linewidth=linewidth)
+            if top_ps is not None:
+                    for p in top_ps:
+                        if 0 < p < 1:
+                            y_ma_top = moving_average(y, moving_average_window, top_p=p)
+                            label_top = f"top-{int(p*100)}% ma ({moving_average_window})"
+                            plt.plot(x, y_ma_top, label=label_top, linewidth=linewidth)
+                        else:
+                            self.logger.warning(f"Ignored top_p={p} in top_ps (must be in (0,1))")
 
         if max_curve:
             y_max_curve = np.maximum.accumulate(y)
@@ -205,12 +229,12 @@ class Generator(ABC):
         plt.savefig(self.output_dir() + self.name() + "_" + y_axis + "_by_" + x_axis + ".png")
         plt.close() if save_only else plt.show()
 
-    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False):
+    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False, reward_top_ps: list[float]=None):
         ylims = ylims or {}
         objective_names = [f.__name__ for f in self.reward.objective_functions()]
         for o in objective_names:
             self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only)
-        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), loc=loc, linewidth=linewidth, save_only=save_only)
+        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), loc=loc, linewidth=linewidth, save_only=save_only, top_ps=reward_top_ps)
 
     def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=1.0, save_only: bool=False):
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
