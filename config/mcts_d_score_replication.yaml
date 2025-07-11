@@ -45,7 +45,7 @@ generator_args:
   filter_reward: ignore
   failed_parent_reward: -1
   terminal_reward: -1
-  freeze_terminal: false
+  cut_terminal: false
 
 plot_args:
   x_axis: generation_order

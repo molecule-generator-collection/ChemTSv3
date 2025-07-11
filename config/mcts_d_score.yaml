@@ -24,7 +24,7 @@ generator_args:
   n_evals: 1
   n_tries: 2
   filter_reward:  0
-  freeze_terminal: true
+  cut_terminal: true
   info_interval: 100
 
 reward_class: DScoreReward

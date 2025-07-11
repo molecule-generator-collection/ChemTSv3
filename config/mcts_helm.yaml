@@ -16,7 +16,7 @@ reward_class: JScoreReward
 
 policy_class: UCT
 policy_args:
-  c: 0.15
+  c: 0.2
   best_rate: 0.5
 
 generator_class: MCTS
