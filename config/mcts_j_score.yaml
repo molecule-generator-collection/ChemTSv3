@@ -28,7 +28,7 @@ generator_args:
   eval_width: 1
   n_evals: 1
   filter_reward: 0
-  freeze_terminal: true
+  cut_terminal: true
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure

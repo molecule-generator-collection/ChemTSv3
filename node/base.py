@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 from typing import Self, Any
 import numpy as np
 from rdkit.Chem import Mol
@@ -44,11 +45,10 @@ class Node(ABC):
     def clear_cache(self):
         self._cache = None
     
-    def mark_as_terminal(self, freeze=False) -> bool:
+    def mark_as_terminal(self, cut=False, logger: logging.Logger=None) -> bool:
         self._is_terminal = True
-        if freeze:
-            self.n += 1 # to avoid n=0 score
-            self.sum_r = -float("inf")
+        if cut:
+            self.leave(recursive=True, logger=logger)
 
     def is_terminal(self) -> bool:
         return self._is_terminal
@@ -84,9 +84,13 @@ class Node(ABC):
     def cut_unvisited_children(self):
         self.children = [node for node in self.children if node.n != 0]
         
-    def leave(self):
+    def leave(self, recursive=True, logger: logging.Logger=None):
         if self in self.parent.children:
             self.parent.children.remove(self)
+            if recursive and not self.parent.children:
+                if logger is not None:
+                    logger.debug("Exhausted every terminal under: " + str(self.parent))
+                self.parent.leave(recursive=True, logger=logger)
         
     def show_children(self):
         for child in sorted(self.children, key=lambda c: c.last_prob, reverse=True):
