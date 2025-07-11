@@ -129,7 +129,7 @@ class MCTS(Generator):
             child_got_unfiltered_node = False
             for _ in range(self.n_evals):
                 for _ in range(self.n_tries):
-                    objective_values, reward = self.eval(child) # returns the child itself if terminal
+                    objective_values, reward = self._eval(child) # returns the child itself if terminal
                     if type(objective_values[0]) != str: # not filtered
                         break
                 if type(objective_values[0]) != str: # not filtered
