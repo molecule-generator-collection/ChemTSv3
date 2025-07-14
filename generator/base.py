@@ -164,6 +164,8 @@ class Generator(ABC):
 
     # visualize results
     def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=[0.1, 0.5]):
+        if len(self.unique_keys) == 0:
+            return
         self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps)
         if packed_objectives:
             for po in packed_objectives:
@@ -252,6 +254,8 @@ class Generator(ABC):
         plt.close() if save_only else plt.show()
 
     def analyze(self):
+        if len(self.unique_keys) == 0:
+            return
         self.logger.info("number of generated nodes: " + str(len(self.unique_keys)))
         valid_rate = 1 - (self.filtered_count / self.grab_count)
         self.logger.info("valid rate: " + str(valid_rate))
