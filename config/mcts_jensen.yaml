@@ -1,0 +1,60 @@
+output_dir: generation_result
+time_limit: 36000 # seconds
+# max_generations: 200000
+node_class: SMILESStringNode
+use_canonical_smiles_as_key: true
+# root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
+# root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
+# root: C
+root: c1ccccc1
+# root: c1cccc2cncnc12
+
+transition_class: JensenTransition
+
+reward_class: DScoreReward
+reward_args:
+  params:
+    egfr: {type: max_gauss, alpha: 1, mu: 9, sigma: 2, weight: 8}
+    erbb2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    abl: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    src: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    lck: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    pdgfr_beta: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    vegfr2: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    fgfr1: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    ephb4: {type: min_gauss, alpha: 1, mu: 2, sigma: 2, weight: 1}
+    solubility: {type: max_gauss, alpha: 1, mu: -2, sigma: 0.6, weight: 1}
+    permeability: {type: max_gauss, alpha: 1, mu: 1, sigma: 1, weight: 1}
+    metabolic_stability: {type: max_gauss, alpha: 1, mu: 75, sigma: 20, weight: 1}
+    toxicity: {type: min_gauss, alpha: 1, mu: 5.5, sigma: 0.5, weight: 1}
+    sa_score: {type: max_gauss, alpha: 1, mu: -3, sigma: 2, weight: 1}
+    qed: {type: max_gauss, alpha: 1, mu: 0.8, sigma: 0.25, weight: 1}
+    molecular_weight: {type: rectangular, min: 200, max: 600, weight: 1}
+    tox_alert: {type: identity, weight: 1}
+    has_chembl_substruct: {type: identity, weight: 1}
+
+# policy_class: UCT
+# policy_args:
+#   c: 0.25
+#   best_rate: 0.9
+#   prior: 0.4
+
+policy_class: UCTAP
+policy_args:
+  c: 0.25
+  best_rate: 0.9
+
+generator_class: MCTS
+generator_args:
+  check_loop: true
+  cut_failed_child: true
+  # eval_width: 0
+  n_evals: 1
+  n_tries: 1
+  filter_reward: -1
+  info_interval: 100
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
+  - filter_class: ChargeFilter
