@@ -61,7 +61,7 @@ class MCTS(Generator):
         
     def _selection(self) -> Node:
         node = self.root
-        if not self.root.children and self.root.n > 1:
+        if not self.root.children and (self.root.n > 1 or self.root.is_terminal()):
             self.logger.info("Search tree exhausted.")
             raise SystemExit
         while node.children:
