@@ -11,9 +11,11 @@ class JensenTransition(Transition):
     Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
     """
     
-    def __init__(self, average_size: float=50.0, size_stdev: float=5.0):
+    def __init__(self, average_size: float=50.0, size_stdev: float=5.0, check_size: bool=True, check_ring: bool=True):
         self.average_size = average_size
         self.size_stdev = size_stdev
+        self.check_size = check_size
+        self.check_ring = check_ring
 
     @staticmethod
     def delete_atom():
@@ -168,7 +170,7 @@ class JensenTransition(Transition):
                 new_mols = []
                 for m in new_mol_trial:
                     m = m[0]
-                    if self.mol_OK(m) and self.ring_OK(m):
+                    if (not self.check_size or self.mol_OK(m)) and (not self.check_ring or self.ring_OK(m)):
                         new_mols.append(m)
                         
                 for new_mol in new_mols:
