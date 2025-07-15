@@ -265,6 +265,12 @@ class Generator(ABC):
         self.logger.info("best_reward: " + str(self.best_reward))
         self.logger.info("average_reward: " + str(self.average_reward()))
         
+    def generated_keys(self, last: int=None) -> list[str]:
+        if last is None:
+            return self.unique_keys
+        else:
+            return self.unique_keys[-last:]
+        
     def __getstate__(self):
         state = self.__dict__.copy()
         if "transition" in state:
