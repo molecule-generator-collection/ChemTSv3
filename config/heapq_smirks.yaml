@@ -11,7 +11,7 @@ root: C
 
 transition_class: SMIRKSTransition
 transition_args:
-  smirks_list_path:  data/smirks/default.txt
+  smirks_list_path:  data/smirks/example.txt
   check_Hs: true
 
 reward_class: DScoreReward

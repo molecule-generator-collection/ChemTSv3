@@ -5,14 +5,13 @@ node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 # root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 # root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
-root: C
-# root: c1ccccc1
+# root: C
+root: c1ccccc1
 # root: c1cccc2cncnc12
 
 transition_class: SMIRKSTransition
 transition_args:
-  smirks_list_path:  data/smirks/default.txt
-  check_Hs: true
+  smirks_list_path:  data/smirks/jensen.txt
 
 reward_class: DScoreReward
 reward_args:
@@ -36,15 +35,15 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
-# policy_class: UCT
-# policy_args:
-#   c: 0.25
-#   best_rate: 0.9
-
-policy_class: UCTAP
+policy_class: UCT
 policy_args:
   c: 0.25
   best_rate: 0.9
+
+# policy_class: UCTAP
+# policy_args:
+#   c: 0.25
+#   best_rate: 0.9
 
 generator_class: MCTS
 generator_args:
@@ -61,5 +60,6 @@ plot_args:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: MaxRingSizeFilter
   - filter_class: RadicalFilter
   - filter_class: ChargeFilter
