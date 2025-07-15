@@ -41,11 +41,6 @@ policy_args:
   c: 0.25
   best_rate: 0.9
 
-# policy_class: UCTAP
-# policy_args:
-#   c: 0.25
-#   best_rate: 0.9
-
 generator_class: MCTS
 generator_args:
   check_loop: true
