@@ -4,13 +4,13 @@ from node import SMILESStringNode
 from transition import Transition
 
 class SMIRKSTransition(Transition):
-    def __init__(self, smirks_list_path: str=None, smirks_list: list[str]=None, check_no_Hs: bool=True, check_Hs: bool=True):
+    def __init__(self, smirks_list_path: str=None, smirks_list: list[str]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True):
         """
         Args:
             smirks_list_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored.
             smirks_list: A list of SMIRKS patterns.
-            check_no_Hs: If True, SMIRKS reactions are applied to the molecule without explicit hydrogens. Defaults to True.
-            check_Hs: If True, SMIRKS reactions are applied to the molecule with explicit hydrogens (via `Chem.AddHs`). Defaults to True.
+            without_Hs: If True, SMIRKS reactions are applied to the molecule without explicit hydrogens. Defaults to True.
+            with_Hs: If True, SMIRKS reactions are applied to the molecule with explicit hydrogens (via `Chem.AddHs`). Defaults to True.
         
         Raises:
             ValueError: If both or neither of 'smirks_list_path' and 'smirks_list' are specified.
@@ -23,11 +23,12 @@ class SMIRKSTransition(Transition):
             self.smirks_list = smirks_list
         else:
             raise ValueError("Specify either 'smirks_list_path' or 'smirks_list'.")
-        if not check_no_Hs and not check_Hs:
+        if not without_Hs and not with_Hs:
             raise ValueError("Set one or both of 'check_no_Hs' or 'check_Hs' to True.")        
 
-        self.check_no_Hs = check_no_Hs
-        self.check_Hs = check_Hs
+        self.without_Hs = without_Hs
+        self.with_Hs = with_Hs
+        self.kekulize = kekulize
             
     def load_smirks(self, path: str):
         self.smirks_list = []
@@ -40,16 +41,18 @@ class SMIRKSTransition(Transition):
     # implement
     def transitions_with_probs(self, node: SMILESStringNode):
         initial_mol = node.mol(use_cache=False)
-        if self.check_Hs:
+        if self.kekulize:
+            Chem.Kekulize(initial_mol, clearAromaticFlags=True)
+        if self.with_Hs:
             initial_mol_with_Hs = Chem.AddHs(initial_mol)
         generated_mols = []
         for smirks in self.smirks_list:
             try:
                 rxn = AllChem.ReactionFromSmarts(smirks)
                 products = []
-                if self.check_no_Hs:
+                if self.without_Hs:
                     products += rxn.RunReactants((initial_mol,))
-                if self.check_Hs:
+                if self.with_Hs:
                     products += rxn.RunReactants((initial_mol_with_Hs,))
                 for ps in products:
                     for p in ps:
