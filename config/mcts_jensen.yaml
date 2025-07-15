@@ -40,7 +40,6 @@ policy_class: PUCT
 policy_args:
   c: 0.25
   best_rate: 0.9
-  prior: 0.4
 
 # policy_class: UCTAP
 # policy_args:
@@ -56,6 +55,9 @@ generator_args:
   n_tries: 1
   filter_reward: -1
   info_interval: 100
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure

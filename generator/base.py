@@ -163,7 +163,7 @@ class Generator(ABC):
         return objective_values, reward
 
     # visualize results
-    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=[0.1, 0.5]):
+    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None):
         if len(self.unique_keys) == 0:
             return
         self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps)
@@ -172,8 +172,7 @@ class Generator(ABC):
                 self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim, linewidth=linewidth, save_only=save_only)
 
     def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None):
-        # x_axis ... use X in self.record["mol_key"]["X"]
-
+        top_ps = top_ps or []
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
 
         reward_name = camel2snake(self.reward.__class__.__name__)

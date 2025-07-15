@@ -52,6 +52,7 @@ plot_args:
   packed_objectives:
     - [egfr, erbb2, abl, src, lck, pdgfr_beta, vegfr2, fgfr1, ephb4]
   moving_average_window: 0.005
+  reward_top_ps: [0.5, 0.1]
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
