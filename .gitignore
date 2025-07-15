@@ -7,3 +7,4 @@ personal/
 __pycache__/
 *.py[cod]
 optimizer.pt
+output_goal_directed.json
