@@ -1,4 +1,4 @@
-study_name: guacamol_test
+study_name: guacamol_1
 n_trials: 200000
 
 output_dir: generation_result
