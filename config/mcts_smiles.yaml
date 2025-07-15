@@ -20,10 +20,6 @@ policy_class: UCT
 policy_args:
   best_rate: 0.5
   c: 0.2
-  # c:
-  #   - [5, 1]
-  #   - [10, 0.1]
-  #   - [20, 0.01]
 
 generator_class: MCTS
 generator_args:
@@ -32,6 +28,9 @@ generator_args:
   n_tries: 1
   filter_reward: -1
   terminal_reward: -1
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure

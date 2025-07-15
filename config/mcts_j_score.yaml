@@ -18,10 +18,6 @@ policy_class: UCT
 policy_args:
   best_rate: 0.5
   c: 0.2
-  # c:
-  #   - [5, 1]
-  #   - [10, 0.1]
-  #   - [20, 0.01]
 
 generator_class: MCTS
 generator_args:
@@ -30,29 +26,8 @@ generator_args:
   filter_reward: 0
   cut_terminal: true
 
+plot_args:
+  reward_top_ps: [0.5, 0.1]
+
 filters:
   - filter_class: ValidityFilter # put this first if unsure
-  # - filter_class: RadicalFilter
-  # - filter_class: PubChemFilter
-  # - filter_class: ChargeFilter
-  # - filter_class: AromaticRingFilter
-  # - filter_class: LipinskiFilter
-  #   rule_of: 5
-  # - filter_class: PainsFilter
-  #   families:
-  #     - A
-  #     - B
-  #     - C
-  # - filter_class: MaxRingSizeFilter
-  #   max: 6
-  # - filter_class: RotatableBondsFilter
-  #   min: 2
-  # - filter_class: TPSAFilter
-  # - filter_class: SAScoreFilter
-  #   min: 3.5
-  # - filter_class: WeightFilter
-  #   min: 30
-  # - filter_class: HBAFilter
-  #   max: 5
-  # - filter_class: HBDFilter
-  #   max: 5
