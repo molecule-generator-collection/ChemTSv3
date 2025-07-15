@@ -8,6 +8,7 @@ from .hbd_filter import HBDFilter
 from .log_p_filter import LogPFilter
 from .pains_filter import PainsFilter
 from .radical_filter import RadicalFilter
+from .ring_bond_filter import RingBondFilter
 from .ring_size_filter import MaxRingSizeFilter, MinRingSizeFilter
 from .rotatable_bonds_filter import RotatableBondsFilter
 from .tpsa_filter import TPSAFilter

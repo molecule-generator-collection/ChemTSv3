@@ -55,5 +55,6 @@ plot_args:
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: MaxRingSizeFilter
+  - filter_class: RingBondFilter
   - filter_class: RadicalFilter
   - filter_class: ChargeFilter
