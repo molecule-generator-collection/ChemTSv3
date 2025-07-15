@@ -1,4 +1,4 @@
-from rdkit.Chem import Descriptors
+from rdkit.Chem import Descriptors, Mol
 from filter import MolValueFilter
 
 class RadicalFilter(MolValueFilter):
@@ -6,5 +6,5 @@ class RadicalFilter(MolValueFilter):
         super().__init__(allowed=allowed, disallowed=disallowed, max=max, min=min)
         
     # implement
-    def mol_value(self, mol) -> int:
+    def mol_value(self, mol: Mol) -> int:
         return Descriptors.NumRadicalElectrons(mol)
