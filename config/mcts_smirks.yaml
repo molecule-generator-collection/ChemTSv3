@@ -3,10 +3,10 @@ time_limit: 36000 # seconds
 # max_generations: 200000
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
-# root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
+root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 # root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
 # root: C
-root: c1ccccc1
+# root: c1ccccc1
 # root: c1cccc2cncnc12
 
 transition_class: SMIRKSTransition
@@ -35,7 +35,7 @@ reward_args:
     tox_alert: {type: identity, weight: 1}
     has_chembl_substruct: {type: identity, weight: 1}
 
-policy_class: UCT
+policy_class: PUCT
 policy_args:
   c: 0.25
   best_rate: 0.9

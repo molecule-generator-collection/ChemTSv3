@@ -4,39 +4,50 @@ from node import SMILESStringNode
 from transition import Transition
 
 class SMIRKSTransition(Transition):
-    def __init__(self, smirks_list_path: str=None, smirks_list: list[str]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True):
+    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True):
         """
         Args:
-            smirks_list_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored.
-            smirks_list: A list of SMIRKS patterns.
+            smirks_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored. Optional weights can be specified after // (default: 1.0).
+            weighted_smirks: A list of SMIRKS patterns.
             without_Hs: If True, SMIRKS reactions are applied to the molecule without explicit hydrogens. Defaults to True.
-            with_Hs: If True, SMIRKS reactions are applied to the molecule with explicit hydrogens (via `Chem.AddHs`). Defaults to True.
+            with_Hs: If True, SMIRKS reactions are applied to the molecule with explicit hydrogens (via `Chem.AddHs`). Defaults to False.
         
         Raises:
-            ValueError: If both or neither of 'smirks_list_path' and 'smirks_list' are specified.
+            ValueError: If both or neither of 'smirks_path' and 'weighted_smirks' are specified.
         """
-        if smirks_list_path is not None and smirks_list is not None:
-            raise ValueError("Specify either 'smirks_list_path' or 'smirks_list', not both.")
-        elif smirks_list_path is not None:
-            self.load_smirks(smirks_list_path)
-        elif smirks_list is not None:
-            self.smirks_list = smirks_list
+        if smirks_path is not None and weighted_smirks is not None:
+            raise ValueError("Specify either 'smirks_path' or 'weighted_smirks', not both.")
+        elif smirks_path is not None:
+            self.load_smirks(smirks_path)
+        elif weighted_smirks is not None:
+            self.weighted_smirks = weighted_smirks
         else:
-            raise ValueError("Specify either 'smirks_list_path' or 'smirks_list'.")
+            raise ValueError("Specify either 'smirks_path' or 'weighted_smirks'.")
         if not without_Hs and not with_Hs:
             raise ValueError("Set one or both of 'check_no_Hs' or 'check_Hs' to True.")        
 
         self.without_Hs = without_Hs
         self.with_Hs = with_Hs
         self.kekulize = kekulize
-            
+                    
     def load_smirks(self, path: str):
-        self.smirks_list = []
+        self.weighted_smirks = []
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.split("##", 1)[0].strip() # remove comments and space
-                if line:  # if not empty
-                    self.smirks_list.append(line)
+                if not line:
+                    continue
+                if "//" in line:
+                    smirks, weight_str = line.split("//", 1)
+                    smirks = smirks.strip()
+                    try:
+                        weight = float(weight_str.strip())
+                    except ValueError:
+                        raise ValueError(f"Invalid weight: '{weight_str.strip()}' in line: {line}")
+                else:
+                    smirks = line
+                    weight = 1.0  # default weight
+                self.weighted_smirks.append((smirks, weight))
         
     # implement
     def transitions_with_probs(self, node: SMILESStringNode):
@@ -46,7 +57,7 @@ class SMIRKSTransition(Transition):
         if self.with_Hs:
             initial_mol_with_Hs = Chem.AddHs(initial_mol)
         generated_mols = []
-        for smirks in self.smirks_list:
+        for smirks, weight in self.weighted_smirks:
             try:
                 rxn = AllChem.ReactionFromSmarts(smirks)
                 products = []
@@ -56,26 +67,28 @@ class SMIRKSTransition(Transition):
                     products += rxn.RunReactants((initial_mol_with_Hs,))
                 for ps in products:
                     for p in ps:
-                        generated_mols.append((smirks, p))
+                        generated_mols.append((smirks, weight, p))
             except:
                 continue
                 
         unique_smiles_set = set()
         unique_transitions = []
+        sum_weight = 0
 
-        for smirks, mol in generated_mols:
+        for smirks, weight, mol in generated_mols:
             try:
                 mol = Chem.RemoveHs(mol)
                 smiles = Chem.MolToSmiles(mol)
                 if smiles not in unique_smiles_set:
                     unique_smiles_set.add(smiles)
-                    unique_transitions.append((smirks, smiles))
+                    unique_transitions.append((smirks, smiles, weight))
+                    sum_weight += weight
             except:
                 continue
         
         transitions = []
-        for i, (smirks, smiles) in enumerate(unique_transitions):
-            child = SMILESStringNode(string=smiles, parent=node, last_prob=1/len(unique_transitions), last_action=(smirks, i))
-            transitions.append(((smirks, i), child, 1/len(unique_transitions)))
+        for i, (smirks, smiles, weight) in enumerate(unique_transitions):
+            child = SMILESStringNode(string=smiles, parent=node, last_prob=weight/sum_weight, last_action=(smirks, i))
+            transitions.append((smirks, child, weight/sum_weight))
             
         return transitions
