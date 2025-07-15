@@ -3,6 +3,7 @@ n_trials: 200000
 n_steps: 40
 average_top_p: 0.1
 best_reward_rate: 0.3
+
 silent: true
 seed: 0
 node_class: MolSentenceNode
