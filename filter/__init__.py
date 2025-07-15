@@ -6,6 +6,7 @@ from .connectivity_filter import ConnectivityFilter
 from .hba_filter import HBAFilter
 from .hbd_filter import HBDFilter
 from .log_p_filter import LogPFilter
+from .num_atoms_filter import NumAtomsFilter
 from .pains_filter import PainsFilter
 from .radical_filter import RadicalFilter
 from .ring_bond_filter import RingBondFilter
