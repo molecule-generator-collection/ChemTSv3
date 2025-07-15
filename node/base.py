@@ -85,7 +85,7 @@ class Node(ABC):
         self.children = [node for node in self.children if node.n != 0]
         
     def leave(self, recursive=True, logger: logging.Logger=None):
-        if self in self.parent.children:
+        if self.parent is not None and self in self.parent.children:
             self.parent.children.remove(self)
             if recursive and not self.parent.children:
                 if logger is not None:
