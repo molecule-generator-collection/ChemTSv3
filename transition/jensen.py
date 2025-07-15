@@ -40,12 +40,12 @@ class JensenTransition(Transition):
         for bo, atoms, atom_p in zip(BOs, atom_lists, probs):
             for a, prob in zip(atoms, atom_p):
                 if bo == 'single':
-                    rxn_smarts = '[*;!H0:1]>>[*:1]X'.replace('X','-'+a)
+                    smarts = f'[*;!H0:1]>>[*:1]-{a}'
                 elif bo == 'double':
-                    rxn_smarts = '[*;!H0;!H1:1]>>[*:1]X'.replace('X','='+a)
+                    smarts = f'[*;!H0;!H1:1]>>[*:1]={a}'
                 else: # triple
-                    rxn_smarts = '[*;H3:1]>>[*:1]X'.replace('X','#'+a)
-                choices.append(rxn_smarts)
+                    smarts = f'[*;H3:1]>>[*:1]#{a}'
+                choices.append(smarts)
                 p.append(p_BO[BOs.index(bo)] * prob)
 
         total = sum(p)
@@ -148,7 +148,7 @@ class JensenTransition(Transition):
     def transitions_with_probs(self, node: SMILESStringNode):
         mol = node.mol()
     
-        Chem.Kekulize(mol,clearAromaticFlags=True)
+        Chem.Kekulize(mol, clearAromaticFlags=True)
         p = [0.15,0.14,0.14,0.14,0.14,0.14,0.15]
         rxn_smarts_list = 7*['']
         rxn_smarts_list[0] = self.insert_atom()
