@@ -12,7 +12,7 @@ from filter import Filter
 from node import Node
 from reward import Reward, LogPReward
 from transition import Transition
-from utils import camel2snake, moving_average, make_logger
+from utils import moving_average, make_logger
 
 class Generator(ABC):
     def __init__(self, transition: Transition, output_dir=None, name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, logger: logging.Logger=None, info_interval: int=1):
@@ -89,7 +89,7 @@ class Generator(ABC):
 
     def write_csv_header(self):
         header = ["order", "time", "key"]
-        header.append(camel2snake(self.reward.__class__.__name__))
+        header.append(self.reward.name())
         header += [f.__name__ for f in self.reward.objective_functions()]
         self.logger.info(header)
 
@@ -175,7 +175,7 @@ class Generator(ABC):
         top_ps = top_ps or []
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
 
-        reward_name = camel2snake(self.reward.__class__.__name__)
+        reward_name = self.reward.name()
         if y_axis == "reward" or y_axis == reward_name:
             y_axis = reward_name
             y = [self.record[molkey]["reward"] for molkey in self.unique_keys]

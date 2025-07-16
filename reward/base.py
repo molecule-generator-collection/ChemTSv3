@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Callable
 from rdkit.Chem import Mol
 from node import Node, MolNode
+from utils import camel2snake
 
 class Reward(ABC):
     single_objective = False
@@ -24,6 +25,9 @@ class Reward(ABC):
         objective_values = self.objective_values(node)
         reward = self.reward_from_objective_values(objective_values)
         return objective_values, reward
+    
+    def name(self):
+        return camel2snake(self.__class__.__name__)
 
 class MolReward(Reward):
     @abstractmethod
