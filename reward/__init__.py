@@ -6,6 +6,9 @@ def __getattr__(name):
     if name == "DScoreReward":
         from .d_score_reward import DScoreReward
         return DScoreReward
+    if name == "GuacaMolReward":
+        from .guacamol_reward import GuacaMolReward
+        return GuacaMolReward
     if name == "JScoreReward":
         from .j_score_reward import JScoreReward
         return JScoreReward
