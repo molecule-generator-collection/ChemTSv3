@@ -12,6 +12,8 @@ mol-opt setting ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10
 """
 
 class GuacaMolReward(MolReward):
+    single_objective = True    
+
     def __init__(self, objective: ScoringFunction | GoalDirectedBenchmark | str):
         if type(objective) == GoalDirectedBenchmark:
             self.scoring_function = objective.wrapped_objective

@@ -4,6 +4,8 @@ from rdkit.Chem import Mol
 from node import Node, MolNode
 
 class Reward(ABC):
+    single_objective = False
+    
     def __init__(self, **kwargs):
         pass
     

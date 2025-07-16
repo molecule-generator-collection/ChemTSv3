@@ -232,9 +232,10 @@ class Generator(ABC):
 
     def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False, reward_top_ps: list[float]=None):
         ylims = ylims or {}
-        objective_names = [f.__name__ for f in self.reward.objective_functions()]
-        for o in objective_names:
-            self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only)
+        if not self.reward.single_objective:
+            objective_names = [f.__name__ for f in self.reward.objective_functions()]
+            for o in objective_names:
+                self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only)
         self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), loc=loc, linewidth=linewidth, save_only=save_only, top_ps=reward_top_ps)
 
     def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=1.0, save_only: bool=False):
@@ -264,6 +265,38 @@ class Generator(ABC):
         self.logger.info("node_per_sec: " + str(node_per_sec))
         self.logger.info("best_reward: " + str(self.best_reward))
         self.logger.info("average_reward: " + str(self.average_reward()))
+        top_10_auc = self.top_k_auc(top_k=10)
+        self.logger.info("top_10_auc: " + str(top_10_auc))
+        
+    def top_k_auc(self, top_k: int=10, max_oracle_calls: int=10000, freq_log: int=100, finish: bool=False):
+        """Ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10a2bb43f2de76a03171166190/main/optimizer.py#L30"""
+        buffer = {
+            molkey: (self.record[molkey]["reward"], self.record[molkey]["generation_order"])
+            for molkey in self.unique_keys
+        }
+
+        sum_auc = 0
+        top_k_mean_prev = 0
+        called = 0
+
+        ordered_results = sorted(buffer.items(), key=lambda kv: kv[1][1])
+
+        for idx in range(freq_log, min(len(ordered_results), max_oracle_calls), freq_log):
+            temp = ordered_results[:idx]
+            top_k_results = sorted(temp, key=lambda kv: kv[1][0], reverse=True)[:top_k]
+            top_k_mean = np.mean([x[1][0] for x in top_k_results])
+            sum_auc += freq_log * (top_k_mean + top_k_mean_prev) / 2
+            top_k_mean_prev = top_k_mean
+            called = idx
+            
+        top_k_results = sorted(ordered_results, key=lambda kv: kv[1][0], reverse=True)[:top_k]
+        top_k_mean = np.mean([x[1][0] for x in top_k_results])
+        sum_auc += (len(ordered_results) - called) * (top_k_mean + top_k_mean_prev) / 2
+
+        if finish and len(ordered_results) < max_oracle_calls:
+            sum_auc += (max_oracle_calls - len(ordered_results)) * top_k_mean
+
+        return sum_auc / max_oracle_calls
         
     def generated_keys(self, last: int=None) -> list[str]:
         if last is None:
