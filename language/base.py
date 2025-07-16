@@ -119,12 +119,12 @@ class DynamicLanguage(Language):
             indices = indices[:-1]
         return "".join(self.idx2token(i) for i in indices)
 
-    def build_vocab(self, splits: dict[str, list[dict]]):
-        """splits: dataset (ds)"""
+    def build_vocab(self, splits: dict[str, list[dict]], key="text"):
+        """splits: can be dataset (ds)"""
         counter = Counter()
-        for split_name, examples in splits.items():
+        for _, examples in splits.items():
             for ex in examples:
-                tokens = self.sentence2tokens(ex["text"])
+                tokens = self.sentence2tokens(ex[key])
                 counter.update(tokens)
         self._vocab = sorted(counter.keys())
         self._vocab.append(self.pad_token())

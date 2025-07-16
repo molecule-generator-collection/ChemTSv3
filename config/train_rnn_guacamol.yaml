@@ -1,0 +1,15 @@
+output_dir: "sandbox/training_result/rnn_model"
+lang_class: SMILES
+dataset_path: data/smiles/guacamol_v1_train.smiles
+test_dataset_path: data/smiles/guacamol_v1_test.smiles
+
+test_size: 0.1
+batch_size: 512
+lr: 0.001
+num_epochs: 10
+# rnn_type: "LSTM"
+rnn_type: "GRU"
+# embed_size: 64
+hidden_size: 256
+num_layers: 2
+dropout: 0.3
