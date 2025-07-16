@@ -1,3 +1,6 @@
+import scipy
+import numpy as np
+scipy.histogram = np.histogram # monkey patch
 from guacamol.goal_directed_benchmark import GoalDirectedBenchmark
 from guacamol.scoring_function import ScoringFunction
 from guacamol.standard_benchmarks import amlodipine_rings, decoration_hop, hard_fexofenadine, hard_osimertinib, isomers_c7h8n2o2, isomers_c9h10n2o2pf2cl, median_camphor_menthol, median_tadalafil_sildenafil, perindopril_rings, ranolazine_mpo, scaffold_hop, similarity, sitagliptin_replacement, valsartan_smarts, zaleplon_with_other_formula
