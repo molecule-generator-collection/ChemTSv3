@@ -61,6 +61,11 @@ class GuacaMolReward(MolReward):
         else:
             raise ValueError("Invalid objective.")
         
+        if type(objective) == str:
+            self._name = objective
+        else:
+            self._name = None
+        
     # implement
     def mol_objective_functions(self):
         def raw_score(mol):
@@ -73,3 +78,10 @@ class GuacaMolReward(MolReward):
     def reward_from_objective_values(self, objective_values):
         score = objective_values[0]
         return score
+    
+    # override
+    def name(self):
+        if self._name is not None:
+            return self._name
+        else:
+            return super().name()
