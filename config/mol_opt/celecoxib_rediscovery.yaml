@@ -2,6 +2,30 @@ output_dir: generation_result
 time_limit: 36000 # seconds
 max_generations: 10000
 # debug: true
+
+# node_class: SMILESStringNode
+# use_canonical_smiles_as_key: true
+# root: c1ccccc1
+
+# transition_class: JensenTransition
+# transition_args:
+#   check_size: true
+#   check_ring: true
+
+# policy_class: PUCT
+# policy_args:
+#   c: 0.25
+#   best_rate: 0.9
+
+# generator_class: MCTS
+# generator_args:
+#   check_loop: true
+#   cut_failed_child: true
+#   n_evals: 1
+#   n_tries: 1
+#   filter_reward: -1
+#   info_interval: 100
+
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
 
@@ -11,8 +35,8 @@ transition_args:
   # model_dir: model/smiles/drugs_zinc/tf25_ported
   model_dir: model/smiles/drugs_zinc/gru
   # model_dir: model/smiles/drugs_zinc/lstm
-  top_p: 0.9987
-  sharpness: 0.9773
+  top_p: 0.995
+  sharpness: 1
 
 policy_class: UCT
 policy_args:
@@ -30,7 +54,7 @@ generator_args:
 
 reward_class: GuacaMolReward
 reward_args:
-  objective: osimertinib_mpo
+  objective: celecoxib_rediscovery
 
 plot_args:
   x_axis: generation_order

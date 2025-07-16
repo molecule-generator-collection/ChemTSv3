@@ -11,8 +11,8 @@ transition_args:
   # model_dir: model/smiles/drugs_zinc/tf25_ported
   model_dir: model/smiles/drugs_zinc/gru
   # model_dir: model/smiles/drugs_zinc/lstm
-  top_p: 0.9987
-  sharpness: 0.9773
+  top_p: 0.99
+  sharpness: 1.2
 
 policy_class: UCT
 policy_args:
@@ -30,7 +30,7 @@ generator_args:
 
 reward_class: GuacaMolReward
 reward_args:
-  objective: osimertinib_mpo
+  objective: amlodipine_mpo
 
 plot_args:
   x_axis: generation_order
