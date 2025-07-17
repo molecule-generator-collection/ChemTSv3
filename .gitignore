@@ -4,6 +4,7 @@ result/
 training_result/
 generation_result/
 personal/
+oracle/
 __pycache__/
 *.py[cod]
 optimizer.pt
