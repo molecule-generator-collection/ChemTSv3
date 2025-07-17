@@ -4,14 +4,13 @@ scipy.histogram = np.histogram # monkey patch
 from guacamol.goal_directed_benchmark import GoalDirectedBenchmark
 from guacamol.scoring_function import ScoringFunction
 from guacamol.standard_benchmarks import amlodipine_rings, decoration_hop, hard_fexofenadine, hard_osimertinib, isomers_c7h8n2o2, isomers_c9h10n2o2pf2cl, median_camphor_menthol, median_tadalafil_sildenafil, perindopril_rings, ranolazine_mpo, scaffold_hop, similarity, sitagliptin_replacement, valsartan_smarts, zaleplon_with_other_formula
-from rdkit import Chem
-from reward import MolReward
+from reward import SMILESReward
 
 """
 mol-opt setting ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10a2bb43f2de76a03171166190/main/moldqn/environments/synth_env.py#L512
 """
 
-class GuacaMolReward(MolReward):
+class GuacaMolReward(SMILESReward):
     single_objective = True    
 
     def __init__(self, objective: ScoringFunction | GoalDirectedBenchmark | str):
@@ -67,9 +66,8 @@ class GuacaMolReward(MolReward):
             self._name = None
         
     # implement
-    def mol_objective_functions(self):
-        def raw_score(mol):
-            smiles = Chem.MolToSmiles(mol)
+    def smiles_objective_functions(self):
+        def raw_score(smiles):
             return self.scoring_function.score(smiles)
 
         return [raw_score]

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import logging
 from typing import Self, Any
 import numpy as np
+from rdkit import Chem
 from rdkit.Chem import Mol
 
 class Node(ABC):
@@ -121,6 +122,10 @@ class MolNode(Node):
             mol = self._mol_impl()
             self.cache["mol"] = mol
             return mol
+        
+    def smiles(self, use_cache=True) -> str:
+        """Should be overridden if the node has an explicit SMILES as a variable."""
+        return Chem.MolToSmiles(self.mol(use_cache=use_cache))
 
 class SurrogateNode(Node):
     """Surrogate node for multiple roots."""

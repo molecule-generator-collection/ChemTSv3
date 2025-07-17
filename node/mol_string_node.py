@@ -18,7 +18,7 @@ class MolStringNode(MolNode):
         return self.string
     
     @classmethod
-    def node_from_key(cls, key: str, lang: MolLanguage=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+    def node_from_key(cls, key: str, lang: MolLanguage=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         return MolStringNode(string=key, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
     
     # implement
@@ -32,8 +32,12 @@ class SMILESStringNode(MolStringNode):
         super().__init__(string=string, lang=self.smiles_lang, parent=parent, last_prob=last_prob, last_action=last_action)
     
     @classmethod
-    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         return SMILESStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
+    
+    # override
+    def smiles(self) -> str:
+        return self.string
     
 class SELFIESStringNode(MolStringNode):
     from language import SELFIES # lazy import
@@ -43,5 +47,5 @@ class SELFIESStringNode(MolStringNode):
         super().__init__(string=string, lang=self.selfies_lang, parent=parent, last_prob=last_prob, last_action=last_action)
     
     @classmethod
-    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         return SELFIESStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)

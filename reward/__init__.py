@@ -1,4 +1,4 @@
-from .base import Reward, MolReward
+from .base import Reward, MolReward, SMILESReward
 from .log_p_reward import LogPReward
 
 # lazy import
