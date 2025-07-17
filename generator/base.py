@@ -90,7 +90,8 @@ class Generator(ABC):
     def write_csv_header(self):
         header = ["order", "time", "key"]
         header.append(self.reward.name())
-        header += [f.__name__ for f in self.reward.objective_functions()]
+        if not self.reward.is_single_objective:
+            header += [f.__name__ for f in self.reward.objective_functions()]
         self.logger.info(header)
 
     def log_unique_node(self, key, objective_values, reward):
@@ -113,7 +114,11 @@ class Generator(ABC):
                 average = self.average_reward(self.info_interval)
                 self.logger.info(str(len(self.unique_keys)) + " - time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_interval) + ": " + "{:.4f}".format(average))
 
-        row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
+        if self.reward.is_single_objective:
+            row = [len(self.unique_keys), self.passed_time, key, reward]
+        else:
+            row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
+            
         self.logger.info(row)
         
     def average_reward(self, window: int | float=None, top_p: float = None):
@@ -232,7 +237,7 @@ class Generator(ABC):
 
     def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False, reward_top_ps: list[float]=None):
         ylims = ylims or {}
-        if not self.reward.single_objective:
+        if not self.reward.is_single_objective:
             objective_names = [f.__name__ for f in self.reward.objective_functions()]
             for o in objective_names:
                 self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_line=max_line, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only)
