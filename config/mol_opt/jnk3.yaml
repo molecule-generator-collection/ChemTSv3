@@ -1,4 +1,4 @@
-output_dir: generation_result/mol_opt
+output_dir: generation_result
 time_limit: 36000 # seconds
 max_generations: 10000
 # debug: true
@@ -11,13 +11,13 @@ transition_args:
   # model_dir: model/smiles/drugs_zinc/tf25_ported
   model_dir: model/smiles/drugs_zinc/gru
   # model_dir: model/smiles/drugs_zinc/lstm
-  top_p: 0.9987
+  top_p: 0.995
   sharpness: 0.9773
 
 policy_class: UCT
 policy_args:
   c: 0.171
-  best_rate: 0.956
+  best_rate: 0.9
 
 generator_class: MCTS
 generator_args:
