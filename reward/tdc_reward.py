@@ -6,7 +6,7 @@ mol-opt setting ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10
 """
 
 class TDCReward(SMILESReward):
-    single_objective = True    
+    is_single_objective = True    
 
     def __init__(self, objective: str):
         if type(objective) == str:

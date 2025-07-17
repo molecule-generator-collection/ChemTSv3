@@ -5,7 +5,7 @@ from node import Node, MolNode
 from utils import camel2snake
 
 class Reward(ABC):
-    single_objective = False
+    is_single_objective = False
     
     def __init__(self, **kwargs):
         pass
