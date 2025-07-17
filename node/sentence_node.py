@@ -50,7 +50,10 @@ class MolSentenceNode(SentenceNode, MolNode):
         if not self.use_canonical_smiles_as_key or not ValidityFilter().check(self):
             return super().key()
         else:
-            return Chem.MolToSmiles(self.mol(), canonical=True)
+            try:
+                return Chem.MolToSmiles(self.mol(), canonical=True)
+            except:
+                return "invalid mol"
         
     # override
     def smiles(self) -> str:
