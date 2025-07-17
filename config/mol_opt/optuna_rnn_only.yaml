@@ -1,4 +1,5 @@
 study_name: mol_opt_rnn_only
+csv_output: false
 
 output_dir: generation_result
 time_limit: 1800 # seconds
