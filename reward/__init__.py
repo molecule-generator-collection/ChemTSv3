@@ -12,4 +12,7 @@ def __getattr__(name):
     if name == "JScoreReward":
         from .j_score_reward import JScoreReward
         return JScoreReward
+    if name == "TDCReward":
+        from .tdc_reward import TDCReward
+        return TDCReward
     raise AttributeError(f"module {__name__} has no attribute {name}")
