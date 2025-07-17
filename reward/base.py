@@ -42,9 +42,29 @@ class MolReward(Reward):
     def wrap_with_mol(f):
         def wrapper(node: Node):
             return f(node.mol())
-        wrapper.__name__ = f.__name__ #copy function names
+        wrapper.__name__ = f.__name__ # copy function names
         return wrapper
 
     #override
     def objective_functions(self) -> List[Callable[[MolNode], float]]:
         return [MolReward.wrap_with_mol(f) for f in self.mol_objective_functions()]
+    
+class SMILESReward(Reward):
+    @abstractmethod
+    def smiles_objective_functions(self) -> List[Callable[[str], float]]:
+        pass
+
+    @abstractmethod
+    def reward_from_objective_values(self, objective_values: List[float]) -> float:
+        pass
+
+    @staticmethod
+    def wrap_with_smiles(f):
+        def wrapper(node: Node):
+            return f(node.smiles())
+        wrapper.__name__ = f.__name__ # copy function names
+        return wrapper
+
+    #override
+    def objective_functions(self) -> List[Callable[[MolNode], float]]:
+        return [SMILESReward.wrap_with_smiles(f) for f in self.smiles_objective_functions()]

@@ -1,12 +1,11 @@
 from tdc import Oracle
-from rdkit import Chem
-from reward import MolReward
+from reward import SMILESReward
 
 """
 mol-opt setting ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10a2bb43f2de76a03171166190/main/moldqn/environments/synth_env.py#L512
 """
 
-class TDCReward(MolReward):
+class TDCReward(SMILESReward):
     single_objective = True    
 
     def __init__(self, objective: str):
@@ -17,9 +16,8 @@ class TDCReward(MolReward):
             raise ValueError("Invalid objective name (example of objective names: 'drd2', 'gsk3b', 'jnk3', or 'qed')")
         
     # implement
-    def mol_objective_functions(self):
-        def raw_score(mol):
-            smiles = Chem.MolToSmiles(mol)
+    def smiles_objective_functions(self):
+        def raw_score(smiles):
             return self.oracle(smiles)
 
         return [raw_score]

@@ -2,7 +2,7 @@ from typing import Self, Any
 from rdkit import Chem
 from rdkit.Chem import Mol
 import torch
-from language import Language, MolLanguage
+from language import Language, MolLanguage, SMILES
 from node import Node, MolNode
 
 class SentenceNode(Node):
@@ -51,4 +51,10 @@ class MolSentenceNode(SentenceNode, MolNode):
             return super().key()
         else:
             return Chem.MolToSmiles(self.mol(), canonical=True)
-    
+        
+    # override
+    def smiles(self) -> str:
+        if isinstance(self.lang, SMILES):
+            return self.lang.tensor2sentence(self.id_tensor)
+        else:
+            return super().smiles()
