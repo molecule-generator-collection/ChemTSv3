@@ -28,7 +28,8 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
     output_dir=os.path.join(repo_root, "sandbox", conf_clone["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
     console_level = logging.ERROR if conf_clone.get("silent") else logging.INFO
     file_level = logging.DEBUG if conf_clone.get("debug") else logging.INFO
-    logger = make_logger(output_dir, console_level=console_level, file_level=file_level)
+    csv_level = logging.ERROR if not conf_clone.get("csv_output", True) else logging.INFO
+    logger = make_logger(output_dir, console_level=console_level, file_level=file_level, csv_level=csv_level)
     generator_args = conf_clone.get("generator_args", {})
 
     # set seed

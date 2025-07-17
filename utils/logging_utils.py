@@ -25,7 +25,7 @@ class NotListFilter(logging.Filter):
     def filter(self, record):
         return not isinstance(record.msg, list)
     
-def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, file_level=logging.INFO) -> logging.Logger:
+def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, file_level=logging.INFO, csv_level=logging.INFO) -> logging.Logger:
     if name is None:
         name = datetime.now().strftime("%m-%d_%H-%M")
     os.makedirs(output_dir, exist_ok=True)
@@ -42,6 +42,7 @@ def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, fil
     file_handler.addFilter(NotListFilter())
     csv_handler = CSVHandler(os.path.join(output_dir, name) + ".csv")
     csv_handler.addFilter(ListFilter())
+    csv_handler.setLevel(csv_level)
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
     logger.addHandler(csv_handler)
