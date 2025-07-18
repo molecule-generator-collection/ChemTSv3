@@ -1,0 +1,30 @@
+study_name: mol_opt_rnn_only
+csv_output: false
+
+output_dir: generation_result
+time_limit: 1800 # seconds
+silent: true
+node_class: MolSentenceNode
+use_canonical_smiles_as_key: true
+
+device: cpu
+transition_class: RNNTransition
+transition_args:
+  # model_dir: model/smiles/drugs_zinc/tf25_ported
+  model_dir: model/smiles/drugs_zinc/gru
+  # model_dir: model/smiles/drugs_zinc/lstm
+
+generator_class: MCTS
+generator_args:
+  filter_reward:  0
+  cut_terminal: true
+  info_interval: 100
+
+plot_args:
+  x_axis: generation_order
+  moving_average_window: 0.005
+  reward_top_ps: [0.5, 0.1]
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
