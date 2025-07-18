@@ -276,8 +276,8 @@ class Generator(ABC):
     def top_k_auc(self, top_k: int=10, max_oracle_calls: int=10000, freq_log: int=100, finish: bool=False):
         """Ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10a2bb43f2de76a03171166190/main/optimizer.py#L30"""
         buffer = {
-            molkey: (self.record[molkey]["reward"], self.record[molkey]["generation_order"])
-            for molkey in self.unique_keys
+            key: (self.record[key]["reward"], self.record[key]["generation_order"])
+            for key in self.unique_keys
         }
 
         sum_auc = 0
@@ -302,6 +302,11 @@ class Generator(ABC):
             sum_auc += (max_oracle_calls - len(ordered_results)) * top_k_mean
 
         return sum_auc / max_oracle_calls
+    
+    def top_k(self, k: int=1) -> list[tuple[str, float]]:
+        key_rewards = [(key, self.record[key]["reward"]) for key in self.unique_keys]
+        key_rewards.sort(key=lambda x: x[1], reverse=True)
+        return key_rewards[:k]
         
     def generated_keys(self, last: int=None) -> list[str]:
         if last is None:
