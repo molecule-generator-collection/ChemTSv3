@@ -14,7 +14,7 @@ transition_args:
 
 reward_class: GuacaMolReward
 reward_args:
-  objective: amlodipine_mpo
+  objective: troglitazone_rediscovery
 
 policy_class: UCT
 policy_args:
@@ -26,7 +26,7 @@ generator_args:
   eval_width: 1
   n_evals: 1
   n_tries: 1
-  filter_reward: -1
+  filter_reward: 0
   terminal_reward: -1
 
 filters:
