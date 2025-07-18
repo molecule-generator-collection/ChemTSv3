@@ -122,7 +122,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, output_dir=output_dir, logger=logger, **generator_args)
     
     if predecessor:
-        generator.inherit(generator)
+        generator.inherit(predecessor)
     
     # copy yaml to the output directory
     src = os.path.join(repo_root, conf_clone["yaml_path"]) # added in conf_from_yaml
