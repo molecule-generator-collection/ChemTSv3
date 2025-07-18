@@ -1,0 +1,29 @@
+output_dir: generation_result
+time_limit: 36000
+csv_output: false
+node_class: SMILESStringNode
+use_canonical_smiles_as_key: true
+root: C # temp
+
+transition_class: JensenTransition
+transition_args:
+  check_size: true
+  check_ring: true
+
+policy_class: PUCT
+policy_args:
+  c: 0.25
+  best_rate: 0.9
+
+generator_class: MCTS
+generator_args:
+  check_loop: true
+  cut_failed_child: true
+  n_evals: 1
+  n_tries: 1
+  filter_reward: -1
+  info_interval: 100
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
