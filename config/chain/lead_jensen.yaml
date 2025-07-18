@@ -9,8 +9,6 @@ transition_args:
   check_size: true
   check_ring: true
 
-reward_class: JScoreReward
-
 policy_class: PUCT
 policy_args:
   c: 0.25
