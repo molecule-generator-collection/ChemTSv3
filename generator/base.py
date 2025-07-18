@@ -303,9 +303,10 @@ class Generator(ABC):
 
         return sum_auc / max_oracle_calls
     
-    def top_k(self, k: int=1) -> list[tuple[str, float]]:
+    def top_k(self, k: int = 1) -> list[tuple[str, float]]:
         key_rewards = [(key, self.record[key]["reward"]) for key in self.unique_keys]
-        key_rewards.sort(key=lambda x: x[1], reverse=True)
+        key_index = {key: idx for idx, key in enumerate(self.unique_keys)} # tiebreaker
+        key_rewards.sort(key=lambda x: (x[1], key_index[x[0]]), reverse=True)
         return key_rewards[:k]
         
     def generated_keys(self, last: int=None) -> list[str]:
