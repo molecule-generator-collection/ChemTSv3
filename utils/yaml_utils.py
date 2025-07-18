@@ -23,13 +23,17 @@ def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
     
     return conf    
 
-def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator:
-    conf_clone = copy.deepcopy(conf)
-    output_dir=os.path.join(repo_root, "sandbox", conf_clone["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
-    console_level = logging.ERROR if conf_clone.get("silent") else logging.INFO
-    file_level = logging.DEBUG if conf_clone.get("debug") else logging.INFO
-    csv_level = logging.ERROR if not conf_clone.get("csv_output", True) else logging.INFO
-    logger = make_logger(output_dir, console_level=console_level, file_level=file_level, csv_level=csv_level)
+def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor: Generator=None, n_top_keys_to_pass: int=None) -> Generator:
+    conf_clone = copy.deepcopy(conf) 
+    if predecessor is None:
+        output_dir = os.path.join(repo_root, "sandbox", conf_clone["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
+        console_level = logging.ERROR if conf_clone.get("silent") else logging.INFO
+        file_level = logging.DEBUG if conf_clone.get("debug") else logging.INFO
+        csv_level = logging.ERROR if not conf_clone.get("csv_output", True) else logging.INFO
+        logger = make_logger(output_dir, console_level=console_level, file_level=file_level, csv_level=csv_level)
+    else:
+        output_dir = predecessor._output_dir
+        logger = predecessor.logger
     generator_args = conf_clone.get("generator_args", {})
 
     # set seed
@@ -80,6 +84,10 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
         root_args["lang"] = lang
     if "device" in inspect.signature(node_class.node_from_key).parameters:
         root_args["device"] = conf_clone.get("device")
+        
+    if n_top_keys_to_pass:
+        top_keys = [key for key, _ in predecessor.top_k(k=n_top_keys_to_pass)]
+        conf_clone["root"] = top_keys
     
     if type(conf_clone.get("root")) == list:
         root = SurrogateNode()
@@ -90,8 +98,11 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
         root = node_class.node_from_key(key=conf_clone.get("root", ""), **root_args)
 
     # set reward
-    reward_class = class_from_package("reward", conf_clone.get("reward_class"))
-    reward = reward_class(**conf_clone.get("reward_args", {}))
+    if not "reward_class" in conf_clone and predecessor is not None:
+        reward = predecessor.reward
+    else:
+        reward_class = class_from_package("reward", conf_clone.get("reward_class"))
+        reward = reward_class(**conf_clone.get("reward_args", {}))
     
     # set policy
     if "policy_class" in conf_clone:
@@ -110,9 +121,12 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../") -> Generator
     generator_class = class_from_package("generator", conf_clone.get("generator_class", "MCTS"))
     generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, output_dir=output_dir, logger=logger, **generator_args)
     
+    if predecessor:
+        generator.inherit(generator)
+    
     # copy yaml to the output directory
     src = os.path.join(repo_root, conf_clone["yaml_path"]) # added in conf_from_yaml
-    dst = os.path.join(output_dir, "setting.yaml")
+    dst = os.path.join(output_dir, os.path.basename(conf_clone["yaml_path"]))
     shutil.copy(src, dst)
     
     return generator
