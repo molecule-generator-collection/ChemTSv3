@@ -314,6 +314,14 @@ class Generator(ABC):
         else:
             return self.unique_keys[-last:]
         
+    def inherit(self, predecessor: Self):
+        self._output_dir = predecessor._output_dir
+        self.logger = predecessor.logger
+        self.record = predecessor.record
+        self.best_reward = predecessor.best_reward
+        self.unique_keys = predecessor.unique_keys
+        self.passed_time = predecessor.passed_time
+        
     def __getstate__(self):
         state = self.__dict__.copy()
         if "transition" in state:
