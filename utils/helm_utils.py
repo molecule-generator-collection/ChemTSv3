@@ -30,7 +30,7 @@ class MonomerLibrary():
         return self
     
     def _load_xml(self, monomer_library_path: str):
-        """Load xml in ChEMBL format. One instance can load multiple libraries."""
+        """Load xml in ChEMBL format."""
         root = ET.parse(monomer_library_path).getroot()
         MonomerLibrary.strip_namespace(root)
         polymers = root.find("PolymerList")
