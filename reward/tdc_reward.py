@@ -1,3 +1,10 @@
+# (monkey patch)
+# import sys
+# import types
+# six_module = types.ModuleType("rdkit.six")
+# six_module.iteritems = lambda d: d.items()
+# sys.modules["rdkit.six"] = six_module 
+
 from tdc import Oracle
 from reward import SMILESReward
 
