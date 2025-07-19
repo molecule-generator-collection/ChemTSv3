@@ -1,4 +1,4 @@
-time_limit: 1800 # seconds
+time_limit: 3600 # seconds
 csv_output: false
 silent: true
 node_class: SMILESStringNode
@@ -18,7 +18,7 @@ generator_args:
   cut_terminal: true
   n_evals: 1
   n_tries: 1
-  filter_reward: -1
+  filter_reward: 0
   info_interval: 100
 
 filters:
