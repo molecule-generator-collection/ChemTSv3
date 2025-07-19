@@ -1,6 +1,8 @@
 output_dir: generation_result
 time_limit: 1000 # seconds
-max_generations: 1000
+max_generations: 200
+n_keys_to_pass: 10
+
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
 
@@ -10,7 +12,9 @@ transition_args:
   model_dir: model/smiles/drugs_zinc/gru
   top_p: 0.995
 
-reward_class: JScoreReward
+reward_class: GuacaMolReward
+reward_args:
+  objective: troglitazone_rediscovery
 
 policy_class: UCT
 policy_args:
@@ -22,7 +26,7 @@ generator_args:
   eval_width: 1
   n_evals: 1
   n_tries: 1
-  filter_reward: -1
+  filter_reward: 0
   terminal_reward: -1
 
 filters:
