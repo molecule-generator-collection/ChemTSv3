@@ -1,15 +1,14 @@
 import pickle
+import re
 from typing import Self
 from rdkit import Chem
 from rdkit.Chem import Mol
 from language import DynamicMolLanguage
 from utils import HELMConverter
 
-# TODO: rewrite without using self.backbone_monomer_ids
 class HELM(DynamicMolLanguage):
     def __init__(self, has_period=False, converter: HELMConverter=None):
         self.has_period = has_period
-        self.backbone_monomer_ids = set()
         self.converter = converter
         super().__init__()
     
@@ -37,14 +36,8 @@ class HELM(DynamicMolLanguage):
             return raw_tokenids
 
         noperiod_tokenids = []
-        for i, tokenid in enumerate(raw_tokenids):
-            if tokenid == self.token2idx("."):
-                # index conditions shouldn't be needed for valid helm sentence
-                if i > 0:
-                    self.backbone_monomer_ids.add(raw_tokenids[i-1])
-                if i < len(raw_tokenids) - 1:
-                    self.backbone_monomer_ids.add(raw_tokenids[i+1])
-            else:
+        for tokenid in raw_tokenids:
+            if tokenid != self.token2idx("."):
                 noperiod_tokenids.append(tokenid)
 
         return noperiod_tokenids
@@ -63,7 +56,7 @@ class HELM(DynamicMolLanguage):
             for i, tokenid in enumerate(indices):
                 newidseq.append(tokenid)
                 if i < len(indices) - 1:
-                    if indices[i] in self.backbone_monomer_ids and indices[i+1] in self.backbone_monomer_ids:
+                    if self.is_monomer_idx(indices[i]) and self.is_monomer_idx(indices[i+1]):
                         newidseq.append(self.token2idx("."))
             s = "".join(self.idx2token(i) for i in newidseq)
         else:
@@ -92,6 +85,13 @@ class HELM(DynamicMolLanguage):
             return Chem.MolFromHELM(sentence)
         else:
             return self.converter.convert(sentence)
+    
+    @staticmethod
+    def is_monomer_token(s: str) -> bool:
+        return bool(re.fullmatch(r"[a-zA-Z]{1}|\[[^\]]*\]", s))
+    
+    def is_monomer_idx(self, idx: int) -> bool:
+        return self.is_monomer_token(self.idx2token(idx))
 
     # override
     def save(self, file: str):
