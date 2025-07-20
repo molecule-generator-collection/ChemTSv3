@@ -31,16 +31,16 @@ class HELM(DynamicMolLanguage):
 
     # override
     def sentence2indices(self, sentence: str, include_eos: bool=True):
-        raw_tokenids = [self.token2idx(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
+        token_indices = [self.token2idx(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
         if self.has_period:
-            return raw_tokenids
+            return token_indices
 
-        noperiod_tokenids = []
-        for tokenid in raw_tokenids:
+        token_indices_without_period = []
+        for tokenid in token_indices:
             if tokenid != self.token2idx("."):
-                noperiod_tokenids.append(tokenid)
+                token_indices_without_period.append(tokenid)
 
-        return noperiod_tokenids
+        return token_indices_without_period
     
     # override
     def indices2sentence(self, indices: list[int]):
@@ -52,13 +52,13 @@ class HELM(DynamicMolLanguage):
             indices = indices[:-1]
         # add periods
         if not self.has_period:
-            newidseq = []
+            new_indices = []
             for i, tokenid in enumerate(indices):
-                newidseq.append(tokenid)
+                new_indices.append(tokenid)
                 if i < len(indices) - 1:
                     if self.is_monomer_idx(indices[i]) and self.is_monomer_idx(indices[i+1]):
-                        newidseq.append(self.token2idx("."))
-            s = "".join(self.idx2token(i) for i in newidseq)
+                        new_indices.append(self.token2idx("."))
+            s = "".join(self.idx2token(i) for i in new_indices)
         else:
             s = "".join(self.idx2token(i) for i in indices)
         s += "$$$$"
