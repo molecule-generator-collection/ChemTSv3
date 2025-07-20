@@ -1,4 +1,4 @@
-study_name: mol_opt_rnn_only
+study_name: mol_opt_chain
 csv_output: false
 silent: true
 
