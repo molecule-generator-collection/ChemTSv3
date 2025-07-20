@@ -68,16 +68,7 @@ class HELM(DynamicMolLanguage):
     def cull_postfix(sentence: str) -> str:
         if sentence.endswith("V2.0"):
             sentence = sentence[:-4]
-        if sentence.endswith("$$$$"):
-            return sentence[:-4]
-        elif sentence.endswith("$$$"):
-            return sentence[:-3]
-        elif sentence.endswith("$$"):
-            return sentence[:-2]
-        elif sentence.endswith("$"):
-            return sentence[:-1]
-        else:
-            return sentence
+        return sentence.rstrip("$")
         
     # implement
     def sentence2mol(self, sentence: str) -> Mol:
