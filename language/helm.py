@@ -30,37 +30,37 @@ class HELM(DynamicMolLanguage):
         return tokens
 
     # override
-    def sentence2indices(self, sentence: str, include_eos: bool=True):
-        token_indices = [self.token2idx(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
+    def sentence2ids(self, sentence: str, include_eos: bool=True):
+        token_ids = [self.token2id(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
         if self.has_period:
-            return token_indices
+            return token_ids
 
-        token_indices_without_period = []
-        for tokenid in token_indices:
-            if tokenid != self.token2idx("."):
-                token_indices_without_period.append(tokenid)
+        token_ids_without_period = []
+        for tokenid in token_ids:
+            if tokenid != self.token2id("."):
+                token_ids_without_period.append(tokenid)
 
-        return token_indices_without_period
+        return token_ids_without_period
     
     # override
-    def indices2sentence(self, indices: list[int]):
-        if indices[0] == self.bos_id():
-            if len(indices) == 1:
-                return self.idx2token(indices[0])
-            indices = indices[1:]
-        if indices[-1] == self.eos_id():
-            indices = indices[:-1]
+    def ids2sentence(self, ids: list[int]):
+        if ids[0] == self.bos_id():
+            if len(ids) == 1:
+                return self.id2token(ids[0])
+            ids = ids[1:]
+        if ids[-1] == self.eos_id():
+            ids = ids[:-1]
         # add periods
         if not self.has_period:
-            new_indices = []
-            for i, tokenid in enumerate(indices):
-                new_indices.append(tokenid)
-                if i < len(indices) - 1:
-                    if self.is_monomer_idx(indices[i]) and self.is_monomer_idx(indices[i+1]):
-                        new_indices.append(self.token2idx("."))
-            s = "".join(self.idx2token(i) for i in new_indices)
+            new_ids = []
+            for i, tokenid in enumerate(ids):
+                new_ids.append(tokenid)
+                if i < len(ids) - 1:
+                    if self.is_monomer_id(ids[i]) and self.is_monomer_id(ids[i+1]):
+                        new_ids.append(self.token2id("."))
+            s = "".join(self.id2token(i) for i in new_ids)
         else:
-            s = "".join(self.idx2token(i) for i in indices)
+            s = "".join(self.id2token(i) for i in ids)
         s += "$$$$"
         return s
 
@@ -90,8 +90,8 @@ class HELM(DynamicMolLanguage):
     def is_monomer_token(s: str) -> bool:
         return bool(re.fullmatch(r"[a-zA-Z]{1}|\[[^\]]*\]", s))
     
-    def is_monomer_idx(self, idx: int) -> bool:
-        return self.is_monomer_token(self.idx2token(idx))
+    def is_monomer_id(self, idx: int) -> bool:
+        return self.is_monomer_token(self.id2token(idx))
 
     # override
     def save(self, file: str):
