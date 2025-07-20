@@ -1,3 +1,5 @@
+import pickle
+from typing import Self
 from rdkit import Chem
 from rdkit.Chem import Mol
 from language import DynamicMolLanguage
@@ -90,3 +92,19 @@ class HELM(DynamicMolLanguage):
             return Chem.MolFromHELM(sentence)
         else:
             return self.converter.convert(sentence)
+
+    # override
+    def save(self, file: str):
+        # decompose the mol object for RDKit cross-version compatibility
+        if self.converter:
+            self.converter.lib.cap_group_mols = {key: None for key in self.converter.lib.cap_group_mols}
+        with open(file, mode="wb") as fo:
+            pickle.dump(self, fo)
+
+    # override
+    def load(file: str) -> Self:
+        with open(file, "rb") as f:
+            lang = pickle.load(f)
+        if lang.converter:
+            lang.converter.lib.cap_group_mols = {key: Chem.MolFromSmiles(key) for key in lang.converter.lib.cap_group_mols}
+        return lang
