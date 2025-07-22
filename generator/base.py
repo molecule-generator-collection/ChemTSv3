@@ -148,7 +148,7 @@ class Generator(ABC):
 
     def _get_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
         self.grab_count += 1
-        key = str(node)
+        key = node.key()
         if key in self.record:
             self.duplicate_count += 1
             self.logger.debug("Already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
