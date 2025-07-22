@@ -15,6 +15,9 @@ policy_class: UCT
 
 generator_class: MCTS
 generator_args:
+  eval_width: 1
+  n_evals: 1
+  n_tries: 3
   filter_reward:  0
   cut_terminal: true
   info_interval: 100
