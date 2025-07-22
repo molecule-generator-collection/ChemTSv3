@@ -41,7 +41,7 @@ class MolReward(Reward):
     @staticmethod
     def wrap_with_mol(f):
         def wrapper(node: Node):
-            return f(node.mol())
+            return f(node.mol(use_cache=True))
         wrapper.__name__ = f.__name__ # copy function names
         return wrapper
 
@@ -61,7 +61,7 @@ class SMILESReward(Reward):
     @staticmethod
     def wrap_with_smiles(f):
         def wrapper(node: Node):
-            return f(node.smiles())
+            return f(node.smiles(use_cache=True))
         wrapper.__name__ = f.__name__ # copy function names
         return wrapper
 

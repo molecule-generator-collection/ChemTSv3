@@ -37,6 +37,7 @@ class SMILESStringNode(MolStringNode):
     
     # override
     def smiles(self) -> str:
+        """Expects self.string to be canonical SMILES."""
         return self.string
     
 class SELFIESStringNode(MolStringNode):

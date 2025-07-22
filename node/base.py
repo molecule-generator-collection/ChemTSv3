@@ -113,7 +113,7 @@ class MolNode(Node):
     def _mol_impl(self) -> Mol:
         pass
     
-    def mol(self, use_cache=True) -> Mol:
+    def mol(self, use_cache=False) -> Mol:
         if not use_cache:
             return self._mol_impl()
         if "mol" in self.cache:
@@ -123,7 +123,7 @@ class MolNode(Node):
             self.cache["mol"] = mol
             return mol
         
-    def smiles(self, use_cache=True) -> str:
+    def smiles(self, use_cache=False) -> str:
         """Should be overridden if the node has an explicit SMILES as a variable."""
         return Chem.MolToSmiles(self.mol(use_cache=use_cache))
 
