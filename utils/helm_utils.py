@@ -9,9 +9,9 @@ POLYMER_TYPES = ["PEPTIDE", "RNA", "CHEM", "BLOB"]
 
 class MonomerLibrary():
     """Monomer library. Internally used in HELMConverter."""
-    def __init__(self, monomer_library: dict={}, cap_group_mols: dict={}, disable_RDLogger=True):
-        self.lib = monomer_library
-        self.cap_group_mols = cap_group_mols # smiles - mol
+    def __init__(self, monomer_library: dict=None, cap_group_mols: dict=None, disable_RDLogger=True):
+        self.lib = monomer_library or {}
+        self.cap_group_mols = cap_group_mols or {} # smiles - mol
         if disable_RDLogger:
             RDLogger.DisableLog('rdApp.*')
     
