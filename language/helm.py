@@ -1,13 +1,14 @@
+import pickle
+import re
+from typing import Self
 from rdkit import Chem
 from rdkit.Chem import Mol
 from language import DynamicMolLanguage
 from utils import HELMConverter
 
-# TODO: rewrite without using self.backbone_monomer_ids
 class HELM(DynamicMolLanguage):
     def __init__(self, has_period=False, converter: HELMConverter=None):
         self.has_period = has_period
-        self.backbone_monomer_ids = set()
         self.converter = converter
         super().__init__()
     
@@ -29,43 +30,37 @@ class HELM(DynamicMolLanguage):
         return tokens
 
     # override
-    def sentence2indices(self, sentence: str, include_eos: bool=True):
-        raw_tokenids = [self.token2idx(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
+    def sentence2ids(self, sentence: str, include_eos: bool=True):
+        token_ids = [self.token2id(tok) for tok in self.sentence2tokens(sentence, include_eos=include_eos)]
         if self.has_period:
-            return raw_tokenids
+            return token_ids
 
-        noperiod_tokenids = []
-        for i, tokenid in enumerate(raw_tokenids):
-            if tokenid == self.token2idx("."):
-                # index conditions shouldn't be needed for valid helm sentence
-                if i > 0:
-                    self.backbone_monomer_ids.add(raw_tokenids[i-1])
-                if i < len(raw_tokenids) - 1:
-                    self.backbone_monomer_ids.add(raw_tokenids[i+1])
-            else:
-                noperiod_tokenids.append(tokenid)
+        token_ids_without_period = []
+        for tokenid in token_ids:
+            if tokenid != self.token2id("."):
+                token_ids_without_period.append(tokenid)
 
-        return noperiod_tokenids
+        return token_ids_without_period
     
     # override
-    def indices2sentence(self, indices: list[int]):
-        if indices[0] == self.bos_id():
-            if len(indices) == 1:
-                return self.idx2token(indices[0])
-            indices = indices[1:]
-        if indices[-1] == self.eos_id():
-            indices = indices[:-1]
+    def ids2sentence(self, ids: list[int]):
+        if ids[0] == self.bos_id():
+            if len(ids) == 1:
+                return self.id2token(ids[0])
+            ids = ids[1:]
+        if ids[-1] == self.eos_id():
+            ids = ids[:-1]
         # add periods
         if not self.has_period:
-            newidseq = []
-            for i, tokenid in enumerate(indices):
-                newidseq.append(tokenid)
-                if i < len(indices) - 1:
-                    if indices[i] in self.backbone_monomer_ids and indices[i+1] in self.backbone_monomer_ids:
-                        newidseq.append(self.token2idx("."))
-            s = "".join(self.idx2token(i) for i in newidseq)
+            new_ids = []
+            for i, tokenid in enumerate(ids):
+                new_ids.append(tokenid)
+                if i < len(ids) - 1:
+                    if self.is_monomer_id(ids[i]) and self.is_monomer_id(ids[i+1]):
+                        new_ids.append(self.token2id("."))
+            s = "".join(self.id2token(i) for i in new_ids)
         else:
-            s = "".join(self.idx2token(i) for i in indices)
+            s = "".join(self.id2token(i) for i in ids)
         s += "$$$$"
         return s
 
@@ -73,16 +68,7 @@ class HELM(DynamicMolLanguage):
     def cull_postfix(sentence: str) -> str:
         if sentence.endswith("V2.0"):
             sentence = sentence[:-4]
-        if sentence.endswith("$$$$"):
-            return sentence[:-4]
-        elif sentence.endswith("$$$"):
-            return sentence[:-3]
-        elif sentence.endswith("$$"):
-            return sentence[:-2]
-        elif sentence.endswith("$"):
-            return sentence[:-1]
-        else:
-            return sentence
+        return sentence.rstrip("$")
         
     # implement
     def sentence2mol(self, sentence: str) -> Mol:
@@ -90,3 +76,26 @@ class HELM(DynamicMolLanguage):
             return Chem.MolFromHELM(sentence)
         else:
             return self.converter.convert(sentence)
+    
+    @staticmethod
+    def is_monomer_token(s: str) -> bool:
+        return bool(re.fullmatch(r"[a-zA-Z]{1}|\[[^\]]*\]", s))
+    
+    def is_monomer_id(self, idx: int) -> bool:
+        return self.is_monomer_token(self.id2token(idx))
+
+    # override
+    def save(self, file: str):
+        # decompose the mol object for RDKit cross-version compatibility
+        if self.converter:
+            self.converter.lib.cap_group_mols = {key: None for key in self.converter.lib.cap_group_mols}
+        with open(file, mode="wb") as fo:
+            pickle.dump(self, fo)
+
+    # override
+    def load(file: str) -> Self:
+        with open(file, "rb") as f:
+            lang = pickle.load(f)
+        if lang.converter:
+            lang.converter.lib.cap_group_mols = {key: Chem.MolFromSmiles(key) for key in lang.converter.lib.cap_group_mols}
+        return lang
