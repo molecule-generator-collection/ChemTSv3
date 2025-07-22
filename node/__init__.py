@@ -5,6 +5,6 @@ from .mol_string_node import MolStringNode, SMILESStringNode
 # lazy import
 def __getattr__(name):
     if name == "SELFIESStringNode":
-        from .mol_string_node import SELFIESStringNode
+        from .selfies_string_node import SELFIESStringNode
         return SELFIESStringNode
     raise AttributeError(f"module {__name__} has no attribute {name}")
