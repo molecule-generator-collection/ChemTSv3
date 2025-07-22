@@ -1,4 +1,4 @@
-time_limit: 3600 # seconds
+time_limit: 800 # seconds
 csv_output: false
 silent: true
 node_class: SMILESStringNode
