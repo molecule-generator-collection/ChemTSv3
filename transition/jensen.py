@@ -146,7 +146,7 @@ class JensenTransition(Transition):
 
     # implement
     def transitions_with_probs(self, node: SMILESStringNode):
-        mol = node.mol()
+        mol = node.mol(use_cache=False)
     
         Chem.Kekulize(mol, clearAromaticFlags=True)
         p = [0.15,0.14,0.14,0.14,0.14,0.14,0.15]
