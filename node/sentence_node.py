@@ -51,7 +51,7 @@ class MolSentenceNode(SentenceNode, MolNode):
             return super().key()
         else:
             try:
-                return Chem.MolToSmiles(self.mol(), canonical=True)
+                return Chem.MolToSmiles(self.mol(use_cache=True), canonical=True)
             except:
                 return "invalid mol"
         

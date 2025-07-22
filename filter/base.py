@@ -14,7 +14,7 @@ class MolFilter(Filter):
     
     # implement
     def check(self, node: MolNode) -> bool:
-        return self.mol_check(node.mol())
+        return self.mol_check(node.mol(use_cache=True))
 
 class ValueFilter(Filter):
     def __init__(self, max=None, min=None, allowed: int | list[int]=None, disallowed: int | list[int]=None):
@@ -62,8 +62,8 @@ class MolValueFilter(ValueFilter, MolFilter):
     
     # implement
     def check(self, node: MolNode):
-        return self.mol_check(node.mol())
+        return self.mol_check(node.mol(use_cache=True))
     
     # implement for consistency (not actually needed)
     def value(self, node: MolNode) -> bool:
-        return self.mol_value(node.mol())
+        return self.mol_value(node.mol(use_cache=True))
