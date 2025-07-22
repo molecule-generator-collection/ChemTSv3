@@ -2,7 +2,7 @@ study_name: mol_opt_chain
 csv_output: false
 silent: true
 
-time_limit: 1800 # seconds
+time_limit: 500 # seconds
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
 
