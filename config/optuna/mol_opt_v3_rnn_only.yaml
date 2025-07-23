@@ -18,7 +18,7 @@ generator_args:
   cut_failed_child: false
   info_interval: 100
   filter_reward: 0
-  cut_terminal: false
+  cut_terminal: true
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
