@@ -174,9 +174,12 @@ class JensenTransition(Transition):
                         new_mols.append(m)
                         
                 for new_mol in new_mols:
-                    smiles = Chem.MolToSmiles(new_mol)
-                    last_prob = new_prob * (1 / len(new_mols))
-                    raw_result.append((action, smiles, last_prob))
+                    try:
+                        smiles = Chem.MolToSmiles(new_mol)
+                        last_prob = new_prob * (1 / len(new_mols))
+                        raw_result.append((action, smiles, last_prob))
+                    except:
+                        continue
                     
         total = sum(prob for _, _, prob in raw_result)
         if total == 0:
