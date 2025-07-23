@@ -5,10 +5,7 @@ from policy import ValuePolicy
 from utils import PointCurve
 
 class UCT(ValuePolicy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, prior: float=None, prior_weight: int=None, prioritize_first_visit: bool=False, max_prior: float=None):
-        if prior_weight is not None and prior_weight < 0:
-            raise ValueError("'prior_weight' must be >= 0.")        
-
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None):
         if type(c) == Callable:
             self.c = c
         elif type(c) == list:
@@ -16,19 +13,7 @@ class UCT(ValuePolicy):
         else:
             self.c = c
         self.best_ratio = best_rate
-        self.prior = prior
-        if prior_weight is not None:
-            self.prior_weight = prior_weight
-        elif prior is not None:
-            self.prior_weight = 1
-        else:
-            self.prior_weight = 0
         self.max_prior = max_prior
-        self.prioritize_first_visit = prioritize_first_visit
-        
-    def get_prior(self, node: Node) -> float:
-        """Return prior value (None if not using prior)."""
-        return self.prior
 
     def get_c_value(self, node: Node) -> float:
         if type(self.c) == Callable:
@@ -41,32 +26,14 @@ class UCT(ValuePolicy):
     
     def get_exploration_term(self, node: Node):
         c = self.get_c_value(node)
-        n = max(node.n + self.prior_weight, 1) # can be 0+0 with prior value (use prior only for n=0)
-        parent_n = max(node.parent.n + self.prior_weight, 1)
-        return c * sqrt(log(parent_n) / (n))
-    
-    def get_mean_r(self, node: Node):
-        prior = self.get_prior(node)
-        if prior is None and node.n == 0:
-            return None
-
-        if prior is None:
-            sum_r = node.sum_r
-        elif self.prior_weight == 0 and node.n == 0:
-            sum_r = prior
-        else:
-            sum_r = node.sum_r + prior * self.prior_weight
-                
-        n = max(node.n + self.prior_weight, 1)
-        return sum_r / n
+        return c * sqrt(log(node.parent.n) / (node.n))
 
     # implement
     def evaluate(self, node: Node) -> float:
-        mean_r = self.get_mean_r(node)
-        
-        if mean_r == None or node.n == 0 and self.prioritize_first_visit:
+        if node.n == 0:
             return 10**9 # tiebreaker is implemented in policy base
         
+        mean_r = node.sum_r / node.n
         u = self.get_exploration_term(node)
         best_r = node.best_r
         if self.max_prior is not None:
