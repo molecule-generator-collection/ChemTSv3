@@ -4,9 +4,6 @@ from typing import Any
 from node import Node
 
 class Policy(ABC):
-    def __init__(self, **kwargs):
-        pass
-
     @abstractmethod
     def select_child(self, node: Node) -> Node:
         pass
@@ -17,7 +14,7 @@ class Policy(ABC):
 class ValuePolicy(Policy):
     """Policy that selects the node with the highest score"""
     @abstractmethod
-    def evaluate(self, node: Node, **kwargs) -> float:
+    def evaluate(self, node: Node) -> float:
         pass
     
     def select_child(self, node: Node) -> Node:
