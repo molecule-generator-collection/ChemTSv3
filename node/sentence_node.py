@@ -52,8 +52,7 @@ class MolSentenceNode(SentenceNode, MolNode):
         else:
             try:
                 return Chem.MolToSmiles(self.mol(use_cache=True), canonical=True)
-            except Exception as e:
-                print(f"[key] MolToSmiles failed: {e}")
+            except Exception:
                 return "invalid mol"
         
     # override
