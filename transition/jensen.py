@@ -133,9 +133,9 @@ class JensenTransition(Transition):
     def mol_OK(self, mol):
         try:
             Chem.SanitizeMol(mol)
-            test_mol = Chem.MolFromSmiles(Chem.MolToSmiles(mol))
-            if test_mol == None:
-                return None
+            # test_mol = Chem.MolFromSmiles(Chem.MolToSmiles(mol))
+            # if test_mol == None:
+            #     return None
             target_size = self.size_stdev*np.random.randn() + self.average_size
             if mol.GetNumAtoms() > 5 and mol.GetNumAtoms() < target_size:
                 return True
