@@ -1,0 +1,25 @@
+study_name: mol_opt_rnn
+csv_output: false
+silent: true
+
+time_limit: 1000 # seconds
+node_class: MolSentenceNode
+use_canonical_smiles_as_key: true
+
+device: cpu
+transition_class: RNNTransition
+transition_args:
+  model_dir: model/smiles/drugs_zinc/gru
+
+policy_class: UCT
+
+generator_class: MCTS
+generator_args:
+  cut_failed_child: false
+  info_interval: 100
+  filter_reward: 0
+  cut_terminal: false
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
