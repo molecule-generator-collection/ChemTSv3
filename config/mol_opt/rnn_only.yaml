@@ -1,8 +1,7 @@
 output_dir: generation_result
 silent: true
-time_limit: 1000 # seconds
-max_generations: 50
-n_keys_to_pass: 5
+time_limit: 2000 # seconds
+max_generations: 10000
 
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
@@ -11,12 +10,13 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc/gru
-  top_p: 0.9946
+  top_p: 0.995
+  sharpness: 1.000
 
 policy_class: UCT
 policy_args:
-  best_rate: 0.629
-  c: 0.246
+  best_rate: 0.5
+  c: 0.123
 
 generator_class: MCTS
 generator_args:
@@ -24,7 +24,7 @@ generator_args:
   n_evals: 1
   n_tries: 3
   filter_reward: 0
-  terminal_reward: -1
+  terminal_reward: ignore
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
