@@ -6,6 +6,4 @@ class PUCT(UCT):
     # override
     def get_exploration_term(self, node: Node):
         c = self.get_c_value(node)
-        n = max(node.n + self.prior_weight, 1)
-        parent_n = max(node.parent.n + self.prior_weight, 1)
-        return c * node.last_prob * sqrt(parent_n) / (1 + n)
+        return c * node.last_prob * sqrt(node.parent.n) / (1 + node.n)
