@@ -26,6 +26,10 @@ generator_args:
   filter_reward: 0
   terminal_reward: ignore
 
+plot_args:
+  reward_top_ps: [0.5, 0.1]
+  save_only: true
+
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
