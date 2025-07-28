@@ -1,0 +1,33 @@
+output_dir: generation_result
+silent: true
+time_limit: 1000 # seconds
+max_generations: 50
+node_class: SMILESStringNode
+use_canonical_smiles_as_key: true
+
+transition_class: JensenTransition
+transition_args:
+  check_size: true
+  check_ring: true
+
+policy_class: PUCT
+policy_args:
+  c: 0.068
+  best_rate: 0.750
+
+generator_class: MCTS
+generator_args:
+  check_loop: true
+  cut_failed_child: true
+  n_evals: 1
+  n_tries: 1
+  filter_reward: 0
+  info_interval: 100
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
+  save_only: true
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
