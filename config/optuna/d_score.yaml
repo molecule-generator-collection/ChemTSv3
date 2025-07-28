@@ -41,8 +41,6 @@ reward_args:
     has_chembl_substruct: {type: identity, weight: 1}
 
 policy_class: UCT
-policy_args:
-  prioritize_first_visit: false
 
 generator_class: MCTS
 generator_args:

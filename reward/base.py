@@ -6,10 +6,7 @@ from utils import camel2snake
 
 class Reward(ABC):
     is_single_objective = False
-    
-    def __init__(self, **kwargs):
-        pass
-    
+
     @abstractmethod
     def objective_functions(self) -> List[Callable[[Node], float]]:
         pass
