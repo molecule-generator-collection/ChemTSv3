@@ -36,7 +36,6 @@ class SentenceNode(Node):
 
 class MolSentenceNode(SentenceNode, MolNode):
     use_canonical_smiles_as_key = False
-    _validity_filter = None
 
     def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         super().__init__(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
@@ -61,10 +60,3 @@ class MolSentenceNode(SentenceNode, MolNode):
             return self.lang.tensor2sentence(self.id_tensor)
         else:
             return super().smiles(use_cache=use_cache)
-
-    @classmethod
-    def validity_filter(cls):
-        if cls._validity_filter is None:
-            from filter import ValidityFilter
-            cls._validity_filter = ValidityFilter()
-        return cls._validity_filter
