@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 1000 # seconds
-max_generations: 500
+max_generations: 200
 n_keys_to_pass: 10
 
 node_class: SELFIESStringNode
@@ -8,15 +8,15 @@ node_class: SELFIESStringNode
 root: "CCc1ccccc1"
 use_canonical_smiles_as_key: true
 
-# transition_class: BioT5Transition
-transition_class: BioT5PlusTransition
+transition_class: BioT5Transition
+# transition_class: BioT5PlusTransition
 transition_args:
   n_samples: 3
-  target_objective: introduce a substructure of valsartan
+  target_objective: is more similar to Mestranol, also known as ethinylestradiol 3-methyl ether (EEME)
 
 reward_class: GuacaMolReward
 reward_args:
-  objective: valsartan_smarts
+  objective: mestranol_similarity
 
 policy_class: UCT
 policy_args:
@@ -36,3 +36,4 @@ generator_args:
 filters:
   - filter_class: ValidityFilter # put this first if unsure
   - filter_class: RadicalFilter
+  - filter_class: ConnectivityFilter
