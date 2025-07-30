@@ -1,7 +1,7 @@
 output_dir: generation_result
-time_limit: 1800 # seconds
-max_generations: 10000
-debug: true
+time_limit: 1000 # seconds
+max_generations: 500
+n_keys_to_pass: 10
 
 node_class: SELFIESStringNode
 root: "[C][=C][C][=C][C][=C][Ring1][=Branch1]"
@@ -10,9 +10,11 @@ root: "[C][=C][C][=C][C][=C][Ring1][=Branch1]"
 transition_class: BioT5PlusTransition
 transition_args:
   n_samples: 3
-  target_objective: improve LogP value
+  target_objective: introduce a substructure of valsartan
 
-reward_class: LogPReward
+reward_class: GuacaMolReward
+reward_args:
+  objective: valsartan_smarts
 
 policy_class: UCT
 policy_args:
@@ -29,9 +31,6 @@ generator_args:
   cut_failed_child: true
   info_interval: 1
 
-plot_args:
-  reward_top_ps: [0.5, 0.1]
-
 filters:
   - filter_class: ValidityFilter # put this first if unsure
-  - filter_class: ConnectivityFilter
+  - filter_class: RadicalFilter
