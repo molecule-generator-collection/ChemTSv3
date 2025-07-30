@@ -101,6 +101,8 @@ class Node(ABC):
         return self.key()
     
 class MolNode(Node):
+    _validity_filter = None
+    
     @abstractmethod
     def key(self) -> str:
         pass
@@ -126,6 +128,13 @@ class MolNode(Node):
     def smiles(self, use_cache=False) -> str:
         """Should be overridden if the node has an explicit SMILES as a variable."""
         return Chem.MolToSmiles(self.mol(use_cache=use_cache))
+    
+    @classmethod
+    def validity_filter(cls):
+        if cls._validity_filter is None:
+            from filter import ValidityFilter
+            cls._validity_filter = ValidityFilter()
+        return cls._validity_filter
 
 class SurrogateNode(Node):
     """Surrogate node for multiple roots."""

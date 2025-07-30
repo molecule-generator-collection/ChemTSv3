@@ -13,7 +13,7 @@ import numpy as np
 from rdkit import RDLogger
 from generator import Generator
 from language import Language
-from node import SurrogateNode, SentenceNode, MolSentenceNode
+from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode
 from utils import class_from_package, make_logger
 
 def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
@@ -50,6 +50,8 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     node_class = class_from_package("node", conf_clone.get("node_class"))
     if node_class == MolSentenceNode:
         MolSentenceNode.use_canonical_smiles_as_key = conf_clone.get("use_canonical_smiles_as_key", False)
+    if issubclass(node_class, MolStringNode):
+        MolStringNode.use_canonical_smiles_as_key = conf_clone.get("use_canonical_smiles_as_key", False)
 
     # set transition lang
     transition_args = conf_clone.get("transition_args", {})

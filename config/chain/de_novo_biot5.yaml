@@ -4,7 +4,9 @@ max_generations: 500
 n_keys_to_pass: 10
 
 node_class: SELFIESStringNode
-root: "[C][=C][C][=C][C][=C][Ring1][=Branch1]"
+# root: "[C][=C][C][=C][C][=C][Ring1][=Branch1]"
+root: "CCc1ccccc1"
+use_canonical_smiles_as_key: true
 
 # transition_class: BioT5Transition
 transition_class: BioT5PlusTransition
