@@ -44,7 +44,7 @@ policy_class: UCT
 
 generator_class: MCTS
 generator_args:
-  check_loop: false
+  avoid_duplicates: false
   cut_terminal: true
   filter_reward: 0
   terminal_reward: ignore

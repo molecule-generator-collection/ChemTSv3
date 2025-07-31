@@ -25,7 +25,7 @@ generator_args:
   n_evals: 1
   filter_reward: -1
   cut_terminal: true
-  check_loop: true
+  avoid_duplicates: true
   cut_failed_child: true
   info_interval: 1
 
