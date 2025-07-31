@@ -13,7 +13,7 @@ policy_class: PUCT
 
 generator_class: MCTS
 generator_args:
-  check_loop: true
+  avoid_duplicates: true
   cut_failed_child: true
   cut_terminal: true
   n_evals: 1

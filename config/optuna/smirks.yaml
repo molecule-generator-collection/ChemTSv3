@@ -47,7 +47,7 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  check_loop: true
+  avoid_duplicates: true
   cut_failed_child: true
   eval_width: 0
   n_evals: 1
