@@ -4,6 +4,7 @@ result/
 training_result/
 generation_result/
 personal/
+optuna/
 oracle/
 __pycache__/
 *.py[cod]
