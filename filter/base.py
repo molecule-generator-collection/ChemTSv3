@@ -20,8 +20,15 @@ class MolFilter(Filter):
         return self.mol_check(node.mol(use_cache=True))
 
 class ValueFilter(Filter):
-    """Filter based on a single numerical value"""
-    def __init__(self, max=None, min=None, allowed: int | list[int]=None, disallowed: int | list[int]=None):
+    """Filter that excludes nodes based on a single numerical value."""
+    def __init__(self, max: float=None, min: float=None, allowed: int | list[int]=None, disallowed: int | list[int]=None):
+        """
+        Args:
+            max: Nodes with values higher than this will be filtered.
+            min: Nodes with values lower than this will be filtered.
+            allowed: List of explicitly allowed values. If provided, nodes with values not in this list will be filtered.
+            disallowed: List of explicitly disallowed values. If provided, nodes with values in this list will be filtered.
+        """
         self.max = float("inf") if max is None else max
         self.min = -float("inf") if min is None else min
         if type(allowed) == int:
@@ -55,7 +62,7 @@ class ValueFilter(Filter):
         return self._check_value(value)
     
 class MolValueFilter(ValueFilter, MolFilter):
-    """Filter based on a single numerical value of the molecule"""
+    """Filter that excludes nodes based on a single numerical value of the molecule."""
     @abstractmethod
     def mol_value(self, mol: Mol) -> int | float:
         pass
