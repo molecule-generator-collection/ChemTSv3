@@ -15,10 +15,9 @@ from transition import Transition
 from utils import moving_average, make_logger
 
 class Generator(ABC):
+    """Base generator class. Override _generate_impl (and __init__) to implement."""
     def __init__(self, transition: Transition, output_dir=None, name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, logger: logging.Logger=None, info_interval: int=1):
         """
-        Base generator class. Override _generate_impl (and __init__) to implement.
-
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
             info_interval: Number of generations between each logging of the generation result.
