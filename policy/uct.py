@@ -6,6 +6,13 @@ from utils import PointCurve
 
 class UCT(ValuePolicy):
     def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None):
+        """
+        Args:
+            c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
+            best_rate: A value between 0 and 1. The exploitation term is computed as 
+                       best_rate * (best reward) + (1 - best_rate) * (average reward).
+            max_prior: A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.
+        """
         if type(c) == Callable:
             self.c = c
         elif type(c) == list:
