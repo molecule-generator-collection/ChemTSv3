@@ -17,11 +17,13 @@ class MCTS(Generator):
             allow_eval_overlaps: whether to allow overlap nodes when sampling eval candidates (recommended: False)
             n_evals: the number of child node evaluations (rollouts for children that has_reward = False)
             n_tries: the number of attempts to obtain an unfiltered node in a single eval (should be 1 unless has_reward() can be False or filters are probabilistic)
-            filter_reward: Backpropagate this value when {n_tries} evals are filtered from the child. Set "ignore" not to backpropagate. Use list input if you want to set different rewards for each filter step.
+            filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
             cut_failed_child: If True, child nodes will be removed when {n_evals * n_tries} evals are filtered.
             reward_cutoff: Child nodes will be removed if their reward is lower than this value.
             avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph.
+            
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
+            info_interval: Number of generations between each logging of the generation result.
             
             --- The following variables are provided for ChemTSv2 replication, and are generally recommended to leave at their default values. ---
             failed_parent_reward: Backpropagate this value when {eval_width * n_evals * n_tries} evals are filtered from the node.
