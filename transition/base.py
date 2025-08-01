@@ -7,11 +7,11 @@ from node import Node, SentenceNode
 
 class Transition(ABC):
     def __init__(self, logger: logging.Logger=None):
-        self.logger = logger or logging.getLogger(__name__)    
-
+        self.logger = logger or logging.getLogger(__name__)
+        
     @abstractmethod
-    def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
-        """Return the list of (action, node, probability) tuples. If the node is terminal, an empty list [] should be returned"""
+    def next_nodes(self, node: Node) -> list[Node]:
+        """Return the list of the child nodes. If the node is terminal, an empty list [] should be returned."""
         pass
 
     def rollout(self, initial_node: Node) -> Node:
@@ -21,7 +21,7 @@ class Transition(ABC):
         
         current_node = initial_node
         while True:
-            transitions = self.transitions_with_probs(current_node)
+            transitions = self.transitions(current_node)
             if not transitions:
                 current_node.mark_as_terminal()
                 return current_node
@@ -33,9 +33,15 @@ class Transition(ABC):
                 return next_node
             
             current_node = next_node
-
-    def transitions(self, node: Node) -> list[tuple[Any, Node]]:
-        return self.transitions_with_probs(node)[:-1]
+            
+    def transitions(self, node: Node) -> list[tuple[Any, Node, float]]:
+        """Return the list of (action, node, probability) tuples."""
+        transitions = []
+        for node in self.next_nodes(node):
+            action = node.last_action
+            prob = node.last_prob
+            transitions.append((action, node, prob))
+        return transitions
     
     # should be overridden if not inf
     def max_length(self) -> int:
@@ -47,7 +53,7 @@ class LanguageModel(Transition):
         super().__init__(logger)
 
     @abstractmethod
-    def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+    def next_nodes(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
         pass
 
     # override
@@ -61,14 +67,15 @@ class BlackBoxTransition(Transition):
 
     @abstractmethod
     def sample_transition(self, node: Node) -> Node:
-        pass    
-
+        """Sample one child node."""
+        pass
+    
     # implement
-    def transitions_with_probs(self, node: Node) -> list[tuple[Any, Node, float]]:
-        transitions = []
+    def next_nodes(self, node):
+        children = []
         for i in range(self.n_samples):
             next_node = self.sample_transition(node)
             next_node.last_action = i
             next_node.last_prob = 1 / self.n_samples
-            transitions.append((i, next_node, 1 / self.n_samples))
-        return transitions
+            children.append(next_node)
+        return children

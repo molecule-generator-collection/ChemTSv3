@@ -50,7 +50,7 @@ class SMIRKSTransition(Transition):
                 self.weighted_smirks.append((smirks, weight))
         
     # implement
-    def transitions_with_probs(self, node: SMILESStringNode):
+    def transitions(self, node: SMILESStringNode):
         initial_mol = node.mol(use_cache=False)
         if self.kekulize:
             Chem.Kekulize(initial_mol, clearAromaticFlags=True)

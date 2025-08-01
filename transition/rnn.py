@@ -145,7 +145,7 @@ class RNNTransition(LanguageModel):
         return self._max_length
 
     #implement
-    def transitions_with_probs(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+    def next_nodes(self, node: SentenceNode) -> list[SentenceNode]:
         if node.id_tensor[0][-1] == self.lang.eos_id():
             return []
         
@@ -166,7 +166,7 @@ class RNNTransition(LanguageModel):
             next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
             if prob != 0:
                 child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob, last_action=tok_id)
-                children.append((tok_id, child, prob))
+                children.append(child)
         return children
     
     # override

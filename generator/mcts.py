@@ -82,7 +82,7 @@ class MCTS(Generator):
         return objective_values, reward
 
     def _expand(self, node: Node) -> bool:
-        transitions = self.transition.transitions_with_probs(node)
+        transitions = self.transition.transitions(node)
         if len(transitions) == 0:
             return False
         expanded = False
