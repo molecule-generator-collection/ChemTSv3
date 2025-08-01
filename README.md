@@ -1,5 +1,5 @@
 # ChemTSv3
-Temporary repository for ChemTSv3.
+Temporary repository for ChemTSv3
 
 ## Environments
 
@@ -9,8 +9,8 @@ Temporary repository for ChemTSv3.
 This section explains how to set up a `conda` environment to replicate benchmark results.
 
 ### Available classes
-- **Transition**: `RNNTransition`, `GPT2Transition`, `JensenTransition`, `SMIRKSTransition`
-- **Reward**: `GuacaMolReward`, `TDCReward`, `JScoreReward`, `LogPReward`  
+- **Transition**: `RNNTransition`, `GPT2Transition`, `JensenTransition`(, `SMIRKSTransition`)
+- **Reward**: `GuacaMolReward`, `TDCReward`(, `JScoreReward`, `LogPReward`) 
 - All implemented classes of `Node`, `Filter`, and `Policy` are also available.
 
 ### Setup steps
