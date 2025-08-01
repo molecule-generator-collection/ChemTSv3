@@ -11,7 +11,7 @@ This section explains how to set up a `conda` environment to replicate benchmark
 ### Available classes
 - **Transition**: `RNNTransition`, `GPT2Transition`, `JensenTransition`(, `SMIRKSTransition`)
 - **Reward**: `GuacaMolReward`, `TDCReward`(, `JScoreReward`, `LogPReward`) 
-- All implemented classes of `Node`, `Filter`, and `Policy` are also available.
+- The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
 
 ### Setup steps
 
