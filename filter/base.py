@@ -5,11 +5,14 @@ from node import Node, MolNode
 class Filter(ABC):
     @abstractmethod
     def check(self, node: Node) -> bool:
+        """Return False to skip reward calculation for the given node."""
         pass
 
 class MolFilter(Filter):
+    """Filter for MolNode"""
     @abstractmethod
     def mol_check(self, mol: Mol) -> bool:
+        """Return False to skip reward calculation for the given molecule."""
         pass
     
     # implement
@@ -17,6 +20,7 @@ class MolFilter(Filter):
         return self.mol_check(node.mol(use_cache=True))
 
 class ValueFilter(Filter):
+    """Filter based on a single numerical value"""
     def __init__(self, max=None, min=None, allowed: int | list[int]=None, disallowed: int | list[int]=None):
         self.max = float("inf") if max is None else max
         self.min = -float("inf") if min is None else min
@@ -51,6 +55,7 @@ class ValueFilter(Filter):
         return self._check_value(value)
     
 class MolValueFilter(ValueFilter, MolFilter):
+    """Filter based on a single numerical value of the molecule"""
     @abstractmethod
     def mol_value(self, mol: Mol) -> int | float:
         pass

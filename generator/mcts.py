@@ -7,10 +7,9 @@ from reward import Reward, LogPReward
 from transition import Transition
 
 class MCTS(Generator):
+    """Perform MCTS to maximize the reward."""
     def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int=1, cut_failed_child: bool=False, reward_cutoff: float=None, terminal_reward: float | str="ignore", cut_terminal: bool=True, avoid_duplicates: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
         """
-        Perform MCTS to maximize the reward.
-
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
             eval_width: The number of children to sample during eval step. To use policy, set this value to 0. To evaluate all children, set this to float("inf") in Python code or .inf in YAML.
