@@ -145,7 +145,7 @@ class JensenTransition(Transition):
             return False
 
     # implement
-    def transitions_with_probs(self, node: SMILESStringNode):
+    def next_nodes(self, node: SMILESStringNode) -> list[SMILESStringNode]:
         mol = node.mol(use_cache=False)
     
         Chem.Kekulize(mol, clearAromaticFlags=True)
@@ -184,4 +184,4 @@ class JensenTransition(Transition):
         total = sum(prob for _, _, prob in raw_result)
         if total == 0:
             return []
-        return [(a, SMILESStringNode(string=smiles, parent=node, last_action=a, last_prob=prob/total), prob/total) for a, smiles, prob in raw_result]
+        return [SMILESStringNode(string=smiles, parent=node, last_action=a, last_prob=prob/total) for a, smiles, prob in raw_result]

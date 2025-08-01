@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 36000 # seconds
-# max_generations: 200000
+time_limit: 1000 # seconds
+max_generations: 1000
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 # root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
@@ -11,7 +11,7 @@ root: O=C1C(CBr)S(=O)[C@H](Cl)N1
 
 reward_class: GuacaMolReward
 reward_args:
-  objective: valsartan_smarts
+  objective: isomers_c7h8n2o2
 
 transition_class: JensenTransition
 transition_args:
