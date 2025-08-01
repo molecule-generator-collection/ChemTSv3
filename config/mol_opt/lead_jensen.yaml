@@ -1,7 +1,7 @@
 output_dir: generation_result
 silent: true
 time_limit: 1000 # seconds
-max_generations: 50
+max_generations: 9800
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 
@@ -12,8 +12,8 @@ transition_args:
 
 policy_class: PUCT
 policy_args:
-  c: 0.068
-  best_rate: 0.750
+  c: 0.25
+  best_rate: 0.9
 
 generator_class: MCTS
 generator_args:
