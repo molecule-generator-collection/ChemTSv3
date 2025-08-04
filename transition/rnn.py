@@ -43,10 +43,10 @@ class RNNLanguageModel(nn.Module):
     def forward(self, x: torch.Tensor, hidden: tuple[torch.Tensor, torch.Tensor] | torch.Tensor | None = None):
         """
         Args:
-            x: [batch, seq_len] (LongTensor)  
+            x: [batch, seq_len] 
         Returns:
             logits: [batch, seq_len, vocab_size]
-            next_hidden
+            next_hidden: h for RNN and GRU, (h, c) for LSTM
         """
         if hidden is None:
             hidden = self._init_states(x.size(0), x.device)
