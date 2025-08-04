@@ -110,7 +110,7 @@ class RNNLanguageModel(nn.Module):
     def train_rnn_with_dynamic_language(lang: DynamicLanguage, dataset_path: str, test_dataset_path: str=None, test_size: float=0.1, batch_size=64, lr=1e-3, num_epochs=10, rnn_type="GRU", embed_size=None, hidden_size=256, num_layers=2, dropout=0.3) -> tuple[Self, dict]:
         """
         Returns:
-            Self: latest model
+            Self: last model
             dict: best state dict
         """
         from datasets import load_dataset
@@ -184,6 +184,31 @@ class RNNLanguageModel(nn.Module):
                 best_state_dict = model.state_dict()
             
         return model, best_state_dict
+    
+    @staticmethod
+    def train_rnn_from_conf(conf: dict, repo_root: str="../") -> tuple[Self, dict, Language]:
+        """
+        Train RNN from conf. Currently only supports DynamicLanguage.
+        
+        Returns:
+            Self: last model
+            dict: best state dict
+            Language: language
+        """
+        from utils import class_from_package
+        
+        # set language from conf
+        lang_class = class_from_package("language", conf.pop("lang_class"))
+        lang = lang_class(**conf.pop("lang_args", {}))
+
+        # set path from conf
+        conf["dataset_path"]= os.path.join(repo_root, conf["dataset_path"])
+        if "test_dataset_path" in conf:
+            conf["test_dataset_path"] = os.path.join(repo_root, conf["test_dataset_path"])
+            
+        model, best_state_dict = RNNLanguageModel.train_rnn_with_dynamic_language(lang=lang, **conf)
+        return model, best_state_dict, lang
+        
 
 class RNNTransition(LanguageModel):
     def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, logger: logging.Logger=None):
