@@ -9,10 +9,12 @@ class Reward(ABC):
 
     @abstractmethod
     def objective_functions(self) -> List[Callable[[Node], float]]:
+        """Return objective functions of the node; each function returns an objective value."""
         pass
 
     @abstractmethod
     def reward_from_objective_values(self, objective_values: List[float]) -> float:
+        """Compute the final reward based on the objective values calculated by objective_functions()."""
         pass
 
     def objective_values(self, node: Node):
