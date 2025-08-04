@@ -3,8 +3,8 @@ import os
 from typing import Any, Self
 import torch
 import torch.nn.functional as F
-from transformers import GPT2LMHeadModel
-from language import Language
+from transformers import GPT2LMHeadModel, Trainer, TrainingArguments
+from language import Language, DynamicLanguage
 from node import SentenceNode
 from transition import LanguageModel
 from utils import apply_top_p
@@ -85,3 +85,132 @@ class GPT2Transition(LanguageModel):
                 num_return_sequences=1
             )
         return initial_node.__class__(id_tensor=result_tensor, lang=self.lang)
+    
+    @staticmethod
+    def train_gpt2_with_dynamic_language(lang: DynamicLanguage, dataset_path: str, training_args: TrainingArguments, test_size=0.1, block_size=None, additional_length=0, n_embd=128, n_layer=6, n_head=4, dropout=0.1)-> tuple[GPT2LMHeadModel, Trainer]:
+        """
+        Returns:
+            GPT2LMHeadModel: model
+            Trainer: trainer
+        """
+        from datasets import load_dataset
+        from transformers import DataCollatorForLanguageModeling
+        from tokenizers import Tokenizer, models, pre_tokenizers, decoders
+        from tokenizers.processors import TemplateProcessing
+        from transformers import PreTrainedTokenizerFast
+        from transformers import GPT2Config
+        from transformers import DataCollatorForLanguageModeling
+        # additional_length: if block size is not defined, block size = max number of tokens in one sentence in the dataset + additional length
+
+        # make dataset and build vocabs
+        ds = load_dataset("text", data_files={"train": dataset_path})
+        ds = ds["train"].train_test_split(test_size=test_size)
+        lang.build_vocab(ds)
+
+        ds_tokenized = ds.map(
+            lambda x: {"input_ids": lang.sentence2ids(x["text"])},
+            remove_columns=["text"], # remove text column
+            batched=False
+        )
+
+        # set max length from dataset
+        if (block_size == None):
+            max_length_ds = max(
+                max(len(x["input_ids"]) for x in ds_tokenized["train"]),
+                max(len(x["input_ids"]) for x in ds_tokenized["test"])
+            )
+            block_size = max_length_ds + additional_length
+            print("set max length to: " + str(block_size))
+
+        token_bos = lang.bos_token()
+        token_eos = lang.eos_token()
+        token_pad = lang.pad_token()
+
+        tok_model = models.WordLevel(vocab=lang._token2id)
+        tok = Tokenizer(tok_model)
+        tok.pre_tokenizer = pre_tokenizers.Sequence([]) # already done at DynamicLanguage.sentence2tokens
+        tok.decoder            = decoders.Sequence([])
+        tok.post_processor = TemplateProcessing(
+            single=f"{token_bos} $0 {token_eos}",
+            pair=f"{token_bos} $A {token_eos} $B:1 {token_eos}:1",
+            special_tokens=[
+                (token_bos, lang.bos_id()),
+                (token_eos, lang.eos_id()),
+            ],
+        )
+
+        hf_tokenizer = PreTrainedTokenizerFast(
+            tokenizer_object=tok,
+            bos_token=token_bos,
+            eos_token=token_eos,
+            pad_token=token_pad,
+        )
+
+        print("Is CUDA available: " + str(torch.cuda.is_available()))
+
+        config = GPT2Config(
+            vocab_size = len(lang.vocab()),
+            n_positions = block_size,
+            n_ctx = block_size,
+            n_embd = n_embd,
+            n_layer = n_layer,
+            n_head = n_head,
+            resid_pdrop = dropout,
+            embd_pdrop = dropout,
+            attn_pdrop = dropout,
+            bos_token_id = lang.bos_id(),
+            eos_token_id = lang.eos_id(),
+            pad_token_id = lang.pad_id(),
+        )
+
+        model = GPT2LMHeadModel(config)
+        print("num_params: " + str(model.num_parameters()))
+
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=hf_tokenizer,
+            mlm=False, # mlm is set to false since this is for generation task
+        )
+
+        trainer = Trainer(
+            model = model,
+            args = training_args,
+            train_dataset = ds_tokenized["train"],
+            eval_dataset = ds_tokenized["test"],
+            data_collator = data_collator,
+        )
+
+        trainer.train()
+
+        return model, trainer
+    
+    @staticmethod
+    def train_gpt2_from_conf(conf: dict, repo_root: str="../") -> tuple[GPT2LMHeadModel, Trainer, Language]:
+        """
+        Train GPT2 from conf. Currently only supports DynamicLanguage.
+        
+        Returns:
+            GPT2LMHeadModel: model
+            Trainer: trainer
+            Language: language
+        """
+        from utils import class_from_package
+        
+        output_dir = os.path.join(repo_root, conf.get("output_dir"))
+        lang_class = class_from_package("language", conf.get("lang_class"))
+        lang = lang_class(**conf.get("lang_args", {}))
+        dataset_path = os.path.join(repo_root, conf.get("dataset_path"))
+
+        training_args = conf.get("training_args", {})
+        training_args["output_dir"] = output_dir
+        interval = conf.get("interval")
+        if interval == "epoch":
+            training_args["eval_strategy"] = training_args["logging_strategy"] = training_args["save_strategy"] = "epoch"
+        if type(interval) == int:
+            training_args["eval_strategy"] = "steps"
+            training_args["eval_steps"] = training_args["logging_steps"] = training_args["save_steps"] = interval
+            
+        training_args = TrainingArguments(**training_args)
+        test_size, n_embd, n_layer, n_head = (conf.get(k) for k in ("test_size", "n_embd", "n_layer", "n_head"))
+
+        model, trainer = GPT2Transition.train_gpt2_with_dynamic_language(lang=lang, dataset_path=dataset_path, training_args=training_args, test_size=test_size, n_embd=n_embd, n_layer=n_layer, n_head=n_head)
+        return model, trainer, lang

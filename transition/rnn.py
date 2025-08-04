@@ -105,7 +105,83 @@ class RNNLanguageModel(nn.Module):
         }
         with open(os.path.join(model_dir, "config.json"), "w") as f:
             json.dump(cfg, f, indent=2)
-            
+
+class RNNTransition(LanguageModel):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, logger: logging.Logger=None):
+        if (model is not None) and (model_dir is not None):
+            raise ValueError("specify one (or none) of 'model' or 'model_dir', not both.")
+        
+        super().__init__(lang=lang, logger=logger)
+        if device != "cpu":
+            self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
+
+        if model is not None:
+            self.model = model
+        elif model_dir is not None:
+            self.load(model_dir, device=device)
+        
+        self._max_length = max_length or 10**18
+        self.top_p = top_p
+        self.temperature = temperature
+        self.sharpness = sharpness
+        
+    def load(self, model_dir: str, device: str=None) -> Self:
+        """
+        model_dir:
+            ├─ model.pt (state_dict)
+            └─ config.json (RNN hyperparams)
+        """
+        self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
+        with open(os.path.join(model_dir, "config.json")) as f:
+            cfg = json.load(f)
+        self.model = RNNLanguageModel(**cfg).to(self.device)
+        state = torch.load(os.path.join(model_dir, "model.pt"), map_location=self.device)
+        self.model.load_state_dict(state)
+        self.name = os.path.basename(os.path.normpath(model_dir))
+        return self
+    
+    # override
+    def max_length(self):
+        return self._max_length
+
+    #implement
+    def next_nodes(self, node: SentenceNode) -> list[SentenceNode]:
+        if node.id_tensor[0][-1] == self.lang.eos_id():
+            return []
+        
+        self.model.eval()
+        with torch.no_grad(): 
+            logits, _ = self.model(node.id_tensor.to(self.device))
+            next_logits = logits[:, -1, :]
+            next_logits = next_logits / self.temperature
+            probs = F.softmax(next_logits, dim=-1)
+        if self.top_p < 1.0:
+            probs = apply_top_p(probs, top_p=self.top_p)
+        if self.sharpness != 1.0:
+            probs = apply_sharpness(probs, self.sharpness)
+        probs = probs.tolist()[0]
+        
+        children = []
+        for tok_id, prob in enumerate(probs):
+            next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
+            if prob != 0:
+                child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob, last_action=tok_id)
+                children.append(child)
+        return children
+    
+    # override
+    def rollout(self, initial_node: SentenceNode) -> SentenceNode:
+        with torch.no_grad():
+            generated_tensor = self.model.generate(
+                input_ids=initial_node.id_tensor, # .to(self.device)
+                max_length=self.max_length(),
+                eos_token_id=self.lang.eos_id(),
+                top_p=self.top_p,
+                temperature=self.temperature,
+                sharpness=self.sharpness
+            )
+        return initial_node.__class__(id_tensor=generated_tensor, lang=self.lang) # .to(initial_node.id_tensor.device)
+
     @staticmethod
     def train_rnn_with_dynamic_language(lang: DynamicLanguage, dataset_path: str, test_dataset_path: str=None, test_size: float=0.1, batch_size=64, lr=1e-3, num_epochs=10, rnn_type="GRU", embed_size=None, hidden_size=256, num_layers=2, dropout=0.3) -> tuple[Self, dict]:
         """
@@ -206,82 +282,5 @@ class RNNLanguageModel(nn.Module):
         if "test_dataset_path" in conf:
             conf["test_dataset_path"] = os.path.join(repo_root, conf["test_dataset_path"])
             
-        model, best_state_dict = RNNLanguageModel.train_rnn_with_dynamic_language(lang=lang, **conf)
+        model, best_state_dict = RNNTransition.train_rnn_with_dynamic_language(lang=lang, **conf)
         return model, best_state_dict, lang
-        
-
-class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, logger: logging.Logger=None):
-        if (model is not None) and (model_dir is not None):
-            raise ValueError("specify one (or none) of 'model' or 'model_dir', not both.")
-        
-        super().__init__(lang=lang, logger=logger)
-        if device != "cpu":
-            self.logger.info("Is CUDA available: " + str(torch.cuda.is_available()))
-
-        if model is not None:
-            self.model = model
-        elif model_dir is not None:
-            self.load(model_dir, device=device)
-        
-        self._max_length = max_length or 10**18
-        self.top_p = top_p
-        self.temperature = temperature
-        self.sharpness = sharpness
-        
-    def load(self, model_dir: str, device: str=None) -> Self:
-        """
-        model_dir:
-            ├─ model.pt (state_dict)
-            └─ config.json (RNN hyperparams)
-        """
-        self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
-        with open(os.path.join(model_dir, "config.json")) as f:
-            cfg = json.load(f)
-        self.model = RNNLanguageModel(**cfg).to(self.device)
-        state = torch.load(os.path.join(model_dir, "model.pt"), map_location=self.device)
-        self.model.load_state_dict(state)
-        self.name = os.path.basename(os.path.normpath(model_dir))
-        return self
-    
-    # override
-    def max_length(self):
-        return self._max_length
-
-    #implement
-    def next_nodes(self, node: SentenceNode) -> list[SentenceNode]:
-        if node.id_tensor[0][-1] == self.lang.eos_id():
-            return []
-        
-        self.model.eval()
-        with torch.no_grad(): 
-            logits, _ = self.model(node.id_tensor.to(self.device))
-            next_logits = logits[:, -1, :]
-            next_logits = next_logits / self.temperature
-            probs = F.softmax(next_logits, dim=-1)
-        if self.top_p < 1.0:
-            probs = apply_top_p(probs, top_p=self.top_p)
-        if self.sharpness != 1.0:
-            probs = apply_sharpness(probs, self.sharpness)
-        probs = probs.tolist()[0]
-        
-        children = []
-        for tok_id, prob in enumerate(probs):
-            next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
-            if prob != 0:
-                child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob, last_action=tok_id)
-                children.append(child)
-        return children
-    
-    # override
-    def rollout(self, initial_node: SentenceNode) -> SentenceNode:
-        with torch.no_grad():
-            generated_tensor = self.model.generate(
-                input_ids=initial_node.id_tensor, # .to(self.device)
-                max_length=self.max_length(),
-                eos_token_id=self.lang.eos_id(),
-                top_p=self.top_p,
-                temperature=self.temperature,
-                sharpness=self.sharpness
-            )
-        return initial_node.__class__(id_tensor=generated_tensor, lang=self.lang) # .to(initial_node.id_tensor.device)
