@@ -5,7 +5,7 @@ from typing import Any, Self
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from language import Language
+from language import Language, DynamicLanguage
 from node import SentenceNode
 from transition import LanguageModel
 from utils import apply_top_p, apply_sharpness
@@ -105,6 +105,85 @@ class RNNLanguageModel(nn.Module):
         }
         with open(os.path.join(model_dir, "config.json"), "w") as f:
             json.dump(cfg, f, indent=2)
+            
+    @staticmethod
+    def train_rnn_with_dynamic_language(lang: DynamicLanguage, dataset_path: str, test_dataset_path: str=None, test_size: float=0.1, batch_size=64, lr=1e-3, num_epochs=10, rnn_type="GRU", embed_size=None, hidden_size=256, num_layers=2, dropout=0.3) -> tuple[Self, dict]:
+        """
+        Returns:
+            Self: latest model
+            dict: best state dict
+        """
+        from datasets import load_dataset
+        import torch
+        import torch.nn.functional as F
+        from torch.utils.data import DataLoader
+        from tqdm import tqdm
+        device="cuda:0" if torch.cuda.is_available() else "cpu"
+        print("Is CUDA available: " + str(torch.cuda.is_available()))
+        
+        # make dataset and build vocabs
+        if test_dataset_path is None:
+            ds = load_dataset("text", data_files={"train": dataset_path})
+            ds = ds["train"].train_test_split(test_size=test_size)
+        else:
+            ds = load_dataset("text", data_files={"train": dataset_path, "test": test_dataset_path})
+        lang.build_vocab(ds)
+
+        ds_tokenized = ds.map(lambda x: {"ids": lang.sentence2ids(x["text"])}, remove_columns=["text"])
+        train_dataset = ds_tokenized["train"]
+        test_dataset  = ds_tokenized["test"]
+        pad_id = lang.pad_id()
+        
+        def collate(batch):
+            seqs = [torch.tensor(ex["ids"]) for ex in batch]
+            maxlen = max(len(s) for s in seqs)
+            padded = torch.full((len(seqs), maxlen), pad_id, dtype=torch.long)
+            for i, s in enumerate(seqs):
+                padded[i, :len(s)] = s
+            return padded[:, :-1], padded[:, 1:] # input, target
+        
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate)
+        
+        model = RNNLanguageModel(pad_id=lang.pad_id(), vocab_size=len(lang.vocab()), embed_size=embed_size, hidden_size=hidden_size, num_layers=num_layers, rnn_type=rnn_type, dropout=dropout).to(device)
+        optim = torch.optim.Adam(model.parameters(), lr=lr)
+
+
+        best_val_loss = float('inf')
+        best_state_dict = None
+        
+        for epoch in range(1, num_epochs + 1):
+            model.train()
+            total_loss = 0
+            for x, y in tqdm(train_loader, desc=f"Epoch {epoch}"):
+                x, y = x.to(device), y.to(device)
+                logits, _ = model(x)
+                loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), y.reshape(-1), ignore_index=pad_id)
+                optim.zero_grad()
+                loss.backward()
+                optim.step()
+                total_loss += loss.item()
+
+            avg_train_loss = total_loss / len(train_loader)
+
+            # validation
+            model.eval()
+            val_loss = 0
+            with torch.no_grad():
+                for x, y in test_loader:
+                    x, y = x.to(device), y.to(device)
+                    logits, _ = model(x)
+                    loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), y.reshape(-1), ignore_index=pad_id)
+                    val_loss += loss.item()
+            avg_val_loss = val_loss / len(test_loader)
+
+            print(f"[{epoch}] train_loss: {avg_train_loss:.4f}  val_loss: {avg_val_loss:.4f}")
+            
+            if avg_val_loss < best_val_loss:
+                best_val_loss = avg_val_loss
+                best_state_dict = model.state_dict()
+            
+        return model, best_state_dict
 
 class RNNTransition(LanguageModel):
     def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, logger: logging.Logger=None):
