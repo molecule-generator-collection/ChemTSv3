@@ -19,12 +19,11 @@ from utils import class_from_package, make_logger
 def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
     with open(os.path.join(repo_root, yaml_path)) as f:
         conf = yaml.safe_load(f)
-    conf["yaml_path"] = yaml_path
-    
-    return conf    
+    return conf
 
 def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor: Generator=None, n_top_keys_to_pass: int=None) -> Generator:
-    conf_clone = copy.deepcopy(conf) 
+    conf_clone = copy.deepcopy(conf)
+
     if predecessor is None:
         output_dir = os.path.join(repo_root, "sandbox", conf_clone["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
         console_level = logging.ERROR if conf_clone.get("silent") else logging.INFO
@@ -34,6 +33,8 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     else:
         output_dir = predecessor._output_dir
         logger = predecessor.logger
+        
+    save_yaml(conf, output_dir=output_dir)
     generator_args = conf_clone.get("generator_args", {})
 
     # set seed
@@ -126,9 +127,19 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     if predecessor:
         generator.inherit(predecessor)
     
-    # copy yaml to the output directory
-    src = os.path.join(repo_root, conf_clone["yaml_path"]) # added in conf_from_yaml
-    dst = os.path.join(output_dir, os.path.basename(conf_clone["yaml_path"]))
-    shutil.copy(src, dst)
-    
     return generator
+
+def save_yaml(conf: dict, output_dir: str, base_name: str="config.yaml"):
+    path = os.path.join(output_dir, base_name)
+    name, ext = os.path.splitext(base_name)
+
+    # prevent overwriting
+    counter = 2
+    while os.path.exists(path):
+        path = os.path.join(output_dir, f"{name}_{counter}{ext}")
+        counter += 1
+
+    with open(path, "w") as f:
+        yaml.dump(conf, f, sort_keys=False)
+
+    return path
