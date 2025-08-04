@@ -271,16 +271,19 @@ class RNNTransition(LanguageModel):
             dict: best state dict
             Language: language
         """
+        import copy
         from utils import class_from_package
+
+        conf_clone = copy.deepcopy(conf)
         
         # set language from conf
-        lang_class = class_from_package("language", conf.pop("lang_class"))
-        lang = lang_class(**conf.pop("lang_args", {}))
+        lang_class = class_from_package("language", conf_clone.pop("lang_class"))
+        lang = lang_class(**conf_clone.pop("lang_args", {}))
 
         # set path from conf
-        conf["dataset_path"]= os.path.join(repo_root, conf["dataset_path"])
-        if "test_dataset_path" in conf:
-            conf["test_dataset_path"] = os.path.join(repo_root, conf["test_dataset_path"])
+        conf_clone["dataset_path"]= os.path.join(repo_root, conf_clone["dataset_path"])
+        if "test_dataset_path" in conf_clone:
+            conf_clone["test_dataset_path"] = os.path.join(repo_root, conf_clone["test_dataset_path"])
             
-        model, best_state_dict = RNNTransition.train_rnn_with_dynamic_language(lang=lang, **conf)
+        model, best_state_dict = RNNTransition.train_rnn_with_dynamic_language(lang=lang, **conf_clone)
         return model, best_state_dict, lang

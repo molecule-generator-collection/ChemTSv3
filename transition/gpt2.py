@@ -193,16 +193,19 @@ class GPT2Transition(LanguageModel):
             Trainer: trainer
             Language: language
         """
+        import copy
         from utils import class_from_package
-        
-        output_dir = os.path.join(repo_root, conf.get("output_dir"))
-        lang_class = class_from_package("language", conf.get("lang_class"))
-        lang = lang_class(**conf.get("lang_args", {}))
-        dataset_path = os.path.join(repo_root, conf.get("dataset_path"))
 
-        training_args = conf.get("training_args", {})
+        conf_clone = copy.deepcopy(conf)
+        
+        output_dir = os.path.join(repo_root, conf_clone.get("output_dir"))
+        lang_class = class_from_package("language", conf_clone.get("lang_class"))
+        lang = lang_class(**conf_clone.get("lang_args", {}))
+        dataset_path = os.path.join(repo_root, conf_clone.get("dataset_path"))
+
+        training_args = conf_clone.get("training_args", {})
         training_args["output_dir"] = output_dir
-        interval = conf.get("interval")
+        interval = conf_clone.get("interval")
         if interval == "epoch":
             training_args["eval_strategy"] = training_args["logging_strategy"] = training_args["save_strategy"] = "epoch"
         if type(interval) == int:
@@ -210,7 +213,7 @@ class GPT2Transition(LanguageModel):
             training_args["eval_steps"] = training_args["logging_steps"] = training_args["save_steps"] = interval
             
         training_args = TrainingArguments(**training_args)
-        test_size, n_embd, n_layer, n_head = (conf.get(k) for k in ("test_size", "n_embd", "n_layer", "n_head"))
+        test_size, n_embd, n_layer, n_head = (conf_clone.get(k) for k in ("test_size", "n_embd", "n_layer", "n_head"))
 
         model, trainer = GPT2Transition.train_gpt2_with_dynamic_language(lang=lang, dataset_path=dataset_path, training_args=training_args, test_size=test_size, n_embd=n_embd, n_layer=n_layer, n_head=n_head)
         return model, trainer, lang
