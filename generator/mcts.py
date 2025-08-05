@@ -22,12 +22,14 @@ class MCTS(Generator):
             avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph.
             
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
-            info_interval: Number of generations between each logging of the generation result.
             
-            --- The following variables are provided for ChemTSv2 replication, and are generally recommended to leave at their default values. ---
-            failed_parent_reward: Backpropagate this value when {eval_width * n_evals * n_tries} evals are filtered from the node.
-            cut_terminal: If True, terminal nodes will be culled, and won't be visited twice.
-            terminal_reward: If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
+            failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {eval_width * n_evals * n_tries} evals are filtered from the node.
+            cut_terminal: (Set to False for v2 replication) If True, terminal nodes will be culled, and won't be visited twice.
+            terminal_reward: (Set to -1 for v2 replication) If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
+            
+            output_dir: Directory where the generation results and logs will be saved.
+            logger: Logger instance used to record generation results.
+            info_interval: Number of generations between each logging of the generation result.
         """
 
         if not isinstance(terminal_reward, (float, int)) and terminal_reward not in ("ignore", "reward"):

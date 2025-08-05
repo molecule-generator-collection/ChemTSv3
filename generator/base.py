@@ -20,6 +20,8 @@ class Generator(ABC):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
+            output_dir: Directory where the generation results and logs will be saved.
+            logger: Logger instance used to record generation results.
             info_interval: Number of generations between each logging of the generation result.
         """
         self.transition = transition
