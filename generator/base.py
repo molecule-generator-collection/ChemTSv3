@@ -269,14 +269,14 @@ class Generator(ABC):
     def analyze(self):
         if len(self.unique_keys) == 0:
             return
-        self.logger.info("number of generated nodes: " + str(self.n_generated_nodes()))
-        self.logger.info("valid rate: " + str(self.valid_rate()))
-        self.logger.info("unique rate: " + str(self.unique_rate()))
-        self.logger.info("node_per_sec: " + str(self.node_per_sec()))
-        self.logger.info("best_reward: " + str(self.best_reward))
-        self.logger.info("average_reward: " + str(self.average_reward()))
+        self.logger.info("Number of generated nodes: " + str(self.n_generated_nodes()))
+        self.logger.info("Valid rate: " + str(self.valid_rate()))
+        self.logger.info("Unique rate: " + str(self.unique_rate()))
+        self.logger.info("Node per sec: " + str(self.node_per_sec()))
+        self.logger.info("Best reward: " + str(self.best_reward))
+        self.logger.info("Average reward: " + str(self.average_reward()))
         top_10_auc = self.auc(top_k=10)
-        self.logger.info("top_10_auc: " + str(top_10_auc))
+        self.logger.info("Top 10 AUC: " + str(top_10_auc))
     
     def n_generated_nodes(self):
         return len(self.unique_keys)
