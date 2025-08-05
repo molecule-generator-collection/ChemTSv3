@@ -1,7 +1,10 @@
 # ChemTSv3
 Temporary repository for ChemTSv3
 
-Tutorials and other notebooks are located in the `sandbox` directory.
+All notebooks are located in the `sandbox` directory.
+- Tutorial: `tutorial_user_1.ipynb`, `tutorial_user_2.ipynb` and `tutorial_dev.ipynb`
+- Generation: `generation.ipynb` and `chain_generation.ipynb`
+- Model training: `train_rnn.ipynb` and `train_gpt2.ipynb`
 
 ## Environments
 
