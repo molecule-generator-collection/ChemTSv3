@@ -2,14 +2,14 @@
 Temporary repository for ChemTSv3
 
 All notebooks are located in the `sandbox` directory.
-- Tutorial: `tutorial_user_1.ipynb`, `tutorial_user_2.ipynb` and `tutorial_dev.ipynb`
-- Generation: `generation.ipynb` and `chain_generation.ipynb`
-- Model training: `train_rnn.ipynb` and `train_gpt2.ipynb`
+- **Tutorial**: `tutorial_user_1.ipynb`, `tutorial_user_2.ipynb` and `tutorial_dev.ipynb`
+- **Generation**: `generation.ipynb` and `chain_generation.ipynb`
+- **Model training**: `train_rnn.ipynb` and `train_gpt2.ipynb`
 
 ## Environments
 
 <details>
-  <summary>Setting up a minimal conda-forge environment</summary>
+  <summary><b>Setting up a minimal conda-forge environment</b></summary><br>
 
 This section explains how to set up a minimal conda-forge environment. This environment can run all tutorial notebooks.
 
@@ -29,7 +29,7 @@ Note: For CPU-only environments, omit pytorch-gpu from the last command.
 </details>
 
 <details>
-  <summary>Setting up a conda-forge environment for benchmark replication</summary>
+  <summary><b>Setting up a conda-forge environment for benchmark replication</b></summary><br>
 
 This section explains how to set up a conda-forge environment to replicate benchmark results.
 
