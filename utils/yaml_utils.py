@@ -9,7 +9,6 @@ import torch
 from typing import Any
 import yaml
 import numpy as np
-from rdkit import RDLogger
 from generator import Generator
 from language import Language
 from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode

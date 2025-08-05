@@ -4,6 +4,9 @@ from rdkit.Chem import Mol
 from node import Node, MolNode
 from utils import camel2snake
 
+from rdkit import RDLogger
+RDLogger.DisableLog('rdApp.*')
+
 class Reward(ABC):
     is_single_objective = False
 
