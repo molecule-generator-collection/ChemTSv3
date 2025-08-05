@@ -1,5 +1,5 @@
+from collections import OrderedDict
 import itertools
-import random
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -11,11 +11,12 @@ class JensenTransition(Transition):
     Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
     """
     
-    def __init__(self, average_size: float=50.0, size_stdev: float=5.0, check_size: bool=True, check_ring: bool=True):
+    def __init__(self, average_size: float=50.0, size_stdev: float=5.0, check_size: bool=True, check_ring: bool=True, merge_duplicates: bool=True):
         self.average_size = average_size
         self.size_stdev = size_stdev
         self.check_size = check_size
         self.check_ring = check_ring
+        self.merge_duplicates = merge_duplicates
 
     @staticmethod
     def delete_atom():
@@ -180,8 +181,23 @@ class JensenTransition(Transition):
                         raw_result.append((action, smiles, last_prob))
                     except:
                         continue
+        
+        if self.merge_duplicates:
+            raw_result = self.merge_duplicate_smiles(raw_result)
                     
         total = sum(prob for _, _, prob in raw_result)
         if total == 0:
             return []
         return [SMILESStringNode(string=smiles, parent=node, last_action=a, last_prob=prob/total) for a, smiles, prob in raw_result]
+    
+    @staticmethod
+    def merge_duplicate_smiles(tuples: list[tuple]) -> list[tuple]:
+        smiles_dict = OrderedDict()
+        for action, smiles, prob in tuples:
+            if smiles in smiles_dict:
+                smiles_dict[smiles][1] += prob
+            else:
+                smiles_dict[smiles] = [action, prob]
+
+        return [(action, smiles, prob) for smiles, (action, prob) in smiles_dict.items()]
+
