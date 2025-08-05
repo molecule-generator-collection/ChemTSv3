@@ -269,19 +269,28 @@ class Generator(ABC):
     def analyze(self):
         if len(self.unique_keys) == 0:
             return
-        self.logger.info("number of generated nodes: " + str(len(self.unique_keys)))
-        valid_rate = 1 - (self.filtered_count / self.grab_count)
-        self.logger.info("valid rate: " + str(valid_rate))
-        unique_rate = 1 - (self.duplicate_count / self.grab_count)
-        self.logger.info("unique rate: " + str(unique_rate))
-        node_per_sec = len(self.unique_keys) / self.passed_time
-        self.logger.info("node_per_sec: " + str(node_per_sec))
+        self.logger.info("number of generated nodes: " + str(self.n_generated_nodes()))
+        self.logger.info("valid rate: " + str(self.valid_rate()))
+        self.logger.info("unique rate: " + str(self.unique_rate()))
+        self.logger.info("node_per_sec: " + str(self.node_per_sec()))
         self.logger.info("best_reward: " + str(self.best_reward))
         self.logger.info("average_reward: " + str(self.average_reward()))
-        top_10_auc = self.top_k_auc(top_k=10)
+        top_10_auc = self.auc(top_k=10)
         self.logger.info("top_10_auc: " + str(top_10_auc))
+    
+    def n_generated_nodes(self):
+        return len(self.unique_keys)
         
-    def top_k_auc(self, top_k: int=10, max_oracle_calls: int=10000, freq_log: int=100, finish: bool=False):
+    def valid_rate(self):
+        return 1 - (self.filtered_count / self.grab_count)
+    
+    def unique_rate(self):
+        return 1 - (self.duplicate_count / self.grab_count)
+    
+    def node_per_sec(self):
+        return len(self.unique_keys) / self.passed_time
+        
+    def auc(self, top_k: int=10, max_oracle_calls: int=10000, freq_log: int=100, finish: bool=False):
         """Ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10a2bb43f2de76a03171166190/main/optimizer.py#L30"""
         buffer = {
             key: (self.record[key]["reward"], self.record[key]["generation_order"])
