@@ -1,6 +1,8 @@
 # ChemTSv3
 Temporary repository for ChemTSv3
 
+Tutorials and other notebooks are located in the `sandbox` directory.
+
 ## Environments
 
 <details>
@@ -29,8 +31,8 @@ Note: For CPU-only environments, omit pytorch-gpu from the last command.
 This section explains how to set up a conda-forge environment to replicate benchmark results.
 
 ### Available classes
-- **Transition**: `RNNTransition`, `GPT2Transition`, `JensenTransition`(, `SMIRKSTransition`)
-- **Reward**: `GuacaMolReward`, `TDCReward`(, `JScoreReward`, `LogPReward`) 
+- **Transition**: `RNNTransition`, `GPT2Transition`, `JensenTransition`, `SMIRKSTransition`
+- **Reward**: `GuacaMolReward`, `TDCReward`, `JScoreReward`, `LogPReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
 
 ### Setup steps
