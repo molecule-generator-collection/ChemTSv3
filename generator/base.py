@@ -48,13 +48,13 @@ class Generator(ABC):
     def _generate_impl(self, *kwargs):
         pass
 
-    def generate(self, time_limit: float=None, max_generations: int=None):
+    def generate(self, max_generations: int=None, time_limit: float=None):
         """
         Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search.
 
         Args:
-            time_limit: Seconds. Generation stops after the time limit.
             max_generations: Generation stops after generating 'max_generations' number of nodes.
+            time_limit: Seconds. Generation stops after the time limit.
         """
         if (time_limit is None) and (max_generations is None):
             raise ValueError("Specify at least one of max_genrations, max_rollouts or time_limit.")
