@@ -8,7 +8,7 @@ from transition import Transition
 
 class MCTS(Generator):
     """Perform MCTS to maximize the reward."""
-    def __init__(self, root: Node, transition: Transition, max_tree_depth=None, output_dir=None, name=None, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int=1, cut_failed_child: bool=False, reward_cutoff: float=None, terminal_reward: float | str="ignore", cut_terminal: bool=True, avoid_duplicates: bool=False, use_dummy_reward: bool=False, logger: logging.Logger=None, info_interval: int=100):
+    def __init__(self, root: Node, transition: Transition, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int=1, cut_failed_child: bool=False, reward_cutoff: float=None, terminal_reward: float | str="ignore", cut_terminal: bool=True, avoid_duplicates: bool=False, max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, name=None, output_dir=None, logger: logging.Logger=None, info_interval: int=100):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
@@ -21,11 +21,12 @@ class MCTS(Generator):
             reward_cutoff: Child nodes will be removed if their reward is lower than this value.
             avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph.
             
-            use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
-            
             failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {eval_width * n_evals * n_tries} evals are filtered from the node.
             cut_terminal: (Set to False for v2 replication) If True, terminal nodes will be culled, and won't be visited twice.
             terminal_reward: (Set to -1 for v2 replication) If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
+            
+            use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
+            return_nodes: If set to True, generate() returns generated nodes as a list.
             
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
@@ -59,7 +60,7 @@ class MCTS(Generator):
             self.node_keys = set()
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
-        super().__init__(transition=transition, output_dir=output_dir, name=name, reward=reward, filters=filters, filter_reward=filter_reward, logger=logger, info_interval=info_interval)
+        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, return_nodes=return_nodes, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval)
         self.root.n = 1
         
     def _selection(self) -> Node:
