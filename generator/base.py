@@ -25,7 +25,7 @@ class Generator(ABC):
             info_interval: Number of generations between each logging of the generation result.
         """
         self.transition = transition
-        self._name = name or self.make_name()
+        self._name = name or self._make_name()
         self.reward: Reward = reward
         self.filters: list[Filter] = filters or []
         if type(filter_reward) != list:
@@ -63,7 +63,7 @@ class Generator(ABC):
         time_start = time.time()
         initial_time = self.passed_time
         if self.passed_time == 0:
-            self.write_csv_header()
+            self._write_csv_header()
         initial_count_generations = len(self.unique_keys)
         
         self.logger.info("Starting generation...")
@@ -86,7 +86,7 @@ class Generator(ABC):
                 self.logger.info("Executor shutdown completed.")
             self.logger.info("Generation finished.")
 
-    def make_name(self):
+    def _make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
     
     def name(self):
@@ -95,14 +95,14 @@ class Generator(ABC):
     def output_dir(self):
         return self._output_dir if self._output_dir.endswith(os.sep) else self._output_dir + os.sep
 
-    def write_csv_header(self):
+    def _write_csv_header(self):
         header = ["order", "time", "key"]
         header.append(self.reward.name())
         if not self.reward.is_single_objective:
             header += [f.__name__ for f in self.reward.objective_functions()]
         self.logger.info(header)
 
-    def log_unique_node(self, key, objective_values, reward):
+    def _log_unique_node(self, key, objective_values, reward):
         self.unique_keys.append(key)
         self.record[key] = {}
         self.record[key]["objective_values"] = objective_values
@@ -171,7 +171,8 @@ class Generator(ABC):
                 return [str(i)], self.filter_reward[i]
             
         objective_values, reward = self.reward.objective_values_and_reward(node)
-        self.log_unique_node(key, objective_values, reward)
+        
+        self._log_unique_node(key, objective_values, reward)
         node.clear_cache()
         return objective_values, reward
 
