@@ -26,15 +26,18 @@ class Node(ABC):
     
     @abstractmethod
     def key(self) -> str:
+        """Return the key string. Keys are used for identity checks between nodes, and the keys of generated nodes will be recorded."""
         pass
     
     @abstractmethod
     def has_reward(self) -> bool:
+        """Define the reward condition."""
         pass
     
     # should be overridden if root specification is needed
     @classmethod
     def node_from_key(cls, key: str) -> Self:
+        """Create a Node instance from a key."""
         raise NotImplementedError("node_from_key() is not supported in this class.")
     
     @property
