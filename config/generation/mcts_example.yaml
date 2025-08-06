@@ -24,13 +24,13 @@ transition_args:
 # transition_args:
 #   model_dir: model/smiles/drugs_zinc/gpt2_1.2m
 
-reward_class: LogPReward
-# reward_args:  # LogPReward takes no arguments in its __init__() method.
+reward_class: JScoreReward
+# reward_args:  # JScoreReward takes no arguments in its __init__() method.
 
 policy_class: UCT
 # policy_class: PUCT  # Shares the same arguments with UCT
 policy_args:
-  c: 0.2
+  c: 0.1
   best_rate: 0.5
 
 generator_class: MCTS
