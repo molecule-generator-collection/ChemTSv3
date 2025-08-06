@@ -7,6 +7,10 @@ class Filter(ABC):
     def check(self, node: Node) -> bool:
         """Return False to skip reward calculation for the given node."""
         pass
+    
+    def observe(self, node: Node, objective_values: list[float], reward: float):
+        """Filters can update their internal state when observing the reward of the node. By default, this method does nothing."""
+        return
 
 class MolFilter(Filter):
     """Filter for MolNode"""
