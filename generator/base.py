@@ -63,8 +63,6 @@ class Generator(ABC):
         if (time_limit is None) and (max_generations is None):
             raise ValueError("Specify at least one of max_genrations, max_rollouts or time_limit.")
         
-        self._generated_nodes_tmp = [] # Only used if 'return_nodes' is set to True
-        
         # record current time and counts
         time_start = time.time()
         initial_time = self.passed_time
@@ -92,7 +90,9 @@ class Generator(ABC):
                 self.logger.info("Executor shutdown completed.")
             self.logger.info("Generation finished.")
             if self.return_nodes:
-                return self._generated_nodes_tmp
+                result = self._generated_nodes_tmp
+                self._generated_nodes_tmp = []
+                return result
             else:
                 return []
 
