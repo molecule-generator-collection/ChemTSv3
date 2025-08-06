@@ -43,8 +43,8 @@ class Transition(ABC):
             transitions.append((action, node, prob))
         return transitions
     
-    # should be overridden if not inf
     def max_length(self) -> int:
+        """Returns the maximum number of transitions from a single node. Should be overridden if not infinite."""
         return 10**18
     
 class LanguageModel(Transition):
