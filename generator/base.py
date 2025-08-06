@@ -16,10 +16,12 @@ from utils import moving_average, make_logger
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, output_dir=None, name=None, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name=None, output_dir=None, logger: logging.Logger=None, info_interval: int=1):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
+            return_nodes: If set to True, generate() returns generated nodes as a list.
+            
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
             info_interval: Number of generations between each logging of the generation result.
@@ -41,6 +43,8 @@ class Generator(ABC):
         self.grab_count = 0
         self.duplicate_count = 0
         self.filtered_count = 0
+        self.return_nodes = return_nodes
+        self._generated_nodes_tmp = []
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
         self.info_interval = info_interval
     
@@ -50,7 +54,7 @@ class Generator(ABC):
 
     def generate(self, max_generations: int=None, time_limit: float=None):
         """
-        Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search.
+        Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search. If 'self.return_nodes' is True, returns generated nodes as a list.
 
         Args:
             max_generations: Generation stops after generating 'max_generations' number of nodes.
@@ -58,6 +62,8 @@ class Generator(ABC):
         """
         if (time_limit is None) and (max_generations is None):
             raise ValueError("Specify at least one of max_genrations, max_rollouts or time_limit.")
+        
+        self._generated_nodes_tmp = [] # Only used if 'return_nodes' is set to True
         
         # record current time and counts
         time_start = time.time()
@@ -85,6 +91,10 @@ class Generator(ABC):
                 self.executor.shutdown(cancel_futures=True)
                 self.logger.info("Executor shutdown completed.")
             self.logger.info("Generation finished.")
+            if self.return_nodes:
+                return self._generated_nodes_tmp
+            else:
+                return []
 
     def _make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
@@ -175,6 +185,8 @@ class Generator(ABC):
         self._log_unique_node(key, objective_values, reward)
         for filter in self.filters:
             filter.observe(node=node, objective_values=objective_values, reward=reward)
+        if self.return_nodes:
+            self._generated_nodes_tmp.append(node)
         
         node.clear_cache()
         return objective_values, reward
