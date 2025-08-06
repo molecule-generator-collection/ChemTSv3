@@ -292,7 +292,10 @@ class Generator(ABC):
         return len(self.unique_keys) / self.passed_time
         
     def auc(self, top_k: int=10, max_oracle_calls: int=10000, freq_log: int=100, finish: bool=False):
-        """Ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10a2bb43f2de76a03171166190/main/optimizer.py#L30"""
+        """
+        Returns the AUC of the average of the top-k rewards. Assumes all rewards lie within the range [0, 1].
+        Ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10a2bb43f2de76a03171166190/main/optimizer.py#L30
+        """
         buffer = {
             key: (self.record[key]["reward"], self.record[key]["generation_order"])
             for key in self.unique_keys
