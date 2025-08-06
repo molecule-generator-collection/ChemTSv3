@@ -19,7 +19,7 @@ class MCTS(Generator):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
-            eval_width: The number of children to sample during eval step. To use policy, set this value to 0. To evaluate all children, set this to float("inf") in Python code or .inf in YAML.
+            eval_width: The number of children to sample during the eval step. To use policy, set this value to 0. To evaluate all children, set this to float("inf") in Python code or .inf in YAML.
             allow_eval_overlaps: whether to allow overlap nodes when sampling eval candidates (recommended: False)
             n_evals: the number of child node evaluations (rollouts for children that has_reward = False)
             n_tries: the number of attempts to obtain an unfiltered node in a single eval (should be 1 unless has_reward() can be False or filters are probabilistic)
