@@ -10,6 +10,7 @@ class Policy(ABC):
         pass
     
     def observe(self, child: Node, objective_values: list[float], reward: float):
+        """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
         return
     
 class ValuePolicy(Policy):
