@@ -3,16 +3,12 @@ from datetime import datetime
 import inspect
 import logging
 import os
-import random
-import time
-import torch
 from typing import Any
 import yaml
-import numpy as np
 from generator import Generator
 from language import Language
 from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode
-from utils import class_from_package, make_logger
+from utils import class_from_package, make_logger, set_seed
 
 def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
     with open(os.path.join(repo_root, yaml_path)) as f:
@@ -34,16 +30,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
         
     save_yaml(conf, output_dir=output_dir)
     generator_args = conf_clone.get("generator_args", {})
-
-    # set seed
-    if "seed" in conf_clone:
-        seed = conf_clone["seed"]
-    else:
-        seed = int(time.time()) % (2**32)
-    logger.info("seed: " + str(seed))
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    set_seed(seed=conf_clone.get("seed"), logger=logger)
 
     # set node class
     node_class = class_from_package("node", conf_clone.get("node_class"))

@@ -1,8 +1,23 @@
 from bisect import bisect_right
+import logging
 import math
-from typing import Callable
+import random
+import time
 import numpy as np
 import torch
+
+def set_seed(seed: int=None, logger: logging.Logger=None):
+    if seed is None:    
+        seed = int(time.time()*1000) % (2**32)
+        
+    if logger is None:
+        print("seed: " + str(seed))
+    else:
+        logger.info("seed: " + str(seed))
+        
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
 def apply_top_p(probs: torch.Tensor, top_p: float) -> torch.Tensor:
     sorted_probs, sorted_indices = torch.sort(probs, descending=True)
