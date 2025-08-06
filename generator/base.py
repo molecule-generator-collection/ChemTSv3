@@ -173,6 +173,9 @@ class Generator(ABC):
         objective_values, reward = self.reward.objective_values_and_reward(node)
         
         self._log_unique_node(key, objective_values, reward)
+        for filter in self.filters:
+            filter.observe(node=node, objective_values=objective_values, reward=reward)
+        
         node.clear_cache()
         return objective_values, reward
 
