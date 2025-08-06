@@ -8,7 +8,14 @@ from transition import Transition
 
 class MCTS(Generator):
     """Perform MCTS to maximize the reward."""
-    def __init__(self, root: Node, transition: Transition, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int=1, cut_failed_child: bool=False, reward_cutoff: float=None, terminal_reward: float | str="ignore", cut_terminal: bool=True, avoid_duplicates: bool=False, max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, name=None, output_dir=None, logger: logging.Logger=None, info_interval: int=100):
+    def __init__(self, root: Node, transition: Transition, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, 
+                 filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", 
+                 eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int=1, 
+                 cut_failed_child: bool=False, reward_cutoff: float=None, 
+                 terminal_reward: float | str="ignore", cut_terminal: bool=True, 
+                 avoid_duplicates: bool=False, 
+                 max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, 
+                 name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.

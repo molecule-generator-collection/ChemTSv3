@@ -16,7 +16,7 @@ from utils import moving_average, make_logger
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name=None, output_dir=None, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
@@ -89,6 +89,7 @@ class Generator(ABC):
                 self.executor.shutdown(cancel_futures=True)
                 self.logger.info("Executor shutdown completed.")
             self.logger.info("Generation finished.")
+            
             if self.return_nodes:
                 result = self._generated_nodes_tmp
                 self._generated_nodes_tmp = []
