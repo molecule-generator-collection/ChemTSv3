@@ -118,8 +118,8 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     return generator
 
 def adjust_args(cl, args_dict: dict, device: str, logger: logging.Logger, output_dir: str, repo_root: str):
-    set_common_args(cl, args_dict, device, logger, output_dir)
     adjust_path_args(args_dict, repo_root)
+    set_common_args(cl, args_dict, device, logger, output_dir)
 
 def set_common_args(cl, args_dict: dict, device: str, logger: logging.Logger, output_dir: str):
     if "device" in inspect.signature(cl.__init__).parameters:
