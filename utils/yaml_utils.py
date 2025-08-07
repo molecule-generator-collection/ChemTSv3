@@ -27,6 +27,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     else:
         output_dir = predecessor._output_dir
         logger = predecessor.logger
+    device = conf_clone.get("device")
         
     save_yaml(conf, output_dir=output_dir)
     generator_args = conf_clone.get("generator_args", {})
@@ -60,10 +61,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
         language_args = conf_clone.get("language_args", {})
         lang = language_class(**language_args)
 
-    if "device" in inspect.signature(transition_class.__init__).parameters:
-        transition_args["device"] = conf_clone.get("device")
-    if "logger" in inspect.signature(transition_class.__init__).parameters:
-        transition_args["logger"] = logger
+    set_common_args(transition_class, transition_args, device, logger, output_dir)
     transition = transition_class(**transition_args)
     
     # set root
@@ -71,7 +69,9 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     if "lang" in locals() :
         root_args["lang"] = lang
     if "device" in inspect.signature(node_class.node_from_key).parameters:
-        root_args["device"] = conf_clone.get("device")
+        root_args["device"] = device
+    if "logger" in inspect.signature(node_class.node_from_key).parameters:
+        root_args["logger"] = logger
         
     if n_top_keys_to_pass:
         top_keys = [key for key, _ in predecessor.top_k(k=n_top_keys_to_pass)]
@@ -90,12 +90,16 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
         reward = predecessor.reward
     else:
         reward_class = class_from_package("reward", conf_clone.get("reward_class"))
-        reward = reward_class(**conf_clone.get("reward_args", {}))
+        reward_args = conf_clone.get("reward_args", {})
+        set_common_args(reward_class, reward_args, device, logger, output_dir)
+        reward = reward_class(**reward_args)
     
     # set policy
     if "policy_class" in conf_clone:
         policy_class = class_from_package("policy", conf_clone.get("policy_class"))
-        policy = policy_class(**conf_clone.get("policy_args", {}))
+        policy_args = conf_clone.get("policy_args", {})
+        set_common_args(policy_class, policy_args, device, logger, output_dir)
+        policy = policy_class(**policy_args)
         generator_args["policy"] = policy
 
     # set filters
@@ -103,16 +107,26 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     filters = []
     for s in filter_settings:
         filter_class = class_from_package("filter", s.pop("filter_class"))
+        set_common_args(filter_class, s, device, logger, output_dir)
         filters.append(filter_class(**s))
     
     # set generator
     generator_class = class_from_package("generator", conf_clone.get("generator_class", "MCTS"))
-    generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, output_dir=output_dir, logger=logger, **generator_args)
+    set_common_args(generator_class, generator_args, device, logger, output_dir)
+    generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, **generator_args)
     
     if predecessor:
         generator.inherit(predecessor)
     
     return generator
+
+def set_common_args(cl, args_dict, device, logger, output_dir):
+    if "device" in inspect.signature(cl.__init__).parameters:
+        args_dict["device"] = device
+    if "logger" in inspect.signature(cl.__init__).parameters:
+        args_dict["logger"] = logger
+    if "output_dir" in inspect.signature(cl.__init__).parameters:
+        args_dict["output_dir"] = output_dir
 
 def save_yaml(conf: dict, output_dir: str, base_name: str="config.yaml"):
     path = os.path.join(output_dir, base_name)
