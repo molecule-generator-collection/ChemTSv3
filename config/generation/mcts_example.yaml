@@ -16,12 +16,12 @@ use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the C
 
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/smiles/drugs_zinc/gru  # GRU model: lang file with the same name are automatically loaded and included in the arguments.
+  top_p: 0.995
+  model_dir: model/smiles/drugs_zinc/gru  # GRU model
   # model_dir: model/smiles/drugs_zinc/lstm # LSTM model
   # model_dir: model/smiles/drugs_zinc/tf25_ported  # Ported model from ChemTSv2
-  top_p: 0.995
+  # For developers: lang file with the same name are automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided.
 
-# device: gpu
 # transition_class: GPT2Transition
 # transition_args:
 #   model_dir: model/smiles/drugs_zinc/gpt2_1.2m
