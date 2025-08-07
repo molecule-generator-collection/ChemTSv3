@@ -40,12 +40,10 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     if issubclass(node_class, MolStringNode):
         MolStringNode.use_canonical_smiles_as_key = conf_clone.get("use_canonical_smiles_as_key", False)
 
-    # set transition lang
+    # set transition (and lang, if any)
     transition_args = conf_clone.get("transition_args", {})
-    for key, val in transition_args.items():
-        if isinstance(val, str) and not os.path.isabs(val) and (key.endswith("_dir") or key.endswith("_path")):
-            transition_args[key] = os.path.join(repo_root, val)
     transition_class = class_from_package("transition", conf_clone["transition_class"])
+    adjust_args(transition_class, transition_args, device, logger, output_dir, repo_root)
         
     if issubclass(node_class, SentenceNode) or "lang_path" in conf_clone:
         lang_path = conf_clone.get("lang_path")
@@ -60,8 +58,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
         language_class = class_from_package("language", conf_clone["language_class"])
         language_args = conf_clone.get("language_args", {})
         lang = language_class(**language_args)
-
-    set_common_args(transition_class, transition_args, device, logger, output_dir)
+        
     transition = transition_class(**transition_args)
     
     # set root
@@ -91,14 +88,14 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     else:
         reward_class = class_from_package("reward", conf_clone.get("reward_class"))
         reward_args = conf_clone.get("reward_args", {})
-        set_common_args(reward_class, reward_args, device, logger, output_dir)
+        adjust_args(reward_class, reward_args, device, logger, output_dir, repo_root)
         reward = reward_class(**reward_args)
     
     # set policy
     if "policy_class" in conf_clone:
         policy_class = class_from_package("policy", conf_clone.get("policy_class"))
         policy_args = conf_clone.get("policy_args", {})
-        set_common_args(policy_class, policy_args, device, logger, output_dir)
+        adjust_args(policy_class, policy_args, device, logger, output_dir, repo_root)
         policy = policy_class(**policy_args)
         generator_args["policy"] = policy
 
@@ -107,12 +104,12 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     filters = []
     for s in filter_settings:
         filter_class = class_from_package("filter", s.pop("filter_class"))
-        set_common_args(filter_class, s, device, logger, output_dir)
+        adjust_args(filter_class, s, device, logger, output_dir, repo_root)
         filters.append(filter_class(**s))
     
     # set generator
     generator_class = class_from_package("generator", conf_clone.get("generator_class", "MCTS"))
-    set_common_args(generator_class, generator_args, device, logger, output_dir)
+    adjust_args(generator_class, generator_args, device, logger, output_dir, repo_root)
     generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, **generator_args)
     
     if predecessor:
@@ -120,13 +117,22 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     
     return generator
 
-def set_common_args(cl, args_dict, device, logger, output_dir):
+def adjust_args(cl, args_dict: dict, device: str, logger: logging.Logger, output_dir: str, repo_root: str):
+    set_common_args(cl, args_dict, device, logger, output_dir)
+    adjust_path_args(args_dict, repo_root)
+
+def set_common_args(cl, args_dict: dict, device: str, logger: logging.Logger, output_dir: str):
     if "device" in inspect.signature(cl.__init__).parameters:
         args_dict["device"] = device
     if "logger" in inspect.signature(cl.__init__).parameters:
         args_dict["logger"] = logger
     if "output_dir" in inspect.signature(cl.__init__).parameters:
         args_dict["output_dir"] = output_dir
+        
+def adjust_path_args(args_dict: dict, repo_root: str):
+    for key, val in args_dict.items():
+        if isinstance(val, str) and not os.path.isabs(val) and (key.endswith("_dir") or key.endswith("_path")):
+            args_dict[key] = os.path.join(repo_root, val)
 
 def save_yaml(conf: dict, output_dir: str, base_name: str="config.yaml"):
     path = os.path.join(output_dir, base_name)
