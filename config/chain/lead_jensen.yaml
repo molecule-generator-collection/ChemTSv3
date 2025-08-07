@@ -1,6 +1,8 @@
-output_dir: generation_result
 time_limit: 1000 # seconds
-max_generations: 9800
+max_generations: 1000
+
+output_dir: generation_result
+
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 
