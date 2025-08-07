@@ -1,8 +1,11 @@
-output_dir: generation_result
 time_limit: 60 # Seconds
 max_generations: 1000
-
 # seed: 0 # Set seed
+
+# common args: output_dir, device(, logger) are automatically applied to all classes (and node_from_key()) that define arguments with the same names.
+output_dir: generation_result
+device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
+
 debug: false # Set to true to enable debug logging
 silent: false # Set to true to disable console logging
 
@@ -11,10 +14,9 @@ use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the C
 # root: "N"   # Start from the specified root
 # root: ["Nc", "NC"]  # Specify multiple roots
 
-device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
 transition_class: RNNTransition
 transition_args:
-  model_dir: model/smiles/drugs_zinc/gru  # GRU model
+  model_dir: model/smiles/drugs_zinc/gru  # GRU model: lang file with the same name are automatically loaded and included in the arguments.
   # model_dir: model/smiles/drugs_zinc/lstm # LSTM model
   # model_dir: model/smiles/drugs_zinc/tf25_ported  # Ported model from ChemTSv2
   top_p: 0.995
@@ -34,7 +36,7 @@ policy_args:
   best_rate: 0.5
 
 generator_class: MCTS
-generator_args:
+generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
   eval_width: 1 # If the transition is computationally expensive relative to the reward calculation, it is recommended to set this value to inf.
   n_evals: 1
   n_tries: 1
