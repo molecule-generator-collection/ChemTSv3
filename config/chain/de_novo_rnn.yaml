@@ -1,20 +1,20 @@
-output_dir: generation_result
 time_limit: 1000 # seconds
-max_generations: 200
-n_keys_to_pass: 10
+max_generations: 1000
+
+n_keys_to_pass: 10 # Number of generated keys to pass to the next generator
+
+output_dir: generation_result
+device: cpu
 
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
 
-device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc/gru
   top_p: 0.995
 
-reward_class: GuacaMolReward
-reward_args:
-  objective: troglitazone_rediscovery
+reward_class: JScoreReward
 
 policy_class: UCT
 policy_args:
