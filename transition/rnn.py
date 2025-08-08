@@ -135,7 +135,7 @@ class RNNTransition(LanguageModel):
         with open(os.path.join(model_dir, "config.json")) as f:
             cfg = json.load(f)
         self.model = RNNLanguageModel(**cfg).to(self.device)
-        state = torch.load(os.path.join(model_dir, "model.pt"), map_location=self.device)
+        state = torch.load(os.path.join(model_dir, "model.pt"), map_location=self.device, weights_only=True)
         self.model.load_state_dict(state)
         self.name = os.path.basename(os.path.normpath(model_dir))
         return self
