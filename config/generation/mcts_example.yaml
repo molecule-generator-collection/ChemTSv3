@@ -46,7 +46,6 @@ generator_args: # root, transition, reward, policy and filters are automatically
 plot_args:
   moving_average_window: 0.05
   reward_top_ps: [0.5, 0.1]
-  save_only: false
 
 filters:
   - filter_class: ValidityFilter # Checks whether the molecule is valid. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
