@@ -11,6 +11,12 @@ transition_args:
   check_size: true
   check_ring: true
 
+# If not specified, the same reward will be used.
+# reward_class: ~~~
+
+# If not specified, the same filters will be used.
+# filters:
+
 policy_class: PUCT
 policy_args:
   c: 0.5
@@ -27,7 +33,3 @@ generator_args:
 
 plot_args:
   reward_top_ps: [0.5, 0.1]
-
-filters:
-  - filter_class: ValidityFilter # put this first if unsure
-  - filter_class: RadicalFilter

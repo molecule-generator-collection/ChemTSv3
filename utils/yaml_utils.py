@@ -92,12 +92,15 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
         generator_args["policy"] = policy
 
     # set filters
-    filter_settings = conf_clone.get("filters", [])
-    filters = []
-    for s in filter_settings:
-        filter_class = class_from_package("filter", s.pop("filter_class"))
-        adjust_args(filter_class, s, device, logger, output_dir)
-        filters.append(filter_class(**s))
+    if not "filters" in conf_clone and predecessor is not None:
+        filters = predecessor.filters
+    else:
+        filter_settings = conf_clone.get("filters", [])
+        filters = []
+        for s in filter_settings:
+            filter_class = class_from_package("filter", s.pop("filter_class"))
+            adjust_args(filter_class, s, device, logger, output_dir)
+            filters.append(filter_class(**s))
     
     # set generator
     generator_class = class_from_package("generator", conf_clone.get("generator_class", "MCTS"))
