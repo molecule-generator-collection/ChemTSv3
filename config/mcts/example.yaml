@@ -73,3 +73,5 @@ filters:
   #   max: 5
   # - filter_class: HBDFilter
   #   max: 5
+
+  # save_dir: save # (CLI) Name of the directory to save the generator state. If not specified, the generator will not be saved.
