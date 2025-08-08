@@ -31,9 +31,10 @@ def main():
             generator.plot(**plot_args)
             generator.analyze()
         else:
+            n_top_keys_to_pass=conf.get("n_keys_to_pass", 3)
             yaml_path = conf["next_yaml_path"]
             conf = conf_from_yaml(yaml_path, repo_root)
-            generator = generator_from_conf(conf, repo_root, predecessor=generator, n_top_keys_to_pass=conf.get("n_keys_to_pass", 3))
+            generator = generator_from_conf(conf, repo_root, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
 
 if __name__ == "__main__":
     main()
