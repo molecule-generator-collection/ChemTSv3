@@ -14,7 +14,7 @@ class GPT2Transition(LanguageModel):
         # TODO: either remove repetition_penalty / top_k or implement to transition_with_probs
         # TODO: might move shared codes with RNN
         if (model is not None) and (model_dir is not None):
-            raise ValueError("specify either 'model' or 'model_dir', not both.")
+            raise ValueError("Specify either 'model' or 'model_dir', not both.")
 
         if model is not None:
             self.model = model

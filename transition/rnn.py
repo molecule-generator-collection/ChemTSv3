@@ -109,7 +109,7 @@ class RNNLanguageModel(nn.Module):
 class RNNTransition(LanguageModel):
     def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, logger: logging.Logger=None):
         if (model is not None) and (model_dir is not None):
-            raise ValueError("specify one (or none) of 'model' or 'model_dir', not both.")
+            raise ValueError("Specify one (or none) of 'model' or 'model_dir', not both.")
         
         super().__init__(lang=lang, logger=logger)
         if device != "cpu":
