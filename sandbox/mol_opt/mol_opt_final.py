@@ -1,0 +1,99 @@
+# Example: python sandbox/mol_opt/mol_opt_final.py --method chain
+
+# Path setup / Imports
+import sys
+import os
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+
+import argparse
+from statistics import mean
+from utils import conf_from_yaml, generator_from_conf
+
+guacamol_oracle_names = ["zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "deco_hop", "albuterol_similarity", "scaffold_hop", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts"]
+tdc_oracle_names = ["drd2", "gsk3b", "jnk3", "qed"]
+oracle_names = guacamol_oracle_names + tdc_oracle_names
+    
+def reward_class_name_from_oracle_name(oracle_name: str) -> str:
+    if oracle_name in tdc_oracle_names:
+        return "TDCReward"
+    else:
+        return "GuacaMolReward"
+    
+def test_chain(oracle_name: str, seed: int) -> float:
+    yaml_path_1 = "config/mol_opt/de_novo_rnn.yaml"
+    yaml_path_2 = "config/mol_opt/lead_jensen.yaml"
+
+    conf_1 = conf_from_yaml(yaml_path_1, repo_root)
+    conf_1["seed"] = seed
+    conf_1["reward_class"] = reward_class_name_from_oracle_name(oracle_name)
+    conf_1["reward_args"] = {}
+    conf_1["reward_args"]["objective"] = oracle_name
+    conf_1["output_dir"] = "generation_result" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
+    generator_1 = generator_from_conf(conf_1, repo_root=repo_root)
+    generator_1.generate(max_generations=conf_1.get("max_generations"), time_limit=conf_1.get("time_limit"))
+
+    conf_2 = conf_from_yaml(yaml_path_2, repo_root)
+    conf_2["seed"] = seed
+    generator_2 = generator_from_conf(conf_2, repo_root=repo_root, predecessor=generator_1, n_top_keys_to_pass=conf_1.get("n_keys_to_pass", 3))
+    generator_2.generate(max_generations=conf_2.get("max_generations"), time_limit=conf_2.get("time_limit"))
+
+    generator_2.plot(**conf_2.get("plot_args", {}))
+    generator_2.analyze()
+    
+    return generator_2.auc(top_k=10, max_oracle_calls=10000, finish=True)
+
+def test_single(oracle_name: str, seed: int) -> float:
+    yaml_path = "config/mol_opt/rnn_only.yaml"
+
+    conf = conf_from_yaml(yaml_path, repo_root)
+    conf["seed"] = seed
+    conf["reward_class"] = reward_class_name_from_oracle_name(oracle_name)
+    conf["reward_args"] = {}
+    conf["reward_args"]["objective"] = oracle_name
+    conf["output_dir"] = "generation_result" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
+    generator = generator_from_conf(conf, repo_root)
+    generator.generate(max_generations=conf.get("max_generations"), time_limit=conf.get("time_limit"))
+    
+    generator.plot(**conf.get("plot_args", {}))
+    generator.analyze()
+    
+    return generator.auc(top_k=10, max_oracle_calls=10000, finish=True)
+
+def test_objective(oracle_name: str, seed: int, method: str="chain") -> float:
+    # return test_single(oracle_name, seed)
+    if method == "chain":
+        return test_chain(oracle_name, seed)
+    else:
+        return test_single(oracle_name, seed)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--method", choices=["chain", "single"], default="chain", help="Generation mode")
+    parser.add_argument("--n_trials", type=int, default=5, help="Number of seeds (trials)")
+    args = parser.parse_args()
+    
+    results = {}
+    for oracle_name in oracle_names:
+        results[oracle_name] = []
+    results["sum"] = []    
+
+    # test
+    for i in range(args.n_trials):
+        print(f"----------- seed: {i} -----------")
+        sum = 0
+        for oracle_name in oracle_names:
+            score = test_objective(oracle_name, seed=i, method=args.method)
+            print(oracle_name, score)
+            results[oracle_name].append(score)
+            sum += score
+        results["sum"].append(sum)
+        
+    # show results
+    print("sum", mean(results["sum"]), results["sum"])
+    for oracle_name in oracle_names:
+        print(oracle_name, mean(results[oracle_name]), results[oracle_name])
+        
+if __name__ == "__main__":
+    main()
