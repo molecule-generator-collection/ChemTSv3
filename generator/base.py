@@ -95,7 +95,7 @@ class Generator(ABC):
                 self._generated_nodes_tmp = []
                 return result
             else:
-                return []
+                return None
 
     def _make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
