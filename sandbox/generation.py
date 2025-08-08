@@ -9,7 +9,7 @@ if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
 
 import argparse
-from utils import conf_from_yaml, generator_from_conf
+from utils import conf_from_yaml, generator_from_conf, save_yaml
 
 def main():
     parser = argparse.ArgumentParser()
@@ -22,6 +22,11 @@ def main():
 
     while(yaml_path):
         generator.generate(time_limit=conf.get("time_limit"), max_generations=conf.get("max_generations"))
+        if "save_dir" in conf:            
+            save_dir = os.path.join(generator.output_dir(), conf["save_dir"])
+            os.makedirs(save_dir, exist_ok=True)
+            save_yaml(conf, save_dir, overwrite=True)
+            generator.save(os.path.join(save_dir, "save.gtr"))
         
         if not "next_yaml_path" in conf:
             yaml_path = None
