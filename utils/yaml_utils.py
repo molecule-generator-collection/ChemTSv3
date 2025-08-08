@@ -10,14 +10,16 @@ from language import Language
 from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode
 from utils import class_from_package, make_logger, set_seed
 
-def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
-    with open(os.path.join(repo_root, yaml_path)) as f:
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+
+def conf_from_yaml(yaml_path: str) -> dict[str, Any]:
+    with open(os.path.join(REPO_ROOT, yaml_path)) as f:
         conf = yaml.safe_load(f)
     return conf
 
-def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor: Generator=None, n_top_keys_to_pass: int=None) -> Generator:
+def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top_keys_to_pass: int=None) -> Generator:
     conf_clone = copy.deepcopy(conf)
-    device, logger, output_dir = prepare_common_args(conf_clone, repo_root, predecessor)
+    device, logger, output_dir = prepare_common_args(conf_clone, predecessor)
 
     save_yaml(conf, output_dir=output_dir)
     generator_args = conf_clone.get("generator_args", {})
@@ -33,7 +35,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     # set transition (and lang, if any)
     transition_args = conf_clone.get("transition_args", {})
     transition_class = class_from_package("transition", conf_clone["transition_class"])
-    adjust_args(transition_class, transition_args, device, logger, output_dir, repo_root)
+    adjust_args(transition_class, transition_args, device, logger, output_dir)
         
     if issubclass(node_class, SentenceNode) or "lang_path" in conf_clone:
         lang_path = conf_clone.get("lang_path")
@@ -41,7 +43,7 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
             lang_name = os.path.basename(os.path.normpath(transition_args["model_dir"])) + ".lang"
             lang_path = os.path.join(transition_args["model_dir"], lang_name)
         elif not os.path.isabs(lang_path):
-            lang_path = os.path.join(repo_root, lang_path)
+            lang_path = os.path.join(REPO_ROOT, lang_path)
         lang = Language.load(lang_path)
         transition_args["lang"] = lang
     elif "language_class" in conf_clone:
@@ -78,14 +80,14 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     else:
         reward_class = class_from_package("reward", conf_clone.get("reward_class"))
         reward_args = conf_clone.get("reward_args", {})
-        adjust_args(reward_class, reward_args, device, logger, output_dir, repo_root)
+        adjust_args(reward_class, reward_args, device, logger, output_dir)
         reward = reward_class(**reward_args)
     
     # set policy
     if "policy_class" in conf_clone:
         policy_class = class_from_package("policy", conf_clone.get("policy_class"))
         policy_args = conf_clone.get("policy_args", {})
-        adjust_args(policy_class, policy_args, device, logger, output_dir, repo_root)
+        adjust_args(policy_class, policy_args, device, logger, output_dir)
         policy = policy_class(**policy_args)
         generator_args["policy"] = policy
 
@@ -94,12 +96,12 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     filters = []
     for s in filter_settings:
         filter_class = class_from_package("filter", s.pop("filter_class"))
-        adjust_args(filter_class, s, device, logger, output_dir, repo_root)
+        adjust_args(filter_class, s, device, logger, output_dir)
         filters.append(filter_class(**s))
     
     # set generator
     generator_class = class_from_package("generator", conf_clone.get("generator_class", "MCTS"))
-    adjust_args(generator_class, generator_args, device, logger, output_dir, repo_root)
+    adjust_args(generator_class, generator_args, device, logger, output_dir)
     generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, **generator_args)
     
     if predecessor:
@@ -107,8 +109,8 @@ def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor:
     
     return generator
 
-def adjust_args(cl, args_dict: dict, device: str, logger: logging.Logger, output_dir: str, repo_root: str):
-    adjust_path_args(args_dict, repo_root)
+def adjust_args(cl, args_dict: dict, device: str, logger: logging.Logger, output_dir: str):
+    adjust_path_args(args_dict)
     set_common_args(cl, args_dict, device, logger, output_dir)
 
 def set_common_args(cl, args_dict: dict, device: str, logger: logging.Logger, output_dir: str):
@@ -119,14 +121,14 @@ def set_common_args(cl, args_dict: dict, device: str, logger: logging.Logger, ou
     if "output_dir" in inspect.signature(cl.__init__).parameters:
         args_dict["output_dir"] = output_dir
         
-def adjust_path_args(args_dict: dict, repo_root: str):
+def adjust_path_args(args_dict: dict):
     for key, val in args_dict.items():
         if isinstance(val, str) and not os.path.isabs(val) and (key.endswith("_dir") or key.endswith("_path")):
-            args_dict[key] = os.path.join(repo_root, val)
+            args_dict[key] = os.path.join(REPO_ROOT, val)
 
-def prepare_common_args(conf: dict, repo_root: str, predecessor: Generator=None) -> tuple[str, logging.Logger, str]:
+def prepare_common_args(conf: dict, predecessor: Generator=None) -> tuple[str, logging.Logger, str]:
     if predecessor is None:
-        output_dir = os.path.join(repo_root, "sandbox", conf["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
+        output_dir = os.path.join(REPO_ROOT, "sandbox", conf["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
         console_level = logging.ERROR if conf.get("silent") else logging.INFO
         file_level = logging.DEBUG if conf.get("debug") else logging.INFO
         csv_level = logging.ERROR if not conf.get("csv_output", True) else logging.INFO
