@@ -1,5 +1,5 @@
-# Example (RNN): python sandbox/generation.py -c config/gen/example.yaml
-# Example (Chain): python sandbox/generation.py -c config/gen/chain_example_1.yaml
+# Example (RNN): python sandbox/generation.py -c config/mcts/example.yaml
+# Example (Chain): python sandbox/generation.py -c config/mcts/chain_example_1.yaml
 
 # Path setup / Imports
 import sys
