@@ -371,8 +371,14 @@ class Generator(ABC):
         with open(file, mode="wb") as fo:
             pickle.dump(self, fo)
 
-    def load(file: str, transition: Transition) -> Self:
+    def load_file(file: str, transition: Transition) -> Self:
         with open(file, "rb") as f:
             generator = pickle.load(f)
         generator.transition = transition
         return generator
+    
+    def load_dir(dir: str, repo_root: str="../") -> Self:
+        from utils import conf_from_yaml, generator_from_conf
+        conf = conf_from_yaml(os.path.join("sandbox", dir, "config.yaml"), repo_root)
+        transition = generator_from_conf(conf, repo_root).transition
+        return Generator.load_file(os.path.join(dir, "save.gtr"), transition)

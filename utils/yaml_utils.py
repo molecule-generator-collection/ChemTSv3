@@ -17,18 +17,8 @@ def conf_from_yaml(yaml_path: str, repo_root: str="../") -> dict[str, Any]:
 
 def generator_from_conf(conf: dict[str, Any], repo_root: str="../", predecessor: Generator=None, n_top_keys_to_pass: int=None) -> Generator:
     conf_clone = copy.deepcopy(conf)
+    device, logger, output_dir = prepare_common_args(conf_clone, repo_root, predecessor)
 
-    if predecessor is None:
-        output_dir = os.path.join(repo_root, "sandbox", conf_clone["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
-        console_level = logging.ERROR if conf_clone.get("silent") else logging.INFO
-        file_level = logging.DEBUG if conf_clone.get("debug") else logging.INFO
-        csv_level = logging.ERROR if not conf_clone.get("csv_output", True) else logging.INFO
-        logger = make_logger(output_dir, console_level=console_level, file_level=file_level, csv_level=csv_level)
-    else:
-        output_dir = predecessor._output_dir
-        logger = predecessor.logger
-    device = conf_clone.get("device")
-        
     save_yaml(conf, output_dir=output_dir)
     generator_args = conf_clone.get("generator_args", {})
     set_seed(seed=conf_clone.get("seed"), logger=logger)
@@ -134,15 +124,30 @@ def adjust_path_args(args_dict: dict, repo_root: str):
         if isinstance(val, str) and not os.path.isabs(val) and (key.endswith("_dir") or key.endswith("_path")):
             args_dict[key] = os.path.join(repo_root, val)
 
-def save_yaml(conf: dict, output_dir: str, base_name: str="config.yaml"):
-    path = os.path.join(output_dir, base_name)
-    name, ext = os.path.splitext(base_name)
+def prepare_common_args(conf: dict, repo_root: str, predecessor: Generator=None) -> tuple[str, logging.Logger, str]:
+    if predecessor is None:
+        output_dir = os.path.join(repo_root, "sandbox", conf["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
+        console_level = logging.ERROR if conf.get("silent") else logging.INFO
+        file_level = logging.DEBUG if conf.get("debug") else logging.INFO
+        csv_level = logging.ERROR if not conf.get("csv_output", True) else logging.INFO
+        logger = make_logger(output_dir, console_level=console_level, file_level=file_level, csv_level=csv_level)
+    else:
+        output_dir = predecessor._output_dir
+        logger = predecessor.logger
+    device = conf.get("device")
+    
+    return device, logger, output_dir
+
+def save_yaml(conf: dict, output_dir: str, name: str="config.yaml", overwrite: bool=False):
+    path = os.path.join(output_dir, name)
+    name, ext = os.path.splitext(name)
 
     # prevent overwriting
-    counter = 2
-    while os.path.exists(path):
-        path = os.path.join(output_dir, f"{name}_{counter}{ext}")
-        counter += 1
+    if not overwrite:
+        counter = 2
+        while os.path.exists(path):
+            path = os.path.join(output_dir, f"{name}_{counter}{ext}")
+            counter += 1
 
     with open(path, "w") as f:
         yaml.dump(conf, f, sort_keys=False)
