@@ -1,5 +1,6 @@
 # Example (RNN): python sandbox/generation.py -c config/mcts/example.yaml
 # Example (Chain): python sandbox/generation.py -c config/mcts/chain_example_1.yaml
+# Example (Load): python sandbox/generation.py -l sandbox/generation_result/~~~/save --max_generations 100
 
 # Path setup / Imports
 import sys
@@ -16,6 +17,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--yaml_path", type=str, help="Path to the config file (.yaml)")
     parser.add_argument("-l", "--load_dir", type=str, help="Path to the save directory (contains config.yaml and save.gtr)")
+    
+    parser.add_argument("--max_generations", type=int, help="Only used when loading the generator from the save.")
+    parser.add_argument("-t", "--time_limit", type=int, help="Only used when loading the generator from the save.")
+    parser.add_argument("-s", "--save", type=bool, help="Whether to save the progress or not. Overwrites the current save. Only used when loading the generator from the save.")
+    
     args = parser.parse_args()
     
     yaml_path = args.yaml_path
@@ -47,7 +53,13 @@ def main():
                 generator = generator_from_conf(conf, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
     elif yaml_path is None and load_dir is not None:
         generator = Generator.load_dir(load_dir)
-        # TODO: write here
+        max_generations = args.max_generations
+        time_limit = args.time_limit
+        save = args.save
+        generator.generate(max_generations=max_generations, time_limit=time_limit)
+        if save:
+            save_yaml(conf, load_dir, overwrite=True)
+            generator.save(os.path.join(load_dir, "save.gtr"))
     else:
         raise ValueError("Specify one of 'yaml_path' (-c) or 'load_dir' (-l), not both.")
     

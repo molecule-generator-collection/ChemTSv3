@@ -29,6 +29,12 @@ transition_args:
 reward_class: JScoreReward
 # reward_args:  # JScoreReward takes no arguments in its __init__() method.
 
+filters:
+  - filter_class: ValidityFilter # Checks whether the molecule is valid. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
+  - filter_class: RadicalFilter
+  # - filter_class: MaxRingSizeFilter
+  #   max: 6
+
 policy_class: UCT
 # policy_class: PUCT  # Shares the same arguments with UCT
 policy_args:
@@ -47,31 +53,4 @@ plot_args:
   moving_average_window: 0.05
   reward_top_ps: [0.5, 0.1]
 
-filters:
-  - filter_class: ValidityFilter # Checks whether the molecule is valid. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
-  - filter_class: RadicalFilter
-  # - filter_class: PubChemFilter
-  # - filter_class: ChargeFilter
-  # - filter_class: AromaticRingFilter
-  # - filter_class: LipinskiFilter
-  #   rule_of: 5
-  # - filter_class: PainsFilter
-  #   families:
-  #     - A
-  #     - B
-  #     - C
-  # - filter_class: MaxRingSizeFilter
-  #   max: 6
-  # - filter_class: RotatableBondsFilter
-  #   min: 2
-  # - filter_class: TPSAFilter
-  # - filter_class: SAScoreFilter
-  #   min: 3.5
-  # - filter_class: WeightFilter
-  #   min: 30
-  # - filter_class: HBAFilter
-  #   max: 5
-  # - filter_class: HBDFilter
-  #   max: 5
-
-  # save_dir: save # (CLI) Name of the directory to save the generator state. If not specified, the generator will not be saved.
+# save_dir: save # (CLI) Name of the directory to save the generator state. If not specified, the generator will not be saved.

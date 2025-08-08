@@ -17,6 +17,10 @@ transition_args:
 
 reward_class: JScoreReward
 
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
+
 policy_class: UCT
 policy_args:
   best_rate: 0.5
@@ -29,7 +33,3 @@ generator_args:
   n_tries: 1
   filter_reward: 0
   terminal_reward: -1
-
-filters:
-  - filter_class: ValidityFilter # put this first if unsure
-  - filter_class: RadicalFilter
