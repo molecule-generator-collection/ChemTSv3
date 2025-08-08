@@ -9,6 +9,8 @@ from node import SentenceNode
 from transition import LanguageModel
 from utils import apply_top_p
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+
 class GPT2Transition(LanguageModel):
     def __init__(self, lang: Language, model=None, model_dir: str=None, device: str=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
         # TODO: either remove repetition_penalty / top_k or implement to transition_with_probs
@@ -184,7 +186,7 @@ class GPT2Transition(LanguageModel):
         return model, trainer
     
     @staticmethod
-    def train_gpt2_from_conf(conf: dict, repo_root: str="../") -> tuple[GPT2LMHeadModel, Trainer, Language]:
+    def train_gpt2_from_conf(conf: dict) -> tuple[GPT2LMHeadModel, Trainer, Language]:
         """
         Train GPT2 from conf. Currently only supports DynamicLanguage.
         
@@ -198,10 +200,10 @@ class GPT2Transition(LanguageModel):
 
         conf_clone = copy.deepcopy(conf)
         
-        output_dir = os.path.join(repo_root, conf_clone.get("output_dir"))
+        output_dir = os.path.join(REPO_ROOT, conf_clone.get("output_dir"))
         lang_class = class_from_package("language", conf_clone.get("lang_class"))
         lang = lang_class(**conf_clone.get("lang_args", {}))
-        dataset_path = os.path.join(repo_root, conf_clone.get("dataset_path"))
+        dataset_path = os.path.join(REPO_ROOT, conf_clone.get("dataset_path"))
 
         training_args = conf_clone.get("training_args", {})
         training_args["output_dir"] = output_dir
