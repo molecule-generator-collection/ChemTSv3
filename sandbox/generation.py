@@ -20,7 +20,6 @@ def main():
     
     parser.add_argument("--max_generations", type=int, help="Only used when loading the generator from the save.")
     parser.add_argument("-t", "--time_limit", type=int, help="Only used when loading the generator from the save.")
-    parser.add_argument("-s", "--save", type=bool, help="Whether to save the progress or not. Overwrites the current save. Only used when loading the generator from the save.")
     
     args = parser.parse_args()
     
@@ -55,11 +54,10 @@ def main():
         generator = Generator.load_dir(load_dir)
         max_generations = args.max_generations
         time_limit = args.time_limit
-        save = args.save
         generator.generate(max_generations=max_generations, time_limit=time_limit)
-        if save:
-            save_yaml(conf, load_dir, overwrite=True)
-            generator.save(os.path.join(load_dir, "save.gtr"))
+        
+        save_yaml(conf, load_dir, overwrite=True)
+        generator.save(os.path.join(load_dir, "save.gtr"))
     else:
         raise ValueError("Specify one of 'yaml_path' (-c) or 'load_dir' (-l), not both.")
     
