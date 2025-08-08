@@ -24,8 +24,8 @@ def main():
     if yaml_path is None and load_dir is None:
         raise ValueError("Specify either 'yaml_path' (-c) or 'load_dir' (-l).")
     elif yaml_path is not None and load_dir is None:
-        conf = conf_from_yaml(yaml_path, repo_root)
-        generator = generator_from_conf(conf, repo_root)
+        conf = conf_from_yaml(yaml_path)
+        generator = generator_from_conf(conf)
         while(yaml_path):
             generator.generate(time_limit=conf.get("time_limit"), max_generations=conf.get("max_generations"))
             if "save_dir" in conf:            
@@ -43,10 +43,10 @@ def main():
             else:
                 n_top_keys_to_pass=conf.get("n_keys_to_pass", 3)
                 yaml_path = conf["next_yaml_path"]
-                conf = conf_from_yaml(yaml_path, repo_root)
-                generator = generator_from_conf(conf, repo_root, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
+                conf = conf_from_yaml(yaml_path)
+                generator = generator_from_conf(conf, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
     elif yaml_path is None and load_dir is not None:
-        generator = Generator.load_dir(load_dir, repo_root)
+        generator = Generator.load_dir(load_dir)
         # TODO: write here
     else:
         raise ValueError("Specify one of 'yaml_path' (-c) or 'load_dir' (-l), not both.")
@@ -69,8 +69,8 @@ def main():
         else:
             n_top_keys_to_pass=conf.get("n_keys_to_pass", 3)
             yaml_path = conf["next_yaml_path"]
-            conf = conf_from_yaml(yaml_path, repo_root)
-            generator = generator_from_conf(conf, repo_root, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
+            conf = conf_from_yaml(yaml_path)
+            generator = generator_from_conf(conf, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
 
 if __name__ == "__main__":
     main()
