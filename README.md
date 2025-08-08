@@ -1,9 +1,21 @@
 # ChemTSv3
 Temporary repository for ChemTSv3
 
+## Generation via CLI
+See `config/mcts/example.yaml` and `config/mcts/example_chain_*.yaml` for setting options.
+```bash
+# Simple generation
+python sandbox/generation.py -c config/mcts/example.yaml
+# Chain generation
+python sandbox/generation.py -c config/mcts/chain_example_1.yaml
+# Load
+python sandbox/generation.py -l sandbox/~~~/save --max_generations 100 --time_limit 60
+```
+
+## Notebooks
 All notebooks are located in the `sandbox` directory.
 - **Tutorial**: `tutorial_user_1.ipynb`, `tutorial_user_2.ipynb` and `tutorial_dev.ipynb`
-- **Generation**: `generation.ipynb` (see `config/mcts/example.yaml` for setting options)
+- **YAML-based Generation**: `generation.ipynb`
 - **Model training**: `train_rnn.ipynb` and `train_gpt2.ipynb`
 
 ## Environments
