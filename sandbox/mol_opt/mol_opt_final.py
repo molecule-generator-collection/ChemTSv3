@@ -25,18 +25,18 @@ def test_chain(oracle_name: str, seed: int) -> float:
     yaml_path_1 = "config/mol_opt/de_novo_rnn.yaml"
     yaml_path_2 = "config/mol_opt/lead_jensen.yaml"
 
-    conf_1 = conf_from_yaml(yaml_path_1, repo_root)
+    conf_1 = conf_from_yaml(yaml_path_1)
     conf_1["seed"] = seed
     conf_1["reward_class"] = reward_class_name_from_oracle_name(oracle_name)
     conf_1["reward_args"] = {}
     conf_1["reward_args"]["objective"] = oracle_name
     conf_1["output_dir"] = "generation_result" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
-    generator_1 = generator_from_conf(conf_1, repo_root=repo_root)
+    generator_1 = generator_from_conf(conf_1)
     generator_1.generate(max_generations=conf_1.get("max_generations"), time_limit=conf_1.get("time_limit"))
 
-    conf_2 = conf_from_yaml(yaml_path_2, repo_root)
+    conf_2 = conf_from_yaml(yaml_path_2)
     conf_2["seed"] = seed
-    generator_2 = generator_from_conf(conf_2, repo_root=repo_root, predecessor=generator_1, n_top_keys_to_pass=conf_1.get("n_keys_to_pass", 3))
+    generator_2 = generator_from_conf(conf_2, predecessor=generator_1, n_top_keys_to_pass=conf_1.get("n_keys_to_pass", 3))
     generator_2.generate(max_generations=conf_2.get("max_generations"), time_limit=conf_2.get("time_limit"))
 
     generator_2.plot(**conf_2.get("plot_args", {}))
@@ -47,13 +47,13 @@ def test_chain(oracle_name: str, seed: int) -> float:
 def test_single(oracle_name: str, seed: int) -> float:
     yaml_path = "config/mol_opt/rnn_only.yaml"
 
-    conf = conf_from_yaml(yaml_path, repo_root)
+    conf = conf_from_yaml(yaml_path)
     conf["seed"] = seed
     conf["reward_class"] = reward_class_name_from_oracle_name(oracle_name)
     conf["reward_args"] = {}
     conf["reward_args"]["objective"] = oracle_name
     conf["output_dir"] = "generation_result" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
-    generator = generator_from_conf(conf, repo_root)
+    generator = generator_from_conf(conf)
     generator.generate(max_generations=conf.get("max_generations"), time_limit=conf.get("time_limit"))
     
     generator.plot(**conf.get("plot_args", {}))

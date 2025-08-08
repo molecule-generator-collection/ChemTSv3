@@ -14,6 +14,8 @@ from reward import Reward, LogPReward
 from transition import Transition
 from utils import moving_average, make_logger
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
     def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1):
@@ -377,8 +379,8 @@ class Generator(ABC):
         generator.transition = transition
         return generator
     
-    def load_dir(dir: str, repo_root: str="../") -> Self:
+    def load_dir(dir: str) -> Self:
         from utils import conf_from_yaml, generator_from_conf
-        conf = conf_from_yaml(os.path.join(dir, "config.yaml"), repo_root)
-        transition = generator_from_conf(conf, repo_root).transition
-        return Generator.load_file(os.path.join(dir, "save.gtr"), transition)
+        conf = conf_from_yaml(os.path.join(dir, "config.yaml"))
+        transition = generator_from_conf(conf).transition
+        return Generator.load_file(os.path.join(REPO_ROOT, dir, "save.gtr"), transition)
