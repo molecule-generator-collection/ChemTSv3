@@ -9,17 +9,48 @@ if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
 
 import argparse
+from generator import Generator
 from utils import conf_from_yaml, generator_from_conf, save_yaml
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--yaml_path", type=str, help="Path to config file (.yaml)")
+    parser.add_argument("-c", "--yaml_path", type=str, help="Path to the config file (.yaml)")
+    parser.add_argument("-l", "--load_dir", type=str, help="Path to the save directory (contains config.yaml and save.gtr)")
     args = parser.parse_args()
     
-    yaml_path = args.yaml_path # Specify the yaml path
-    conf = conf_from_yaml(yaml_path, repo_root)
-    generator = generator_from_conf(conf, repo_root)
-
+    yaml_path = args.yaml_path
+    load_dir = args.load_dir
+    
+    if yaml_path is None and load_dir is None:
+        raise ValueError("Specify either 'yaml_path' (-c) or 'load_dir' (-l).")
+    elif yaml_path is not None and load_dir is None:
+        conf = conf_from_yaml(yaml_path, repo_root)
+        generator = generator_from_conf(conf, repo_root)
+        while(yaml_path):
+            generator.generate(time_limit=conf.get("time_limit"), max_generations=conf.get("max_generations"))
+            if "save_dir" in conf:            
+                save_dir = os.path.join(generator.output_dir(), conf["save_dir"])
+                os.makedirs(save_dir, exist_ok=True)
+                save_yaml(conf, save_dir, overwrite=True)
+                generator.save(os.path.join(save_dir, "save.gtr"))
+            if not "next_yaml_path" in conf:
+                yaml_path = None
+                plot_args = conf.get("plot_args", {})
+                if not "save_only" in plot_args:
+                    plot_args["save_only"] = True
+                generator.plot(**plot_args)
+                generator.analyze()
+            else:
+                n_top_keys_to_pass=conf.get("n_keys_to_pass", 3)
+                yaml_path = conf["next_yaml_path"]
+                conf = conf_from_yaml(yaml_path, repo_root)
+                generator = generator_from_conf(conf, repo_root, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
+    elif yaml_path is None and load_dir is not None:
+        generator = Generator.load_dir(load_dir, repo_root)
+        # TODO: write here
+    else:
+        raise ValueError("Specify one of 'yaml_path' (-c) or 'load_dir' (-l), not both.")
+    
     while(yaml_path):
         generator.generate(time_limit=conf.get("time_limit"), max_generations=conf.get("max_generations"))
         if "save_dir" in conf:            
