@@ -86,6 +86,8 @@ class Generator(ABC):
             self.logger.warning("Generation interrupted by user (KeyboardInterrupt).")
         except SystemExit:
             pass
+        except Exception as e:
+            self.logger.exception(f"Unexpected error occurred: {e}")
         finally:
             if hasattr(self, "executor"): # for MP
                 self.executor.shutdown(cancel_futures=True)
