@@ -62,7 +62,7 @@ reward_args:
 
 plot_args:
   x_axis: generation_order
-  moving_average_window: 0.005
+  moving_average_window: 0.05
   reward_top_ps: [0.5, 0.1]
 
 filters:
