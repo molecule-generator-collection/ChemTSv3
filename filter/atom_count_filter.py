@@ -1,7 +1,7 @@
 from rdkit.Chem import Mol
 from filter import MolValueFilter
 
-class NumAtomsFilter(MolValueFilter):
+class AtomCountFilter(MolValueFilter):
     def __init__(self, max=60, min=6, allowed=None, disallowed=None):
         super().__init__(max=max, min=min, allowed=allowed, disallowed=disallowed)
         
