@@ -12,4 +12,7 @@ def __getattr__(name):
     if name == "BioT5PlusTransition":
         from .biot5_plus import BioT5PlusTransition
         return BioT5PlusTransition
+    if name == "ChatGPTTransition":
+        from .chat_gpt import ChatGPTTransition
+        return ChatGPTTransition
     raise AttributeError(f"module {__name__} has no attribute {name}")

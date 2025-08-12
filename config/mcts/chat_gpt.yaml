@@ -1,0 +1,39 @@
+output_dir: generation_result
+time_limit: 1800 # seconds
+max_generations: 50
+debug: true
+
+node_class: SMILESStringNode
+root: "c1ccccc1"
+
+transition_class: ChatGPTTransition
+transition_args:
+  api_key: ""
+  model: gpt-4o-mini
+  n_samples: 2
+  # prompt: "I will provide you with a molecule in SMILES format. Transform the given molecule to improve its LogP value while preserving its core scaffold, and return the result as a SMILES string only. Do not include any additional text or explanation in the output. Starting molecule: ###SMILES###"
+  prompt: "I will provide you with a molecule in SMILES format. Transform the given molecule to improve its LogP value while preserving its skeletal structure, and return the result as a SMILES string only. Do not include any additional text or explanation in the output. Starting molecule: ###SMILES###"
+
+reward_class: LogPReward
+
+policy_class: UCT
+policy_args:
+  best_rate: 0.5
+  c: 0.05
+
+generator_class: MCTS
+generator_args:
+  eval_width: 3
+  n_evals: 1
+  filter_reward: -1
+  cut_terminal: true
+  avoid_duplicates: true
+  cut_failed_child: true
+  info_interval: 1
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: ConnectivityFilter
