@@ -6,10 +6,10 @@ debug: true
 node_class: SELFIESStringNode
 root: "[C][=C][C][=C][C][=C][Ring1][=Branch1]"
 
-transition_class: BioT5Transition
+transition_class: BioT5PlusTransition
 transition_args:
+  prompt: "The molecule is transformed from: <bom>###SELFIES###<eom> to improve LogP value."
   n_samples: 3
-  prompt: "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value. Now complete the following example - Input: <bom>###SELFIES###<eom> Output: "
 
 reward_class: LogPReward
 
