@@ -1,7 +1,7 @@
 import logging
 import re
 from transformers import AutoTokenizer, T5ForConditionalGeneration
-from node import MolStringNode
+from node import SELFIESStringNode
 from transition import BlackBoxTransition
 
 class BioT5PlusTransition(BlackBoxTransition):
@@ -14,7 +14,7 @@ class BioT5PlusTransition(BlackBoxTransition):
         self.model = T5ForConditionalGeneration.from_pretrained('QizhiPei/biot5-plus-base-mol-instructions-molecule')
         self.logger.info("Model loading completed.")
         
-    def sample_transition(self, node: MolStringNode) -> MolStringNode:
+    def sample_transition(self, node: SELFIESStringNode) -> SELFIESStringNode:
         parent_string = node.string
         prompt = self.prompt.replace("###SELFIES###", parent_string)
 
@@ -23,4 +23,4 @@ class BioT5PlusTransition(BlackBoxTransition):
         output = self.tokenizer.decode(outputs[0], skip_special_tokens=False).replace(" ", "")
         output = re.sub(r"<.*?>", "", output)
         
-        return MolStringNode(string=output, lang=node.lang, parent=node)
+        return SELFIESStringNode(string=output, parent=node)

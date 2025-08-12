@@ -1,6 +1,6 @@
 import logging
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from node import MolStringNode
+from node import SELFIESStringNode
 from transition import BlackBoxTransition
 
 class BioT5Transition(BlackBoxTransition):
@@ -13,7 +13,7 @@ class BioT5Transition(BlackBoxTransition):
         self.model = AutoModelForSeq2SeqLM.from_pretrained("QizhiPei/biot5-base-text2mol")
         self.logger.info("Model loading completed.")
         
-    def sample_transition(self, node: MolStringNode) -> MolStringNode:
+    def sample_transition(self, node: SELFIESStringNode) -> SELFIESStringNode:
         parent_selfies = node.string
         prompt = self.prompt.replace("###SELFIES###", parent_selfies)
         
@@ -21,4 +21,4 @@ class BioT5Transition(BlackBoxTransition):
         outputs = self.model.generate(input_ids, max_length=512, do_sample=True)
         output_selfies = self.tokenizer.decode(outputs[0], skip_special_tokens=True).replace(" ", "")
         
-        return MolStringNode(string=output_selfies, lang=node.lang, parent=node)
+        return SELFIESStringNode(string=output_selfies, parent=node)
