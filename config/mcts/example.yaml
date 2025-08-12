@@ -10,7 +10,7 @@ device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU en
 debug: false # Set to true to enable debug logging
 silent: false # Set to true to disable console logging
 
-### Root Node - If "root" is not specified, an empty string "" are used as the key of the root node. ###
+### Root Node - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the Canonical SMILES (If set to false, the same molecule may be counted multiple times.)
 # root: "N"   # Start from the specified root
