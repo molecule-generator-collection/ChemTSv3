@@ -2,7 +2,7 @@ time_limit: 1000 # seconds
 max_generations: 1000
 
 n_keys_to_pass: 10 # Number of generated keys to pass to the next generator
-next_yaml_path: config/generation/chain_example_2.yaml # path to the config of the next generator
+next_yaml_path: config/mcts/chain_example_2.yaml # path to the config of the next generator
 
 output_dir: generation_result
 device: cpu
