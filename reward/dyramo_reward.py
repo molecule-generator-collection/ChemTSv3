@@ -52,6 +52,10 @@ class DyRAMOReward(MolReward):
         self.property = property
         self.ad = ad
     
+    # override
+    def name(self):
+        return "dyramo_reward"
+    
     def mol_objective_functions(self):
         def egfr(mol):
             if mol is None:
