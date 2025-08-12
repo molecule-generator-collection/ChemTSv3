@@ -1,0 +1,69 @@
+output_dir: generation_result
+time_limit: 36000 # seconds
+max_generations: 1000
+# debug: true
+node_class: MolSentenceNode
+use_canonical_smiles_as_key: true
+
+device: cpu
+transition_class: RNNTransition
+transition_args:
+  model_dir: model/smiles/chembl/gru
+  top_p: 0.995
+
+policy_class: UCT
+policy_args:
+  c: 0.25
+  best_rate: 0.5
+
+generator_class: MCTS
+generator_args:
+  eval_width: 1
+  n_evals: 1
+  n_tries: 1
+  filter_reward:  0
+  cut_terminal: true
+  info_interval: 100
+
+reward_class: DyRAMOReward
+reward_args:
+  ad:
+    egfr:
+      num: 1
+      threshold: 0.66
+      scaler: step
+      weight: 1
+    metabolic_stability:
+      num: 1
+      threshold: 0.55
+      scaler: step
+      weight: 1
+    permeability:
+      num: 1
+      threshold: 0.43
+      scaler: step
+      weight: 1
+  property:
+    egfr:
+      scaler: max_gauss
+      mu: 9
+      sigma: 2
+      weight: 1
+    metabolic_stability:
+      scaler: max_gauss
+      mu: 75
+      sigma: 20
+      weight: 1
+    permeability:
+      scaler: max_gauss
+      mu: 1
+      sigma: 1
+      weight: 1
+
+plot_args:
+  x_axis: generation_order
+  moving_average_window: 0.005
+  reward_top_ps: [0.5, 0.1]
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
