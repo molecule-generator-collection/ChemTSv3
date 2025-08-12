@@ -2,45 +2,52 @@ time_limit: 60 # Seconds
 max_generations: 1000
 # seed: 0 # Set seed
 
-# common args: output_dir, device(, logger) are automatically applied to all classes (and node_from_key()) that define arguments with the same names.
+### Common Args - output_dir, device(, logger) are automatically applied to all classes (and node_from_key()) that define arguments with the same names. ###
 output_dir: generation_result
 device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
 
+### Logging Options ###
 debug: false # Set to true to enable debug logging
 silent: false # Set to true to disable console logging
 
+### Root Node - If "root" is not specified, an empty string "" are used as the key of the root node. ###
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the Canonical SMILES (If set to false, the same molecule may be counted multiple times.)
 # root: "N"   # Start from the specified root
 # root: ["Nc", "NC"]  # Specify multiple roots
 
+### Transition ###
 transition_class: RNNTransition
 transition_args:
   top_p: 0.995
   model_dir: model/smiles/drugs_zinc/gru  # GRU model
   # model_dir: model/smiles/drugs_zinc/lstm # LSTM model
   # model_dir: model/smiles/drugs_zinc/tf25_ported  # Ported model from ChemTSv2
-  # For developers: lang file with the same name are automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided.
+## For developers: lang file with the same name are automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
 
 # transition_class: GPT2Transition
 # transition_args:
 #   model_dir: model/smiles/drugs_zinc/gpt2_1.2m
 
+### Reward ###
 reward_class: JScoreReward
 # reward_args:  # JScoreReward takes no arguments in its __init__() method.
 
+### Filters ###
 filters:
   - filter_class: ValidityFilter # Checks whether the molecule is valid. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
   - filter_class: RadicalFilter
   # - filter_class: MaxRingSizeFilter
   #   max: 6
 
+### Policy ###
 policy_class: UCT
 # policy_class: PUCT  # Shares the same arguments with UCT
 policy_args:
   c: 0.1
   best_rate: 0.5
 
+### Generator ###
 generator_class: MCTS
 generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
   eval_width: 1 # If the transition is computationally expensive relative to the reward calculation, it is recommended to set this value to inf.
@@ -49,8 +56,14 @@ generator_args: # root, transition, reward, policy and filters are automatically
   filter_reward: 0  # Applies the same fallback reward value to all filter steps
   # filter_reward: [0, 0,1] # Specifies different fallback reward values to each filter step
 
+### Plot Setting ###
 plot_args:
   moving_average_window: 0.05
   reward_top_ps: [0.5, 0.1]
 
+### Save Setting ###
 # save_dir: save # (CLI) Name of the directory to save the generator state. If not specified, the generator will not be saved.
+
+### Chain Setting ###
+# n_keys_to_pass: 10 # (Chain) Number of generated keys to pass to the next generator
+# next_yaml_path: config/mcts/chain_example_2.yaml # (Chain) Path to the config of the next generator
