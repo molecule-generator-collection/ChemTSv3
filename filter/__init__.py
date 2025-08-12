@@ -5,6 +5,7 @@ from .charge_filter import ChargeFilter
 from .connectivity_filter import ConnectivityFilter
 from .hba_filter import HBAFilter
 from .hbd_filter import HBDFilter
+from .heavy_atom_count_filter import HeavyAtomCountFilter
 from .log_p_filter import LogPFilter
 from .atom_count_filter import AtomCountFilter
 from .pains_filter import PainsFilter

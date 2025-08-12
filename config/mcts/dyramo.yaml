@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 36000 # seconds
-max_generations: 1000
+max_generations: 10000
 # debug: true
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
@@ -13,7 +13,7 @@ transition_args:
 
 policy_class: UCT
 policy_args:
-  c: 0.25
+  c: 0.05
   best_rate: 0.5
 
 generator_class: MCTS
@@ -67,3 +67,5 @@ plot_args:
 
 filters:
   - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: HeavyAtomCountFilter
+    max: 45
