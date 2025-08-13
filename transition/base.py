@@ -66,16 +66,24 @@ class BlackBoxTransition(Transition):
         super().__init__(logger)    
 
     @abstractmethod
-    def sample_transition(self, node: Node) -> Node:
-        """Sample one child node."""
+    def sample_transition(self, node: Node) -> Node | list[Node] | None:
+        """Sample child nodes."""
         pass
     
     # implement
     def next_nodes(self, node):
         children = []
         for i in range(self.n_samples):
-            next_node = self.sample_transition(node)
-            next_node.last_action = i
-            next_node.last_prob = 1 / self.n_samples
-            children.append(next_node)
+            next_nodes = self.sample_transition(node)
+            
+            if next_nodes is None:
+                next_nodes = []
+            if isinstance(next_nodes, list):
+                next_nodes = [next_nodes]
+                
+            for child in next_nodes:
+                child.last_action = i
+                children.append(child)
+        for child in children:
+            child.last_prob = 1 / len(children)
         return children
