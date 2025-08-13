@@ -11,6 +11,7 @@ transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc/tf25_ported
   top_p: 0.995
+  v2_replication: true
 
 policy_class: UCT
 
