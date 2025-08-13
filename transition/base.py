@@ -78,7 +78,7 @@ class BlackBoxTransition(Transition):
             
             if next_nodes is None:
                 next_nodes = []
-            if isinstance(next_nodes, list):
+            if not isinstance(next_nodes, list):
                 next_nodes = [next_nodes]
                 
             for child in next_nodes:
