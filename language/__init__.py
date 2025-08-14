@@ -1,4 +1,5 @@
 from .base import Language, DynamicLanguage, MolLanguage, DynamicMolLanguage
+from .fasta import FASTA
 from .helm import HELM
 from .smiles import SMILES
 

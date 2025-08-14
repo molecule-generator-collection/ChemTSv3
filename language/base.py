@@ -157,7 +157,7 @@ class DynamicLanguage(Language):
 
 class MolLanguage(Language):
     @abstractmethod
-    def sentence2ids(self, sentence: str) -> list[int]:
+    def sentence2ids(self, sentence: str, inclde_eos: bool=True) -> list[int]:
         """Convert sentence to token ids"""
         pass
     
