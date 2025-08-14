@@ -1,7 +1,7 @@
 from typing import Self, Any
 from rdkit import Chem
 from rdkit.Chem import Mol
-from language import MolLanguage, SMILES
+from language import MolLanguage, SMILES, FASTA
 from node import MolNode
 
 class MolStringNode(MolNode):
@@ -47,3 +47,13 @@ class SMILESStringNode(MolStringNode):
     def smiles(self, use_cache=False) -> str:
         """Expects self.string to be canonical SMILES."""
         return self.string
+    
+class FASTAStringNode(MolStringNode):
+    fasta_lang = FASTA()
+    
+    def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+        super().__init__(string=string, lang=self.fasta_lang, parent=parent, last_prob=last_prob, last_action=last_action)
+    
+    @classmethod
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
+        return FASTAStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
