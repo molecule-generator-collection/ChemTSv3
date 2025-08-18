@@ -357,6 +357,59 @@ class Generator(ABC):
         else:
             return self.unique_keys[-last:]
         
+    def db(self, resort: bool=False):
+        """
+        Return a pandas.DataFrame with the same columns/rows as the CSV logging.
+        Columns:
+            order, time, key, <reward_name>[, <objective_1>, <objective_2>, ...]
+        Rows are ordered by generation_order.
+        """
+        try:
+            import pandas as pd
+        except ImportError as e:
+            raise ImportError(
+                "pandas not found."
+            ) from e
+
+        if len(self.unique_keys) == 0:
+            reward_name = self.reward.name()
+            cols = ["order", "time", "key", reward_name]
+            if not self.reward.is_single_objective:
+                cols += [f.__name__ for f in self.reward.objective_functions()]
+            return pd.DataFrame(columns=cols)
+
+        reward_name = self.reward.name()
+        columns = ["order", "time", "key", reward_name]
+        if not self.reward.is_single_objective:
+            columns += [f.__name__ for f in self.reward.objective_functions()]
+
+        rows = []
+        for key in self.unique_keys:
+            rec = self.record[key]
+            base = [rec["generation_order"], rec["time"], key, rec["reward"]]
+            if not self.reward.is_single_objective:
+                base += rec["objective_values"]
+            rows.append(base)
+
+        df = pd.DataFrame(rows, columns=columns)
+
+        # to numeric
+        for col in ("order", "time", reward_name):
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+        if not self.reward.is_single_objective:
+            for fn in self.reward.objective_functions():
+                name = fn.__name__
+                if name in df.columns:
+                    df[name] = pd.to_numeric(df[name], errors="coerce")
+
+        # shouldn't be needed for the default generators
+        if resort:
+            df.sort_values("order", inplace=True, kind="stable")
+            df.reset_index(drop=True, inplace=True)
+            
+        return df
+        
     def inherit(self, predecessor: Self):
         self._output_dir = predecessor._output_dir
         self.logger = predecessor.logger
