@@ -7,7 +7,7 @@ See `config/mcts/example.yaml` and `config/mcts/example_chain_*.yaml` for settin
 # Simple generation
 python sandbox/generation.py -c config/mcts/example.yaml
 # Chain generation
-python sandbox/generation.py -c config/mcts/chain_example_1.yaml
+python sandbox/generation.py -c config/mcts/example_chain_1.yaml
 # Load
 python sandbox/generation.py -l sandbox/~~~/save --max_generations 100 --time_limit 60
 ```
