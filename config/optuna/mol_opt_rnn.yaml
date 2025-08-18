@@ -10,6 +10,8 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc/gru
+  sharpness: 1
+  top_p: 0.995
 
 policy_class: UCT
 
