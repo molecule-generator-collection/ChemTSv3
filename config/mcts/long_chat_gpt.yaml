@@ -1,0 +1,40 @@
+output_dir: generation_result
+time_limit: 1800 # seconds
+max_generations: 50
+debug: true
+
+node_class: SMILESStringNode
+root: "c1ccccc1"
+
+transition_class: LongChatGPTTransition
+transition_args:
+  api_key_path: data/personal/api_key.txt
+  model: gpt-5
+  n_samples: 1
+  prompt: 
+    - "Transform the given molecule to improve the reward based on JScore (SAScore + LogP - MaxRingSizePenalty) while preserving its skeletal structure. Starting molecule: ###SMILES###"
+    - "Transform the given molecule to improve the reward based on JScore (SAScore + LogP - MaxRingSizePenalty) while preserving its core scaffold. Starting molecule: ###SMILES###"
+  initial_prompt: "Your ultimate goal is to generate a molecule that maximize the reward by keep transforming the given molecules. All molecules will be provided in SMILES format, and your response should return the result as a SMILES string only. Do not include any additional text or explanation in the output."
+
+reward_class: JScoreReward
+
+policy_class: UCT
+policy_args:
+  best_rate: 0.5
+  c: 0.05
+
+generator_class: MCTS
+generator_args:
+  eval_width: .inf
+  n_evals: 1
+  filter_reward: 0
+  cut_terminal: true
+  avoid_duplicates: true
+  cut_failed_child: true
+  info_interval: 1
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
+
+filters:
+  - filter_class: ValidityFilter # put this first if unsure
