@@ -34,10 +34,12 @@ class Reward(ABC):
 class MolReward(Reward):
     @abstractmethod
     def mol_objective_functions(self) -> List[Callable[[Mol], float]]:
+        """Return objective functions of the molecule; each function returns an objective value."""
         pass
 
     @abstractmethod
     def reward_from_objective_values(self, objective_values: List[float]) -> float:
+        """Compute the final reward based on the objective values calculated by objective_functions()."""
         pass
 
     @staticmethod
