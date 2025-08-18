@@ -15,4 +15,7 @@ def __getattr__(name):
     if name == "ChatGPTTransition":
         from .chat_gpt import ChatGPTTransition
         return ChatGPTTransition
+    if name == "LongChatGPTTransition":
+        from .chat_gpt import LongChatGPTTransition
+        return LongChatGPTTransition
     raise AttributeError(f"module {__name__} has no attribute {name}")
