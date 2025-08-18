@@ -56,7 +56,6 @@ python sandbox/generation.py -l sandbox/~~~/save --max_generations 100 --time_li
 ```
 
 ## Notebooks
-All notebooks are located in the `sandbox` directory.
-- **Tutorial**: `tutorial_user_1.ipynb`, `tutorial_user_2.ipynb` and `tutorial_dev.ipynb`
-- **YAML-based Generation**: `generation.ipynb`
-- **Model training**: `train_rnn.ipynb` and `train_gpt2.ipynb`
+- **Tutorials**: `sandbox/tutorial/tutorial_***.ipynb`
+- **YAML-based Generation**: `sandbox/generation.ipynb`
+- **Model training**: `sandbox/train_rnn.ipynb` and `sandbox/train_gpt2.ipynb`
