@@ -20,6 +20,7 @@ class ChatGPTTransition(BlackBoxTransition):
         self.prompt = prompt
         
         self.model = model
+        
         super().__init__(n_samples=n_samples, logger=logger)
         
     # implement
@@ -49,21 +50,26 @@ class LongChatGPTTransition(BlackBoxTransition):
                 api_key = f.read().strip()
         self.client = OpenAI(api_key=api_key)
         
+        super().__init__(n_samples=n_samples, logger=logger)
+        
         self.response_id = None
         self.model = model
+        self.sum_input_tokens = 0
+        self.sum_output_tokens = 0
 
         if initial_prompt is not None:
-            self.logger.debug(initial_prompt)
+            self.logger.debug(f"Prompt: '{initial_prompt}'")
             resp = self.client.responses.create(model=self.model, input=initial_prompt)
-            self.response_id = resp.id    
+            self.response_id = resp.id
+            self.sum_input_tokens += resp.usage.input_tokens
+            self.sum_output_tokens += resp.usage.output_tokens
+            self.logger.debug(f"Response: '{resp.output_text.strip()}', input_tokens: {resp.usage.input_tokens}, output_tokens: {resp.usage.output_tokens}")
         
         if not isinstance(prompt, list):
             prompt = [prompt]
         self.prompt = prompt
         
         self.observation_record = []
-        
-        super().__init__(n_samples=n_samples, logger=logger)
         
     # implement
     def observe(self, node: SMILESStringNode, objective_values: list[float], reward: float, filtered: bool):
@@ -83,12 +89,18 @@ class LongChatGPTTransition(BlackBoxTransition):
                 for text in self.observation_record:
                     prompt = text + "\n" + prompt
                 self.observation_record = []
-            self.logger.debug(prompt)
+            self.logger.debug(f"Prompt: '{prompt}'")
             
             resp = self.client.responses.create(model=self.model, input=prompt, previous_response_id=self.response_id)
             self.response_id = resp.id
+            self.sum_input_tokens += resp.usage.input_tokens
+            self.sum_output_tokens += resp.usage.output_tokens
             output_smiles = resp.output_text.strip()
-            self.logger.debug(output_smiles)
+            self.logger.debug(f"Response: '{output_smiles}', input_tokens: {resp.usage.input_tokens}, output_tokens: {resp.usage.output_tokens}")
             results.append(SMILESStringNode(string=output_smiles, parent=node))
         
         return results
+    
+    def analyze(self):
+        self.logger.info(f"sum_input_tokens: {self.sum_input_tokens}")
+        self.logger.info(f"sum_output_tokens: {self.sum_output_tokens}")

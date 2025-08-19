@@ -11,6 +11,9 @@ class Filter(ABC):
     def observe(self, node: Node, objective_values: list[float], reward: float, filtered: bool):
         """Filters can update their internal state when observing the reward of the node. By default, this method does nothing."""
         return
+    
+    def analyze(self):
+        """This method is called within Generation.analyze(). By default, this method does nothing."""
 
 class MolFilter(Filter):
     """Filter for MolNode"""

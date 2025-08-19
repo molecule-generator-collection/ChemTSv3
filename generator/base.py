@@ -183,9 +183,9 @@ class Generator(ABC):
                 self.filtered_count += 1
                 self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
                 
-                self.transition.observe(node=node, objective_values=objective_values, reward=self.filter_reward[i], filtered=True)
+                self.transition.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
                 for filter in self.filters:
-                    filter.observe(node=node, objective_values=objective_values, reward=self.filter_reward[i], filtered=True)
+                    filter.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
                     
                 node.clear_cache()
                 return [str(i)], self.filter_reward[i]
@@ -306,6 +306,10 @@ class Generator(ABC):
         self.logger.info("Average reward: " + str(self.average_reward()))
         top_10_auc = self.auc(top_k=10)
         self.logger.info("Top 10 AUC: " + str(top_10_auc))
+        self.transition.analyze()
+        for filter in self.filters:
+            filter.analyze()
+        self.reward.analyze()
     
     def n_generated_nodes(self):
         return len(self.unique_keys)
