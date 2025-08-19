@@ -53,6 +53,7 @@ class LongChatGPTTransition(BlackBoxTransition):
         self.model = model
 
         if initial_prompt is not None:
+            self.logger.debug(initial_prompt)
             resp = self.client.responses.create(model=self.model, input=initial_prompt)
             self.response_id = resp.id    
         
@@ -87,6 +88,7 @@ class LongChatGPTTransition(BlackBoxTransition):
             resp = self.client.responses.create(model=self.model, input=prompt, previous_response_id=self.response_id)
             self.response_id = resp.id
             output_smiles = resp.output_text.strip()
+            self.logger.debug(output_smiles)
             results.append(SMILESStringNode(string=output_smiles, parent=node))
         
         return results
