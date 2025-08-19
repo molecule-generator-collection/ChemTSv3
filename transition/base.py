@@ -49,6 +49,9 @@ class Transition(ABC):
     
     def observe(self, node: Node, objective_values: list[float], reward: float, filtered: bool):
         """Transitions can update their internal state when observing the reward of the node. By default, this method does nothing."""
+        
+    def analyze(self):
+        """This method is called within Generation.analyze(). By default, this method does nothing."""
     
 class LanguageModel(Transition):
     def __init__(self, lang: Language, logger: logging.Logger=None):

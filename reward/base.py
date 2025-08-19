@@ -30,6 +30,9 @@ class Reward(ABC):
     
     def name(self):
         return camel2snake(self.__class__.__name__)
+    
+    def analyze(self):
+        """This method is called within Generation.analyze(). By default, this method does nothing."""
 
 class MolReward(Reward):
     @abstractmethod
