@@ -360,7 +360,7 @@ class Generator(ABC):
         else:
             return self.unique_keys[-last:]
         
-    def db(self, resort: bool=False):
+    def df(self, resort: bool=False):
         """
         Return a pandas.DataFrame with the same columns/rows as the CSV logging.
         Columns:
