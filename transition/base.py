@@ -47,7 +47,7 @@ class Transition(ABC):
         """Returns the maximum number of transitions from a single node. Should be overridden if not infinite."""
         return 10**18
     
-    def observe(self, node: Node, objective_values: list[float], reward: float):
+    def observe(self, node: Node, objective_values: list[float], reward: float, filtered: bool):
         """Transitions can update their internal state when observing the reward of the node. By default, this method does nothing."""
     
 class LanguageModel(Transition):

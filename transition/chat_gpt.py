@@ -65,10 +65,11 @@ class LongChatGPTTransition(BlackBoxTransition):
         super().__init__(n_samples=n_samples, logger=logger)
         
     # implement
-    def observe(self, node: SMILESStringNode, objective_values: list[float], reward: float):
-        smiles = node.string
-        text = f"The reward of molecule with SMILES {smiles} was: {reward:.3f}."
-        self.observation_record.append(text)
+    def observe(self, node: SMILESStringNode, objective_values: list[float], reward: float, filtered: bool):
+        if not filtered:
+            smiles = node.string
+            text = f"The reward of molecule with SMILES {smiles} was: {reward:.3f}."
+            self.observation_record.append(text)
         
     # implement
     def sample_transition(self, node: SMILESStringNode) -> SMILESStringNode:
