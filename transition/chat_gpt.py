@@ -85,7 +85,7 @@ class LongChatGPTTransition(BlackBoxTransition):
         results = []
         for i, p in enumerate(self.prompt):
             prompt = p.replace("###SMILES###", parent_smiles)
-            if i == 0:
+            if i == 0: # Not actually needed
                 for text in self.observation_record:
                     prompt = text + "\n" + prompt
                 self.observation_record = []
