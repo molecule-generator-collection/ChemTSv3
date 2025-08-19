@@ -182,6 +182,11 @@ class Generator(ABC):
             if not filter.check(node):
                 self.filtered_count += 1
                 self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
+                
+                self.transition.observe(node=node, objective_values=objective_values, reward=self.filter_reward[i], filtered=True)
+                for filter in self.filters:
+                    filter.observe(node=node, objective_values=objective_values, reward=self.filter_reward[i], filtered=True)
+                    
                 node.clear_cache()
                 return [str(i)], self.filter_reward[i]
             
@@ -189,9 +194,9 @@ class Generator(ABC):
         
         self._log_unique_node(key, objective_values, reward)
         
-        self.transition.observe(node=node, objective_values=objective_values, reward=reward)
+        self.transition.observe(node=node, objective_values=objective_values, reward=reward, filtered=False)
         for filter in self.filters:
-            filter.observe(node=node, objective_values=objective_values, reward=reward)
+            filter.observe(node=node, objective_values=objective_values, reward=reward, filtered=False)
             
         if self.return_nodes:
             self._generated_nodes_tmp.append(node)

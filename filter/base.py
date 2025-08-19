@@ -8,7 +8,7 @@ class Filter(ABC):
         """Return False to skip reward calculation for the given node."""
         pass
     
-    def observe(self, node: Node, objective_values: list[float], reward: float):
+    def observe(self, node: Node, objective_values: list[float], reward: float, filtered: bool):
         """Filters can update their internal state when observing the reward of the node. By default, this method does nothing."""
         return
 
