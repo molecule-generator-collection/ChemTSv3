@@ -102,5 +102,5 @@ class LongChatGPTTransition(BlackBoxTransition):
         return results
     
     def analyze(self):
-        self.logger.info(f"sum_input_tokens: {self.sum_input_tokens}")
-        self.logger.info(f"sum_output_tokens: {self.sum_output_tokens}")
+        self.logger.info(f"Sum input tokens: {self.sum_input_tokens}")
+        self.logger.info(f"Sum output tokens: {self.sum_output_tokens}")
