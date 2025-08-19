@@ -9,14 +9,17 @@ root: "c1ccccc1"
 transition_class: LongChatGPTTransition
 transition_args:
   api_key_path: data/personal/api_key.txt
-  model: gpt-5
+  model: gpt-5-mini
   n_samples: 1
-  prompt: 
-    - "Transform the given molecule to improve the reward based on JScore (SAScore + LogP - MaxRingSizePenalty) while preserving its skeletal structure. Starting molecule: ###SMILES###"
-    - "Transform the given molecule to improve the reward based on JScore (SAScore + LogP - MaxRingSizePenalty) while preserving its core scaffold. Starting molecule: ###SMILES###"
-  initial_prompt: "Your ultimate goal is to generate a molecule that maximize the reward by keep transforming the given molecules. All molecules will be provided in SMILES format, and your response should return the result as a SMILES string only. Do not include any additional text or explanation in the output."
+  prompt:
+    - "Transform the given molecule to improve its drug-likeness while preserving the core scaffold. Starting molecule: ###SMILES###."
+    - "Transform the given molecule to improve its drug-likeness by appending a single fragment. Starting molecule: ###SMILES###"
+    - "Transform the given molecule to improve its drug-likeness by replacing one fragment. Starting molecule: ###SMILES###"
+  initial_prompt: "Your ultimate goal is to generate molecules that maximize the reward by iteratively transforming the given ones. All molecules are provided in SMILES format, and your response must return the result strictly as a SMILES string. Do not include any additional text or explanation."
 
-reward_class: JScoreReward
+reward_class: TDCReward
+reward_args:
+  objective: qed
 
 policy_class: UCT
 policy_args:
