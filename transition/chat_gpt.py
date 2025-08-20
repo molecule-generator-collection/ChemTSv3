@@ -20,8 +20,8 @@ class ChatGPTTransition(BlackBoxTransition):
         self.prompt = prompt
         
         self.n = 0
-        self.sum_difs_unfiltered = [0] * len(self.prompt)
-        self.sum_difs_including_filtered = [0] * len(self.prompt)
+        self.sum_deltas_unfiltered = [0] * len(self.prompt)
+        self.sum_deltas_including_filtered = [0] * len(self.prompt)
         self.n_filtered = [0] * len(self.prompt)
         
         self.model = model
@@ -58,20 +58,20 @@ class ChatGPTTransition(BlackBoxTransition):
             return
         dif = reward - node.parent.reward
         if not filtered:
-            self.sum_difs_unfiltered[action] += dif
-            self.sum_difs_including_filtered[action] += dif
+            self.sum_deltas_unfiltered[action] += dif
+            self.sum_deltas_including_filtered[action] += dif
         else:
-            self.sum_difs_including_filtered[action] += dif
+            self.sum_deltas_including_filtered[action] += dif
             self.n_filtered[action] += 1
     
     def analyze(self):
-        self.logger.info(f"Number of conversations: {self.n} * {len(self.prompt)} = {self.n * len(self.prompt)}")
-        self.logger.info(f"Sum input tokens: {self.sum_input_tokens}")
-        self.logger.info(f"Sum output tokens: {self.sum_output_tokens}")
+        self.logger.info(f"Total conversations: {self.n} * {len(self.prompt)} = {self.n * len(self.prompt)}")
+        self.logger.info(f"Total input tokens: {self.sum_input_tokens}")
+        self.logger.info(f"Total output tokens: {self.sum_output_tokens}")
         for i in range(len(self.prompt)):
             self.logger.info(f"------------------------- Prompt {i} -------------------------")
-            self.logger.info(f"Average dif (unfiltered): {self.sum_difs_unfiltered[i] / self.n}")
-            self.logger.info(f"Average dif (including filtered): {self.sum_difs_including_filtered[i] / self.n}")
+            self.logger.info(f"Average delta (unfiltered): {self.sum_deltas_unfiltered[i] / self.n}")
+            self.logger.info(f"Average delta (with filtered): {self.sum_deltas_including_filtered[i] / self.n}")
             self.logger.info(f"Number of filtered output: {self.n_filtered[i]}")
 
 class LongChatGPTTransition(BlackBoxTransition):
