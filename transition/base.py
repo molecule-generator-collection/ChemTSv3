@@ -88,7 +88,8 @@ class BlackBoxTransition(Transition):
                 next_nodes = [next_nodes]
                 
             for child in next_nodes:
-                child.last_action = i
+                if child.last_action is None: # Don't override the action label if it already exists
+                    child.last_action = i
                 children.append(child)
         for child in children:
             child.last_prob = 1 / len(children)

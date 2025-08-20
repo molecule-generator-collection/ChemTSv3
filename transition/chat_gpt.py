@@ -19,6 +19,11 @@ class ChatGPTTransition(BlackBoxTransition):
             prompt = [prompt]
         self.prompt = prompt
         
+        self.n = 0
+        self.sum_difs_unfiltered = [0] * len(self.prompt)
+        self.sum_difs_including_filtered = [0] * len(self.prompt)
+        self.n_filtered = [0] * len(self.prompt)
+        
         self.model = model
         self.sum_input_tokens = 0
         self.sum_output_tokens = 0
@@ -30,7 +35,7 @@ class ChatGPTTransition(BlackBoxTransition):
         parent_smiles = node.string
         
         results = []
-        for p in self.prompt:
+        for i, p in enumerate(self.prompt):
             prompt = p.replace("###SMILES###", parent_smiles)
             self.logger.debug(f"Prompt: '{prompt}'")
             
@@ -41,14 +46,33 @@ class ChatGPTTransition(BlackBoxTransition):
             self.sum_output_tokens += resp.usage.output_tokens
             output_smiles = resp.output_text.strip()
             self.logger.debug(f"Response: '{output_smiles}', input_tokens: {resp.usage.input_tokens}, output_tokens: {resp.usage.output_tokens}")
-            
-            results.append(SMILESStringNode(string=output_smiles, parent=node))
+            results.append(SMILESStringNode(string=output_smiles, parent=node, last_action=i))
         
+        self.n += 1
         return results
     
+    # implement
+    def observe(self, node: SMILESStringNode, objective_values: list[float], reward: float, filtered: bool):
+        action = node.last_action
+        if node.parent.reward is None:
+            return
+        dif = reward - node.parent.reward
+        if not filtered:
+            self.sum_difs_unfiltered[action] += dif
+            self.sum_difs_including_filtered[action] += dif
+        else:
+            self.sum_difs_including_filtered[action] += dif
+            self.n_filtered[action] += 1
+    
     def analyze(self):
+        self.logger.info(f"Number of conversations: {self.n} * {len(self.prompt)} = {self.n * len(self.prompt)}")
         self.logger.info(f"Sum input tokens: {self.sum_input_tokens}")
         self.logger.info(f"Sum output tokens: {self.sum_output_tokens}")
+        for i in range(len(self.prompt)):
+            self.logger.info(f"------------------------- Prompt {i} -------------------------")
+            self.logger.info(f"Average dif (unfiltered): {self.sum_difs_unfiltered[i] / self.n}")
+            self.logger.info(f"Average dif (including filtered): {self.sum_difs_including_filtered[i] / self.n}")
+            self.logger.info(f"Number of filtered output: {self.n_filtered[i]}")
 
 class LongChatGPTTransition(BlackBoxTransition):
     """Keeps conversation"""
