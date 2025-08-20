@@ -20,6 +20,8 @@ class ChatGPTTransition(BlackBoxTransition):
         self.prompt = prompt
         
         self.model = model
+        self.sum_input_tokens = 0
+        self.sum_output_tokens = 0
         
         super().__init__(n_samples=n_samples, logger=logger)
         
@@ -30,13 +32,23 @@ class ChatGPTTransition(BlackBoxTransition):
         results = []
         for p in self.prompt:
             prompt = p.replace("###SMILES###", parent_smiles)
+            self.logger.debug(f"Prompt: '{prompt}'")
             
             client = OpenAI(api_key=self.api_key)
             resp = client.responses.create(model=self.model, input=prompt)
-            output_smiles = resp.output_text
+            
+            self.sum_input_tokens += resp.usage.input_tokens
+            self.sum_output_tokens += resp.usage.output_tokens
+            output_smiles = resp.output_text.strip()
+            self.logger.debug(f"Response: '{output_smiles}', input_tokens: {resp.usage.input_tokens}, output_tokens: {resp.usage.output_tokens}")
+            
             results.append(SMILESStringNode(string=output_smiles, parent=node))
         
         return results
+    
+    def analyze(self):
+        self.logger.info(f"Sum input tokens: {self.sum_input_tokens}")
+        self.logger.info(f"Sum output tokens: {self.sum_output_tokens}")
 
 class LongChatGPTTransition(BlackBoxTransition):
     """Keeps conversation"""
