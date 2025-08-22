@@ -55,19 +55,6 @@ class Transition(ABC):
     def analyze(self):
         """This method is called within Generation.analyze(). By default, this method does nothing."""
     
-class LanguageModel(Transition):
-    def __init__(self, lang: Language, logger: logging.Logger=None):
-        self.lang = lang
-        super().__init__(logger)
-
-    @abstractmethod
-    def next_nodes(self, node: SentenceNode) -> list[Node]:
-        pass
-
-    # override
-    def max_length(self) -> int:
-        return 10**18
-    
 class TemplateTransition(Transition):
     def __init__(self, filters: list[Filter]=None, top_p: float=None, logger: logging.Logger=None):
         if filters is None:
@@ -141,3 +128,16 @@ class BlackBoxTransition(TemplateTransition):
         for child in children:
             child.last_prob = 1 / len(children)
         return children
+    
+class LanguageModel(Transition):
+    def __init__(self, lang: Language, logger: logging.Logger=None):
+        self.lang = lang
+        super().__init__(logger)
+
+    @abstractmethod
+    def next_nodes(self, node: SentenceNode) -> list[Node]:
+        pass
+
+    # override
+    def max_length(self) -> int:
+        return 10**18
