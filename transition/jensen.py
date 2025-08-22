@@ -18,7 +18,7 @@ class JensenTransition(TemplateTransition):
         self.check_size = check_size
         self.check_ring = check_ring
         self.merge_duplicates = merge_duplicates
-        super().__init__(filters, top_p)
+        super().__init__(filters=filters, top_p=top_p)
 
     @staticmethod
     def delete_atom():
