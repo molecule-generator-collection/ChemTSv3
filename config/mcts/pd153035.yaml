@@ -1,17 +1,13 @@
 output_dir: generation_result
 time_limit: 1000 # seconds
 max_generations: 1000
+
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
-# root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
-# root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
-# root: C
-root: c1ccccc1
-# root: O=C1C(CBr)S(=O)[C@H](Cl)N1
 
-reward_class: GuacaMolReward
-reward_args:
-  objective: isomers_c7h8n2o2
+root: c1ccccc1
+
+reward_class: EGFRReward
 
 transition_class: JensenTransition
 transition_args:
@@ -38,5 +34,3 @@ generator_args:
 
 plot_args:
   reward_top_ps: [0.5, 0.1]
-
-filters:
