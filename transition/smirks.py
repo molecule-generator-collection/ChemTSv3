@@ -1,10 +1,10 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from node import SMILESStringNode
-from transition import Transition
+from transition import TemplateTransition
 
-class SMIRKSTransition(Transition):
-    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True):
+class SMIRKSTransition(TemplateTransition):
+    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None):
         """
         Args:
             smirks_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored. Optional weights can be specified after // (default: 1.0).
@@ -29,6 +29,7 @@ class SMIRKSTransition(Transition):
         self.without_Hs = without_Hs
         self.with_Hs = with_Hs
         self.kekulize = kekulize
+        super().__init__(filters=filters, top_p=top_p)
                     
     def load_smirks(self, path: str):
         self.weighted_smirks = []
@@ -50,7 +51,7 @@ class SMIRKSTransition(Transition):
                 self.weighted_smirks.append((smirks, weight))
         
     # implement
-    def transitions(self, node: SMILESStringNode):
+    def _next_nodes_impl(self, node: SMILESStringNode):
         initial_mol = node.mol(use_cache=False)
         if self.kekulize:
             Chem.Kekulize(initial_mol, clearAromaticFlags=True)
@@ -89,6 +90,6 @@ class SMIRKSTransition(Transition):
         transitions = []
         for i, (smirks, smiles, weight) in enumerate(unique_transitions):
             child = SMILESStringNode(string=smiles, parent=node, last_prob=weight/sum_weight, last_action=(smirks, i))
-            transitions.append((smirks, child, weight/sum_weight))
+            transitions.append(child)
             
         return transitions
