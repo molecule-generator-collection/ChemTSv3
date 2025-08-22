@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import logging
 import random
 from typing import Any
+import numpy as np
+from filter import Filter
 from language import Language
 from node import Node, SentenceNode
 
@@ -59,7 +61,7 @@ class LanguageModel(Transition):
         super().__init__(logger)
 
     @abstractmethod
-    def next_nodes(self, node: SentenceNode) -> list[tuple[Any, SentenceNode, float]]:
+    def next_nodes(self, node: SentenceNode) -> list[Node]:
         pass
 
     # override
@@ -94,3 +96,47 @@ class BlackBoxTransition(Transition):
         for child in children:
             child.last_prob = 1 / len(children)
         return children
+    
+class TemplateTransition(Transition):
+    def __init__(self, filters: list[Filter]=None, top_p: float=None):
+        if filters is None:
+            filters = []
+        self.filters = filters
+        if top_p is not None and (top_p <= 0 or 1 < top_p):
+            raise ValueError(f"Invalid top_p range: {top_p}")
+        self.top_p = top_p
+        
+    @abstractmethod
+    def _next_nodes_impl(self, node: Node) -> list[Node]:
+        pass
+
+    def next_nodes(self, node: Node):
+        raw_nodes = self._next_nodes_impl(node)
+        result = []
+        
+        # apply filters
+        result = [n for n in raw_nodes if all(f.check(n) for f in self.filters)]
+        if not result:
+            return []
+
+        # apply top_p
+        if self.top_p is not None and len(result) > 0:
+            probs = np.array([cand.last_prob for cand in result], dtype=float)
+            probs = probs / probs.sum()
+
+            sorted_idx = np.argsort(-probs)
+            cumprobs = np.cumsum(probs[sorted_idx])
+
+            keep_mask = cumprobs <= self.top_p
+            if not keep_mask.any():
+                keep_mask[0] = True # leave at least 1
+            kept_idx = sorted_idx[keep_mask]
+
+            result = [result[i] for i in kept_idx]
+
+            # renormalize
+            total = sum(c.last_prob for c in result)
+            for c in result:
+                c.last_prob /= total
+
+        return result

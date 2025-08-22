@@ -1,4 +1,4 @@
-from .base import Transition, LanguageModel, BlackBoxTransition
+from .base import Transition, LanguageModel, BlackBoxTransition, TemplateTransition
 from .gpt2 import GPT2Transition
 from .jensen import JensenTransition
 from .rnn import RNNLanguageModel, RNNTransition
