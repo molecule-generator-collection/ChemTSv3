@@ -35,6 +35,8 @@ class Generator(ABC):
         if type(filter_reward) != list:
             self.filter_reward = [filter_reward for _ in range(len(self.filters))]
         else:
+            if len(filters) != len(filter_reward):
+                raise ValueError(f"Size mismatch: 'filters': {len(filters)}, 'filter_reward': {len(filters)}")
             self.filter_reward = filter_reward
         self._output_dir = output_dir or "generation_result"
         os.makedirs(self.output_dir(), exist_ok=True)
