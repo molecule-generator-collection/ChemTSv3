@@ -13,6 +13,7 @@ from .radical_filter import RadicalFilter
 from .ring_bond_filter import RingBondFilter
 from .ring_size_filter import MaxRingSizeFilter, MinRingSizeFilter
 from .rotatable_bonds_filter import RotatableBondsFilter
+from .substructure_filter import SubstructureFilter
 from .tpsa_filter import TPSAFilter
 from .validity_filter import ValidityFilter
 from .weight_filter import WeightFilter
