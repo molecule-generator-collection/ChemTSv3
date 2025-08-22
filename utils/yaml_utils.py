@@ -143,6 +143,8 @@ def prepare_common_args(conf: dict, predecessor: Generator=None) -> tuple[str, l
     return device, logger, output_dir
 
 def construct_filters(filter_settings, device, logger, output_dir):
+    if filter_settings is None:
+        return []
     filters = []
     for s in filter_settings:
         filter_class = class_from_package("filter", s.pop("filter_class"))
