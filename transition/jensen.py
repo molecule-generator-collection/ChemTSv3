@@ -3,20 +3,22 @@ import itertools
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from filter import Filter
 from node import SMILESStringNode
-from transition import Transition
+from transition import TemplateTransition
 
-class JensenTransition(Transition):
+class JensenTransition(TemplateTransition):
     """
     Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
     """
     
-    def __init__(self, average_size: float=50.0, size_stdev: float=5.0, check_size: bool=True, check_ring: bool=True, merge_duplicates: bool=True):
+    def __init__(self, average_size: float=50.0, size_stdev: float=5.0, check_size: bool=True, check_ring: bool=True, merge_duplicates: bool=True, filters: list[Filter]=None, top_p=None):
         self.average_size = average_size
         self.size_stdev = size_stdev
         self.check_size = check_size
         self.check_ring = check_ring
         self.merge_duplicates = merge_duplicates
+        super().__init__(filters, top_p)
 
     @staticmethod
     def delete_atom():
@@ -146,7 +148,7 @@ class JensenTransition(Transition):
             return False
 
     # implement
-    def next_nodes(self, node: SMILESStringNode) -> list[SMILESStringNode]:
+    def _next_nodes_impl(self, node: SMILESStringNode) -> list[SMILESStringNode]:
         mol = node.mol(use_cache=False)
     
         Chem.Kekulize(mol, clearAromaticFlags=True)
