@@ -36,6 +36,9 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     transition_args = conf_clone.get("transition_args", {})
     transition_class = class_from_package("transition", conf_clone["transition_class"])
     adjust_args(transition_class, transition_args, device, logger, output_dir)
+    
+    if "filters" in transition_args: # For TemplateTransition
+        transition_args["filters"] = construct_filters(transition_args.get("filters",[]), device, logger, output_dir)
         
     if issubclass(node_class, SentenceNode) or "lang_path" in conf_clone:
         lang_path = conf_clone.get("lang_path")
@@ -96,11 +99,7 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
         filters = predecessor.filters
     else:
         filter_settings = conf_clone.get("filters", [])
-        filters = []
-        for s in filter_settings:
-            filter_class = class_from_package("filter", s.pop("filter_class"))
-            adjust_args(filter_class, s, device, logger, output_dir)
-            filters.append(filter_class(**s))
+        filters = construct_filters(filter_settings, device, logger, output_dir)
     
     # set generator
     generator_class = class_from_package("generator", conf_clone.get("generator_class", "MCTS"))
@@ -142,6 +141,14 @@ def prepare_common_args(conf: dict, predecessor: Generator=None) -> tuple[str, l
     device = conf.get("device")
     
     return device, logger, output_dir
+
+def construct_filters(filter_settings, device, logger, output_dir):
+    filters = []
+    for s in filter_settings:
+        filter_class = class_from_package("filter", s.pop("filter_class"))
+        adjust_args(filter_class, s, device, logger, output_dir)
+        filters.append(filter_class(**s))
+    return filters
 
 def save_yaml(conf: dict, output_dir: str, name: str="config.yaml", overwrite: bool=False):
     path = os.path.join(output_dir, name)
