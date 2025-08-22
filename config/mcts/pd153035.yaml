@@ -5,7 +5,8 @@ max_generations: 1000
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 
-root: c1ccccc1
+root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+# goal: Brc1cc(ccc1)Nc2ncnc3c2cc(c(c3)OC)OC
 
 reward_class: EGFRReward
 
@@ -16,7 +17,8 @@ transition_args:
   filters:
     - filter_class: ValidityFilter # put this first if unsure
     - filter_class: RadicalFilter
-    - filter_class: ChargeFilter
+    - filter_class: SubstructureFilter
+      smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 
 policy_class: PUCT
 policy_args:
