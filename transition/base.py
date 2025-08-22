@@ -68,43 +68,15 @@ class LanguageModel(Transition):
     def max_length(self) -> int:
         return 10**18
     
-class BlackBoxTransition(Transition):
-    def __init__(self, n_samples=2, logger: logging.Logger=None):
-        self.n_samples = n_samples
-        super().__init__(logger)    
-
-    @abstractmethod
-    def sample_transition(self, node: Node) -> Node | list[Node] | None:
-        """Sample child nodes."""
-        pass
-    
-    # implement
-    def next_nodes(self, node):
-        children = []
-        for i in range(self.n_samples):
-            next_nodes = self.sample_transition(node)
-            
-            if next_nodes is None:
-                next_nodes = []
-            if not isinstance(next_nodes, list):
-                next_nodes = [next_nodes]
-                
-            for child in next_nodes:
-                if child.last_action is None: # Don't override the action label if it already exists
-                    child.last_action = i
-                children.append(child)
-        for child in children:
-            child.last_prob = 1 / len(children)
-        return children
-    
 class TemplateTransition(Transition):
-    def __init__(self, filters: list[Filter]=None, top_p: float=None):
+    def __init__(self, filters: list[Filter]=None, top_p: float=None, logger: logging.Logger=None):
         if filters is None:
             filters = []
         self.filters = filters
         if top_p is not None and (top_p <= 0 or 1 < top_p):
             raise ValueError(f"Invalid top_p range: {top_p}")
         self.top_p = top_p
+        super().__init__(logger)
         
     @abstractmethod
     def _next_nodes_impl(self, node: Node) -> list[Node]:
@@ -140,3 +112,32 @@ class TemplateTransition(Transition):
                 c.last_prob /= total
 
         return result
+    
+class BlackBoxTransition(TemplateTransition):
+    def __init__(self, n_samples=2, filters: list[Filter]=None, logger: logging.Logger=None):
+        self.n_samples = n_samples
+        super().__init__(filters=filters, logger=logger)    
+
+    @abstractmethod
+    def sample_transition(self, node: Node) -> Node | list[Node] | None:
+        """Sample child nodes."""
+        pass
+    
+    # implement
+    def _next_nodes_impl(self, node):
+        children = []
+        for i in range(self.n_samples):
+            next_nodes = self.sample_transition(node)
+            
+            if next_nodes is None:
+                next_nodes = []
+            if not isinstance(next_nodes, list):
+                next_nodes = [next_nodes]
+                
+            for child in next_nodes:
+                if child.last_action is None: # Don't override the action label if it already exists
+                    child.last_action = i
+                children.append(child)
+        for child in children:
+            child.last_prob = 1 / len(children)
+        return children
