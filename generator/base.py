@@ -114,7 +114,8 @@ class Generator(ABC):
 
     def _write_csv_header(self):
         header = ["order", "time", "key"]
-        header.append(self.reward.name())
+        # header.append(self.reward.name())
+        header.append("reward")
         if not self.reward.is_single_objective:
             header += [f.__name__ for f in self.reward.objective_functions()]
         self.logger.info(header)
