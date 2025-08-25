@@ -3,7 +3,8 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import Mol
 from rdkit.Chem import inchi
-from rdkit.Chem import Draw, rdDepictor
+from rdkit.Chem import Draw, rdDepictor, rdFingerprintGenerator
+from rdkit.DataStructs.cDataStructs import TanimotoSimilarity
 from IPython.display import display
 
 def is_same_mol(mol1: Mol, mol2: Mol, options=None):
@@ -70,7 +71,22 @@ def draw_mols(df: pd.DataFrame, targets: list[str], mols_per_row=5, size=(200, 2
         mol = Chem.MolFromSmiles(row["key"])
         legend = ""
         for target in targets:
-            legend += f"{target}: {row[target]}\n"
+            legend += f"{target}: {row[target]:.4f}\n"
         mols.append(mol)
         legends.append(legend)
     display(Draw.MolsToGridImage(mols, molsPerRow=mols_per_row, subImgSize=size, legends=legends, useSVG=True))
+    
+def append_similarity_to_df(df: pd.DataFrame, goal_smiles: str, name: str="similarity"):
+    mfgen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
+
+    goal = Chem.MolFromSmiles("COc1cc2ncnc(Nc3cccc(Br)c3)c2cc1OC")
+    goal_fp = mfgen.GetFingerprint(goal)
+
+    def calc_similarity(smiles: str):
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return None
+        fp = mfgen.GetFingerprint(mol)
+        return TanimotoSimilarity(fp, goal_fp)
+
+    df[name] = df["key"].apply(calc_similarity)
