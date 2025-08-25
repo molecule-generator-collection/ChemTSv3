@@ -64,11 +64,14 @@ def top_k_df(df: str | pd.DataFrame, k: int, target: str) -> list[str]:
 
     return df.head(k)
 
-def draw_mols(df: pd.DataFrame, legends: list[str], mols_per_row=5, size=(200, 200)):
+def draw_mols(df: pd.DataFrame, legends: list[str], mols_per_row=5, size=(200, 200), str2mol_func=None):
     mols = []
     legend_strings = []
-    for idx, row in df.iterrows():
-        mol = Chem.MolFromSmiles(row["key"])
+    for _, row in df.iterrows():
+        if str2mol_func is None:
+            mol = Chem.MolFromSmiles(row["key"])
+        else:
+            mol = str2mol_func(row["key"])
         legend = ""
         for val in legends:
             if isinstance(row[val], float):
