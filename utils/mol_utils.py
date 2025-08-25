@@ -1,3 +1,5 @@
+import os
+import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import Mol
 from rdkit.Chem import inchi
@@ -38,3 +40,37 @@ def draw_mol(mol: Mol, width=300, height=300, all_prop=False):
     rdDepictor.SetPreferCoordGen(True)
     rdDepictor.Compute2DCoords(mol, clearConfs=True)
     display(Draw.MolToImage(mol, size = (width, height)))
+    
+def top_k_df(df: str | pd.DataFrame, k: int, target: str) -> list[str]:
+    if isinstance(df, (str, os.PathLike)):
+        df = pd.read_csv(df)
+    elif isinstance(df, pd.DataFrame):
+        df = df.copy()
+    else:
+        raise TypeError("Input DataFrame or path")
+
+    df[target] = pd.to_numeric(df[target], errors="coerce")
+    df = df.dropna(subset=[target, "key"])
+
+    sort_cols = [target]
+    ascending = [False]
+    for col in ("time", "order"):
+        if col in df.columns:
+            sort_cols.append(col)
+            ascending.append(True)
+
+    df = df.sort_values(sort_cols, ascending=ascending, kind="stable")
+
+    return df.head(k)
+
+def draw_mols(df: pd.DataFrame, targets: list[str], mols_per_row=5, size=(200, 200)):
+    mols = []
+    legends = []
+    for idx, row in df.iterrows():
+        mol = Chem.MolFromSmiles(row["key"])
+        legend = ""
+        for target in targets:
+            legend += f"{target}: {row[target]}\n"
+        mols.append(mol)
+        legends.append(legend)
+    display(Draw.MolsToGridImage(mols, molsPerRow=mols_per_row, subImgSize=size, legends=legends, useSVG=True))
