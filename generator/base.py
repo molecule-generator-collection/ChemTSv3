@@ -113,9 +113,7 @@ class Generator(ABC):
         return self._output_dir if self._output_dir.endswith(os.sep) else self._output_dir + os.sep
 
     def _write_csv_header(self):
-        header = ["order", "time", "key"]
-        # header.append(self.reward.name())
-        header.append("reward")
+        header = ["order", "time", "key", "reward"]
         if not self.reward.is_single_objective:
             header += [f.__name__ for f in self.reward.objective_functions()]
         self.logger.info(header)
@@ -313,6 +311,12 @@ class Generator(ABC):
         for filter in self.filters:
             filter.analyze()
         self.reward.analyze()
+        
+    def display_top_k_molecules(self, str2mol_func, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):
+        from utils import draw_mols, top_k_df
+        df = self.df()
+        top_k = top_k_df(df, k=k, target=target)
+        draw_mols(top_k, legends=legends, mols_per_row=mols_per_row, size=size, str2mol_func=str2mol_func)
     
     def n_generated_nodes(self):
         return len(self.unique_keys)
@@ -387,14 +391,12 @@ class Generator(ABC):
             ) from e
 
         if len(self.unique_keys) == 0:
-            reward_name = self.reward.name()
-            cols = ["order", "time", "key", reward_name]
+            cols = ["order", "time", "key", "reward"]
             if not self.reward.is_single_objective:
                 cols += [f.__name__ for f in self.reward.objective_functions()]
             return pd.DataFrame(columns=cols)
 
-        reward_name = self.reward.name()
-        columns = ["order", "time", "key", reward_name]
+        columns = ["order", "time", "key", "reward"]
         if not self.reward.is_single_objective:
             columns += [f.__name__ for f in self.reward.objective_functions()]
 
@@ -409,7 +411,7 @@ class Generator(ABC):
         df = pd.DataFrame(rows, columns=columns)
 
         # to numeric
-        for col in ("order", "time", reward_name):
+        for col in ("order", "time", "reward"):
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
         if not self.reward.is_single_objective:
