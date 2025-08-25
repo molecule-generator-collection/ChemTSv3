@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 1000 # seconds
-max_generations: 50000
+time_limit: 10000 # seconds
+max_generations: 1000
 
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
@@ -8,7 +8,46 @@ use_canonical_smiles_as_key: true
 root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 # goal: Brc1cc(ccc1)Nc2ncnc3c2cc(c(c3)OC)OC
 
-reward_class: EGFRReward
+reward_class: SimilarityReward
+reward_args:
+  target_smiles: Brc1cc(ccc1)Nc2ncnc3c2cc(c(c3)OC)OC
+
+# reward_class: EGFRReward
+
+# reward_class: DyRAMOReward
+# reward_args:
+#   ad:
+#     egfr:
+#       num: 1
+#       threshold: 0.66
+#       scaler: step
+#       weight: 1
+#     metabolic_stability:
+#       num: 1
+#       threshold: 0.55
+#       scaler: step
+#       weight: 1
+#     permeability:
+#       num: 1
+#       threshold: 0.43
+#       scaler: step
+#       weight: 1
+#   property:
+#     egfr:
+#       scaler: max_gauss
+#       mu: 9
+#       sigma: 2
+#       weight: 1
+#     metabolic_stability:
+#       scaler: max_gauss
+#       mu: 75
+#       sigma: 20
+#       weight: 1
+#     permeability:
+#       scaler: max_gauss
+#       mu: 1
+#       sigma: 1
+#       weight: 1
 
 transition_class: JensenTransition
 transition_args:

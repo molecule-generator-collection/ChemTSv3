@@ -34,6 +34,23 @@ class Reward(ABC):
     def analyze(self):
         """This method is called within Generation.analyze(). By default, this method does nothing."""
 
+class SingleReward(Reward):
+    is_single_objective = True
+    
+    @abstractmethod
+    def reward(self, node: Node) -> float:
+        pass
+    
+    # implement
+    def objective_functions(self) -> List[Callable[[Node], float]]:
+        def r(node):
+            return self.reward(node)
+        return [r]
+    
+    # implement
+    def reward_from_objective_values(self, objective_values: List[float]) -> float:
+        return objective_values[0]
+
 class MolReward(Reward):
     @abstractmethod
     def mol_objective_functions(self) -> List[Callable[[Mol], float]]:
@@ -55,6 +72,15 @@ class MolReward(Reward):
     #override
     def objective_functions(self) -> List[Callable[[MolNode], float]]:
         return [MolReward.wrap_with_mol(f) for f in self.mol_objective_functions()]
+    
+class SingleMolReward(SingleReward):
+    @abstractmethod
+    def mol_reward(self, mol: Mol) -> float:
+        pass
+    
+    # implement
+    def reward(self, node: Node) -> float:
+        return self.mol_reward(node.mol(use_cache=True))
     
 class SMILESReward(Reward):
     @abstractmethod
