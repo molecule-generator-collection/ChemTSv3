@@ -64,22 +64,25 @@ def top_k_df(df: str | pd.DataFrame, k: int, target: str) -> list[str]:
 
     return df.head(k)
 
-def draw_mols(df: pd.DataFrame, targets: list[str], mols_per_row=5, size=(200, 200)):
+def draw_mols(df: pd.DataFrame, legends: list[str], mols_per_row=5, size=(200, 200)):
     mols = []
-    legends = []
+    legend_strings = []
     for idx, row in df.iterrows():
         mol = Chem.MolFromSmiles(row["key"])
         legend = ""
-        for target in targets:
-            legend += f"{target}: {row[target]:.4f}\n"
+        for val in legends:
+            if isinstance(row[val], float):
+                legend += f"{val}: {row[val]:.4f}\n"
+            else:
+                legend += f"{val}: {row[val]:}\n"
         mols.append(mol)
-        legends.append(legend)
-    display(Draw.MolsToGridImage(mols, molsPerRow=mols_per_row, subImgSize=size, legends=legends, useSVG=True))
+        legend_strings.append(legend)
+    display(Draw.MolsToGridImage(mols, molsPerRow=mols_per_row, subImgSize=size, legends=legend_strings, useSVG=True))
     
 def append_similarity_to_df(df: pd.DataFrame, goal_smiles: str, name: str="similarity"):
     mfgen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
 
-    goal = Chem.MolFromSmiles("COc1cc2ncnc(Nc3cccc(Br)c3)c2cc1OC")
+    goal = Chem.MolFromSmiles(goal_smiles)
     goal_fp = mfgen.GetFingerprint(goal)
 
     def calc_similarity(smiles: str):
