@@ -12,12 +12,19 @@ class JensenTransition(TemplateTransition):
     Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
     """
     
-    def __init__(self, average_size: float=50.0, size_stdev: float=5.0, check_size: bool=True, check_ring: bool=True, merge_duplicates: bool=True, filters: list[Filter]=None, top_p=None):
+    def __init__(self, check_size: bool=True, average_size: float=50.0, size_stdev: float=5.0, check_ring: bool=True, merge_duplicates: bool=True, record_actions: bool=False, filters: list[Filter]=None, top_p=None):
+        """
+        Args:
+            average_size: Used for the molecule size filter only if check_size is True.
+            size_stdev: Used for the molecule size filter only if check_size is True.
+            record_actions: If True, used smirks will be recorded as actions in child nodes.
+        """
+        self.check_size = check_size
         self.average_size = average_size
         self.size_stdev = size_stdev
-        self.check_size = check_size
         self.check_ring = check_ring
         self.merge_duplicates = merge_duplicates
+        self.record_actions = record_actions
         super().__init__(filters=filters, top_p=top_p)
 
     @staticmethod
@@ -166,7 +173,7 @@ class JensenTransition(TemplateTransition):
         for i, (choices, probs) in enumerate(rxn_smarts_list):
             for smarts, prob in zip(choices, probs):
                 new_prob = prob * p[i]
-                action = smarts
+                action = smarts if self.record_actions else None
                 rxn = AllChem.ReactionFromSmarts(smarts)
                 new_mol_trial = rxn.RunReactants((mol,))
                 
