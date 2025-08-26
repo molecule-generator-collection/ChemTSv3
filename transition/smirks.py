@@ -4,7 +4,7 @@ from node import SMILESStringNode
 from transition import TemplateTransition
 
 class SMIRKSTransition(TemplateTransition):
-    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None):
+    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None, record_actions=False):
         """
         Args:
             smirks_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored. Optional weights can be specified after // (default: 1.0).
@@ -29,6 +29,7 @@ class SMIRKSTransition(TemplateTransition):
         self.without_Hs = without_Hs
         self.with_Hs = with_Hs
         self.kekulize = kekulize
+        self.record_actions = record_actions
         super().__init__(filters=filters, top_p=top_p)
                     
     def load_smirks(self, path: str):
@@ -71,25 +72,30 @@ class SMIRKSTransition(TemplateTransition):
                         generated_mols.append((smirks, weight, p))
             except:
                 continue
-                
-        unique_smiles_set = set()
-        unique_transitions = []
+            
         sum_weight = 0
-
+        weights = {}
+        actions = {}
+        
         for smirks, weight, mol in generated_mols:
             try:
                 mol = Chem.RemoveHs(mol)
-                smiles = Chem.MolToSmiles(mol)
-                if smiles not in unique_smiles_set:
-                    unique_smiles_set.add(smiles)
-                    unique_transitions.append((smirks, smiles, weight))
-                    sum_weight += weight
+                smiles = Chem.MolToSmiles(mol, canonical=True)
+                sum_weight += weight
+                if smiles not in weights:
+                    weights[smiles] = weight
+                    actions[smiles] = smirks
+                else:
+                    weights[smiles] += weight
+                    actions[smiles] += f" or {smirks}"
             except:
                 continue
-        
-        transitions = []
-        for i, (smirks, smiles, weight) in enumerate(unique_transitions):
-            child = SMILESStringNode(string=smiles, parent=node, last_prob=weight/sum_weight, last_action=(smirks, i))
-            transitions.append(child)
             
-        return transitions
+        children = []
+        for smiles in weights.keys():
+            weight = weights[smiles]
+            action = actions[smiles] if self.record_actions else None
+            child = SMILESStringNode(string=smiles, parent=node, last_prob=weight/sum_weight, last_action=action)
+            children.append(child)
+            
+        return children
