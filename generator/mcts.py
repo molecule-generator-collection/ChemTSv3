@@ -153,3 +153,13 @@ class MCTS(Generator):
         if self.failed_parent_reward != "ignore" and not parent_got_unfiltered_node:
             self._backpropagate(node, self.failed_parent_reward, False)
             self.logger.debug("All evals failed from: " + str(node))
+            
+    def display_top_k_molecules(self, str2mol_func=None, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):
+        if str2mol_func is not None:
+            return super().display_top_k_molecules(str2mol_func, k=k, mols_per_row=mols_per_row, legends=legends, target=target, size=size)
+        else:
+            c = self.root.sample_child()
+            if not hasattr(c, "lang"):
+                raise AttributeError("Node objects don't have lang: For molecule nodes that don't use lang, specify str2mol_func.")
+            str2mol_func = c.lang.sentence2mol
+            return super().display_top_k_molecules(str2mol_func, k=k, mols_per_row=mols_per_row, legends=legends, target=target, size=size)

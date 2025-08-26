@@ -1,5 +1,6 @@
-from .base import Reward, MolReward, SMILESReward
+from .base import Reward, SingleReward, MolReward, SingleMolReward, SMILESReward
 from .log_p_reward import LogPReward
+from .similarity_reward import SimilarityReward
 
 # lazy import
 def __getattr__(name):
