@@ -1,6 +1,7 @@
 # Example: python sandbox/mol_opt/mol_opt_final.py --method chain
 
 # Path setup / Imports
+import gc
 import sys
 import os
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
@@ -39,10 +40,12 @@ def test_chain(oracle_name: str, seed: int) -> float:
     generator_2 = generator_from_conf(conf_2, predecessor=generator_1, n_top_keys_to_pass=conf_1.get("n_keys_to_pass", 3))
     generator_2.generate(max_generations=conf_2.get("max_generations"), time_limit=conf_2.get("time_limit"))
 
-    generator_2.plot(**conf_2.get("plot_args", {}))
+    # generator_2.plot(**conf_2.get("plot_args", {}))
     generator_2.analyze()
+    result = generator_2.auc(top_k=10, max_oracle_calls=10000, finish=True)
+    del generator_2, generator_1; gc.collect()
     
-    return generator_2.auc(top_k=10, max_oracle_calls=10000, finish=True)
+    return result
 
 def test_single(oracle_name: str, seed: int) -> float:
     yaml_path = "config/mol_opt/rnn_only.yaml"
@@ -56,10 +59,12 @@ def test_single(oracle_name: str, seed: int) -> float:
     generator = generator_from_conf(conf)
     generator.generate(max_generations=conf.get("max_generations"), time_limit=conf.get("time_limit"))
     
-    generator.plot(**conf.get("plot_args", {}))
+    # generator.plot(**conf.get("plot_args", {}))
     generator.analyze()
+    result = generator.auc(top_k=10, max_oracle_calls=10000, finish=True)
+    del generator; gc.collect()
     
-    return generator.auc(top_k=10, max_oracle_calls=10000, finish=True)
+    return result
 
 def test_objective(oracle_name: str, seed: int, method: str="chain") -> float:
     # return test_single(oracle_name, seed)
