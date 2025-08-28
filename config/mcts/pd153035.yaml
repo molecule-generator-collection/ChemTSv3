@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 10000 # seconds
-max_generations: 1000
+max_generations: 10000
 
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
@@ -8,11 +8,11 @@ use_canonical_smiles_as_key: true
 root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 # goal: Brc1cc(ccc1)Nc2ncnc3c2cc(c(c3)OC)OC
 
-reward_class: SimilarityReward
-reward_args:
-  target_smiles: Brc1cc(ccc1)Nc2ncnc3c2cc(c(c3)OC)OC
+# reward_class: SimilarityReward
+# reward_args:
+#   target_smiles: Brc1cc(ccc1)Nc2ncnc3c2cc(c(c3)OC)OC
 
-# reward_class: EGFRReward
+reward_class: EGFRReward
 
 # reward_class: DyRAMOReward
 # reward_args:
@@ -49,26 +49,37 @@ reward_args:
 #       sigma: 1
 #       weight: 1
 
-transition_class: JensenTransition
+# transition_class: JensenTransition
+# transition_args:
+#   check_size: true
+#   check_ring: true
+#   filters:
+#     - filter_class: ValidityFilter # put this first if unsure
+#     - filter_class: RadicalFilter
+#     - filter_class: SubstructureFilter
+#       smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+
+transition_class: SMIRKSTransition
 transition_args:
-  check_size: true
-  check_ring: true
+  smirks_path: data/smirks/chembl17_ki_mmp_cliff.txt
+  # record_actions: true
   filters:
-    - filter_class: ValidityFilter # put this first if unsure
-    - filter_class: RadicalFilter
-    - filter_class: SubstructureFilter
-      smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: RadicalFilter
+  - filter_class: SubstructureFilter
+    smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 
 policy_class: PUCT
 policy_args:
-  c: 0.25
-  best_rate: 0.9
+  c: 1
+  best_rate: 0.5
 
 generator_class: MCTS
 generator_args:
   avoid_duplicates: true
   cut_failed_child: true
   n_evals: 1
+  eval_width: 500
   n_tries: 1
   filter_reward: -1
   info_interval: 100
