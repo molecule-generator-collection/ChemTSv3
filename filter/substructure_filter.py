@@ -3,7 +3,7 @@ from rdkit.Chem import Mol
 from filter import MolFilter
 
 class SubstructureFilter(MolFilter):
-    def __init__(self, smiles: str | list[str]=None, smarts: str | list[str]=None, kekulize: bool=False, preserve=True):
+    def __init__(self, smiles: str | list[str]=None, smarts: str | list[str]=None, kekulize: bool=False, preserve: bool=True):
         """
         Args:
             preserve: If True, pass molecules WITH all of the specified substructures. If False, pass molecules WITHOUT any of the specified substructures.
@@ -27,7 +27,7 @@ class SubstructureFilter(MolFilter):
             for s in smarts:
                 mol = Chem.MolFromSmarts(s)
                 if mol is None:
-                    raise ValueError(f"Invalid SMILES: {s}")
+                    raise ValueError(f"Invalid Smarts: {s}")
                 self.targets.append(mol)
         
         self.kekulize = kekulize
