@@ -3,7 +3,7 @@ from .helm_utils import MonomerLibrary, HELMConverter
 from .logging_utils import CSVHandler, NotListFilter, ListFilter, make_logger
 from .math_utils import set_seed, apply_top_p, apply_sharpness, moving_average, max_gauss, min_gauss, rectangular, PointCurve
 from .mol_utils import is_same_mol, get_main_mol, remove_isotopes, print_atoms_and_labels, draw_mol, draw_mols, top_k_df, append_similarity_to_df
-from .plot_utils import plot_xy
+from .plot_utils import plot_xy, plot_csv
 
 # lazy import
 def __getattr__(name):

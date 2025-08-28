@@ -1,6 +1,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from utils import moving_average
 
 def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None):
@@ -57,3 +58,16 @@ def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, 
     if output_dir is not None:
         plt.savefig(output_dir + title + "_" + y_axis + "_by_" + x_axis + ".png")
     plt.close() if save_only else plt.show()
+    
+def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None):
+    df = pd.read_csv(csv_path)
+
+    if "order" not in df.columns:
+        raise ValueError("No 'order' column in csv")
+    if target not in df.columns:
+        raise ValueError(f"No '{target}' column in csv.")
+
+    x = df["order"].tolist()
+    y = df[target].tolist()
+
+    plot_xy(x, y, x_axis="order", y_axis=target, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=output_dir, title=title, logger=logger)
