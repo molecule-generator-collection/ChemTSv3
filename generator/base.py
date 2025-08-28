@@ -12,7 +12,7 @@ from filter import Filter
 from node import Node
 from reward import Reward, LogPReward
 from transition import Transition
-from utils import moving_average, make_logger
+from utils import moving_average, make_logger, plot_xy
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
@@ -231,47 +231,8 @@ class Generator(ABC):
             else:
                 objective_idx = objective_names.index(y_axis)
                 y = [self.record[molkey]["objective_values"][objective_idx] for molkey in self.unique_keys]
-
-        plt.clf()
-        plt.scatter(x, y, s=500/len(x), alpha=0.2)
-        plt.title(self.name())
         
-        plt.xlabel(x_axis)
-        if xlim is not None:
-            plt.xlim(xlim)
-        else:
-            plt.xlim(0,x[-1])
-
-        plt.ylabel(y_axis)
-        if ylim is not None:
-            plt.ylim(ylim)
-        plt.grid(axis="y")
-        
-        if moving_average_window is not None:
-            label = f"moving average ({moving_average_window})"
-            y_ma = moving_average(y, moving_average_window)
-            plt.plot(x, y_ma, label=label, linewidth=linewidth)
-            if top_ps is not None:
-                    for p in top_ps:
-                        if 0 < p < 1:
-                            y_ma_top = moving_average(y, moving_average_window, top_p=p)
-                            label_top = f"top-{int(p*100)}% moving average"
-                            plt.plot(x, y_ma_top, label=label_top, linewidth=linewidth)
-                        else:
-                            self.logger.warning(f"Ignored top_p={p} in top_ps (must be in (0,1))")
-
-        if max_curve:
-            y_max_curve = np.maximum.accumulate(y)
-            plt.plot(x, y_max_curve, label='max', linestyle='--', linewidth=linewidth)
-
-        if max_line:
-            max(y)
-            y_max = np.max(y)
-            plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}', linewidth=linewidth)
-        
-        plt.legend(loc=loc)
-        plt.savefig(self.output_dir() + self.name() + "_" + y_axis + "_by_" + x_axis + ".png")
-        plt.close() if save_only else plt.show()
+        plot_xy(x, y, x_axis=x_axis, y_axis=y_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=self.output_dir(), title=self.name(), logger=self.logger)
 
     def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False, reward_top_ps: list[float]=None):
         ylims = ylims or {}
