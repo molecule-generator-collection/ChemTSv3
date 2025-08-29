@@ -3,6 +3,7 @@
 # Example (Load): python sandbox/generation.py -l sandbox/generation_result/~~~/save --max_generations 100
 
 # Path setup / Imports
+import gc
 import sys
 import os
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
@@ -49,7 +50,10 @@ def main():
                 n_top_keys_to_pass=conf.get("n_keys_to_pass", 3)
                 yaml_path = conf["next_yaml_path"]
                 conf = conf_from_yaml(yaml_path)
-                generator = generator_from_conf(conf, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
+                new_generator = generator_from_conf(conf, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
+                del generator; gc.collect()
+                generator = new_generator
+                
     elif yaml_path is None and load_dir is not None:
         generator = Generator.load_dir(load_dir)
         max_generations = args.max_generations
