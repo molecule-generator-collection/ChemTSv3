@@ -13,14 +13,6 @@ from utils import max_gauss, min_gauss, rectangular
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn")
 
-LGB_MODELS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models.pkl"))
-FEATURE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/fps.pkl"))
-
-with open(LGB_MODELS_PATH, mode='rb') as l, \
-    open(FEATURE_PATH, mode='rb') as f:
-    lgb_models = pickle.load(l)
-    feature_dict = pickle.load(f)
-
 def step(x, threshold):
     if x >= threshold:
         return 1
@@ -48,9 +40,21 @@ def calc_tanimoto_similarity(feat_generated, feat_train):
     return similarity_sorted
 
 class DyRAMOReward(MolReward):
-    def __init__(self, property: dict, ad: dict):
+    def __init__(self, property: dict, ad: dict, exclude_approved: False):
         self.property = property
         self.ad = ad
+        
+        if exclude_approved:
+            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models.pkl"))
+            feature_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/fps.pkl"))
+        else:
+            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models_wo_approved_v1.pkl"))
+            feature_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/fps_wo_approved_v1.pkl"))
+            
+        with open(lgb_models_path, mode='rb') as l, \
+            open(feature_path, mode='rb') as f:
+            self.lgb_models = pickle.load(l)
+            self.feature_dict = pickle.load(f)
     
     # override
     def name(self):
@@ -61,25 +65,25 @@ class DyRAMOReward(MolReward):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
-            return lgb_models['EGFR'].predict(fp)[0]
+            return self.lgb_models['EGFR'].predict(fp)[0]
 
         def stab(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
-            return lgb_models['Stab'].predict(fp)[0] #Stab
+            return self.lgb_models['Stab'].predict(fp)[0] #Stab
 
         def perm(mol):
             if mol is None:
                 return None
             fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)]
-            return lgb_models['Perm'].predict(fp)[0]
+            return self.lgb_models['Perm'].predict(fp)[0]
 
         def egfr_sim(mol):
             if mol is None:
                 return None
             fp = AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)
-            similarity = calc_tanimoto_similarity(fp, feature_dict['EGFR'])
+            similarity = calc_tanimoto_similarity(fp, self.feature_dict['EGFR'])
             num = self.ad['egfr']['num']
             return np.mean(similarity[:num])
 
@@ -87,7 +91,7 @@ class DyRAMOReward(MolReward):
             if mol is None:
                 return None
             fp = AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)
-            similarity = calc_tanimoto_similarity(fp, feature_dict['Stab'])
+            similarity = calc_tanimoto_similarity(fp, self.feature_dict['Stab'])
             num = self.ad['metabolic_stability']['num']
             return np.mean(similarity[:num])
 
@@ -95,7 +99,7 @@ class DyRAMOReward(MolReward):
             if mol is None:
                 return None
             fp = AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)
-            similarity = calc_tanimoto_similarity(fp, feature_dict['Perm'])
+            similarity = calc_tanimoto_similarity(fp, self.feature_dict['Perm'])
             num = self.ad['permeability']['num']
             return np.mean(similarity[:num])
 
