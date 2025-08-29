@@ -1,5 +1,6 @@
 import copy
 from datetime import datetime
+import glob
 import inspect
 import logging
 import os
@@ -43,8 +44,7 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     if issubclass(node_class, SentenceNode) or "lang_path" in conf_clone:
         lang_path = conf_clone.get("lang_path")
         if lang_path is None:
-            lang_name = os.path.basename(os.path.normpath(transition_args["model_dir"])) + ".lang"
-            lang_path = os.path.join(transition_args["model_dir"], lang_name)
+            lang_path = find_lang_file(transition_args["model_dir"])
         elif not os.path.isabs(lang_path):
             lang_path = os.path.join(REPO_ROOT, lang_path)
         lang = Language.load(lang_path)
@@ -151,6 +151,16 @@ def construct_filters(filter_settings, device, logger, output_dir):
         adjust_args(filter_class, s, device, logger, output_dir)
         filters.append(filter_class(**s))
     return filters
+
+def find_lang_file(model_dir: str) -> str:
+    lang_files = glob.glob(os.path.join(model_dir, "*.lang"))
+
+    if len(lang_files) == 0:
+        raise ValueError(f"No .lang file found in {model_dir}")
+    elif len(lang_files) > 1:
+        raise ValueError(f"Multiple .lang files found in {model_dir}: {lang_files}")
+
+    return lang_files[0]
 
 def save_yaml(conf: dict, output_dir: str, name: str="config.yaml", overwrite: bool=False):
     path = os.path.join(output_dir, name)
