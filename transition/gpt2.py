@@ -13,7 +13,13 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 class GPT2Transition(LanguageModel):
     def __init__(self, lang: Language, model=None, model_dir: str=None, device: str=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
-        # TODO: either remove repetition_penalty / top_k or implement to transition_with_probs
+        """
+        Args:
+            device: Torch device specification (e.g., "cpu", "cuda", "cuda:0").
+            top_p: Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`. Set to 1.0 to disable.
+            temperature: Logit temperature > 0 applied **before** top_p; values < 1.0 sharp, > 1.0 smooth
+        """
+        # TODO: either remove repetition_penalty / top_k or implement to next_nodes
         # TODO: might move shared codes with RNN
         if (model is not None) and (model_dir is not None):
             raise ValueError("Specify either 'model' or 'model_dir', not both.")
