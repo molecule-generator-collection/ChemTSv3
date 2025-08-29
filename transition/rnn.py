@@ -11,6 +11,9 @@ from transition import LanguageModel
 from utils import apply_top_p, apply_sharpness
 
 class RNNLanguageModel(nn.Module):
+    """
+    Auto-regressive RNN model, used internally by RNNTransition
+    """
     def __init__(self, pad_id: int, vocab_size: int, embed_size: int=None, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3, use_input_dropout=True):
         super().__init__()
         self.vocab_size = vocab_size
@@ -108,6 +111,14 @@ class RNNLanguageModel(nn.Module):
 
 class RNNTransition(LanguageModel):
     def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, v2_replication: bool=False, logger: logging.Logger=None):
+        """
+        Args:
+            device: Torch device specification (e.g., "cpu", "cuda", "cuda:0").
+            top_p: Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`. Set to 1.0 to disable.
+            temperature: Logit temperature > 0 applied **before** top_p; values < 1.0 sharp, > 1.0 smooth
+            sharpness: Probability distribution sharpness > 0 applied **after** top_p; values < 1.0 smooth, > 1.0 sharp
+            v2_replication: If True, top_p won't be applied for rollouts.
+        """
         if (model is not None) and (model_dir is not None):
             raise ValueError("Specify one (or none) of 'model' or 'model_dir', not both.")
         
