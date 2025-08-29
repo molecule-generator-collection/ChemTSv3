@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 1000 # seconds
+time_limit: 1000
 max_generations: 1000
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
@@ -18,7 +18,7 @@ transition_args:
   check_size: true
   check_ring: true
   filters:
-    - filter_class: ValidityFilter # put this first if unsure
+    - filter_class: ValidityFilter
     - filter_class: RadicalFilter
     - filter_class: ChargeFilter
 
