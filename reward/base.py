@@ -29,10 +29,11 @@ class Reward(ABC):
         return objective_values, reward
     
     def name(self):
+        """(Optional) Override this method to change reward's name displayed on plots."""
         return camel2snake(self.__class__.__name__)
     
     def analyze(self):
-        """This method is called within Generation.analyze(). By default, this method does nothing."""
+        """(Optional) This method is called within Generation.analyze(). By default, this method does nothing."""
 
 class SingleReward(Reward):
     is_single_objective = True

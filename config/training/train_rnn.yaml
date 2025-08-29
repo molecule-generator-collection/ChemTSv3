@@ -1,10 +1,10 @@
 output_dir: "sandbox/training_result/rnn_model"
-# lang_class: SMILES
-# dataset_path: data/smiles/250k_rndm_zinc_drugs_clean_std_woSsP+-.smi
-lang_class: HELM
-lang_args:
-  has_period: false
-dataset_path: data/helm/chembl34_protein_helm_only.helm
+lang_class: SMILES
+dataset_path: data/smiles/250k_rndm_zinc_drugs_clean_std_woSsP+-.smi
+# lang_class: HELM
+# lang_args:
+#   has_period: false
+# dataset_path: data/helm/chembl34_protein_helm_only.helm
 
 test_size: 0.1
 batch_size: 512

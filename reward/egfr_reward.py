@@ -23,7 +23,7 @@ def sigmoid(x, a):
 class EGFRReward(MolReward):
     is_single_objective = True
     
-    def __init__(self, type="sigmoid", a: float=0.2, alpha: float=1, mu: float=9, sigma: float=2):
+    def __init__(self, type="max_gauss", a: float=0.2, alpha: float=1, mu: float=9, sigma: float=2):
         if type == "max_gauss":
             self.type = "max_gauss"
             self.alpha = alpha

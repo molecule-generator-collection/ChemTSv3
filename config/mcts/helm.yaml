@@ -1,5 +1,5 @@
 output_dir: generation_result
-# time_limit: 10 # seconds
+# time_limit: 10
 max_generations: 5000
 seed: 0
 debug: true
@@ -29,7 +29,7 @@ plot_args:
   reward_top_ps: [0.5, 0.1]
 
 filters:
-  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: ValidityFilter
 
 plot_args:
   moving_average_window: 0.02

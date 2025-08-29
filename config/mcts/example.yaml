@@ -2,7 +2,7 @@ time_limit: 60 # Seconds
 max_generations: 1000
 # seed: 0 # Set seed
 
-### Common Args - output_dir, device(, logger) are automatically applied to all classes (and node_from_key()) that define arguments with the same names. ###
+### Common Args - output_dir, device(, logger) are automatically applied to all classes (and node_from_key()) that have arguments with the same names. ###
 output_dir: generation_result
 device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
 
@@ -14,7 +14,7 @@ silent: false # Set to true to disable console logging
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the Canonical SMILES (If set to false, the same molecule may be counted multiple times.)
 # root: "N"   # Start from the specified root
-# root: ["Nc", "NC"]  # Specify multiple roots
+# root: ["Nc", "NC"]  # Start from multiple roots
 
 ### Transition ###
 transition_class: RNNTransition
@@ -23,7 +23,7 @@ transition_args:
   model_dir: model/smiles/drugs_zinc/gru  # GRU model
   # model_dir: model/smiles/drugs_zinc/lstm # LSTM model
   # model_dir: model/smiles/drugs_zinc/tf25_ported  # Ported model from ChemTSv2
-## For developers: lang file with the same name are automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
+## For developers: lang file in the model directory will be automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
 
 ### Reward ###
 reward_class: JScoreReward
