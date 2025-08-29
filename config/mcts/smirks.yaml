@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 36000 # seconds
+time_limit: 36000
 # max_generations: 200000
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
@@ -33,7 +33,7 @@ plot_args:
   reward_top_ps: [0.5, 0.1]
 
 filters:
-  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: ValidityFilter
   - filter_class: AtomCountFilter
   - filter_class: MaxRingSizeFilter
   - filter_class: RingBondFilter
