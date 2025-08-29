@@ -23,7 +23,7 @@ transition_args:
   model_dir: model/smiles/drugs_zinc/gru  # GRU model
   # model_dir: model/smiles/drugs_zinc/lstm # LSTM model
   # model_dir: model/smiles/drugs_zinc/tf25_ported  # Ported model from ChemTSv2
-## For developers: lang file in the model directory are automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
+## For developers: lang file in the model directory will be automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
 
 ### Reward ###
 reward_class: JScoreReward
