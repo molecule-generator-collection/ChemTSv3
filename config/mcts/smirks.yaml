@@ -24,7 +24,7 @@ generator_class: MCTS
 generator_args:
   avoid_duplicates: true
   cut_failed_child: true
-  n_evals: 1
+  n_eval_iters: 1
   n_tries: 1
   filter_reward: ignore
   info_interval: 100
