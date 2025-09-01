@@ -21,10 +21,6 @@ class UCT(ValuePolicy):
             self.c = c
         self.best_ratio = best_rate
         self.max_prior = max_prior
-        
-        self.observed_max = 0
-        self.observed_n = 0
-        self.observed_sum = 0
 
     def get_c_value(self, node: Node) -> float:
         if type(self.c) == Callable:
@@ -47,19 +43,6 @@ class UCT(ValuePolicy):
         mean_r = node.sum_r / node.n
         u = self.get_exploration_term(node)
         best_r = node.best_r
-        if self.max_prior == "average":
-            best_r = max(self._observed_average(), best_r)
-        elif self.max_prior is not None:
+        if self.max_prior is not None:
             best_r = max(self.max_prior, best_r)
         return (1 - self.best_ratio) * mean_r + self.best_ratio * best_r + u
-    
-    def observe(self, child: Node, objective_values: list[float], reward: float):
-        self.observed_max = max(self.observed_max, reward)
-        self.observed_n += 1
-        self.observed_sum += reward
-        
-    def _observed_average(self):
-        if self.observed_n == 0:
-            return 0
-        else:
-            return self.observed_sum / self.observed_n
