@@ -9,6 +9,7 @@ class SELFIESStringNode(MolStringNode):
     def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         super().__init__(string=string, lang=self.selfies_lang, parent=parent, last_prob=last_prob, last_action=last_action)
     
+    # implement
     @classmethod
     def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         if cls.use_canonical_smiles_as_key:
@@ -19,3 +20,8 @@ class SELFIESStringNode(MolStringNode):
                 return SELFIESStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
         else:
             return SELFIESStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
+
+    # override
+    def discard_unneeded_states(self):
+        """Clear states no longer needed after transition to reduce memory usage."""
+        self.string = None

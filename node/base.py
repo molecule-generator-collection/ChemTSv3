@@ -40,6 +40,14 @@ class Node(ABC):
         """Create a Node instance from a key."""
         raise NotImplementedError("node_from_key() is not supported in this class.")
     
+    def discard_unneeded_states(self):
+        """Clear states no longer needed after transition to reduce memory usage. Can be overridden for marginal efficiency."""
+
+        needed = ["parent", "depth", "children", "last_prob", "last_action", "n", "sum_r", "best_r", "reward", "_is_terminal"]
+        for key in list(self.__dict__.keys()):
+            if key not in needed:
+                self.__dict__[key] = None
+    
     @property
     def cache(self):
         if self._cache is None:
@@ -92,8 +100,8 @@ class Node(ABC):
         if self.parent is not None and self in self.parent.children:
             self.parent.children.remove(self)
             if recursive and not self.parent.children:
-                if logger is not None:
-                    logger.debug("Exhausted every terminal under: " + str(self.parent))
+                # if logger is not None:
+                #     logger.debug(f"Exhausted every terminal under: {self.parent.key()}") # Set discard_unneeded_children to False when commenting out
                 self.parent.leave(recursive=True, logger=logger)
         
     def show_children(self):
@@ -141,10 +149,8 @@ class MolNode(Node):
 
 class SurrogateNode(Node):
     """Surrogate node for multiple roots."""
-    # implement
     def key(self) -> str:
         return "surrogate node"
     
-    # implement
     def has_reward(self) -> bool:
         return False
