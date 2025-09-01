@@ -40,7 +40,7 @@ def class_from_package(package_name: str, class_name: str):
         if inspect.isclass(obj):
             return obj
 
-    raise ImportError(f"Class '{class_name}' not found under package '{package_name}' (top-level only, no subfolders).")
+    raise ImportError(f"Failed to load '{class_name}'.")
 
 def contains_class(module_name: str, class_name: str) -> bool:
     """Check the existence of class (while avoiding ImportError)"""
