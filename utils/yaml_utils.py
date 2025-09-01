@@ -156,7 +156,7 @@ def find_lang_file(model_dir: str) -> str:
     lang_files = glob.glob(os.path.join(model_dir, "*.lang"))
 
     if len(lang_files) == 0:
-        raise ValueError(f"No .lang file found in {model_dir}")
+        raise FileNotFoundError(f"No .lang file found in {model_dir}")
     elif len(lang_files) > 1:
         raise ValueError(f"Multiple .lang files found in {model_dir}: {lang_files}")
 
