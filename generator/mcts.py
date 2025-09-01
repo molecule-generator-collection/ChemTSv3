@@ -13,7 +13,7 @@ class MCTS(Generator):
                  eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int=1, 
                  cut_failed_child: bool=False, reward_cutoff: float=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
-                 avoid_duplicates: bool=False, discard_unneeded_states: bool=True,
+                 avoid_duplicates: bool=False, discard_unneeded_states: bool=False,
                  max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, 
                  name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100):
         """
