@@ -19,8 +19,8 @@ generator_args:
   avoid_duplicates: true
   cut_failed_child: true
   cut_terminal: true
-  n_evals: 1
-  n_tries: 1
+  n_eval_width: 1
+  n_eval_iters: 1
   filter_reward: 0
   info_interval: 100
 
