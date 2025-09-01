@@ -5,13 +5,15 @@ from policy import ValuePolicy
 from utils import PointCurve
 
 class UCT(ValuePolicy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None, pw_c: float=None, pw_alpha: float=None):
         """
         Args:
             c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
             best_rate: A value between 0 and 1. The exploitation term is computed as 
                        best_rate * (best reward) + (1 - best_rate) * (average reward).
             max_prior: A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.
+            pw_c: Used for progressive widening.
+            pw_alpha: Used for progressive widening.
         """
         if type(c) == Callable:
             self.c = c
@@ -21,6 +23,7 @@ class UCT(ValuePolicy):
             self.c = c
         self.best_ratio = best_rate
         self.max_prior = max_prior
+        super().__init__(pw_c=pw_c, pw_alpha=pw_alpha)
 
     def get_c_value(self, node: Node) -> float:
         if type(self.c) == Callable:
