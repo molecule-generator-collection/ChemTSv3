@@ -33,6 +33,12 @@ class SentenceNode(Node):
     def bos_node(cls, lang: Language, device: str=None) -> Self:
         """Make bos node. Often used as root."""
         return cls.node_from_key(key="", lang=lang, device=device, include_eos=False)
+    
+    # override
+    def discard_unneeded_states(self):
+        """Clear states no longer needed after transition to reduce memory usage."""
+        self.id_tensor = None
+        self.lang = None
 
 class MolSentenceNode(SentenceNode, MolNode):
     use_canonical_smiles_as_key = False
@@ -60,3 +66,9 @@ class MolSentenceNode(SentenceNode, MolNode):
             return self.lang.tensor2sentence(self.id_tensor)
         else:
             return super().smiles(use_cache=use_cache)
+        
+    # override
+    def discard_unneeded_states(self):
+        """Clear states no longer needed after transition to reduce memory usage."""
+        self.id_tensor = None
+        self.lang = None

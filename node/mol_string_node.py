@@ -11,11 +11,10 @@ class MolStringNode(MolNode):
         self.string = string
         self.lang = lang
         super().__init__(parent=parent, last_prob=last_prob, last_action=last_action)
-    
-    # implement
+
     def has_reward(self):
         return True
-    
+
     def key(self):
         if not self.use_canonical_smiles_as_key or not self.validity_filter().check(self):
             return self.string
@@ -28,10 +27,15 @@ class MolStringNode(MolNode):
     @classmethod
     def node_from_key(cls, key: str, lang: MolLanguage=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         return MolStringNode(string=key, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
-    
-    # implement
+
     def _mol_impl(self) -> Mol:
         return self.lang.sentence2mol(self.string)
+    
+    # override
+    def discard_unneeded_states(self):
+        """Clear states no longer needed after transition to reduce memory usage."""
+        self.lang = None
+        self.string = None
     
 class SMILESStringNode(MolStringNode):
     smiles_lang = SMILES()
@@ -48,6 +52,10 @@ class SMILESStringNode(MolStringNode):
         """Expects self.string to be canonical SMILES."""
         return self.string
     
+    def discard_unneeded_states(self):
+        """Clear states no longer needed after transition to reduce memory usage."""
+        self.string = None
+    
 class FASTAStringNode(MolStringNode):
     fasta_lang = FASTA()
     
@@ -57,3 +65,8 @@ class FASTAStringNode(MolStringNode):
     @classmethod
     def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         return FASTAStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
+    
+    # override
+    def discard_unneeded_states(self):
+        """Clear states no longer needed after transition to reduce memory usage."""
+        self.string = None

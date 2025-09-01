@@ -13,7 +13,7 @@ class MCTS(Generator):
                  eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int=1, 
                  cut_failed_child: bool=False, reward_cutoff: float=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
-                 avoid_duplicates: bool=False, 
+                 avoid_duplicates: bool=False, discard_unneeded_states: bool=True,
                  max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, 
                  name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100):
         """
@@ -33,6 +33,7 @@ class MCTS(Generator):
             terminal_reward: (Set to -1 for v2 replication) If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
             
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
+            discard_unneeded_states: If True, discards variables of nodes that will no longer be used after expansion.
             return_nodes: If set to True, generate() returns generated nodes as a list.
             
             output_dir: Directory where the generation results and logs will be saved.
@@ -65,6 +66,7 @@ class MCTS(Generator):
         self.avoid_duplicates = avoid_duplicates
         if self.avoid_duplicates:
             self.node_keys = set()
+        self.discard_unneeded_states = discard_unneeded_states
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
         super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, return_nodes=return_nodes, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval)
@@ -94,6 +96,9 @@ class MCTS(Generator):
 
     def _expand(self, node: Node) -> bool:
         transitions = self.transition.transitions(node)
+        if self.discard_unneeded_states:
+            node.discard_unneeded_states()
+        node.discard_unneeded_states()
         if len(transitions) == 0:
             return False
         expanded = False
@@ -152,7 +157,8 @@ class MCTS(Generator):
                 child.leave(logger=self.logger)
         if self.failed_parent_reward != "ignore" and not parent_got_unfiltered_node:
             self._backpropagate(node, self.failed_parent_reward, False)
-            self.logger.debug("All evals failed from: " + str(node))
+            if not self.discard_unneeded_states:
+                self.logger.debug(f"All evals failed from: {node.key()}")
             
     def display_top_k_molecules(self, str2mol_func=None, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):
         if str2mol_func is not None:
