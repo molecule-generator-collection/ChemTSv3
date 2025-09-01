@@ -38,8 +38,8 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  eval_width: .inf
-  n_evals: 3
+  n_eval_width: .inf
+  n_eval_iters: 3
   cut_failed_child: true
   info_interval: 200
   filter_reward: ignore

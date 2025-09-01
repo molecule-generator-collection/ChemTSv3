@@ -10,7 +10,7 @@ class MCTS(Generator):
     """Perform MCTS to maximize the reward."""
     def __init__(self, root: Node, transition: Transition, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, 
                  filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", 
-                 eval_width: int=1, allow_eval_overlaps: bool=False, n_evals: int=1, n_tries: int=1, 
+                 n_eval_width: int=1, allow_eval_overlaps: bool=False, n_eval_iters: int=1, n_tries: int=1, 
                  cut_failed_child: bool=False, reward_cutoff: float=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=False, discard_unneeded_states: bool=True,
@@ -19,16 +19,16 @@ class MCTS(Generator):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
-            eval_width: The number of children to sample during the eval step. To use policy, set this value to 0. To evaluate all children, set this to float("inf") in Python code or .inf in YAML.
+            n_eval_width: The number of children to sample during the eval step. To use policy, set this value to 0. To evaluate all children, set this to float("inf") in Python code or .inf in YAML.
             allow_eval_overlaps: whether to allow overlap nodes when sampling eval candidates (recommended: False)
-            n_evals: the number of child node evaluations (rollouts for children that has_reward = False)
+            n_eval_iters: the number of child node evaluations (rollouts for children that has_reward = False)
             n_tries: the number of attempts to obtain an unfiltered node in a single eval (should be 1 unless has_reward() can be False or filters are probabilistic)
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
-            cut_failed_child: If True, child nodes will be removed when {n_evals * n_tries} evals are filtered.
+            cut_failed_child: If True, child nodes will be removed when {n_eval_iters * n_tries} evals are filtered.
             reward_cutoff: Child nodes will be removed if their reward is lower than this value.
             avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph.
             
-            failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {eval_width * n_evals * n_tries} evals are filtered from the node.
+            failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {n_eval_width * n_eval_iters * n_tries} evals are filtered from the node.
             cut_terminal: (Set to False for v2 replication) If True, terminal nodes will be culled, and won't be visited twice.
             terminal_reward: (Set to -1 for v2 replication) If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
             
@@ -55,9 +55,9 @@ class MCTS(Generator):
         self.root = root
         self.max_tree_depth = max_tree_depth or transition.max_length()
         self.policy = policy
-        self.eval_width = eval_width
+        self.n_eval_width = n_eval_width
         self.allow_eval_overlaps = allow_eval_overlaps
-        self.n_evals = n_evals
+        self.n_eval_iters = n_eval_iters
         self.n_tries = n_tries
         self.cut_failed_child = cut_failed_child
         self.reward_cutoff = reward_cutoff
@@ -135,15 +135,15 @@ class MCTS(Generator):
 
         if not node.children:
             children = [node]
-        elif self.eval_width <= 0:
+        elif self.n_eval_width <= 0:
             children = [self.policy.select_child(node)]
         else:
-            children = node.sample_children(max_size=self.eval_width, replace=self.allow_eval_overlaps)
+            children = node.sample_children(max_size=self.n_eval_width, replace=self.allow_eval_overlaps)
         
         parent_got_unfiltered_node = False
         for child in children:
             child_got_unfiltered_node = False
-            for _ in range(self.n_evals):
+            for _ in range(self.n_eval_iters):
                 for _ in range(self.n_tries):
                     objective_values, reward = self._eval(child) # returns the child itself if terminal
                     if type(objective_values[0]) != str: # not filtered
