@@ -46,8 +46,8 @@ def objective(trial):
         conf_2.setdefault("policy_args", {})
         conf_2["policy_args"]["c"] = trial.suggest_float("c_2", 0.01, 0.5)
         conf_2["policy_args"]["best_rate"] = trial.suggest_float("best_rate_2", 0.5, 1)
-        conf_2["policy_args"]["pw_c"] = trial.suggest_float("pw_c_2", 1.5, 5)
-        conf_2["policy_args"]["pw_alpha"] = trial.suggest_float("pw_alpha_2", 0.6, 0.95)
+        conf_2["policy_args"]["pw_c"] = trial.suggest_float("pw_c_2", 1.5, 4)
+        conf_2["policy_args"]["pw_alpha"] = trial.suggest_float("pw_alpha_2", 0.5, 0.7)
         
         n_generations_until_lead = trial.suggest_categorical("n_generations_until_lead", [50, 100, 150, 200, 250, 300, 400, 500, 1000])
         n_keys_to_pass = trial.suggest_categorical("n_keys_to_pass", [1, 2, 3, 4, 5, 7, 10, 15, 20])
@@ -107,8 +107,8 @@ def main():
     study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, pruner=pruner, load_if_exists=True)
     
     if args.enqueue:
-        study.enqueue_trial({"c_1": 0.1, "best_rate_1": 0.5, "n_tries_1": 1, "c_2": 0.25, "best_rate_2": 0.9, "pw_c_2": 2, "pw_alpha_2": 0.7, "n_generations_until_lead": 200, "n_keys_to_pass": 5})
-        study.enqueue_trial({"c_1": 0.1, "best_rate_1": 0.5, "n_tries_1": 1, "c_2": 0.15, "best_rate_2": 0.95, "pw_c_2": 3, "pw_alpha_2": 0.8, "n_generations_until_lead": 200, "n_keys_to_pass": 5})
+        study.enqueue_trial({"c_1": 0.1, "best_rate_1": 0.5, "n_tries_1": 1, "c_2": 0.25, "best_rate_2": 0.9, "pw_c_2": 3, "pw_alpha_2": 0.5, "n_generations_until_lead": 200, "n_keys_to_pass": 5})
+        study.enqueue_trial({"c_1": 0.1, "best_rate_1": 0.5, "n_tries_1": 1, "c_2": 0.15, "best_rate_2": 0.95, "pw_c_2": 2, "pw_alpha_2": 0.6, "n_generations_until_lead": 200, "n_keys_to_pass": 5})
         
     study.optimize(objective, n_trials=500)
         
