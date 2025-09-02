@@ -32,7 +32,7 @@ class TemplatePolicy(Policy):
     
     def candidates(self, node: Node) -> list[Node]:
         """Return reduced child candidates with progressive widening."""
-        children = sorted(node.children, key=lambda c: (c.last_prob or 0.0), reverse=True)
+        children = sorted(node.children, key=lambda c: (c.last_prob or 0.0), reverse=True) # deterministic
         k = max(1, int(self.pw_c * (node.n ** self.pw_alpha))) if self.pw_c is not None else len(children)
         return children[:min(k, len(children))]
 
