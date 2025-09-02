@@ -138,7 +138,7 @@ class MCTS(Generator):
         elif self.n_eval_width <= 0:
             children = [self.policy.select_child(node)]
         else:
-            children = node.sample_children(max_size=self.n_eval_width, replace=self.allow_eval_overlaps)
+            children = self.policy.sample_candidates(node, max_size=self.n_eval_width, replace=self.allow_eval_overlaps)
         
         parent_got_unfiltered_node = False
         for child in children:
