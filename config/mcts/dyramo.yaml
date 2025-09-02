@@ -27,6 +27,7 @@ generator_args:
 
 reward_class: DyRAMOReward
 reward_args:
+  exclude_approved: true
   ad:
     egfr:
       num: 1
