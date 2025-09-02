@@ -16,7 +16,7 @@ class Policy(ABC):
 class TemplatePolicy(Policy):
     """
     Policy with progressive widening.
-    Progressive widening ref: https://hal.science/hal-00542673v2/document
+    Progressive widening ref: https://www.researchgate.net/publication/23751563_Progressive_Strategies_for_Monte-Carlo_Tree_Search
     """
     def __init__(self, pw_c: float=None, pw_alpha: float=None):
         if pw_c is None and pw_alpha is not None or pw_c is not None and pw_alpha is None:
