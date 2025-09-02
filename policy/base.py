@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import random
 from typing import Iterable
+import numpy as np
 from node import Node
 
 class Policy(ABC):
@@ -12,6 +13,20 @@ class Policy(ABC):
     def observe(self, child: Node, objective_values: list[float], reward: float):
         """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
         return
+    
+    def candidates(self, node: Node) -> list[Node]:
+        """Return available child candidates. Override this for progressive widening etc."""
+        return node.children
+    
+    def sample_candidates(self, node: Node, max_size: int=1, replace: bool=False) -> list[Node]:
+        cands = self.candidates(node)
+        if not cands:
+            return None
+        size = min(max_size, len(cands))
+        weights = np.array([node.last_prob for node in cands], dtype=np.float64)
+        total = weights.sum()
+        probabilities = weights / total
+        return np.random.choice(cands, size=size, replace=replace, p=probabilities)
     
 class TemplatePolicy(Policy):
     """
