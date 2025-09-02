@@ -1,6 +1,7 @@
 # Example: python sandbox/mol_opt/mol_opt_chain.py
 
 # Path setup / Imports
+import faulthandler
 import gc
 import sys
 import os
@@ -13,6 +14,7 @@ from statistics import mean
 import traceback
 import optuna
 from utils import conf_from_yaml, generator_from_conf
+
 guacamol_oracle_names = ["zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "deco_hop", "albuterol_similarity", "scaffold_hop", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts"]
 tdc_oracle_names = ["drd2", "gsk3b", "jnk3", "qed"]
 oracle_names = guacamol_oracle_names + tdc_oracle_names
@@ -91,12 +93,15 @@ def objective(trial):
         raise optuna.exceptions.TrialPruned()
 
 def main():
+    faulthandler.enable(file=sys.stderr, all_threads=True)
+    
     parser = argparse.ArgumentParser()
+    parser.add_argument("--name", type=str, default="mol_opt_chain", help="Name")
     parser.add_argument("--enqueue", type=bool, default=True, help="Enqueue")
     args = parser.parse_args()
     
-    name = "mol_opt_chain"
-    storage = "sqlite:///optuna/" + name + "_pw.db"
+    name = args.name
+    storage = "sqlite:///sandbox/mol_opt/optuna/" + name + ".db"
     sampler = sampler=optuna.samplers.TPESampler(multivariate=True, group=True)
     pruner = optuna.pruners.MedianPruner(n_startup_trials=3, n_warmup_steps=3, interval_steps=1)
     study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, pruner=pruner, load_if_exists=True)
