@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 10000
-max_generations: 1000
+max_generations: 20000
 
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
@@ -74,13 +74,15 @@ policy_class: PUCT
 policy_args:
   c: 1
   best_rate: 0.5
+  pw_c: 3
+  pw_alpha: 0.7
 
 generator_class: MCTS
 generator_args:
   avoid_duplicates: true
   cut_failed_child: true
   n_eval_iters: 1
-  n_eval_width: 500
+  n_eval_width: .inf
   n_tries: 1
   filter_reward: -1
   info_interval: 100

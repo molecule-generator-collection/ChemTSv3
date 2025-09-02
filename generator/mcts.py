@@ -10,7 +10,7 @@ class MCTS(Generator):
     """Perform MCTS to maximize the reward."""
     def __init__(self, root: Node, transition: Transition, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, 
                  filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", 
-                 n_eval_width: int=1, allow_eval_overlaps: bool=False, n_eval_iters: int=1, n_tries: int=1, 
+                 n_eval_width: int=0, allow_eval_overlaps: bool=False, n_eval_iters: int=1, n_tries: int=1, 
                  cut_failed_child: bool=False, reward_cutoff: float=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=False, discard_unneeded_states: bool=True,
@@ -19,7 +19,7 @@ class MCTS(Generator):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
-            n_eval_width: The number of children to sample during the eval step. To use policy, set this value to 0. To evaluate all children, set this to float("inf") in Python code or .inf in YAML.
+            n_eval_width: The number of children to forcefully sample during the eval step. To use policy, leave this value to 0. To evaluate all children, set this to float("inf") in Python code or .inf in YAML.
             allow_eval_overlaps: whether to allow overlap nodes when sampling eval candidates (recommended: False)
             n_eval_iters: the number of child node evaluations (rollouts for children that has_reward = False)
             n_tries: the number of attempts to obtain an unfiltered node in a single eval (should be 1 unless has_reward() can be False or filters are probabilistic)
