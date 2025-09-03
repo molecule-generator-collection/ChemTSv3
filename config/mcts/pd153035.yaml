@@ -52,7 +52,7 @@ reward_args:
 
 transition_class: JensenTransition
 transition_args:
-  check_size: true
+  check_size: false
   check_ring: true
   filters:
     - filter_class: ValidityFilter # put this first if unsure
@@ -81,7 +81,7 @@ generator_args:
   n_eval_iters: 1
   n_eval_width: .inf
   n_tries: 1
-  filter_reward: -1
+  filter_reward: 0
   info_interval: 100
 
 plot_args:
