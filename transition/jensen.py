@@ -163,48 +163,51 @@ class JensenTransition(TemplateTransition):
 
     # implement
     def _next_nodes_impl(self, node: SMILESStringNode) -> list[SMILESStringNode]:
-        mol = node.mol(use_cache=False)
-    
-        Chem.Kekulize(mol, clearAromaticFlags=True)
-        p = [0.15,0.14,0.14,0.14,0.14,0.14,0.15]
-        rxn_smarts_list = 7*['']
-        rxn_smarts_list[0] = self.insert_atom()
-        rxn_smarts_list[1] = self.change_bond_order()
-        rxn_smarts_list[2] = self.delete_cyclic_bond()
-        rxn_smarts_list[3] = self.add_ring()
-        rxn_smarts_list[4] = self.delete_atom()
-        rxn_smarts_list[5] = self.change_atom()
-        rxn_smarts_list[6] = self.append_atom()
-        raw_result = [] # action, SMILES, raw_prob
-
-        for i, (choices, probs) in enumerate(rxn_smarts_list):
-            for smarts, prob in zip(choices, probs):
-                new_prob = prob * p[i]
-                action = smarts if self.record_actions else None
-                rxn = AllChem.ReactionFromSmarts(smarts)
-                new_mol_trial = rxn.RunReactants((mol,))
-                
-                new_mols = []
-                for m in new_mol_trial:
-                    m = m[0]
-                    if self.try_sanitize(m) and (not self.check_size or self.mol_OK(m)) and (not self.check_ring or self.ring_OK(m)):
-                        new_mols.append(m)
-                        
-                for new_mol in new_mols:
-                    try:
-                        smiles = Chem.MolToSmiles(new_mol)
-                        last_prob = new_prob * (1 / len(new_mols))
-                        raw_result.append((action, smiles, last_prob))
-                    except:
-                        continue
+        try:
+            mol = node.mol(use_cache=False)
         
-        if self.merge_duplicates:
-            raw_result = self.merge_duplicate_smiles(raw_result)
+            Chem.Kekulize(mol, clearAromaticFlags=True)
+            p = [0.15,0.14,0.14,0.14,0.14,0.14,0.15]
+            rxn_smarts_list = 7*['']
+            rxn_smarts_list[0] = self.insert_atom()
+            rxn_smarts_list[1] = self.change_bond_order()
+            rxn_smarts_list[2] = self.delete_cyclic_bond()
+            rxn_smarts_list[3] = self.add_ring()
+            rxn_smarts_list[4] = self.delete_atom()
+            rxn_smarts_list[5] = self.change_atom()
+            rxn_smarts_list[6] = self.append_atom()
+            raw_result = [] # action, SMILES, raw_prob
+
+            for i, (choices, probs) in enumerate(rxn_smarts_list):
+                for smarts, prob in zip(choices, probs):
+                    new_prob = prob * p[i]
+                    action = smarts if self.record_actions else None
+                    rxn = AllChem.ReactionFromSmarts(smarts)
+                    new_mol_trial = rxn.RunReactants((mol,))
                     
-        total = sum(prob for _, _, prob in raw_result)
-        if total == 0:
+                    new_mols = []
+                    for m in new_mol_trial:
+                        m = m[0]
+                        if self.try_sanitize(m) and (not self.check_size or self.mol_OK(m)) and (not self.check_ring or self.ring_OK(m)):
+                            new_mols.append(m)
+                            
+                    for new_mol in new_mols:
+                        try:
+                            smiles = Chem.MolToSmiles(new_mol)
+                            last_prob = new_prob * (1 / len(new_mols))
+                            raw_result.append((action, smiles, last_prob))
+                        except:
+                            continue
+            
+            if self.merge_duplicates:
+                raw_result = self.merge_duplicate_smiles(raw_result)
+                        
+            total = sum(prob for _, _, prob in raw_result)
+            if total == 0:
+                return []
+            return [SMILESStringNode(string=smiles, parent=node, last_action=a, last_prob=prob/total) for a, smiles, prob in raw_result]
+        except:
             return []
-        return [SMILESStringNode(string=smiles, parent=node, last_action=a, last_prob=prob/total) for a, smiles, prob in raw_result]
     
     @staticmethod
     def merge_duplicate_smiles(tuples: list[tuple]) -> list[tuple]:
