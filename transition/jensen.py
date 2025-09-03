@@ -127,30 +127,37 @@ class JensenTransition(TemplateTransition):
 
     @staticmethod
     def ring_OK(mol):
-        if not mol.HasSubstructMatch(Chem.MolFromSmarts('[R]')):
-            return True
+        try:
+            if not mol.HasSubstructMatch(Chem.MolFromSmarts('[R]')):
+                return True
 
-        ring_allene = mol.HasSubstructMatch(Chem.MolFromSmarts('[R]=[R]=[R]'))
+            ring_allene = mol.HasSubstructMatch(Chem.MolFromSmarts('[R]=[R]=[R]'))
 
-        cycle_list = mol.GetRingInfo().AtomRings() 
-        max_cycle_length = max([ len(j) for j in cycle_list ])
-        macro_cycle = max_cycle_length > 6
+            cycle_list = mol.GetRingInfo().AtomRings() 
+            max_cycle_length = max([ len(j) for j in cycle_list ])
+            macro_cycle = max_cycle_length > 6
 
-        double_bond_in_small_ring = mol.HasSubstructMatch(Chem.MolFromSmarts('[r3,r4]=[r3,r4]'))
+            double_bond_in_small_ring = mol.HasSubstructMatch(Chem.MolFromSmarts('[r3,r4]=[r3,r4]'))
 
-        return not ring_allene and not macro_cycle and not double_bond_in_small_ring
+            return not ring_allene and not macro_cycle and not double_bond_in_small_ring
+        except:
+            return False
 
     def mol_OK(self, mol):
         try:
-            Chem.SanitizeMol(mol)
-            # test_mol = Chem.MolFromSmiles(Chem.MolToSmiles(mol))
-            # if test_mol == None:
-            #     return None
             target_size = self.size_stdev*np.random.randn() + self.average_size
             if mol.GetNumAtoms() > 5 and mol.GetNumAtoms() < target_size:
                 return True
             else:
                 return False
+        except:
+            return False
+    
+    @staticmethod
+    def try_sanitize(mol):
+        try:
+            Chem.SanitizeMol(mol)
+            return True
         except:
             return False
 
@@ -180,7 +187,7 @@ class JensenTransition(TemplateTransition):
                 new_mols = []
                 for m in new_mol_trial:
                     m = m[0]
-                    if (not self.check_size or self.mol_OK(m)) and (not self.check_ring or self.ring_OK(m)):
+                    if self.try_sanitize(m) and (not self.check_size or self.mol_OK(m)) and (not self.check_ring or self.ring_OK(m)):
                         new_mols.append(m)
                         
                 for new_mol in new_mols:
