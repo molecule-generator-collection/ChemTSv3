@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 10000
-max_generations: 20000
+time_limit: 86400
+max_generations: 10000000
 
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
@@ -50,32 +50,29 @@ reward_args:
       sigma: 1
       weight: 1
 
-# transition_class: JensenTransition
-# transition_args:
-#   check_size: true
-#   check_ring: true
-#   filters:
-#     - filter_class: ValidityFilter # put this first if unsure
-#     - filter_class: RadicalFilter
-#     - filter_class: SubstructureFilter
-#       smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
-
-transition_class: SMIRKSTransition
+transition_class: JensenTransition
 transition_args:
-  smirks_path: data/smirks/chembl17_ki_mmp_cliff.txt
-  # record_actions: true
+  check_size: true
+  check_ring: true
   filters:
-  - filter_class: ValidityFilter
-  - filter_class: RadicalFilter
-  - filter_class: SubstructureFilter
-    smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+    - filter_class: ValidityFilter # put this first if unsure
+    # - filter_class: RadicalFilter
+    - filter_class: SubstructureFilter
+      smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+
+# transition_class: SMIRKSTransition
+# transition_args:
+#   smirks_path: data/smirks/chembl17_ki_mmp_cliff.txt
+#   # record_actions: true
+#   filters:
+#   - filter_class: ValidityFilter
+#   - filter_class: RadicalFilter
+#   - filter_class: SubstructureFilter
+#     smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 
 policy_class: PUCT
 policy_args:
   c: 1
-  best_rate: 0.5
-  pw_c: 3
-  pw_alpha: 0.7
 
 generator_class: MCTS
 generator_args:
