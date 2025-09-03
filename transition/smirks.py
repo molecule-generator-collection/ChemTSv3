@@ -53,49 +53,52 @@ class SMIRKSTransition(TemplateTransition):
         
     # implement
     def _next_nodes_impl(self, node: SMILESStringNode):
-        initial_mol = node.mol(use_cache=False)
-        if self.kekulize:
-            Chem.Kekulize(initial_mol, clearAromaticFlags=True)
-        if self.with_Hs:
-            initial_mol_with_Hs = Chem.AddHs(initial_mol)
-        generated_mols = []
-        for smirks, weight in self.weighted_smirks:
-            try:
-                rxn = AllChem.ReactionFromSmarts(smirks)
-                products = []
-                if self.without_Hs:
-                    products += rxn.RunReactants((initial_mol,))
-                if self.with_Hs:
-                    products += rxn.RunReactants((initial_mol_with_Hs,))
-                for ps in products:
-                    for p in ps:
-                        generated_mols.append((smirks, weight, p))
-            except:
-                continue
+        try:
+            initial_mol = node.mol(use_cache=False)
+            if self.kekulize:
+                Chem.Kekulize(initial_mol, clearAromaticFlags=True)
+            if self.with_Hs:
+                initial_mol_with_Hs = Chem.AddHs(initial_mol)
+            generated_mols = []
+            for smirks, weight in self.weighted_smirks:
+                try:
+                    rxn = AllChem.ReactionFromSmarts(smirks)
+                    products = []
+                    if self.without_Hs:
+                        products += rxn.RunReactants((initial_mol,))
+                    if self.with_Hs:
+                        products += rxn.RunReactants((initial_mol_with_Hs,))
+                    for ps in products:
+                        for p in ps:
+                            generated_mols.append((smirks, weight, p))
+                except:
+                    continue
+                
+            sum_weight = 0
+            weights = {}
+            actions = {}
             
-        sum_weight = 0
-        weights = {}
-        actions = {}
-        
-        for smirks, weight, mol in generated_mols:
-            try:
-                mol = Chem.RemoveHs(mol)
-                smiles = Chem.MolToSmiles(mol, canonical=True)
-                sum_weight += weight
-                if smiles not in weights:
-                    weights[smiles] = weight
-                    actions[smiles] = smirks
-                else:
-                    weights[smiles] += weight
-                    actions[smiles] += f" or {smirks}"
-            except:
-                continue
-            
-        children = []
-        for smiles in weights.keys():
-            weight = weights[smiles]
-            action = actions[smiles] if self.record_actions else None
-            child = SMILESStringNode(string=smiles, parent=node, last_prob=weight/sum_weight, last_action=action)
-            children.append(child)
-            
-        return children
+            for smirks, weight, mol in generated_mols:
+                try:
+                    mol = Chem.RemoveHs(mol)
+                    smiles = Chem.MolToSmiles(mol, canonical=True)
+                    sum_weight += weight
+                    if smiles not in weights:
+                        weights[smiles] = weight
+                        actions[smiles] = smirks
+                    else:
+                        weights[smiles] += weight
+                        actions[smiles] += f" or {smirks}"
+                except:
+                    continue
+                
+            children = []
+            for smiles in weights.keys():
+                weight = weights[smiles]
+                action = actions[smiles] if self.record_actions else None
+                child = SMILESStringNode(string=smiles, parent=node, last_prob=weight/sum_weight, last_action=action)
+                children.append(child)
+                
+            return children
+        except:
+            return []
