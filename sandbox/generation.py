@@ -3,6 +3,7 @@
 # Example (Load): python sandbox/generation.py -l sandbox/generation_result/~~~/save --max_generations 100
 
 # Path setup / Imports
+import faulthandler
 import gc
 import sys
 import os
@@ -87,4 +88,5 @@ def main():
             generator = generator_from_conf(conf, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
 
 if __name__ == "__main__":
+    faulthandler.enable()
     main()
