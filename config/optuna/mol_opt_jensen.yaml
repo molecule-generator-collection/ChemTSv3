@@ -6,11 +6,11 @@ use_canonical_smiles_as_key: true
 
 transition_class: JensenTransition
 transition_args:
-  check_size: true
+  check_size: false
   check_ring: true
   filters:
   - filter_class: ValidityFilter # put this first if unsure
-  - filter_class: RadicalFilter
+  # - filter_class: RadicalFilter
 
 policy_class: PUCT
 
