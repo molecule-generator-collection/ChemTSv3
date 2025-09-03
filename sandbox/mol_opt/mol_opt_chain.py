@@ -88,8 +88,8 @@ def objective(trial):
         
         return sum_auc
     except Exception as e:
-        print("Error occurred:", e)
-        traceback.print_exc()
+        # print("Error occurred:", e)
+        # traceback.print_exc()
         raise optuna.exceptions.TrialPruned()
 
 def main():
