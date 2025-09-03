@@ -4,7 +4,6 @@
 
 # Path setup / Imports
 import faulthandler
-import gc
 import sys
 import os
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
@@ -52,7 +51,6 @@ def main():
                 yaml_path = conf["next_yaml_path"]
                 conf = conf_from_yaml(yaml_path)
                 new_generator = generator_from_conf(conf, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
-                del generator; gc.collect()
                 generator = new_generator
                 
     elif yaml_path is None and load_dir is not None:

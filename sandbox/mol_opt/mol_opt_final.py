@@ -1,7 +1,7 @@
 # Example: python sandbox/mol_opt/mol_opt_final.py --method chain
 
 # Path setup / Imports
-import gc
+import faulthandler
 import sys
 import os
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
@@ -43,7 +43,6 @@ def test_chain(oracle_name: str, seed: int) -> float:
     # generator_2.plot(**conf_2.get("plot_args", {}))
     generator_2.analyze()
     result = generator_2.auc(top_k=10, max_oracle_calls=10000, finish=True)
-    del generator_2, generator_1; gc.collect()
     
     return result
 
@@ -62,7 +61,6 @@ def test_single(oracle_name: str, seed: int) -> float:
     # generator.plot(**conf.get("plot_args", {}))
     generator.analyze()
     result = generator.auc(top_k=10, max_oracle_calls=10000, finish=True)
-    del generator; gc.collect()
     
     return result
 
@@ -101,4 +99,5 @@ def main():
         print(oracle_name, mean(results[oracle_name]), results[oracle_name])
         
 if __name__ == "__main__":
+    faulthandler.enable()
     main()

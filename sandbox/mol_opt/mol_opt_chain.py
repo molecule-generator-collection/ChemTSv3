@@ -2,7 +2,6 @@
 
 # Path setup / Imports
 import faulthandler
-import gc
 import sys
 import os
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
@@ -70,7 +69,6 @@ def objective(trial):
             auc = generator_2.auc(top_k=10, max_oracle_calls=10000, finish=True)
             n_generated = len(generator_2.unique_keys)
             generator_2.logger.info(f"top_10_auc: {auc}")
-            del generator_1, generator_2; gc.collect()
             
             if n_generated < 10000:
                 raise optuna.exceptions.TrialPruned()
@@ -93,8 +91,6 @@ def objective(trial):
         raise optuna.exceptions.TrialPruned()
 
 def main():
-    faulthandler.enable(file=sys.stderr, all_threads=True)
-    
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", type=str, default="mol_opt_chain", help="Name")
     parser.add_argument("--enqueue", type=bool, default=True, help="Enqueue")
@@ -113,4 +109,5 @@ def main():
     study.optimize(objective, n_trials=500)
         
 if __name__ == "__main__":
+    faulthandler.enable()
     main()
