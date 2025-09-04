@@ -3,17 +3,21 @@ from rdkit.Chem import Mol
 from language import MolLanguage
 
 class FASTA(MolLanguage):
-    TOKENS = ["<BOS>", # 0
+    PROTEIN_TOKENS = ["<BOS>", # 0
              "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", # 1~10
              "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", # 11~20
              "W", "Y", "Z", "X", "*", "-", # 21~26
              "<EOS>", "<PAD>"] # 27, 28
-    _TOKEN2ID = {tok: i for i, tok in enumerate(TOKENS)}
     _unk_token = "X" # override
     
     def __init__(self, flavor: int=0):
         self.flavor = flavor # Used in MolFromFASTA()
-    
+        if flavor == 0 or flavor == 1:
+            self._tokens = self.PROTEIN_TOKENS
+            self._token2id = {tok: i for i, tok in enumerate(self._tokens)}
+        else:
+            raise ValueError(f"flavor={flavor} is currently unsupported.")
+            
     def sentence2ids(self, sentence: str, include_eos: bool=True) -> list[int]:
         """Convert sentence to token ids"""
         ids = [self.token2id("<BOS>")]
@@ -23,19 +27,19 @@ class FASTA(MolLanguage):
         return ids
     
     def token2id(self, token: str) -> int:
-        if token not in self._TOKEN2ID:
+        if token not in self._token2id:
             token = self._unk_token
-        return self._TOKEN2ID[token]
+        return self._token2id[token]
 
-    def id2token(token_id: int) -> str:
+    def id2token(self, token_id: int) -> str:
         if 0 <= token_id <= 28:
-            return FASTA.TOKENS[token_id]
+            return self._tokens[token_id]
         else:
             return FASTA._unk_token
 
     def vocab(self) -> list[str]:
         """List of all possible tokens."""
-        return self.TOKENS
+        return self._tokens
 
     def ids2sentence(self, ids: list[int]) -> str:
         """Revert the token id sequence to sentence"""
