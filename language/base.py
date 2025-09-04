@@ -22,7 +22,7 @@ class Language(ABC):
         pass
 
     @abstractmethod
-    def id2token(tokenid: int) -> str:
+    def id2token(self, tokenid: int) -> str:
         pass
 
     @abstractmethod
@@ -166,7 +166,7 @@ class MolLanguage(Language):
         pass
 
     @abstractmethod
-    def id2token(token_id: int) -> str:
+    def id2token(self, token_id: int) -> str:
         pass
 
     @abstractmethod
