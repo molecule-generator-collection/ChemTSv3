@@ -57,7 +57,8 @@ class SMILESStringNode(MolStringNode):
         self.string = None
     
 class FASTAStringNode(MolStringNode):
-    fasta_lang = FASTA()
+    flavor = 0
+    fasta_lang = FASTA(flavor)
     
     def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         super().__init__(string=string, lang=self.fasta_lang, parent=parent, last_prob=last_prob, last_action=last_action)
