@@ -1,8 +1,8 @@
 output_dir: generation_result
 silent: true
 time_limit: 1000 # seconds
-max_generations: 200
-n_keys_to_pass: 10
+max_generations: 400
+n_keys_to_pass: 4
 
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
@@ -15,13 +15,13 @@ transition_args:
 
 policy_class: UCT
 policy_args:
-  best_rate: 0.5
-  c: 0.2
+  best_rate: 0.539
+  c: 0.126
 
 generator_class: MCTS
 generator_args:
   n_eval_iters: 1
-  n_tries: 1
+  n_tries: 3
   filter_reward: 0
   terminal_reward: ignore
 
