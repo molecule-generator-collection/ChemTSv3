@@ -1,13 +1,13 @@
 output_dir: generation_result
 silent: true
 time_limit: 1000 # seconds
-max_generations: 9800
+max_generations: 9600
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 
 transition_class: JensenTransition
 transition_args:
-  check_size: true
+  check_size: false
   check_ring: true
   filters:
   - filter_class: ValidityFilter
@@ -15,14 +15,14 @@ transition_args:
 
 policy_class: PUCT
 policy_args:
-  c: 0.25
-  best_rate: 0.9
+  c: 0.262
+  best_rate: 0.963
 
 generator_class: MCTS
 generator_args:
   avoid_duplicates: true
   cut_failed_child: true
-  n_eval_width: .inf
+  n_eval_width: 1
   n_eval_iters: 1
   n_tries: 1
   filter_reward: 0
