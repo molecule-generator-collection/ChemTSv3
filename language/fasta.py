@@ -3,7 +3,6 @@ from rdkit.Chem import Mol
 from language import MolLanguage
 
 class FASTA(MolLanguage):
-    flavor = 0 # Used in MolFromFASTA()
     TOKENS = ["<BOS>", # 0
              "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", # 1~10
              "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", # 11~20
@@ -11,6 +10,9 @@ class FASTA(MolLanguage):
              "<EOS>", "<PAD>"] # 27, 28
     _TOKEN2ID = {tok: i for i, tok in enumerate(TOKENS)}
     _unk_token = "X" # override
+    
+    def __init__(self, flavor: int=0):
+        self.flavor = flavor # Used in MolFromFASTA()
     
     def sentence2ids(self, sentence: str, include_eos: bool=True) -> list[int]:
         """Convert sentence to token ids"""
