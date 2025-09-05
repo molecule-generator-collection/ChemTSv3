@@ -59,7 +59,8 @@ class Language(ABC):
     def unk_id(self) -> int:
         return self.token2id(self.__class__._unk_token)
     
-    def list2tensor(self, ids: list[int], device: str=None) -> torch.Tensor:
+    @staticmethod
+    def list2tensor(ids: list[int], device: str=None) -> torch.Tensor:
         return torch.tensor([ids], device=torch.device(device or ("cuda:0" if torch.cuda.is_available() else "cpu")))
     
     @staticmethod
