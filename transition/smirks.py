@@ -1,6 +1,6 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from node import SMILESStringNode
+from node import CanonicalSMILESStringNode
 from transition import TemplateTransition
 
 class SMIRKSTransition(TemplateTransition):
@@ -52,7 +52,7 @@ class SMIRKSTransition(TemplateTransition):
                 self.weighted_smirks.append((smirks, weight))
         
     # implement
-    def _next_nodes_impl(self, node: SMILESStringNode):
+    def _next_nodes_impl(self, node: CanonicalSMILESStringNode) -> list[CanonicalSMILESStringNode]:
         try:
             initial_mol = node.mol(use_cache=False)
             if self.kekulize:
@@ -96,7 +96,7 @@ class SMIRKSTransition(TemplateTransition):
             for smiles in weights.keys():
                 weight = weights[smiles]
                 action = actions[smiles] if self.record_actions else None
-                child = SMILESStringNode(string=smiles, parent=node, last_prob=weight/sum_weight, last_action=action)
+                child = CanonicalSMILESStringNode(string=smiles, parent=node, last_prob=weight/sum_weight, last_action=action)
                 children.append(child)
                 
             return children

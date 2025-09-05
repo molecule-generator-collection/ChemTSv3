@@ -157,8 +157,6 @@ class MCTS(Generator):
                 child.leave(logger=self.logger)
         if self.failed_parent_reward != "ignore" and not parent_got_unfiltered_node:
             self._backpropagate(node, self.failed_parent_reward, False)
-            if not self.discard_unneeded_states:
-                self.logger.debug(f"All evals failed from: {node.key()}")
             
     def display_top_k_molecules(self, str2mol_func=None, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):
         if str2mol_func is not None:

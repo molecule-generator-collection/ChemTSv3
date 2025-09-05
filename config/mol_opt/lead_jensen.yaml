@@ -2,7 +2,7 @@ output_dir: generation_result
 silent: true
 time_limit: 1000 # seconds
 max_generations: 9600
-node_class: SMILESStringNode
+node_class: CanonicalSMILESStringNode
 use_canonical_smiles_as_key: true
 
 transition_class: JensenTransition

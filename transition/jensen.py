@@ -4,7 +4,7 @@ import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from filter import Filter
-from node import SMILESStringNode
+from node import CanonicalSMILESStringNode
 from transition import TemplateTransition
 
 class JensenTransition(TemplateTransition):
@@ -162,7 +162,7 @@ class JensenTransition(TemplateTransition):
             return False
 
     # implement
-    def _next_nodes_impl(self, node: SMILESStringNode) -> list[SMILESStringNode]:
+    def _next_nodes_impl(self, node: CanonicalSMILESStringNode) -> list[CanonicalSMILESStringNode]:
         try:
             mol = node.mol(use_cache=False)
         
@@ -193,7 +193,7 @@ class JensenTransition(TemplateTransition):
                             
                     for new_mol in new_mols:
                         try:
-                            smiles = Chem.MolToSmiles(new_mol)
+                            smiles = Chem.MolToSmiles(new_mol, canonical=True)
                             last_prob = new_prob * (1 / len(new_mols))
                             raw_result.append((action, smiles, last_prob))
                         except:
@@ -205,7 +205,7 @@ class JensenTransition(TemplateTransition):
             total = sum(prob for _, _, prob in raw_result)
             if total == 0:
                 return []
-            return [SMILESStringNode(string=smiles, parent=node, last_action=a, last_prob=prob/total) for a, smiles, prob in raw_result]
+            return [CanonicalSMILESStringNode(string=smiles, parent=node, last_action=a, last_prob=prob/total) for a, smiles, prob in raw_result]
         except:
             return []
     
