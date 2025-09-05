@@ -4,6 +4,7 @@ from rdkit.Chem import Mol
 import torch
 from language import Language, MolLanguage, SMILES
 from node import Node, MolNode
+from utils import mol_validity_check
 
 class SentenceNode(Node):
     def __init__(self, id_tensor: torch.Tensor, lang: Language, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
@@ -49,14 +50,17 @@ class MolSentenceNode(SentenceNode, MolNode):
     # implement
     def _mol_impl(self) -> Mol:
         return self.lang.sentence2mol(self.lang.ids2sentence(self.id_list()))
-    
-    # override
+
+    # override     
     def key(self):
-        if not self.use_canonical_smiles_as_key or not self.validity_filter().check(self):
+        if not self.use_canonical_smiles_as_key:
+            return super().key()
+        mol = self.mol(use_cache=True)
+        if not mol_validity_check(mol):
             return super().key()
         else:
             try:
-                return Chem.MolToSmiles(self.mol(use_cache=True), canonical=True)
+                return Chem.MolToSmiles(mol, canonical=True)
             except Exception:
                 return "invalid mol"
         

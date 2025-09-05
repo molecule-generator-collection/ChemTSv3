@@ -1,3 +1,4 @@
+import copy
 import os
 import pandas as pd
 from rdkit import Chem
@@ -6,6 +7,14 @@ from rdkit.Chem import inchi
 from rdkit.Chem import Draw, rdDepictor, rdFingerprintGenerator
 from rdkit.DataStructs.cDataStructs import TanimotoSimilarity
 from IPython.display import display
+
+def mol_validity_check(mol: Mol):
+    if mol is None or mol.GetNumAtoms() == 0:
+        return False
+    _mol = Chem.Mol(mol) # copy
+    if Chem.SanitizeMol(_mol, catchErrors=True).name != "SANITIZE_NONE":
+        return False
+    return True
 
 def is_same_mol(mol1: Mol, mol2: Mol, options=None):
     inchi1 = inchi.MolToInchiKey(mol1, options)

@@ -3,6 +3,7 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 from language import MolLanguage, SMILES, FASTA
 from node import MolNode
+from utils import mol_validity_check
 
 class MolStringNode(MolNode):
     use_canonical_smiles_as_key = False
@@ -16,11 +17,14 @@ class MolStringNode(MolNode):
         return True
 
     def key(self):
-        if not self.use_canonical_smiles_as_key or not self.validity_filter().check(self):
+        if not self.use_canonical_smiles_as_key:
+            return self.string
+        mol = self.mol(use_cache=True)
+        if not mol_validity_check(mol):
             return self.string
         else:
             try:
-                return Chem.MolToSmiles(self.mol(use_cache=True), canonical=True)
+                return Chem.MolToSmiles(mol, canonical=True)
             except Exception:
                 return "invalid mol"
     
