@@ -46,7 +46,7 @@ policy_args:
 ### Generator ###
 generator_class: MCTS
 generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
-  n_eval_width: .inf # If the reward calculation is expensive or memory usage is not a concern, n_eval_width = 1 might work better.
+  n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might work better.
   n_eval_iters: 1
   n_tries: 1
   filter_reward: 0  # Applies the same fallback reward value to all filter steps
