@@ -19,7 +19,7 @@ class MolStringNode(MolNode):
     def key(self):
         if not self.use_canonical_smiles_as_key:
             return self.string
-        mol = self.mol(use_cache=True)
+        mol = self.mol(use_cache=False) # TODO: allow =True in some cases
         if not mol_validity_check(mol):
             return self.string
         else:
@@ -54,6 +54,11 @@ class SMILESStringNode(MolStringNode):
     # override
     def smiles(self, use_cache=False) -> str:
         """Expects self.string to be canonical SMILES."""
+        return self.string
+    
+class CanonicalSMILESStringNode(SMILESStringNode):
+    # override
+    def key(self):
         return self.string
     
 class FASTAStringNode(MolStringNode):

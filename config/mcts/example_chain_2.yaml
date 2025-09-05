@@ -3,7 +3,7 @@ max_generations: 1000
 
 output_dir: generation_result
 
-node_class: SMILESStringNode
+node_class: CanonicalSMILESStringNode
 use_canonical_smiles_as_key: true
 
 transition_class: JensenTransition

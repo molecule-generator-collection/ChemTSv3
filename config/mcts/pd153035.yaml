@@ -2,7 +2,7 @@ output_dir: generation_result
 time_limit: 86400
 max_generations: 10000000
 
-node_class: SMILESStringNode
+node_class: CanonicalSMILESStringNode
 use_canonical_smiles_as_key: true
 
 root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
