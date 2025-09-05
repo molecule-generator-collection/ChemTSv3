@@ -8,4 +8,7 @@ def __getattr__(name):
     if name == "SELFIES":
         from .selfies import SELFIES
         return SELFIES
+    if name == "TokenizerLanguage":
+        from .tokenizer import TokenizerLanguage
+        return TokenizerLanguage
     raise AttributeError(f"module {__name__} has no attribute {name}")
