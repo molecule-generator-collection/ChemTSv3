@@ -33,12 +33,13 @@ class TemplatePolicy(Policy):
     Policy with progressive widening.
     Progressive widening ref: https://www.researchgate.net/publication/23751563_Progressive_Strategies_for_Monte-Carlo_Tree_Search
     """
-    def __init__(self, pw_c: float=None, pw_alpha: float=None):
+    def __init__(self, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0):
         if pw_c is None and pw_alpha is not None or pw_c is not None and pw_alpha is None:
             raise ValueError("Specify both (or none) of 'pw_c' and 'pw_alpha'.")
         
         self.pw_c = pw_c
         self.pw_alpha = pw_alpha
+        self.pw_beta = pw_beta
 
     @abstractmethod
     def select_child(self, node: Node) -> Node:
@@ -48,7 +49,7 @@ class TemplatePolicy(Policy):
     def candidates(self, node: Node) -> list[Node]:
         """Return reduced child candidates with progressive widening."""
         children = sorted(node.children, key=lambda c: (c.last_prob or 0.0), reverse=True) # deterministic
-        k = max(1, int(self.pw_c * (node.n ** self.pw_alpha))) if self.pw_c is not None else len(children)
+        k = max(1, int(self.pw_c * (node.n ** self.pw_alpha) + self.pw_beta)) if self.pw_c is not None else len(children)
         return children[:min(k, len(children))]
 
 class ValuePolicy(TemplatePolicy):
