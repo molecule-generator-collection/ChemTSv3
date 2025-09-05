@@ -68,6 +68,9 @@ class Generator(ABC):
         if (time_limit is None) and (max_generations is None):
             raise ValueError("Specify at least one of max_genrations, max_rollouts or time_limit.")
         
+        if self.verbose_interval is not None:
+            self.log_verbose_info()
+        
         # record current time and counts
         time_start = time.time()
         initial_time = self.passed_time
@@ -147,7 +150,7 @@ class Generator(ABC):
         self.logger.info(row)
         
         if self.verbose_interval is not None and len(self.unique_keys) % self.verbose_interval == 0:
-            log_memory_usage(self.logger)
+            self.log_verbose_info()
         
     def average_reward(self, window: int | float=None, top_p: float = None):
         """
@@ -399,6 +402,9 @@ class Generator(ABC):
         self.best_reward = predecessor.best_reward
         self.unique_keys = predecessor.unique_keys
         self.passed_time = predecessor.passed_time
+        
+    def log_verbose_info(self):
+        log_memory_usage(self.logger)
         
     def __getstate__(self):
         state = self.__dict__.copy()
