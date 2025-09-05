@@ -75,7 +75,7 @@ class Node(ABC):
         self.sum_r += value
         self.best_r = max(self.best_r, value)
     
-    def sample_children(self, max_size: int=1, replace: bool=False):
+    def sample_children(self, max_size: int=1, replace: bool=False) -> list[Self]:
         if not self.children:
             return None
         size = min(max_size, len(self.children))
@@ -84,14 +84,23 @@ class Node(ABC):
         probabilities = weights / total
         return np.random.choice(self.children, size=size, replace=replace, p=probabilities)
     
-    def sample_child(self):
+    def sample_child(self) -> Self:
         return self.sample_children(max_size=1)[0]
     
-    def sample_offspring(self, depth: int=1):
+    def sample_offspring(self, depth: int=1) -> Self:
         if depth == 1:
             return self.sample_children(max_size=1)[0]
         else:
             return self.sample_children(max_size=1)[0].sample_offspring(depth=depth-1)
+        
+    def count_offsprings(self) -> int:
+        count = 0
+        stack = [self]
+        while stack:
+            node = stack.pop()
+            count += 1
+            stack.extend(node.children)
+        return count
 
     def cut_unvisited_children(self):
         self.children = [node for node in self.children if node.n != 0]
