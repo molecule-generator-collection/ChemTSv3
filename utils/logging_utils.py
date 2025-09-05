@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 import logging
 import os
+import psutil
 
 class CSVHandler(logging.Handler):
     def __init__(self, filename):
@@ -48,3 +49,7 @@ def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, fil
     logger.addHandler(csv_handler)
     
     return logger
+
+def log_memory_usage(logger: logging.Logger):
+    process = psutil.Process(os.getpid())
+    logger.info(f"Memory usage: {process.memory_info().rss / 1024**2:.2f} MB")

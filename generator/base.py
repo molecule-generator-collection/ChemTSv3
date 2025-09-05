@@ -12,13 +12,13 @@ from filter import Filter
 from node import Node
 from reward import Reward, LogPReward
 from transition import Transition
-from utils import moving_average, make_logger, plot_xy
+from utils import moving_average, log_memory_usage, make_logger, plot_xy
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, verbose_interval: int=None):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
@@ -51,6 +51,7 @@ class Generator(ABC):
         self._generated_nodes_tmp = []
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
         self.info_interval = info_interval
+        self.verbose_interval = verbose_interval
     
     @abstractmethod
     def _generate_impl(self, *kwargs):
@@ -144,6 +145,9 @@ class Generator(ABC):
             row = [len(self.unique_keys), self.passed_time, key, reward, *objective_values]
             
         self.logger.info(row)
+        
+        if self.verbose_interval is not None and len(self.unique_keys) % self.verbose_interval == 0:
+            log_memory_usage(self.logger)
         
     def average_reward(self, window: int | float=None, top_p: float = None):
         """
