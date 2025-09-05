@@ -36,28 +36,29 @@ class Language(ABC):
         pass
     
     def bos_token(self) -> str:
-        return self.__class__._bos_token
+        # Not "return self.__class__._bos_token" etc. to prioritize instance variables
+        return self._bos_token
     
     def eos_token(self) -> str:
-        return self.__class__._eos_token
+        return self._eos_token
     
     def pad_token(self) -> str:
-        return self.__class__._pad_token
+        return self._pad_token
     
     def unk_token(self) -> str:
-        return self.__class__._unk_token
-    
-    def eos_id(self) -> int:
-        return self.token2id(self.__class__._eos_token)
+        return self._unk_token
     
     def bos_id(self) -> int:
-        return self.token2id(self.__class__._bos_token)
+        return self.token2id(self.bos_token())
+    
+    def eos_id(self) -> int:
+        return self.token2id(self.eos_token())
     
     def pad_id(self) -> int:
-        return self.token2id(self.__class__._pad_token)
+        return self.token2id(self.pad_token())
     
     def unk_id(self) -> int:
-        return self.token2id(self.__class__._unk_token)
+        return self.token2id(self.unk_token())
     
     @staticmethod
     def list2tensor(ids: list[int], device: str=None) -> torch.Tensor:
