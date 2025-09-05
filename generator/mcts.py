@@ -10,7 +10,7 @@ class MCTS(Generator):
     """Perform MCTS to maximize the reward."""
     def __init__(self, root: Node, transition: Transition, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, 
                  filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", 
-                 n_eval_width: int=1, allow_eval_overlaps: bool=False, n_eval_iters: int=1, n_tries: int=1, 
+                 n_eval_width: int=float("inf"), allow_eval_overlaps: bool=False, n_eval_iters: int=1, n_tries: int=1, 
                  cut_failed_child: bool=False, reward_cutoff: float=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=False, discard_unneeded_states: bool=True,
