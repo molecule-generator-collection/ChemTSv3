@@ -103,10 +103,11 @@ class MCTS(Generator):
         expanded = False
         for n in nexts:
             if self.avoid_duplicates:
-                if n.key() in self.node_keys:
+                key = n.key()
+                if key in self.node_keys:
                     continue
                 else:
-                    self.node_keys.add(n.key())
+                    self.node_keys.add(key)
             node.add_child(n)
             expanded = True
         return expanded
