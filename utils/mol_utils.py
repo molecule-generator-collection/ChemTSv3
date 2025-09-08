@@ -11,7 +11,7 @@ from IPython.display import display
 def mol_validity_check(mol: Mol):
     if mol is None or mol.GetNumAtoms() == 0:
         return False
-    _mol = Chem.Mol(mol) # copy
+    _mol = copy.deepcopy(mol) # _mol = Chem.Mol(mol)
     if Chem.SanitizeMol(_mol, catchErrors=True).name != "SANITIZE_NONE":
         return False
     return True
