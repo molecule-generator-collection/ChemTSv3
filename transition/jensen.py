@@ -211,7 +211,7 @@ class JensenTransition(TemplateTransition):
     
     @staticmethod
     def merge_duplicate_smiles(tuples: list[tuple]) -> list[tuple]:
-        smiles_dict = OrderedDict()
+        smiles_dict = {}
         for action, smiles, prob in tuples:
             if smiles in smiles_dict:
                 smiles_dict[smiles][1] += prob
