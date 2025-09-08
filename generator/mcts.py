@@ -15,7 +15,7 @@ class MCTS(Generator):
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=False, discard_unneeded_states: bool=True,
                  max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, 
-                 name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, verbose_interval: int=None):
+                 name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, verbose_interval: int=None, save_interval: int=None):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
@@ -69,7 +69,7 @@ class MCTS(Generator):
         self.discard_unneeded_states = discard_unneeded_states
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
-        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, return_nodes=return_nodes, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval)
+        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, return_nodes=return_nodes, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval, save_interval=save_interval)
         self.root.n = 1
         
     def _selection(self) -> Node:

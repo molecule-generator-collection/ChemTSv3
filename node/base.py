@@ -127,6 +127,16 @@ class Node(ABC):
     def __str__(self) -> str:
         return self.key()
     
+    def __getstate__(self):
+        s = self.__dict__.copy()
+        s["_parent_ref"] = self.parent
+        return s
+
+    def __setstate__(self, state):
+        parent_obj = state.get("_parent_ref", None)
+        state["_parent_ref"] = weakref.ref(parent_obj) if parent_obj is not None else None
+        self.__dict__.update(state)
+
 class MolNode(Node):    
     @abstractmethod
     def key(self) -> str:
