@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import weakref
 import logging
 from typing import Self, Any
 import numpy as np
@@ -9,7 +10,8 @@ class Node(ABC):
     initial_best_r = 0.0
     
     def __init__(self, parent=None, last_action: Any=None, last_prob=1.0):
-        self.parent = parent
+        # self.parent = parent
+        self._parent_ref = weakref.ref(parent) if parent is not None else None
         if parent is not None:
             self.depth = parent.depth + 1
         else:
@@ -54,6 +56,14 @@ class Node(ABC):
             self._cache = {}
         return self._cache
     
+    @property
+    def parent(self):
+        return self._parent_ref() if self._parent_ref is not None else None
+    
+    @parent.setter
+    def parent(self, p):
+        self._parent_ref = weakref.ref(p) if p is not None else None
+    
     def clear_cache(self):
         self._cache = None
     
@@ -75,7 +85,7 @@ class Node(ABC):
         self.sum_r += value
         self.best_r = max(self.best_r, value)
     
-    def sample_children(self, max_size: int=1, replace: bool=False) -> list[Self]:
+    def sample_children(self, max_size: int=1, replace: bool=False):
         if not self.children:
             return None
         size = min(max_size, len(self.children))
@@ -101,9 +111,6 @@ class Node(ABC):
             count += 1
             stack.extend(node.children)
         return count
-
-    def cut_unvisited_children(self):
-        self.children = [node for node in self.children if node.n != 0]
         
     def leave(self, recursive=True, logger: logging.Logger=None):
         if self.parent is not None and self in self.parent.children:
