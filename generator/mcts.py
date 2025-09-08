@@ -95,15 +95,13 @@ class MCTS(Generator):
         return objective_values, reward
 
     def _expand(self, node: Node) -> bool:
-        transitions = self.transition.transitions(node)
+        nexts = self.transition.next_nodes(node)
         if self.discard_unneeded_states:
             node.discard_unneeded_states()
-        node.discard_unneeded_states()
-        if len(transitions) == 0:
+        if len(nexts) == 0:
             return False
         expanded = False
-        _, nodes, _ = zip(*transitions)
-        for n in nodes:
+        for n in nexts:
             if self.avoid_duplicates:
                 if n.key() in self.node_keys:
                     continue
