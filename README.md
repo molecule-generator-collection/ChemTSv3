@@ -51,8 +51,8 @@ See `config/mcts/example.yaml` and `config/mcts/example_chain_*.yaml` for settin
 python sandbox/generation.py -c config/mcts/example.yaml
 # Chain generation
 python sandbox/generation.py -c config/mcts/example_chain_1.yaml
-# Load a saved progress and continue the generation
-python sandbox/generation.py -l sandbox/~~~/save --max_generations 100 --time_limit 60
+# Load a checkpoint and continue the generation
+python sandbox/generation.py -l sandbox/~~~/checkpoint --max_generations 100 --time_limit 60
 ```
 
 ## Notebooks
