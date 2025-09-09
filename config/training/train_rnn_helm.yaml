@@ -1,0 +1,16 @@
+output_dir: "sandbox/training_result/rnn_model"
+lang_class: HELM
+lang_args:
+  has_period: false
+dataset_path: data/helm/chembl34_protein_helm_only.helm
+
+test_size: 0.1
+batch_size: 512
+lr: 0.001
+num_epochs: 100
+# rnn_type: "LSTM"
+rnn_type: "GRU"
+# embed_size: 64
+hidden_size: 256
+num_layers: 2
+dropout: 0.3
