@@ -15,7 +15,7 @@ class HeapQueueGenerator(Generator):
     # implement
     def _generate_impl(self):
         _, _, node = heapq.heappop(self.q)
-        _, children, _ = zip(*self.transition.transitions(node))
+        children = self.transition.next_nodes(node)
         for child in children:
             key = child.key()
             if key in self.checked_keys:

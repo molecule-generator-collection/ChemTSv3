@@ -51,14 +51,13 @@ generator_args: # root, transition, reward, policy and filters are automatically
   n_tries: 1
   filter_reward: 0  # Applies the same fallback reward value to all filter steps
   # filter_reward: [0, 0,1] # Specifies different fallback reward values to each filter step
+  info_interval: 100  # Interval to log the average reward
+  save_interval: 500  # Interval to save the progress
 
 ### Plot Setting ###
 plot_args:
   moving_average_window: 0.05
   reward_top_ps: [0.5, 0.1]
-
-### Save Setting ###
-# save_dir: save # (CLI) Name of the directory to save the generator state. If not specified, the generator will not be saved.
 
 ### Chain Setting ###
 # n_keys_to_pass: 10 # (Chain) Number of generated keys to pass to the next generator

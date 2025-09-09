@@ -105,3 +105,4 @@ def append_similarity_to_df(df: pd.DataFrame, goal_smiles: str, name: str="simil
         return TanimotoSimilarity(fp, goal_fp)
 
     df[name] = df["key"].apply(calc_similarity)
+    return df

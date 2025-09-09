@@ -59,18 +59,28 @@ class SMIRKSTransition(TemplateTransition):
                 Chem.Kekulize(initial_mol, clearAromaticFlags=True)
             if self.with_Hs:
                 initial_mol_with_Hs = Chem.AddHs(initial_mol)
-            generated_mols = []
+            generated_smis = []
             for smirks, weight in self.weighted_smirks:
                 try:
                     rxn = AllChem.ReactionFromSmarts(smirks)
-                    products = []
                     if self.without_Hs:
-                        products += rxn.RunReactants((initial_mol,))
+                        for ps in rxn.RunReactants((initial_mol,)):
+                            for p in ps:
+                                try:
+                                    p = Chem.RemoveHs(p)
+                                    smiles = Chem.MolToSmiles(p, canonical=True)
+                                    generated_smis.append((smirks, weight, smiles))
+                                except:
+                                    continue
                     if self.with_Hs:
-                        products += rxn.RunReactants((initial_mol_with_Hs,))
-                    for ps in products:
-                        for p in ps:
-                            generated_mols.append((smirks, weight, p))
+                        for ps in rxn.RunReactants((initial_mol_with_Hs,)):
+                            for p in ps:
+                                try:
+                                    p = Chem.RemoveHs(p)
+                                    smiles = Chem.MolToSmiles(p, canonical=True)
+                                    generated_smis.append((smirks, weight, smiles))
+                                except:
+                                    continue
                 except:
                     continue
                 
@@ -78,10 +88,8 @@ class SMIRKSTransition(TemplateTransition):
             weights = {}
             actions = {}
             
-            for smirks, weight, mol in generated_mols:
+            for smirks, weight, smiles in generated_smis:
                 try:
-                    mol = Chem.RemoveHs(mol)
-                    smiles = Chem.MolToSmiles(mol, canonical=True)
                     sum_weight += weight
                     if smiles not in weights:
                         weights[smiles] = weight
