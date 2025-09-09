@@ -196,7 +196,7 @@ class RNNTransition(LanguageModel):
         return initial_node.__class__(id_tensor=generated_tensor, lang=self.lang) # .to(initial_node.id_tensor.device)
 
     @staticmethod
-    def train_rnn_with_dynamic_language(lang: DynamicLanguage, dataset_path: str, test_dataset_path: str=None, test_size: float=0.1, batch_size=64, lr=1e-3, num_epochs=10, rnn_type="GRU", embed_size=None, hidden_size=256, num_layers=2, dropout=0.3) -> tuple[Self, dict]:
+    def train_rnn_with_language(lang: Language, dataset_path: str, test_dataset_path: str=None, test_size: float=0.1, batch_size=64, lr=1e-3, num_epochs=10, rnn_type="GRU", embed_size=None, hidden_size=256, num_layers=2, dropout=0.3) -> tuple[Self, dict]:
         """
         Returns:
             Self: last model
@@ -216,7 +216,8 @@ class RNNTransition(LanguageModel):
             ds = ds["train"].train_test_split(test_size=test_size)
         else:
             ds = load_dataset("text", data_files={"train": dataset_path, "test": test_dataset_path})
-        lang.build_vocab(ds)
+        if issubclass(lang.__class__, DynamicLanguage):
+            lang.build_vocab(ds)
 
         ds_tokenized = ds.map(lambda x: {"ids": lang.sentence2ids(x["text"])}, remove_columns=["text"])
         train_dataset = ds_tokenized["train"]
@@ -275,7 +276,7 @@ class RNNTransition(LanguageModel):
         return model, best_state_dict
     
     @staticmethod
-    def train_rnn_from_conf(conf: dict, repo_root: str="../") -> tuple[Self, dict, Language]:
+    def train_rnn_from_conf(conf: dict) -> tuple[Self, dict, Language]:
         """
         Train RNN from conf. Currently only supports DynamicLanguage.
         
@@ -286,6 +287,7 @@ class RNNTransition(LanguageModel):
         """
         import copy
         from utils import class_from_package
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
         conf_clone = copy.deepcopy(conf)
         
@@ -298,5 +300,5 @@ class RNNTransition(LanguageModel):
         if "test_dataset_path" in conf_clone:
             conf_clone["test_dataset_path"] = os.path.join(repo_root, conf_clone["test_dataset_path"])
             
-        model, best_state_dict = RNNTransition.train_rnn_with_dynamic_language(lang=lang, **conf_clone)
+        model, best_state_dict = RNNTransition.train_rnn_with_language(lang=lang, **conf_clone)
         return model, best_state_dict, lang

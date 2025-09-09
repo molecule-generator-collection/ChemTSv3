@@ -95,7 +95,7 @@ class GPT2Transition(LanguageModel):
         return initial_node.__class__(id_tensor=result_tensor, lang=self.lang)
     
     @staticmethod
-    def train_gpt2_with_dynamic_language(lang: DynamicLanguage, dataset_path: str, training_args: TrainingArguments, test_size=0.1, block_size=None, additional_length=0, n_embd=128, n_layer=6, n_head=4, dropout=0.1)-> tuple[GPT2LMHeadModel, Trainer]:
+    def train_gpt2_with_language(lang: Language, dataset_path: str, training_args: TrainingArguments, test_size=0.1, block_size=None, additional_length=0, n_embd=128, n_layer=6, n_head=4, dropout=0.1)-> tuple[GPT2LMHeadModel, Trainer]:
         """
         Returns:
             GPT2LMHeadModel: model
@@ -113,7 +113,8 @@ class GPT2Transition(LanguageModel):
         # make dataset and build vocabs
         ds = load_dataset("text", data_files={"train": dataset_path})
         ds = ds["train"].train_test_split(test_size=test_size)
-        lang.build_vocab(ds)
+        if issubclass(lang.__class__, DynamicLanguage):
+            lang.build_vocab(ds)
 
         ds_tokenized = ds.map(
             lambda x: {"input_ids": lang.sentence2ids(x["text"])},
@@ -223,5 +224,5 @@ class GPT2Transition(LanguageModel):
         training_args = TrainingArguments(**training_args)
         test_size, n_embd, n_layer, n_head = (conf_clone.get(k) for k in ("test_size", "n_embd", "n_layer", "n_head"))
 
-        model, trainer = GPT2Transition.train_gpt2_with_dynamic_language(lang=lang, dataset_path=dataset_path, training_args=training_args, test_size=test_size, n_embd=n_embd, n_layer=n_layer, n_head=n_head)
+        model, trainer = GPT2Transition.train_gpt2_with_language(lang=lang, dataset_path=dataset_path, training_args=training_args, test_size=test_size, n_embd=n_embd, n_layer=n_layer, n_head=n_head)
         return model, trainer, lang
