@@ -7,6 +7,7 @@ from utils import mol_validity_check
 
 class MolStringNode(MolNode):
     use_canonical_smiles_as_key = False
+    eos = None # Can be optionally set (via Transition classes)
     
     def __init__(self, string: str, lang: MolLanguage=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         self.string = string
@@ -14,14 +15,22 @@ class MolStringNode(MolNode):
         super().__init__(parent=parent, last_prob=last_prob, last_action=last_action)
 
     def has_reward(self):
-        return True
+        if self.eos is None:
+            return True
+        else:
+            if self.string.endswith(self.eos):
+                return True
+            else:
+                return False
 
     def key(self):
+        raw_key = self.string if self.eos is None else self.string.replace(self.eos, "")
+
         if not self.use_canonical_smiles_as_key:
-            return self.string
+            return raw_key
         mol = self.mol(use_cache=False) # TODO: allow =True in some cases
         if not mol_validity_check(mol):
-            return self.string
+            return raw_key
         else:
             try:
                 return Chem.MolToSmiles(mol, canonical=True)
@@ -33,7 +42,10 @@ class MolStringNode(MolNode):
         return MolStringNode(string=key, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
 
     def _mol_impl(self) -> Mol:
-        return self.lang.sentence2mol(self.string)
+        if self.eos is None:
+            return self.lang.sentence2mol(self.string)
+        else:
+            return self.lang.sentence2mol(self.string.replace(self.eos, ""))
     
     # override
     def discard_unneeded_states(self):
