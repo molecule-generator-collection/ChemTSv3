@@ -18,7 +18,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, verbose_interval: int=None):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, verbose_interval: int=None, save_interval: int=None):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
@@ -52,6 +52,9 @@ class Generator(ABC):
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
         self.info_interval = info_interval
         self.verbose_interval = verbose_interval
+        self.save_interval = save_interval
+        self.last_saved = 0
+        self.next_save = save_interval
     
     @abstractmethod
     def _generate_impl(self, *kwargs):
@@ -88,6 +91,9 @@ class Generator(ABC):
                 if max_generations is not None and len(self.unique_keys) - initial_count_generations >= max_generations:
                     break
                 self._generate_impl()
+                
+                if self.save_interval is not None and (self.n_generated_nodes() >= self.next_save):
+                    self.save()
         except KeyboardInterrupt:
             self.logger.warning("Generation interrupted by user (KeyboardInterrupt).")
         except SystemExit:
@@ -99,6 +105,9 @@ class Generator(ABC):
                 self.executor.shutdown(cancel_futures=True)
                 self.logger.info("Executor shutdown completed.")
             self.logger.info("Generation finished.")
+            
+            if self.save_interval is not None and not self.return_nodes and self.n_generated_nodes() != self.last_saved:
+                self.save(is_interval=False)
             
             if self.return_nodes:
                 result = self._generated_nodes_tmp
@@ -267,18 +276,22 @@ class Generator(ABC):
     def analyze(self):
         if len(self.unique_keys) == 0:
             return
-        self.logger.info("Number of generated nodes: " + str(self.n_generated_nodes()))
-        self.logger.info("Valid rate: " + str(self.valid_rate()))
-        self.logger.info("Unique rate: " + str(self.unique_rate()))
-        self.logger.info("Node per sec: " + str(self.node_per_sec()))
-        self.logger.info("Best reward: " + str(self.best_reward))
-        self.logger.info("Average reward: " + str(self.average_reward()))
+        self.logger.info(f"Generation count: {self.n_generated_nodes()}")
+        self.logger.info(f"Valid rate: {self.valid_rate():.3f}")
+        self.logger.info(f"Unique rate: {self.unique_rate():.3f}")
+        self.logger.info(f"Node per sec: {self.node_per_sec():.3f}")
+        self.logger.info(f"Best reward: {self.best_reward:.3f}")
+        self.logger.info(f"Average reward: {self.average_reward():.3f}")
         top_10_auc = self.auc(top_k=10)
-        self.logger.info("Top 10 AUC: " + str(top_10_auc))
+        self.logger.info(f"Top 10 AUC: {top_10_auc:.3f}")
+        self.analyze_postfix()
         self.transition.analyze()
         for filter in self.filters:
             filter.analyze()
         self.reward.analyze()
+        
+    def analyze_postfix(self):
+        return
         
     def display_top_k_molecules(self, str2mol_func, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):
         from utils import draw_mols, top_k_df
@@ -412,9 +425,15 @@ class Generator(ABC):
             del state["transition"]
         return state
     
-    def save(self, file: str):
-        with open(file, mode="wb") as fo:
+    def save(self, is_interval=True):
+        if is_interval:
+            self.next_save += self.save_interval
+            self.last_saved = self.n_generated_nodes()
+        save_dir = os.path.join(self.output_dir(), "checkpoint")
+        os.makedirs(save_dir, exist_ok=True)
+        with open(os.path.join(save_dir, "checkpoint.gtr"), mode="wb") as fo:
             pickle.dump(self, fo)
+        self.logger.info(f"Checkpoint saved at {self.n_generated_nodes()} generations.")
 
     def load_file(file: str, transition: Transition) -> Self:
         with open(file, "rb") as f:
@@ -426,4 +445,4 @@ class Generator(ABC):
         from utils import conf_from_yaml, generator_from_conf
         conf = conf_from_yaml(os.path.join(dir, "config.yaml"))
         transition = generator_from_conf(conf).transition
-        return Generator.load_file(os.path.join(REPO_ROOT, dir, "save.gtr"), transition)
+        return Generator.load_file(os.path.join(REPO_ROOT, dir, "checkpoint.gtr"), transition)

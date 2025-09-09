@@ -185,19 +185,19 @@ class JensenTransition(TemplateTransition):
                     rxn = AllChem.ReactionFromSmarts(smarts)
                     new_mol_trial = rxn.RunReactants((mol,))
                     
-                    new_mols = []
+                    new_smis = []
                     for m in new_mol_trial:
                         m = m[0]
                         if self.try_sanitize(m) and (not self.check_size or self.mol_OK(m)) and (not self.check_ring or self.ring_OK(m)):
-                            new_mols.append(m)
+                            try:
+                                smiles = Chem.MolToSmiles(m, canonical=True)
+                                new_smis.append(smiles)
+                            except:
+                                continue
                             
-                    for new_mol in new_mols:
-                        try:
-                            smiles = Chem.MolToSmiles(new_mol, canonical=True)
-                            last_prob = new_prob * (1 / len(new_mols))
-                            raw_result.append((action, smiles, last_prob))
-                        except:
-                            continue
+                    for smiles in new_smis:
+                        last_prob = new_prob * (1 / len(new_smis))
+                        raw_result.append((action, smiles, last_prob))
             
             if self.merge_duplicates:
                 raw_result = self.merge_duplicate_smiles(raw_result)
@@ -211,7 +211,7 @@ class JensenTransition(TemplateTransition):
     
     @staticmethod
     def merge_duplicate_smiles(tuples: list[tuple]) -> list[tuple]:
-        smiles_dict = OrderedDict()
+        smiles_dict = {}
         for action, smiles, prob in tuples:
             if smiles in smiles_dict:
                 smiles_dict[smiles][1] += prob

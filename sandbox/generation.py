@@ -1,6 +1,6 @@
 # Example (RNN): python sandbox/generation.py -c config/mcts/example.yaml
 # Example (Chain): python sandbox/generation.py -c config/mcts/example_chain_1.yaml
-# Example (Load): python sandbox/generation.py -l sandbox/generation_result/~~~/save --max_generations 100
+# Example (Load): python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_generations 100
 
 # Path setup / Imports
 import faulthandler
@@ -32,13 +32,11 @@ def main():
     elif yaml_path is not None and load_dir is None:
         conf = conf_from_yaml(yaml_path)
         generator = generator_from_conf(conf)
+        save_dir = os.path.join(generator.output_dir(), "checkpoint")
+        os.makedirs(save_dir, exist_ok=True)
         while(yaml_path):
+            save_yaml(conf, save_dir, overwrite=True)
             generator.generate(time_limit=conf.get("time_limit"), max_generations=conf.get("max_generations"))
-            if "save_dir" in conf:            
-                save_dir = os.path.join(generator.output_dir(), conf["save_dir"])
-                os.makedirs(save_dir, exist_ok=True)
-                save_yaml(conf, save_dir, overwrite=True)
-                generator.save(os.path.join(save_dir, "save.gtr"))
             if not "next_yaml_path" in conf:
                 yaml_path = None
                 plot_args = conf.get("plot_args", {})
@@ -58,32 +56,8 @@ def main():
         max_generations = args.max_generations
         time_limit = args.time_limit
         generator.generate(max_generations=max_generations, time_limit=time_limit)
-        
-        save_yaml(conf, load_dir, overwrite=True)
-        generator.save(os.path.join(load_dir, "save.gtr"))
     else:
         raise ValueError("Specify one of 'yaml_path' (-c) or 'load_dir' (-l), not both.")
-    
-    while(yaml_path):
-        generator.generate(time_limit=conf.get("time_limit"), max_generations=conf.get("max_generations"))
-        if "save_dir" in conf:            
-            save_dir = os.path.join(generator.output_dir(), conf["save_dir"])
-            os.makedirs(save_dir, exist_ok=True)
-            save_yaml(conf, save_dir, overwrite=True)
-            generator.save(os.path.join(save_dir, "save.gtr"))
-        
-        if not "next_yaml_path" in conf:
-            yaml_path = None
-            plot_args = conf.get("plot_args", {})
-            if not "save_only" in plot_args:
-                plot_args["save_only"] = True
-            generator.plot(**plot_args)
-            generator.analyze()
-        else:
-            n_top_keys_to_pass=conf.get("n_keys_to_pass", 3)
-            yaml_path = conf["next_yaml_path"]
-            conf = conf_from_yaml(yaml_path)
-            generator = generator_from_conf(conf, predecessor=generator, n_top_keys_to_pass=n_top_keys_to_pass)
 
 if __name__ == "__main__":
     faulthandler.enable()
