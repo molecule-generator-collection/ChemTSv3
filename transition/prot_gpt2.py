@@ -33,4 +33,7 @@ class ProtGPT2Transition(Transition):
     def rollout(self, initial_node: FASTAStringNode):
         initial_string = initial_node.string
         
-        self.protgpt2("<|endoftext|>" + initial_string, max_length=self._max_length, do_sample=True, top_k=self.rollout_top_k, num_return_sequences=1, eos_token_id=0)
+        raw = self.protgpt2("<|endoftext|>" + initial_string, max_length=self._max_length, do_sample=True, top_k=self.rollout_top_k, num_return_sequences=1, eos_token_id=0)
+        s = raw[0]["generated_text"].replace("<|endoftext|>", "").replace("\n", "")
+        
+        return FASTAStringNode(string=s)
