@@ -1,6 +1,6 @@
 output_dir: generation_result
 # time_limit: 10
-max_generations: 1000
+max_generations: 500
 seed: 0
 debug: true
 node_class: FASTAStringNode
@@ -10,8 +10,8 @@ transition_args:
   max_length: 80
   rollout_top_k: 950
 
-# reward_class: JScoreReward
-reward_class: LogPReward
+reward_class: ProteinFluorescenceReward
+# reward_class: LogPReward
 
 policy_class: UCT
 policy_args:

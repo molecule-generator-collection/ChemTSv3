@@ -19,6 +19,8 @@ def __getattr__(name):
     if name == "JScoreReward":
         from .j_score_reward import JScoreReward
         return JScoreReward
+    if name == "ProteinFluorescenceReward":
+        from .protein_fluorescence_reward import ProteinFluorescenceReward
     if name == "TDCReward":
         from .tdc_reward import TDCReward
         return TDCReward
