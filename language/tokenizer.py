@@ -2,7 +2,7 @@ import torch
 from language import Language
 
 class TokenizerLanguage(Language):
-    """Language class wrapping a Hugging Face Transformers Tokenizer."""
+    """Language class wrapping a Hugging Face Transformers Tokenizer. Not fully tested."""
     def __init__(self, tokenizer, device: str=None):
         self.tokenizer = tokenizer
         self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
