@@ -46,7 +46,7 @@ class FASTA(MolLanguage):
         specials = {"<BOS>", "<EOS>", "<PAD>"}
         chars = []
         for i in ids:
-            tok = FASTA.id2token(i)
+            tok = self.id2token(i)
             if tok in specials:
                 continue
             chars.append(tok)

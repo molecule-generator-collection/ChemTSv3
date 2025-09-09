@@ -1,5 +1,5 @@
 import subprocess, tempfile, os, shutil
-from node import FASTAStringNode
+from node import FASTAStringNode, SentenceNode
 from reward import Reward
 
 HMM_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/PF01353.hmm"))
@@ -16,8 +16,11 @@ class ProteinFluorescenceReward(Reward):
 
     # implement
     def objective_functions(self):
-        def e_value(node: FASTAStringNode):
-            fasta = node.string
+        def e_value(node: FASTAStringNode | SentenceNode):
+            if issubclass(node.__class__, FASTAStringNode):
+                fasta = node.string
+            else:
+                fasta = node.key()
             return self.hmmer_similarity_hmmsearch(fasta)
 
         return [e_value]
