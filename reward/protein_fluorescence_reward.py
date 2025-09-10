@@ -8,16 +8,15 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from node import FASTAStringNode, SentenceNode
-from reward import Reward
+from reward import SingleReward
 
 ORACLE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/gfp_oracle.ckpt"))
-HIGH_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/gfp_all.csv"))
 
 ALPHABET = list("ARNDCQEGHILKMFPSTWYV")
 IDXTOAA = {i: ALPHABET[i] for i in range(20)}
 AATOIDX = {v: k for k, v in IDXTOAA.items()}
 
-class ProteinFluorescenceReward(Reward):
+class ProteinFluorescenceReward(SingleReward):
     """
     Fetched from: https://github.com/haewonc/LatProtRL/blob/main/metric.py
     """
@@ -25,21 +24,14 @@ class ProteinFluorescenceReward(Reward):
         self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         self.evaluator = Evaluator(max_target=max_fitness, min_target=min_fitness, device=self.device, batch_size=1)
 
-    # implement
-    def objective_functions(self):
-        def fitness(node: FASTAStringNode | SentenceNode):
-            if issubclass(node.__class__, FASTAStringNode):
-                fasta = node.string
-            else:
-                fasta = node.key()
+    def reward(self, node: FASTAStringNode | SentenceNode) -> float:
+        if issubclass(node.__class__, FASTAStringNode):
+            fasta = node.string
+        else:
+            fasta = node.key()
             
-            fitness, diversity, high = self.evaluator.evaluate([fasta])
-            return fitness
-
-        return [fitness]
-    
-    def reward_from_objective_values(self, objective_values) -> float:
-        return objective_values[0]
+        fitness = self.evaluator.evaluate([fasta])
+        return fitness
     
 class OnehotDataset(Dataset):
     def __init__(self, seqs):
@@ -67,10 +59,6 @@ class Evaluator:
         oracle.load_state_dict({ k.replace('predictor.',''):v for k,v in oracle_ckpt.items() })
         oracle.eval()
         self.oracle = oracle.to(device)
-        high = pd.read_csv(HIGH_PATH)[['sequence', 'target']]
-        high = high[high['target'] > high['target'].quantile(q=0.9).item()]
-        self.high = high['sequence'].tolist()
-        self.high = self.high[:128]
     
     def evaluate(self, seqs):
         dataset = OnehotDataset(seqs)
@@ -83,21 +71,8 @@ class Evaluator:
                 target = (target - self.min_target) / (self.max_target - self.min_target)
                 targets.extend(list(target.cpu().flatten()))
             fitness = np.median(targets)
-        
-        distances = []
-        for s1, s2 in itertools.combinations(seqs, 2):
-            distances.append(self.distance(s1, s2))
-        diversity = np.median(distances)
 
-        distances = []
-        for j in seqs:
-            dist_j = []
-            for i in self.high:
-                dist_j.append(self.distance(i,j))
-            distances.append(min(dist_j))
-        high = np.median(distances)
-
-        return fitness, diversity, high
+        return fitness
     
     @staticmethod
     def distance(s1, s2):
