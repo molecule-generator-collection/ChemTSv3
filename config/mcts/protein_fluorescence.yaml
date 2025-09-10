@@ -1,6 +1,6 @@
 output_dir: generation_result
 # time_limit: 10
-max_generations: 500
+max_generations: 5000
 node_class: SentenceNode
 
 # transition_class: ProtGPT2Transition
@@ -10,7 +10,7 @@ node_class: SentenceNode
 
 transition_class: RNNTransition
 transition_args:
-  top_p: 0.995
+  top_p: 0.999
   model_dir: model/fasta/fluorescence_tape
 
 reward_class: ProteinFluorescenceReward
@@ -27,7 +27,6 @@ generator_args:
   n_eval_iters: 1
   filter_reward: -1
   info_interval: 1
-  discard_unneeded_states: false
 
 plot_args:
   reward_top_ps: [0.5, 0.1]

@@ -1,7 +1,0 @@
-Channels:
- - conda-forge
- - defaults
- - bioconda
-Platform: linux-64
-Collecting package metadata (repodata.json): ...working... done
-Solving environment: ...working... failed
