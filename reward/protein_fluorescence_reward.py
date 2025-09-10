@@ -1,97 +1,93 @@
-import subprocess, tempfile, os, shutil
+import torch 
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
+import numpy as np
+import itertools
+import pandas as pd
+from net.rew import BaseCNN
+from utils.eval_utils import distance
+from utils.constants import seq_to_one_hot
 from node import FASTAStringNode, SentenceNode
 from reward import Reward
 
-HMM_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/PF01353.hmm"))
-
 class ProteinFluorescenceReward(Reward):
-    def __init__(self, e0=1e-5, sigma=2.0):
-        """
-        Args:
-            e0: Used for e-value scaling. 0.5 if e_value=e0
-            sigma: Slope for e-value scaling.
-        """
-        self.e0= e0
-        self.sigma = sigma
+    """
+    Fetched from: https://github.com/haewonc/LatProtRL/blob/main/metric.py
+    """
+    def __init__(self):
+        pass
 
     # implement
     def objective_functions(self):
-        def e_value(node: FASTAStringNode | SentenceNode):
+        def fitness(node: FASTAStringNode | SentenceNode):
             if issubclass(node.__class__, FASTAStringNode):
                 fasta = node.string
             else:
                 fasta = node.key()
-            return self.hmmer_similarity_hmmsearch(fasta)
+            return 0
 
-        return [e_value]
-
-    # implement
-    def reward_from_objective_values(self, objective_values):
-        e_value = objective_values[0]
-        return self.e_value_to_score(e_value)
+        return [fitness]
     
-    @classmethod
-    def hmmer_similarity_hmmsearch(cls, seq: str) -> float:
-        """
-        Returns e value.
-        """
-        hmmsearch_bin = "hmmsearch"
-        if not shutil.which(hmmsearch_bin):
-            raise FileNotFoundError(f"{hmmsearch_bin} not found.")
-        if not os.path.exists(HMM_PATH):
-            raise FileNotFoundError(f"HMM not found: {HMM_PATH}")
+    def reward_from_objective_values(self, objective_values) -> float:
+        pass
+    
+class OnehotDataset(Dataset):
+  def __init__(self, seqs):
+    self.seqs = seqs 
+  def __len__(self):
+    return len(self.seqs)
+  def __getitem__(self, index):
+    return seq_to_one_hot(self.seqs[index])
 
-        with tempfile.TemporaryDirectory() as tmp:
-            fasta = os.path.join(tmp, "query.faa")
-            tblout = os.path.join(tmp, "out.tbl")
-            with open(fasta, "w") as f:
-                f.write(">query\n")
-                f.write(seq.strip() + "\n")
+class Evaluator:
+  def __init__(self, protein, max_target, min_target, device, batch_size = 16):
+    self.device = device 
+    self.batch_size = batch_size
+    self.max_target, self.min_target = max_target, min_target
+    oracle = BaseCNN(make_one_hot=False)
+    oracle_ckpt = torch.load(f'ckpt/{protein}/oracle.ckpt', map_location=self.device)
+    if "state_dict" in oracle_ckpt.keys():
+        oracle_ckpt = oracle_ckpt["state_dict"]
+    oracle.load_state_dict({ k.replace('predictor.',''):v for k,v in oracle_ckpt.items() })
+    oracle.eval()
+    self.oracle = oracle.to(device)
+    high = pd.read_csv(f'data/{protein}/all.csv')[['sequence', 'target']]
+    high = high[high['target'] > high['target'].quantile(q=0.9).item()]
+    self.high = high['sequence'].tolist()
+    self.high = self.high[:128]
+    
+  def evaluate(self, seqs, inits):
+    dataset = OnehotDataset(seqs)
+    dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False)
 
-            cmd = [
-                hmmsearch_bin, "--noali", "--tblout", tblout, HMM_PATH, fasta
-            ]
-            run = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            if run.returncode not in (0, 1):
-                raise RuntimeError(f"hmmsearch failed (code {run.returncode}).\nSTDERR:\n{run.stderr}")
+    targets = []
+    with torch.no_grad():
+      for batch in dataloader:
+        _, target = self.oracle(batch.to(self.device), get_embed=True)
+        target = (target - self.min_target) / (self.max_target - self.min_target)
+        targets.extend(list(target.cpu().flatten()))
+    fitness = np.median(targets)
+    
+    distances = []
+    for s1, s2 in itertools.combinations(seqs, 2):
+        distances.append(distance(s1, s2))
+    diversity = np.median(distances)
+    
+    distances = []
+    for j in seqs:
+        dist_j = []
+        for i in inits:
+            dist_j.append(distance(i,j))
+        distances.append(min(dist_j))
+    novelty = np.median(distances)
+    
+    distances = []
+    for j in seqs:
+        dist_j = []
+        for i in self.high:
+            dist_j.append(distance(i,j))
+        distances.append(min(dist_j))
+    high = np.median(distances)
 
-            best = cls._parse_hmmer_tblout_best(tblout)
-            if best is None:
-                e = float("inf")
-            else:
-                e = float(best["full_evalue"])
 
-        return e
-
-    @staticmethod
-    def _parse_hmmer_tblout_best(tbl_path: str):
-        """
-        Parse HMMER3 tblout, then return best hit.
-        """
-        best = None
-        with open(tbl_path) as f:
-            for line in f:
-                if line.startswith("#") or not line.strip():
-                    continue
-                parts = line.strip().split()
-                rec = {
-                    "query": parts[0],
-                    "query_acc": parts[1],
-                    "target": parts[2],
-                    "target_acc": parts[3],
-                    "full_evalue": float(parts[4]), # e value (smaller - better)
-                    "full_score": float(parts[5]),  # bit score (bigger - better)
-                    "full_bias": float(parts[6]),
-                    "c_evalue": float(parts[7]),
-                    "c_score": float(parts[8]),
-                    "c_bias": float(parts[9]),
-                }
-                if best is None or rec["full_evalue"] < best["full_evalue"]:
-                    best = rec
-        return best
-
-    def e_value_to_score(self, e_value, floor=1e-180):
-        import math
-        e = max(e_value, floor)
-        z = (math.log10(e) - math.log10(self.e0)) / self.sigma
-        return 1.0 / (1.0 + 10**z)
+    return fitness, diversity, novelty, high
