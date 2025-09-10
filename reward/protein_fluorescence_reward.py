@@ -8,30 +8,56 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from node import FASTAStringNode, SentenceNode
-from reward import SingleReward
+from reward import Reward
 
 ORACLE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/gfp_oracle.ckpt"))
 
 ALPHABET = list("ARNDCQEGHILKMFPSTWYV")
 IDXTOAA = {i: ALPHABET[i] for i in range(20)}
 AATOIDX = {v: k for k, v in IDXTOAA.items()}
+avGFP = "SKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTFSYGVQCFSRYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTLVNRIELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLADHYQQNTPIGDGPVLLPDNHYLSTQSALSKDPNEKRDHMVLLEFVTAAGITHGMDELYK" # No N-terminal methionine in the dataset
 
-class ProteinFluorescenceReward(SingleReward):
+class ProteinFluorescenceReward(Reward):
     """
     Fetched from: https://github.com/haewonc/LatProtRL/blob/main/metric.py
     """
-    def __init__(self, max_fitness=1.283419251, min_fitness=4.123108864, device: str=None):
+    def __init__(self, penalty_strength=0.1, penalty_min_mutations=5, max_fitness=1.283419251, min_fitness=4.123108864, device: str=None):
         self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         self.evaluator = Evaluator(max_target=max_fitness, min_target=min_fitness, device=self.device, batch_size=1)
+        self.penalty_strength = penalty_strength
+        self.penalty_min_mutations = penalty_min_mutations        
 
-    def reward(self, node: FASTAStringNode | SentenceNode) -> float:
+    # implement
+    def objective_functions(self):
+        def fitness(node):
+            fasta = self._get_fasta(node)
+            
+            fitness = self.evaluator.evaluate([fasta])
+            return fitness
+        
+        def n_mutations(node):
+            fasta = self._get_fasta(node)
+            if len(fasta) != 237:
+                return 237
+            else:
+                return sum(c1 != c2 for c1, c2 in zip(fasta, avGFP))
+
+        return [fitness, n_mutations]
+    
+    def reward_from_objective_values(self, objective_values) -> float:
+        fitness = objective_values[0]
+        n_mutations = objective_values[1]
+        
+        mutation_penalty = self.penalty_strength * max(0, n_mutations - self.penalty_min_mutations)
+        return fitness - mutation_penalty
+    
+    @staticmethod
+    def _get_fasta(node: FASTAStringNode | SentenceNode):
         if issubclass(node.__class__, FASTAStringNode):
             fasta = node.string
         else:
             fasta = node.key()
-            
-        fitness = self.evaluator.evaluate([fasta])
-        return fitness
+        return fasta
     
 class OnehotDataset(Dataset):
     def __init__(self, seqs):
