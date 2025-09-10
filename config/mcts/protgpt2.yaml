@@ -1,22 +1,16 @@
 output_dir: generation_result
-# time_limit: 10
 max_generations: 500
-seed: 0
-debug: true
-node_class: SentenceNode
+node_class: FASTAStringNode
 
-# transition_class: ProtGPT2Transition
-# transition_args:
-#   max_length: 80
-#   rollout_top_k: 950
-
-transition_class: RNNTransition
+transition_class: ProtGPT2Transition
 transition_args:
-  top_p: 0.995
-  model_dir: model/fasta/fluorescence_tape
+  max_length: 80
+  rollout_top_k: 950
 
-reward_class: ProteinFluorescenceReward
-# reward_class: LogPReward
+reward_class: LogPReward
+
+filters:
+  - filter_class: ValidityFilter
 
 policy_class: UCT
 policy_args:
@@ -29,10 +23,7 @@ generator_args:
   n_eval_iters: 1
   filter_reward: -1
   info_interval: 1
-  discard_unneeded_states: false
 
 plot_args:
   reward_top_ps: [0.5, 0.1]
-
-plot_args:
   moving_average_window: 0.02
