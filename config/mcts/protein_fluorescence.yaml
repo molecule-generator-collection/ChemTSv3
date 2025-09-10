@@ -1,6 +1,6 @@
 output_dir: generation_result
 # time_limit: 10
-max_generations: 5000
+max_generations: 1000
 node_class: SentenceNode
 
 # transition_class: ProtGPT2Transition
