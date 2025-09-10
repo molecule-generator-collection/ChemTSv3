@@ -1,4 +1,5 @@
-import itertools
+import subprocess, tempfile, shutil
+import math
 import os
 import numpy as np
 import pandas as pd
@@ -11,6 +12,7 @@ from node import FASTAStringNode, SentenceNode
 from reward import Reward
 
 ORACLE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/gfp_oracle.ckpt"))
+HMM_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/PF01353.hmm"))
 
 ALPHABET = list("ARNDCQEGHILKMFPSTWYV")
 IDXTOAA = {i: ALPHABET[i] for i in range(20)}
@@ -21,11 +23,13 @@ class ProteinFluorescenceReward(Reward):
     """
     Fetched from: https://github.com/haewonc/LatProtRL/blob/main/metric.py
     """
-    def __init__(self, penalty_strength=0.1, penalty_min_mutations=5, max_fitness=1.283419251, min_fitness=4.123108864, device: str=None):
+    def __init__(self, mutation_penalty_strength=0.1, mutation_penalty_start=5, e_penalty_strength=0, e_penalty_start=-13, max_fitness=1.283419251, min_fitness=4.123108864, device: str=None):
         self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         self.evaluator = Evaluator(max_target=max_fitness, min_target=min_fitness, device=self.device, batch_size=1)
-        self.penalty_strength = penalty_strength
-        self.penalty_min_mutations = penalty_min_mutations        
+        self.mutation_penalty_strength = mutation_penalty_strength
+        self.mutation_penalty_start = mutation_penalty_start
+        self.e_penalty_strength = e_penalty_strength
+        self.e_penalty_start = e_penalty_start
 
     # implement
     def objective_functions(self):
@@ -41,15 +45,27 @@ class ProteinFluorescenceReward(Reward):
                 return 237
             else:
                 return sum(c1 != c2 for c1, c2 in zip(fasta, avGFP))
+            
+        def log_e_value(node: FASTAStringNode | SentenceNode):
+            if issubclass(node.__class__, FASTAStringNode):
+                fasta = node.string
+            else:
+                fasta = node.key()
+            e_value = self.hmmer_similarity_hmmsearch(fasta)
+            e = max(e_value, 1e-180)
+            return math.log10(e)
 
-        return [fitness, n_mutations]
+        return [fitness, n_mutations, log_e_value]
     
     def reward_from_objective_values(self, objective_values) -> float:
         fitness = objective_values[0]
         n_mutations = objective_values[1]
+        log_e_value = objective_values[2]
         
-        mutation_penalty = self.penalty_strength * max(0, n_mutations - self.penalty_min_mutations)
-        return fitness - mutation_penalty
+        mutation_penalty = self.mutation_penalty_strength * max(0, n_mutations - self.mutation_penalty_start)
+        e_penalty = self.e_penalty_strength * max(0, log_e_value - self.e_penalty_start)
+        
+        return fitness - mutation_penalty - e_penalty
     
     @staticmethod
     def _get_fasta(node: FASTAStringNode | SentenceNode):
@@ -58,6 +74,66 @@ class ProteinFluorescenceReward(Reward):
         else:
             fasta = node.key()
         return fasta
+    
+    @classmethod
+    def hmmer_similarity_hmmsearch(cls, seq: str) -> float:
+        """
+        Returns e value.
+        """
+        hmmsearch_bin = "hmmsearch"
+        if not shutil.which(hmmsearch_bin):
+            raise FileNotFoundError(f"{hmmsearch_bin} not found.")
+        if not os.path.exists(HMM_PATH):
+            raise FileNotFoundError(f"HMM not found: {HMM_PATH}")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            fasta = os.path.join(tmp, "query.faa")
+            tblout = os.path.join(tmp, "out.tbl")
+            with open(fasta, "w") as f:
+                f.write(">query\n")
+                f.write(seq.strip() + "\n")
+
+            cmd = [
+                hmmsearch_bin, "--noali", "--tblout", tblout, HMM_PATH, fasta
+            ]
+            run = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if run.returncode not in (0, 1):
+                raise RuntimeError(f"hmmsearch failed (code {run.returncode}).\nSTDERR:\n{run.stderr}")
+
+            best = cls._parse_hmmer_tblout_best(tblout)
+            if best is None:
+                e = float("inf")
+            else:
+                e = float(best["full_evalue"])
+
+        return e
+
+    @staticmethod
+    def _parse_hmmer_tblout_best(tbl_path: str):
+        """
+        Parse HMMER3 tblout, then return best hit.
+        """
+        best = None
+        with open(tbl_path) as f:
+            for line in f:
+                if line.startswith("#") or not line.strip():
+                    continue
+                parts = line.strip().split()
+                rec = {
+                    "query": parts[0],
+                    "query_acc": parts[1],
+                    "target": parts[2],
+                    "target_acc": parts[3],
+                    "full_evalue": float(parts[4]), # e value (smaller - better)
+                    "full_score": float(parts[5]),  # bit score (bigger - better)
+                    "full_bias": float(parts[6]),
+                    "c_evalue": float(parts[7]),
+                    "c_score": float(parts[8]),
+                    "c_bias": float(parts[9]),
+                }
+                if best is None or rec["full_evalue"] < best["full_evalue"]:
+                    best = rec
+        return best
     
 class OnehotDataset(Dataset):
     def __init__(self, seqs):

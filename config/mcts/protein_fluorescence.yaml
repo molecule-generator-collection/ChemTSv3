@@ -14,7 +14,11 @@ transition_args:
   model_dir: model/fasta/fluorescence_tape
 
 reward_class: ProteinFluorescenceReward
-# reward_class: LogPReward
+reward_args:
+  mutation_penalty_strength: 2
+  mutation_penalty_start: 4
+  e_penalty_strength: 0
+  e_penalty_start: -13
 
 policy_class: UCT
 policy_args:
