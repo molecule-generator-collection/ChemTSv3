@@ -1,6 +1,6 @@
 output_dir: "sandbox/training_result/rnn_model"
 lang_class: FASTA
-dataset_path: data/fasta/fluorescence_tape.txt
+dataset_path: data/fasta/aav.txt
 
 test_size: 0.1
 batch_size: 512
