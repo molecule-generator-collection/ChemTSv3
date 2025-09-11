@@ -23,13 +23,14 @@ class GFPReward(Reward):
     """
     Fetched from: https://github.com/haewonc/LatProtRL/blob/main/metric.py
     """
-    def __init__(self, mutation_penalty_strength=0.1, mutation_penalty_start=5, e_penalty_strength=0, e_penalty_start=-13, min_fitness=1.283419251, max_fitness=4.123108864, device: str=None):
+    def __init__(self, mutation_penalty_strength=0.1, mutation_penalty_start=5, track_e_value=False, e_penalty_strength=0, e_penalty_start=-13, min_fitness=1.283419251, max_fitness=4.123108864, device: str=None):
         self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         self.evaluator = Evaluator(max_target=max_fitness, min_target=min_fitness, device=self.device, batch_size=1)
         self.mutation_penalty_strength = mutation_penalty_strength
         self.mutation_penalty_start = mutation_penalty_start
         self.e_penalty_strength = e_penalty_strength
         self.e_penalty_start = e_penalty_start
+        self.track_e_value = track_e_value
 
     # implement
     def objective_functions(self):
@@ -54,16 +55,22 @@ class GFPReward(Reward):
             e_value = self.hmmer_similarity_hmmsearch(fasta)
             e = max(e_value, 1e-180)
             return math.log10(e)
-
-        return [fitness, n_mutations, log_e_value]
+        
+        if self.track_e_value:
+            return [fitness, n_mutations, log_e_value]
+        else:
+            return [fitness, n_mutations]
     
     def reward_from_objective_values(self, objective_values) -> float:
         fitness = objective_values[0]
         n_mutations = objective_values[1]
-        log_e_value = objective_values[2]
-        
         mutation_penalty = self.mutation_penalty_strength * max(0, n_mutations - self.mutation_penalty_start)
-        e_penalty = self.e_penalty_strength * max(0, log_e_value - self.e_penalty_start)
+        
+        if self.track_e_value:
+            log_e_value = objective_values[2]
+            e_penalty = self.e_penalty_strength * max(0, log_e_value - self.e_penalty_start)
+        else:
+            e_penalty = 0
         
         return fitness - mutation_penalty - e_penalty
     
