@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import math
 import random
 from typing import Iterable
 import numpy as np
@@ -65,4 +66,37 @@ class ValuePolicy(TemplatePolicy):
         max_y = max(self.evaluate(child) for child in candidates)
         best_candidates = [child for child in candidates if self.evaluate(child) == max_y]
         weights = [child.last_prob for child in best_candidates]
+        return random.choices(best_candidates, weights=weights, k=1)[0]
+    
+    def select_child(self, node: Node) -> Node:
+        evals = []
+        candidates = self.candidates(node)
+        
+        for c in candidates:
+            try:
+                y = self.evaluate(c)
+            except Exception:
+                y = float("-inf")
+            if not math.isfinite(y):
+                y = float("-inf")
+            evals.append((c, y))
+            
+        if all(y == float("-inf") for _, y in evals):
+                return random.choice(candidates)
+        
+        max_y = max(y for _, y in evals)
+        eps = 1e-12
+        best_candidates = [c for c, y in evals if y >= max_y - eps]
+        if not best_candidates: # should not be called
+            best_candidates = [candidates[0]]
+
+        # sample if tiebreaker
+        weights = []
+        for c in best_candidates:
+            w = c.last_prob or 0
+            weights.append(w)
+
+        if sum(weights) <= 0:
+            return random.choice(best_candidates)
+
         return random.choices(best_candidates, weights=weights, k=1)[0]
