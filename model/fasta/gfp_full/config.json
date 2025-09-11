@@ -1,9 +1,0 @@
-{
-  "vocab_size": 29,
-  "embed_size": 29,
-  "hidden_size": 256,
-  "num_layers": 2,
-  "rnn_type": "LSTM",
-  "pad_id": 28,
-  "use_input_dropout": true
-}
