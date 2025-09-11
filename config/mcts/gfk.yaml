@@ -1,6 +1,6 @@
 output_dir: generation_result
 # time_limit: 10
-max_generations: 500
+max_generations: 3840 # 256*15
 node_class: SentenceNode
 
 # transition_class: ProtGPT2Transition
@@ -13,10 +13,10 @@ transition_args:
   top_p: 0.99
   model_dir: model/fasta/fluorescence_tape
 
-reward_class: ProteinFluorescenceReward
+reward_class: GFKReward
 reward_args:
-  mutation_penalty_strength: 2
-  mutation_penalty_start: 4
+  mutation_penalty_strength: 0
+  mutation_penalty_start: 10
   e_penalty_strength: 0
   e_penalty_start: -13
 
