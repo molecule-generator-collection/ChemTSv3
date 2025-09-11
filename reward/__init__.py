@@ -19,9 +19,9 @@ def __getattr__(name):
     if name == "JScoreReward":
         from .j_score_reward import JScoreReward
         return JScoreReward
-    if name == "GFKReward":
-        from .gfk_reward import GFKReward
-        return GFKReward
+    if name == "GFPReward":
+        from .gfp_reward import GFPReward
+        return GFPReward
     if name == "TDCReward":
         from .tdc_reward import TDCReward
         return TDCReward
