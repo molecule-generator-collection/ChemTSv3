@@ -11,7 +11,7 @@ node_class: SentenceNode
 transition_class: RNNTransition
 transition_args:
   top_p: 0.99
-  model_dir: model/fasta/fluorescence_tape
+  model_dir: model/fasta/gfk
 
 reward_class: GFKReward
 reward_args:
