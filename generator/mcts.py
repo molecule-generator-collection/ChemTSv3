@@ -13,7 +13,7 @@ class MCTS(Generator):
                  n_eval_width: int=float("inf"), allow_eval_overlaps: bool=False, n_eval_iters: int=1, n_tries: int=1, 
                  cut_failed_child: bool=False, reward_cutoff: float=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
-                 avoid_duplicates: bool=False, discard_unneeded_states: bool=True,
+                 avoid_duplicates: bool=False, discard_unneeded_states: bool=None,
                  max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, 
                  name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, verbose_interval: int=None, save_interval: int=None):
         """
@@ -51,6 +51,8 @@ class MCTS(Generator):
             raise ValueError("The size of list input for filter_reward should match the number of filters.")
         if type(filter_reward) == list and n_tries != 1:
             raise ValueError("List input for filter_reward is not supported on n_tries > 1.")
+        if cut_failed_child == True and discard_unneeded_states == True:
+            raise ValueError("cut_failed_child=True with discard_unneeded_states=True is not supported.")
 
         self.root = root
         self.max_tree_depth = max_tree_depth or transition.max_length()
@@ -66,7 +68,10 @@ class MCTS(Generator):
         self.avoid_duplicates = avoid_duplicates
         if self.avoid_duplicates:
             self.node_keys = set()
-        self.discard_unneeded_states = discard_unneeded_states
+        if discard_unneeded_states is not None:
+            self.discard_unneeded_states = discard_unneeded_states
+        else:
+            self.discard_unneeded_states = False if cut_failed_child else True
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
         super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, return_nodes=return_nodes, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval, save_interval=save_interval)
