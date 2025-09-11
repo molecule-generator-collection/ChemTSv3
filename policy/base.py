@@ -62,13 +62,6 @@ class ValuePolicy(TemplatePolicy):
         pass
     
     def select_child(self, node: Node) -> Node:
-        candidates = self.candidates(node)
-        max_y = max(self.evaluate(child) for child in candidates)
-        best_candidates = [child for child in candidates if self.evaluate(child) == max_y]
-        weights = [child.last_prob for child in best_candidates]
-        return random.choices(best_candidates, weights=weights, k=1)[0]
-    
-    def select_child(self, node: Node) -> Node:
         evals = []
         candidates = self.candidates(node)
         
@@ -87,7 +80,7 @@ class ValuePolicy(TemplatePolicy):
         max_y = max(y for _, y in evals)
         eps = 1e-12
         best_candidates = [c for c, y in evals if y >= max_y - eps]
-        if not best_candidates: # should not be called
+        if not best_candidates:
             best_candidates = [candidates[0]]
 
         # sample if tiebreaker
