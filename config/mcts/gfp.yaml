@@ -11,9 +11,9 @@ node_class: SentenceNode
 transition_class: RNNTransition
 transition_args:
   top_p: 0.99
-  model_dir: model/fasta/gfk
+  model_dir: model/fasta/gfp
 
-reward_class: GFKReward
+reward_class: GFPReward
 reward_args:
   mutation_penalty_strength: 0
   mutation_penalty_start: 10
