@@ -33,8 +33,8 @@ def objective(trial):
         conf["policy_args"]["c"] = trial.suggest_float("c", 0.1, 10, log=True)
         conf["policy_args"]["best_rate"] = trial.suggest_float("best_rate", 0, 1)
         conf["policy_args"]["epsilon"] = trial.suggest_categorical("epsilon", [0, 0.01, 0.02, 0.03, 0.05, 0.1, 0.2])
-        conf.setdefault("generator_args", {})
-        conf["generator_args"]["n_eval_width"] = trial.suggest_categorical("n_eval_width", [1, float("inf")])
+        # conf.setdefault("generator_args", {})
+        # conf["generator_args"]["n_eval_width"] = trial.suggest_categorical("n_eval_width", [1, float("inf")])
         
         generator = generator_from_conf(conf)
         generator.generate(max_generations=conf.get("max_generations"), time_limit=conf.get("time_limit"))
@@ -62,13 +62,13 @@ def main():
     args = parser.parse_args()
     
     name = args.name
-    storage = "sqlite:///sandbox/mol_opt/optuna/" + name + ".db"
+    storage = "sqlite:///sandbox/tuning/optuna/" + name + ".db"
     sampler = sampler=optuna.samplers.TPESampler(multivariate=True, group=True)
-    pruner = optuna.pruners.MedianPruner(n_startup_trials=3, n_warmup_steps=3, interval_steps=1)
-    study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, pruner=pruner, load_if_exists=True)
+    study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, load_if_exists=True)
     
     if args.enqueue:
-        study.enqueue_trial({"c": 3, "best_rate": 0.2, "epsilon": 0.05, "n_eval_width": 1})
+        study.enqueue_trial({"c": 2, "best_rate": 0.1, "epsilon": 0})
+        study.enqueue_trial({"c": 1, "best_rate": 0.2, "epsilon": 0.05})
         
     study.optimize(objective, n_trials=10000)
         
