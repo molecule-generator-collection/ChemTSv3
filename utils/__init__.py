@@ -1,4 +1,4 @@
-from .class_utils import class_from_class_path, class_from_package, camel2snake, add_sep
+from .file_utils import class_from_class_path, class_from_package, camel2snake, add_sep, make_subdirectory
 from .helm_utils import MonomerLibrary, HELMConverter
 from .logging_utils import CSVHandler, NotListFilter, ListFilter, make_logger, log_memory_usage
 from .math_utils import set_seed, apply_top_p, apply_sharpness, moving_average, max_gauss, min_gauss, rectangular, PointCurve
