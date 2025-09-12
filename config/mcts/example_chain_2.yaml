@@ -8,7 +8,7 @@ use_canonical_smiles_as_key: true
 
 transition_class: JensenTransition
 transition_args:
-  check_size: true
+  check_size: false
   check_ring: true
 
 # If not specified, the same reward will be used.

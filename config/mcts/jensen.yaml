@@ -15,7 +15,7 @@ reward_args:
 
 transition_class: JensenTransition
 transition_args:
-  check_size: true
+  check_size: false
   check_ring: true
   filters:
     - filter_class: ValidityFilter
