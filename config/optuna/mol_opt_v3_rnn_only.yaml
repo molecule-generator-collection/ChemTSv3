@@ -2,7 +2,7 @@ study_name: mol_opt_rnn
 csv_output: false
 silent: true
 
-time_limit: 1000 # seconds
+time_limit: 2000 # seconds
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: true
 
@@ -10,6 +10,7 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc/gru
+  top_p: 0.995
 
 policy_class: UCT
 
