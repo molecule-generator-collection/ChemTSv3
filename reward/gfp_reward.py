@@ -23,7 +23,7 @@ class GFPReward(Reward):
     """
     Fetched from: https://github.com/haewonc/LatProtRL/blob/main/metric.py
     """
-    def __init__(self, mutation_penalty_strength=0.1, mutation_penalty_start=5, track_e_value=False, e_penalty_strength=0, e_penalty_start=-13, min_fitness=1.283419251, max_fitness=4.123108864, device: str=None):
+    def __init__(self, mutation_penalty_strength=0, mutation_penalty_start=6, track_e_value=False, e_penalty_strength=0, e_penalty_start=-13, min_fitness=1.283419251, max_fitness=4.123108864, device: str=None):
         self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         self.evaluator = Evaluator(max_target=max_fitness, min_target=min_fitness, device=self.device, batch_size=1)
         self.mutation_penalty_strength = mutation_penalty_strength
