@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import copy
 from datetime import datetime
 import logging
 import math
@@ -6,6 +7,7 @@ import os
 import pickle
 import time
 from typing import Self
+import yaml
 import matplotlib.pyplot as plt
 import numpy as np
 from filter import Filter
@@ -27,6 +29,8 @@ class Generator(ABC):
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
             info_interval: Number of generations between each logging of the generation result.
+            save_interval: Number of generations between each checkpoint save.
+            yaml_copy: If passed, yaml settings will be also saved.
         """
         self.transition = transition
         self._name = name or self._make_name()
@@ -50,6 +54,7 @@ class Generator(ABC):
         self.return_nodes = return_nodes
         self._generated_nodes_tmp = []
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
+        self.yaml_copy = None
         self.info_interval = info_interval
         self.verbose_interval = verbose_interval
         self.save_interval = save_interval
@@ -415,6 +420,9 @@ class Generator(ABC):
         self.best_reward = predecessor.best_reward
         self.unique_keys = predecessor.unique_keys
         self.passed_time = predecessor.passed_time
+        if self.save_interval is not None:
+            self.last_saved = predecessor.last_saved
+            self.next_save = self.n_generated_nodes() + self.next_save
         
     def log_verbose_info(self):
         log_memory_usage(self.logger)
@@ -425,12 +433,19 @@ class Generator(ABC):
             del state["transition"]
         return state
     
+    def _set_yaml_copy(self, conf: dict):
+        self.yaml_copy = copy.deepcopy(conf)
+    
     def save(self, is_interval=True):
         if is_interval:
             self.next_save += self.save_interval
             self.last_saved = self.n_generated_nodes()
         save_dir = os.path.join(self.output_dir(), "checkpoint")
         os.makedirs(save_dir, exist_ok=True)
+        if self.yaml_copy is not None:
+            path = os.path.join(save_dir, "config.yaml")
+            with open(path, "w") as f:
+                yaml.dump(self.yaml_copy, f, sort_keys=False)
         with open(os.path.join(save_dir, "checkpoint.gtr"), mode="wb") as fo:
             pickle.dump(self, fo)
         self.logger.info(f"Checkpoint saved at {self.n_generated_nodes()} generations.")

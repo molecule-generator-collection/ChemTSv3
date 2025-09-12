@@ -105,6 +105,7 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     generator_class = class_from_package("generator", conf_clone.get("generator_class", "MCTS"))
     adjust_args(generator_class, generator_args, device, logger, output_dir)
     generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, **generator_args)
+    generator._set_yaml_copy(conf)
     
     if predecessor:
         generator.inherit(predecessor)
