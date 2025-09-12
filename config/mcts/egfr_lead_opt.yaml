@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 86400
-max_generations: 10000000
+max_generations: 1000000
 
 node_class: CanonicalSMILESStringNode
 use_canonical_smiles_as_key: true
@@ -56,7 +56,8 @@ transition_args:
   check_ring: true
   filters:
     - filter_class: ValidityFilter # put this first if unsure
-    # - filter_class: RadicalFilter
+    - filter_class: HeavyAtomCountFilter
+      max: 45
     - filter_class: SubstructureFilter
       smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 
