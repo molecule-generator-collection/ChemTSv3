@@ -14,7 +14,7 @@ from filter import Filter
 from node import Node
 from reward import Reward, LogPReward
 from transition import Transition
-from utils import moving_average, log_memory_usage, make_logger, plot_xy
+from utils import moving_average, log_memory_usage, make_logger, make_subdirectory, plot_xy
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
@@ -42,7 +42,7 @@ class Generator(ABC):
             if len(filters) != len(filter_reward):
                 raise ValueError(f"Size mismatch: 'filters': {len(filters)}, 'filter_reward': {len(filters)}")
             self.filter_reward = filter_reward
-        self._output_dir = output_dir or "generation_result"
+        self._output_dir = output_dir or make_subdirectory(os.path.join(REPO_ROOT, "sandbox", "generation_result"))
         os.makedirs(self.output_dir(), exist_ok=True)
         self.unique_keys = []
         self.record: dict[str, dict] = {} # save at least all of the following for unique keys: "objective_values", "reward", "generation_order", "time"
