@@ -35,7 +35,6 @@ def objective(trial):
         conf.setdefault("policy_args", {})
         conf["policy_args"]["c"] = trial.suggest_float("c", 0.01, 0.4)
         conf["policy_args"]["best_rate"] = trial.suggest_float("best_rate", 0, 1)
-        conf["policy_args"]["epsilon"] = trial.suggest_categorical("epsilon", [0, 0.01])
         conf.setdefault("generator_args", {})
         conf["generator_args"]["n_tries"] = trial.suggest_categorical("n_tries", [1, 3])
         conf["generator_args"]["n_eval_width"] = trial.suggest_categorical("n_eval_width", [1, float("inf")])
@@ -90,7 +89,7 @@ def main():
     study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, pruner=pruner, load_if_exists=True)
     
     if args.enqueue:
-        study.enqueue_trial({"c": 0.1, "best_rate": 0.5, "epsilon": 0.01, "n_eval_width": 1, "n_eval_iters":1, "n_tries": 1})
+        study.enqueue_trial({"c": 0.1, "best_rate": 0.5, "n_eval_width": 1, "n_eval_iters":1, "n_tries": 1})
         
     study.optimize(objective, n_trials=200)
         
