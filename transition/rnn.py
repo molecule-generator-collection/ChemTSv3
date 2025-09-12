@@ -110,14 +110,14 @@ class RNNLanguageModel(nn.Module):
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(LanguageModel):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, v2_replication: bool=False, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, disable_top_p_on_rollout: bool=False, logger: logging.Logger=None):
         """
         Args:
             device: Torch device specification (e.g., "cpu", "cuda", "cuda:0").
             top_p: Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`. Set to 1.0 to disable.
             temperature: Logit temperature > 0 applied **before** top_p; values < 1.0 sharp, > 1.0 smooth
             sharpness: Probability distribution sharpness > 0 applied **after** top_p; values < 1.0 smooth, > 1.0 sharp
-            v2_replication: If True, top_p won't be applied for rollouts.
+            disable_top_p_on_rollout: If True, top_p won't be applied for rollouts.
         """
         if (model is not None) and (model_dir is not None):
             raise ValueError("Specify one (or none) of 'model' or 'model_dir', not both.")
@@ -135,7 +135,7 @@ class RNNTransition(LanguageModel):
         self.top_p = top_p
         self.temperature = temperature
         self.sharpness = sharpness
-        self.v2_replication = v2_replication
+        self.disable_top_p_on_rollout = disable_top_p_on_rollout
         
     def load(self, model_dir: str, device: str=None) -> Self:
         """
@@ -183,7 +183,7 @@ class RNNTransition(LanguageModel):
     
     # override
     def rollout(self, initial_node: SentenceNode) -> SentenceNode:
-        top_p = self.top_p if not self.v2_replication else 1.0
+        top_p = self.top_p if not self.disable_top_p_on_rollout else 1.0
         with torch.no_grad():
             generated_tensor = self.model.generate(
                 input_ids=initial_node.id_tensor, # .to(self.device)
