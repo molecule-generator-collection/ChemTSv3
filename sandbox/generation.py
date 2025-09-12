@@ -12,7 +12,7 @@ if repo_root not in sys.path:
 
 import argparse
 from generator import Generator
-from utils import conf_from_yaml, generator_from_conf, save_yaml
+from utils import conf_from_yaml, generator_from_conf
 
 def main():
     parser = argparse.ArgumentParser()
@@ -32,10 +32,12 @@ def main():
     elif yaml_path is not None and load_dir is None:
         conf = conf_from_yaml(yaml_path)
         generator = generator_from_conf(conf)
-        save_dir = os.path.join(generator.output_dir(), "checkpoint")
-        os.makedirs(save_dir, exist_ok=True)
+        # if conf.get("save_interval") is not None:
+        #     save_dir = os.path.join(generator.output_dir(), "checkpoint")
+        #     os.makedirs(save_dir, exist_ok=True)
         while(yaml_path):
-            save_yaml(conf, save_dir, overwrite=True)
+            # if conf.get("save_interval") is not None:
+            #     save_yaml(conf, save_dir, overwrite=True)
             generator.generate(time_limit=conf.get("time_limit"), max_generations=conf.get("max_generations"))
             if not "next_yaml_path" in conf:
                 yaml_path = None
