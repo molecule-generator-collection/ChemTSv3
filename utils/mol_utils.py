@@ -16,11 +16,13 @@ def mol_validity_check(mol: Mol):
         return False
     return True
 
-def convert_to_canonical(smiles: str) -> str | None:
+def convert_to_canonical(smiles: str, main_mol_only: bool=False) -> str | None:
     try:
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             return None
+        if main_mol_only:
+            mol = get_main_mol(mol)
         return Chem.MolToSmiles(mol, canonical=True)
     except:
         return None
