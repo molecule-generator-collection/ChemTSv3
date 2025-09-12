@@ -437,7 +437,7 @@ class Generator(ABC):
         self.yaml_copy = copy.deepcopy(conf)
     
     def save(self, is_interval=True):
-        if is_interval:
+        if is_interval and self.save_interval is not None:
             self.next_save += self.save_interval
             self.last_saved = self.n_generated_nodes()
         save_dir = os.path.join(self.output_dir(), "checkpoint")
