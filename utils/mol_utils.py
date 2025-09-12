@@ -16,6 +16,15 @@ def mol_validity_check(mol: Mol):
         return False
     return True
 
+def convert_to_canonical(smiles: str) -> str | None:
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return None
+        return Chem.MolToSmiles(mol, canonical=True)
+    except:
+        return None
+
 def is_same_mol(mol1: Mol, mol2: Mol, options=None):
     inchi1 = inchi.MolToInchiKey(mol1, options)
     inchi2 = inchi.MolToInchiKey(mol2, options)
