@@ -10,7 +10,7 @@ transition_class: RNNTransition
 transition_args:
   model_dir: model/smiles/drugs_zinc/tf25_ported
   top_p: 0.995
-  v2_replication: true # apply top_p only on expansion (not on rollout)
+  disable_top_p_on_rollout: true # turn top_p to expansion_threshold
 
 reward_class: DScoreReward
 reward_args:
