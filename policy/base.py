@@ -54,7 +54,10 @@ class TemplatePolicy(Policy):
         return children[:min(k, len(children))]
 
 class ValuePolicy(TemplatePolicy):
-    """Policy that selects the node with the highest score."""
+    """Policy that selects the node with the highest score. Supports epsilon greedy."""
+    def __init__(self, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0):
+        self.epsilon = epsilon
+        super().__init__(pw_c=pw_c, pw_alpha=pw_alpha, pw_beta=pw_beta)
 
     @abstractmethod
     def evaluate(self, node: Node) -> float:
@@ -64,6 +67,9 @@ class ValuePolicy(TemplatePolicy):
     def select_child(self, node: Node) -> Node:
         evals = []
         candidates = self.candidates(node)
+        
+        if self.epsilon != 0 and random.random() < self.epsilon:
+            return random.choice(candidates)
         
         for c in candidates:
             try:

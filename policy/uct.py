@@ -5,7 +5,7 @@ from policy import ValuePolicy
 from utils import PointCurve
 
 class UCT(ValuePolicy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0):
         """
         Args:
             c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
@@ -23,7 +23,7 @@ class UCT(ValuePolicy):
             self.c = c
         self.best_ratio = best_rate
         self.max_prior = max_prior
-        super().__init__(pw_c=pw_c, pw_alpha=pw_alpha, pw_beta=pw_beta)
+        super().__init__(pw_c=pw_c, pw_alpha=pw_alpha, pw_beta=pw_beta, epsilon=epsilon)
 
     def get_c_value(self, node: Node) -> float:
         if type(self.c) == Callable:
