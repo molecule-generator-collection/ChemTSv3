@@ -62,13 +62,12 @@ def main():
     args = parser.parse_args()
     
     name = args.name
-    storage = "sqlite:///sandbox/mol_opt/optuna/" + name + ".db"
+    storage = "sqlite:///sandbox/tuning/optuna/" + name + ".db"
     sampler = sampler=optuna.samplers.TPESampler(multivariate=True, group=True)
-    pruner = optuna.pruners.MedianPruner(n_startup_trials=3, n_warmup_steps=3, interval_steps=1)
-    study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, pruner=pruner, load_if_exists=True)
+    study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, load_if_exists=True)
     
     if args.enqueue:
-        study.enqueue_trial({"c": 3, "best_rate": 0.2, "epsilon": 0.05, "n_eval_width": 1})
+        study.enqueue_trial({"c": 1, "best_rate": 0.2, "epsilon": 0.05, "n_eval_width": 1})
         
     study.optimize(objective, n_trials=10000)
         
