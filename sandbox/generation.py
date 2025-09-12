@@ -32,12 +32,7 @@ def main():
     elif yaml_path is not None and load_dir is None:
         conf = conf_from_yaml(yaml_path)
         generator = generator_from_conf(conf)
-        # if conf.get("save_interval") is not None:
-        #     save_dir = os.path.join(generator.output_dir(), "checkpoint")
-        #     os.makedirs(save_dir, exist_ok=True)
         while(yaml_path):
-            # if conf.get("save_interval") is not None:
-            #     save_yaml(conf, save_dir, overwrite=True)
             generator.generate(time_limit=conf.get("time_limit"), max_generations=conf.get("max_generations"))
             if not "next_yaml_path" in conf:
                 yaml_path = None
