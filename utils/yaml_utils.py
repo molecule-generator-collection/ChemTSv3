@@ -131,7 +131,14 @@ def adjust_path_args(args_dict: dict):
 
 def prepare_common_args(conf: dict, predecessor: Generator=None) -> tuple[str, logging.Logger, str]:
     if predecessor is None:
-        output_dir = os.path.join(REPO_ROOT, "sandbox", conf["output_dir"], datetime.now().strftime("%m-%d_%H-%M")) + os.sep
+        base_dir = os.path.join(REPO_ROOT, "sandbox", conf["output_dir"], datetime.now().strftime("%m-%d_%H-%M"))
+        output_dir = base_dir
+        counter = 2
+        while os.path.exists(output_dir):
+            output_dir = f"{base_dir}_{counter}"
+            counter += 1
+        output_dir += os.sep
+        
         console_level = logging.ERROR if conf.get("silent") else logging.INFO
         file_level = logging.DEBUG if conf.get("debug") else logging.INFO
         csv_level = logging.ERROR if not conf.get("csv_output", True) else logging.INFO
