@@ -437,6 +437,17 @@ class Generator(ABC):
         self.yaml_copy = copy.deepcopy(conf)
     
     def save(self, is_interval=True):
+        for ha in self.logger.handlers:
+            if isinstance(ha, logging.FileHandler):
+                log_dir = os.path.dirname(ha.baseFilename)  
+                log_file_without_ext = os.path.splitext(os.path.basename(ha.baseFilename))[0]
+                self._log_dir = log_dir
+                self._log_file = log_file_without_ext
+                self._file_level = ha.level
+            elif isinstance(ha, logging.StreamHandler):
+                self._console_level = ha.level
+            else:
+                self._csv_level = ha.level
         if is_interval and self.save_interval is not None:
             self.next_save += self.save_interval
             self.last_saved = self.n_generated_nodes()
@@ -453,6 +464,8 @@ class Generator(ABC):
     def load_file(file: str, transition: Transition) -> Self:
         with open(file, "rb") as f:
             generator = pickle.load(f)
+        generator.logger.warning(f"Logs will be written to: {generator._log_dir} instead of newly created one.")
+        generator.logger = make_logger(output_dir=generator._log_dir, name=generator._log_file, console_level=generator._console_level, file_level=generator._file_level, csv_level=generator._csv_level)
         generator.transition = transition
         return generator
     

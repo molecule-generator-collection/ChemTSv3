@@ -7,6 +7,7 @@ import psutil
 class CSVHandler(logging.Handler):
     def __init__(self, filename):
         super().__init__()
+        self.baseFilename = filename # same name as FileHandler
         self.file = open(filename, "a", newline="", encoding="utf-8")
         self.writer = csv.writer(self.file)
 
