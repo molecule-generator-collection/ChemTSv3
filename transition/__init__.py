@@ -21,4 +21,7 @@ def __getattr__(name):
     if name == "ProtGPT2Transition":
         from .prot_gpt2 import ProtGPT2Transition
         return ProtGPT2Transition
+    if name == "RNNBasedMutation":
+        from .rnn_based_mutation import RNNBasedMutation
+        return RNNBasedMutation
     raise AttributeError(f"module {__name__} has no attribute {name}")

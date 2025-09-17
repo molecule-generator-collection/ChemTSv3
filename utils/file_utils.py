@@ -1,4 +1,5 @@
 import ast
+import glob
 import importlib
 import inspect
 import os
@@ -83,3 +84,14 @@ def camel2snake(name: str) -> str:
 
 def add_sep(path: str) -> str:
     return path if path.endswith(os.path.sep) else path + os.path.sep
+
+def find_lang_file(model_dir: str) -> str:
+    """Returns: lang path"""
+    lang_files = glob.glob(os.path.join(model_dir, "*.lang"))
+
+    if len(lang_files) == 0:
+        raise FileNotFoundError(f"No .lang file found in {model_dir}")
+    elif len(lang_files) > 1:
+        raise ValueError(f"Multiple .lang files found in {model_dir}: {lang_files}")
+
+    return lang_files[0]
