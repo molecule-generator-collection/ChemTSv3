@@ -1,5 +1,4 @@
 import copy
-import glob
 import inspect
 import logging
 import os
@@ -8,7 +7,7 @@ import yaml
 from generator import Generator
 from language import Language
 from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode
-from utils import class_from_package, make_logger, set_seed, make_subdirectory
+from utils import class_from_package, make_logger, set_seed, make_subdirectory, find_lang_file
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
@@ -152,16 +151,6 @@ def construct_filters(filter_settings, device, logger, output_dir):
         adjust_args(filter_class, s, device, logger, output_dir)
         filters.append(filter_class(**s))
     return filters
-
-def find_lang_file(model_dir: str) -> str:
-    lang_files = glob.glob(os.path.join(model_dir, "*.lang"))
-
-    if len(lang_files) == 0:
-        raise FileNotFoundError(f"No .lang file found in {model_dir}")
-    elif len(lang_files) > 1:
-        raise ValueError(f"Multiple .lang files found in {model_dir}: {lang_files}")
-
-    return lang_files[0]
 
 def save_yaml(conf: dict, output_dir: str, name: str="config.yaml", overwrite: bool=False):
     path = os.path.join(output_dir, name)
