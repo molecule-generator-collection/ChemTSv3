@@ -30,9 +30,9 @@ def objective(trial):
     try:
         conf = conf_from_yaml(yaml_path)
         conf.setdefault("policy_args", {})
-        conf["policy_args"]["c"] = trial.suggest_float("c", 0.1, 10, log=True)
+        conf["policy_args"]["c"] = trial.suggest_float("c", 0.01, 1, log=True)
         conf["policy_args"]["best_rate"] = trial.suggest_float("best_rate", 0, 1)
-        conf["policy_args"]["epsilon"] = trial.suggest_categorical("epsilon", [0, 0.01, 0.02, 0.03, 0.05, 0.1, 0.2])
+        conf["policy_args"]["epsilon"] = trial.suggest_categorical("epsilon", [0, 0.01, 0.02, 0.03, 0.05])
         # conf.setdefault("generator_args", {})
         # conf["generator_args"]["n_eval_width"] = trial.suggest_categorical("n_eval_width", [1, float("inf")])
         
@@ -46,6 +46,12 @@ def objective(trial):
         np2 = len(list(set(df["key"]) & set(phase2)))
         np1 = len(list(set(df["key"]) & set(phase1)))
         npc = len(list(set(df["key"]) & set(preclinical)))
+        
+        trial.set_user_attr("phase1", np1)
+        trial.set_user_attr("phase2", np2)
+        trial.set_user_attr("phase3", np3)
+        trial.set_user_attr("phase4", np4)
+        trial.set_user_attr("preclinical", npc)
 
         print(f"Trial {trial.number}: preclinical={npc}, phase1={np1}, phase2={np2}, phase3={np3}, phase4={np4}")
         
@@ -67,10 +73,10 @@ def main():
     study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, load_if_exists=True)
     
     if args.enqueue:
-        study.enqueue_trial({"c": 2, "best_rate": 0.1, "epsilon": 0})
-        study.enqueue_trial({"c": 1, "best_rate": 0.2, "epsilon": 0.05})
+        study.enqueue_trial({"c": 0.1, "best_rate": 0.1, "epsilon": 0})
+        study.enqueue_trial({"c": 0.2, "best_rate": 0.2, "epsilon": 0.05})
         
-    study.optimize(objective, n_trials=10000)
+    study.optimize(objective, n_trials=300)
         
 if __name__ == "__main__":
     faulthandler.enable()
