@@ -7,7 +7,7 @@ device: cpu
 
 transition_class: RNNBasedMutation
 transition_args:
-  n_samples: 1
+  n_samples: 3
   rnn_top_p: 0.99
   model_dir: model/fasta/gfp
 
@@ -15,8 +15,8 @@ reward_class: GFPReward
 
 policy_class: UCT
 policy_args:
-  c: 0.2
-  best_rate: 0.5
+  c: 0.1
+  best_rate: 0.9
 
 generator_class: MCTS
 generator_args:
