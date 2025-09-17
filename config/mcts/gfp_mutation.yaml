@@ -8,7 +8,7 @@ device: cpu
 transition_class: RNNBasedMutation
 transition_args:
   n_samples: 3
-  rnn_top_p: 0.99
+  rnn_top_p: 1
   model_dir: model/fasta/gfp
 
 reward_class: GFPReward
