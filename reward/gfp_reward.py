@@ -35,10 +35,13 @@ class GFPReward(Reward):
     # implement
     def objective_functions(self):
         def fitness(node):
-            fasta = self._get_fasta(node)
-            
-            fitness = self.evaluator.evaluate([fasta])
-            return fitness
+            try:
+                fasta = self._get_fasta(node)
+                
+                fitness = self.evaluator.evaluate([fasta])
+                return fitness
+            except:
+                return 0
         
         def n_mutations(node):
             fasta = self._get_fasta(node)
