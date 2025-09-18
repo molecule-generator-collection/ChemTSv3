@@ -38,7 +38,7 @@ class Node(ABC):
     
     # should be overridden if root specification is needed
     @classmethod
-    def node_from_key(cls, key: str) -> Self:
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
         """Create a Node instance from a key."""
         raise NotImplementedError("node_from_key() is not supported in this class.")
     
