@@ -18,8 +18,8 @@ guacamol_oracle_names = ["zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2p
 tdc_oracle_names = ["drd2", "gsk3b", "jnk3", "qed"]
 oracle_names = guacamol_oracle_names + tdc_oracle_names
 
-yaml_path_1 = "config/optuna/mol_opt_rnn.yaml"
-yaml_path_2 = "config/optuna/mol_opt_jensen.yaml"
+yaml_path_1 = "config/tuning/mol_opt_rnn.yaml"
+yaml_path_2 = "config/tuning/mol_opt_jensen.yaml"
     
 def reward_class_name_from_oracle_name(oracle_name: str) -> str:
     if oracle_name in tdc_oracle_names:

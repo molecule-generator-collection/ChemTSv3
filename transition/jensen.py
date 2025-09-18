@@ -12,13 +12,15 @@ class JensenTransition(TemplateTransition):
     Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
     """
     
-    def __init__(self, check_size: bool=True, average_size: float=50.0, size_stdev: float=5.0, check_ring: bool=True, merge_duplicates: bool=True, record_actions: bool=False, filters: list[Filter]=None, top_p=None):
+    def __init__(self, base_chances=[0.15,0.14,0.14,0.14,0.14,0.14,0.15], check_size: bool=True, average_size: float=50.0, size_stdev: float=5.0, check_ring: bool=True, merge_duplicates: bool=True, record_actions: bool=False, filters: list[Filter]=None, top_p=None):
         """
         Args:
+            base_chances: chances of [insert_atom, change_bond_order, delete_cyclic_bond, add_ring, delete_atom, change_atom, append_atom]
             average_size: Used for the molecule size filter only if check_size is True.
             size_stdev: Used for the molecule size filter only if check_size is True.
             record_actions: If True, used smirks will be recorded as actions in child nodes.
         """
+        self.base_chances = base_chances
         self.check_size = check_size
         self.average_size = average_size
         self.size_stdev = size_stdev
@@ -167,7 +169,6 @@ class JensenTransition(TemplateTransition):
             mol = node.mol(use_cache=False)
         
             Chem.Kekulize(mol, clearAromaticFlags=True)
-            p = [0.15,0.14,0.14,0.14,0.14,0.14,0.15]
             rxn_smarts_list = 7*['']
             rxn_smarts_list[0] = self.insert_atom()
             rxn_smarts_list[1] = self.change_bond_order()
@@ -179,8 +180,10 @@ class JensenTransition(TemplateTransition):
             raw_result = [] # action, SMILES, raw_prob
 
             for i, (choices, probs) in enumerate(rxn_smarts_list):
+                if self.base_chances[i] == 0:
+                    continue
                 for smarts, prob in zip(choices, probs):
-                    new_prob = prob * p[i]
+                    new_prob = prob * self.base_chances[i]
                     action = smarts if self.record_actions else None
                     rxn = AllChem.ReactionFromSmarts(smarts)
                     new_mol_trial = rxn.RunReactants((mol,))
