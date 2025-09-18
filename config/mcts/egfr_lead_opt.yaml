@@ -20,17 +20,20 @@ reward_args:
   ad:
     egfr:
       num: 1
-      threshold: 0.66
+      # threshold: 0.66 # for exclude_approved: false
+      threshold: 0.69
       scaler: step
       weight: 1
     metabolic_stability:
       num: 1
-      threshold: 0.55
+      # threshold: 0.55 # for exclude_approved: false
+      threshold: 0.40
       scaler: step
       weight: 1
     permeability:
       num: 1
-      threshold: 0.43
+      # threshold: 0.43 # for exclude_approved: false
+      threshold: 0.36
       scaler: step
       weight: 1
   property:
@@ -73,7 +76,7 @@ transition_args:
 
 policy_class: PUCT
 policy_args:
-  c: 1
+  c: 0.3
 
 generator_class: MCTS
 generator_args:
