@@ -13,7 +13,7 @@ import traceback
 import optuna
 from utils import conf_from_yaml, generator_from_conf
 
-yaml_path = "config/optuna/egfr_lead_opt.yaml"
+yaml_path = "config/tuning/egfr_lead_opt.yaml"
 
 def txt2list(path: str):
     with open(path, "r", encoding="utf-8") as f:
