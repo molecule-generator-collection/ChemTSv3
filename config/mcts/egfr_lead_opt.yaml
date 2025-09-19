@@ -1,6 +1,7 @@
 output_dir: generation_result
 time_limit: 43200
 max_generations: 5000000
+seed: 0
 
 node_class: CanonicalSMILESStringNode
 use_canonical_smiles_as_key: true
@@ -93,12 +94,12 @@ generator_class: MCTS
 generator_args:
   avoid_duplicates: true
   reward_cutoff: 0.5
-  reward_cutoff_warmups: 20000
+  reward_cutoff_warmups: 10000
   n_eval_iters: 1
   n_eval_width: .inf
   n_tries: 1
   filter_reward: [-10,0,0,0]
-  info_interval: 100
+  info_interval: 1000
   save_interval: 200000
   verbose_interval: 5000
 
