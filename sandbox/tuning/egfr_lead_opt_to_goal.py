@@ -19,13 +19,9 @@ yaml_path = "config/tuning/egfr_lead_opt.yaml"
 def objective(trial):
     try:
         conf = conf_from_yaml(yaml_path)
-        conf.setdefault("transition_args", {})
-        bc = trial.suggest_categorical("base_chances", ["default", "append_only"])
-        conf["transition_args"]["base_chances"] = [0,0,0,0,0,0,1] if bc == "append_only" else [0.15,0.14,0.14,0.14,0.14,0.14,0.15]
-        conf["policy_class"] = trial.suggest_categorical("policy", ["UCT", "PUCT"])
         conf.setdefault("policy_args", {})
-        conf["policy_args"]["c"] = trial.suggest_float("c", 0.01, 1, log=True)
-        conf["policy_args"]["best_rate"] = trial.suggest_float("best_rate", 0, 1)
+        conf["policy_args"]["c"] = trial.suggest_float("c", 0.02, 0.5, log=True)
+        conf["policy_args"]["best_rate"] = trial.suggest_float("best_rate", 0, 0.5)
         
         generator = generator_from_conf(conf)
         generator.generate(max_generations=conf.get("max_generations"), time_limit=conf.get("time_limit"))
@@ -52,10 +48,9 @@ def main():
     study = optuna.create_study(direction="maximize", study_name=name, storage=storage, sampler=sampler, load_if_exists=True)
     
     if args.enqueue:
-        study.enqueue_trial({"base_chances": "append_only", "policy": "UCT", "c": 0.1, "best_rate": 0})
-        study.enqueue_trial({"base_chances": "default", "policy": "PUCT", "c": 0.3, "best_rate": 0})
+        study.enqueue_trial({"c": 0.12, "best_rate": 0.35})
         
-    study.optimize(objective, n_trials=300)
+    study.optimize(objective, n_trials=100)
         
 if __name__ == "__main__":
     faulthandler.enable()
