@@ -54,6 +54,13 @@ reward_args:
       weight: 1
 
 filters:
+  - filter_class: WeightFilter
+    max: 500
+  - filter_class: LogPFilter
+    max: 5
+  - filter_class: CatalogFilter
+    catalogs:
+      - "NIH"
   - filter_class: SAScoreFilter
     max: 2.5
 
@@ -79,17 +86,21 @@ transition_args:
 
 policy_class: UCT
 policy_args:
-  c: 0.05
+  c: 0.12
+  best_rate: 0.35
 
 generator_class: MCTS
 generator_args:
   avoid_duplicates: true
+  reward_cutoff: 0.5
+  reward_cutoff_warmups: 20000
   n_eval_iters: 1
   n_eval_width: .inf
   n_tries: 1
-  filter_reward: 0
+  filter_reward: [-10,0,0,0]
   info_interval: 100
   save_interval: 200000
+  verbose_interval: 5000
 
 plot_args:
   moving_average_window: 0.05
