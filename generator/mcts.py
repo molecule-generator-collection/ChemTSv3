@@ -11,7 +11,7 @@ class MCTS(Generator):
     def __init__(self, root: Node, transition: Transition, reward: Reward=LogPReward(), policy: Policy=UCT(), filters: list[Filter]=None, 
                  filter_reward: float | str | list=0, failed_parent_reward: float | str="ignore", 
                  n_eval_width: int=float("inf"), allow_eval_overlaps: bool=False, n_eval_iters: int=1, n_tries: int=1, 
-                 cut_failed_child: bool=False, reward_cutoff: float=None, 
+                 cut_failed_child: bool=False, reward_cutoff: float=None, reward_cutoff_warmups: int=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=False, discard_unneeded_states: bool=None,
                  max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, 
@@ -26,6 +26,7 @@ class MCTS(Generator):
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
             cut_failed_child: If True, child nodes will be removed when {n_eval_iters * n_tries} evals are filtered.
             reward_cutoff: Child nodes will be removed if their reward is lower than this value.
+            reward_cutoff_warmups: If specified, reward_cutoff will be inactive until {reward_cutoff_warmups} generations.
             avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph.
             
             failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {n_eval_width * n_eval_iters * n_tries} evals are filtered from the node.
@@ -63,6 +64,8 @@ class MCTS(Generator):
         self.n_tries = n_tries
         self.cut_failed_child = cut_failed_child
         self.reward_cutoff = reward_cutoff
+        self.reward_cutoff_warmups = reward_cutoff_warmups or 0
+        self.reward_cutoff_count = 0
         self.terminal_reward = terminal_reward
         self.cut_terminal = cut_terminal
         self.avoid_duplicates = avoid_duplicates
@@ -90,7 +93,8 @@ class MCTS(Generator):
         if node.has_reward():
             objective_values, reward = self._get_objective_values_and_reward(node)
             node.reward = reward
-            if self.reward_cutoff is not None and reward < self.reward_cutoff:
+            if self.reward_cutoff is not None and reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
+                self.reward_cutoff_count += 1
                 node.leave(logger=self.logger)
         else:
             offspring = self.transition.rollout(node)
@@ -171,3 +175,7 @@ class MCTS(Generator):
                 raise AttributeError("Node objects don't have lang: For molecule nodes that don't use lang, specify str2mol_func.")
             str2mol_func = c.lang.sentence2mol
             return super().display_top_k_molecules(str2mol_func, k=k, mols_per_row=mols_per_row, legends=legends, target=target, size=size)
+        
+    def analyze_postfix(self):
+        if self.reward_cutoff is not None:
+            self.logger.info(self.logger.info(f"Reward cutoff count: {self.reward_cutoff_count}"))
