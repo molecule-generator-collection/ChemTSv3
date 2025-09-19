@@ -178,4 +178,4 @@ class MCTS(Generator):
         
     def analyze_postfix(self):
         if self.reward_cutoff is not None:
-            self.logger.info(self.logger.info(f"Reward cutoff count: {self.reward_cutoff_count}"))
+            self.logger.info(f"Reward cutoff count: {self.reward_cutoff_count}")
