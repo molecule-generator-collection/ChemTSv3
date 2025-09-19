@@ -1,0 +1,72 @@
+output_dir: generation_result
+time_limit: 600
+max_generations: 30000
+node_class: CanonicalSMILESStringNode
+silent: true
+use_canonical_smiles_as_key: true
+
+root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+
+reward_class: DyRAMOReward
+reward_args:
+  exclude_approved: true
+  ad:
+    egfr:
+      num: 1
+      # threshold: 0.66 # for exclude_approved: false
+      threshold: 0.69
+      scaler: step
+      weight: 1
+    metabolic_stability:
+      num: 1
+      # threshold: 0.55 # for exclude_approved: false
+      threshold: 0.40
+      scaler: step
+      weight: 1
+    permeability:
+      num: 1
+      # threshold: 0.43 # for exclude_approved: false
+      threshold: 0.36
+      scaler: step
+      weight: 1
+  property:
+    egfr:
+      scaler: max_gauss
+      mu: 9
+      sigma: 2
+      weight: 1
+    metabolic_stability:
+      scaler: max_gauss
+      mu: 75
+      sigma: 20
+      weight: 1
+    permeability:
+      scaler: max_gauss
+      mu: 1
+      sigma: 1
+      weight: 1
+
+transition_class: JensenTransition
+transition_args:
+  check_size: false
+  check_ring: true
+  filters:
+    - filter_class: ValidityFilter # put this first if unsure
+    - filter_class: HeavyAtomCountFilter
+      max: 45
+    - filter_class: SubstructureFilter
+      smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+
+policy_class: PUCT
+
+generator_class: MCTS
+generator_args:
+  avoid_duplicates: true
+  n_eval_iters: 1
+  n_eval_width: .inf
+  n_tries: 1
+  filter_reward: 0
+  info_interval: 500
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
