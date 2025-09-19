@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 86400
+time_limit: 43200
 max_generations: 1000000
 
 node_class: CanonicalSMILESStringNode
@@ -21,19 +21,19 @@ reward_args:
     egfr:
       num: 1
       # threshold: 0.66 # for exclude_approved: false
-      threshold: 0.69
+      threshold: 0.79
       scaler: step
       weight: 1
     metabolic_stability:
       num: 1
       # threshold: 0.55 # for exclude_approved: false
-      threshold: 0.40
+      threshold: 0.45
       scaler: step
       weight: 1
     permeability:
       num: 1
       # threshold: 0.43 # for exclude_approved: false
-      threshold: 0.36
+      threshold: 0.45
       scaler: step
       weight: 1
   property:
@@ -55,14 +55,20 @@ reward_args:
 
 transition_class: JensenTransition
 transition_args:
+  base_chances: [0,0,0,0,0,0,1]
   check_size: false
   check_ring: true
   filters:
     - filter_class: ValidityFilter # put this first if unsure
+    - filter_class: SubstructureFilter
+      # smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+      smarts: c1[c;H1]c([c;H1][c;H1][c;H1]1)[N;H1]c2ncnc3c2[c;H1]c(c(c3))
+    - filter_class: SAScoreFilter
+      max: 2.5
+    - filter_class: LipinskiFilter
+      rule_of: 5
     - filter_class: HeavyAtomCountFilter
       max: 45
-    - filter_class: SubstructureFilter
-      smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 
 # transition_class: SMIRKSTransition
 # transition_args:
@@ -74,9 +80,9 @@ transition_args:
 #   - filter_class: SubstructureFilter
 #     smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 
-policy_class: PUCT
+policy_class: UCT
 policy_args:
-  c: 0.3
+  c: 0.05
 
 generator_class: MCTS
 generator_args:
@@ -86,6 +92,7 @@ generator_args:
   n_tries: 1
   filter_reward: 0
   info_interval: 100
+  save_interval: 50000
 
 plot_args:
   reward_top_ps: [0.5, 0.1]
