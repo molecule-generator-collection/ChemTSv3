@@ -62,18 +62,18 @@ filters:
   - filter_class: CatalogFilter
     catalogs:
       - "NIH"
-  - filter_class: SAScoreFilter
-    max: 2.5
+  # - filter_class: SAScoreFilter
+  #   max: 2.5
 
 transition_class: JensenTransition
 transition_args:
-  base_chances: [0,0,0,0,0,0,1]
+  # base_chances: [0,0,0,0,0,0,1]
   check_size: false
   check_ring: true
   filters:
     - filter_class: SubstructureFilter
-      # smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
-      smarts: c1[c;H1]c([c;H1][c;H1][c;H1]1)[N;H1]c2ncnc3c2[c;H1]c(c(c3))
+      smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+      # smarts: c1[c;H1]c([c;H1][c;H1][c;H1]1)[N;H1]c2ncnc3c2[c;H1]c(c(c3))
 
 # transition_class: SMIRKSTransition
 # transition_args:
@@ -95,11 +95,11 @@ generator_args:
   avoid_duplicates: true
   cut_failed_child: true
   reward_cutoff: 0.5
-  reward_cutoff_warmups: 5000
+  reward_cutoff_warmups: 1000
   n_eval_iters: 1
   n_eval_width: .inf
   n_tries: 1
-  filter_reward: [-10,0,0,0]
+  filter_reward: [-10,0,0]
   info_interval: 1000
   save_interval: 200000
   verbose_interval: 5000
