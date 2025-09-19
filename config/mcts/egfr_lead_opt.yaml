@@ -95,7 +95,7 @@ generator_args:
   avoid_duplicates: true
   cut_failed_child: true
   reward_cutoff: 0.5
-  reward_cutoff_warmups: 10000
+  reward_cutoff_warmups: 5000
   n_eval_iters: 1
   n_eval_width: .inf
   n_tries: 1
