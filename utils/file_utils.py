@@ -56,7 +56,7 @@ def class_from_package(package_name: str, class_name: str):
         if inspect.isclass(obj):
             return obj
 
-    raise ImportError(f"Failed to load '{class_name}'.")
+    raise ImportError(f"Failed to load '{class_name}'. Please check that all required dependencies are installed and the class name is spelled correctly.")
 
 def contains_class(module_name: str, class_name: str) -> bool:
     """Check the existence of class (while avoiding ImportError)"""
