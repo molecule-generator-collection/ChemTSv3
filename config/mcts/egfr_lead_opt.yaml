@@ -93,6 +93,7 @@ policy_args:
 generator_class: MCTS
 generator_args:
   avoid_duplicates: true
+  cut_failed_child: true
   reward_cutoff: 0.5
   reward_cutoff_warmups: 10000
   n_eval_iters: 1
