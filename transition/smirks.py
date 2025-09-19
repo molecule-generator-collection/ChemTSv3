@@ -4,7 +4,7 @@ from node import CanonicalSMILESStringNode
 from transition import TemplateTransition
 
 class SMIRKSTransition(TemplateTransition):
-    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None, record_actions=False):
+    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None, logger=None, record_actions=False):
         """
         Args:
             smirks_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored. Optional weights can be specified after // (default: 1.0).
@@ -30,7 +30,7 @@ class SMIRKSTransition(TemplateTransition):
         self.with_Hs = with_Hs
         self.kekulize = kekulize
         self.record_actions = record_actions
-        super().__init__(filters=filters, top_p=top_p)
+        super().__init__(filters=filters, top_p=top_p, logger=logger)
                     
     def load_smirks(self, path: str):
         self.weighted_smirks = []
