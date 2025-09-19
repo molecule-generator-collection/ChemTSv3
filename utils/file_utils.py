@@ -34,7 +34,12 @@ def class_from_package(package_name: str, class_name: str):
         obj = getattr(pkg, class_name)
         if inspect.isclass(obj):
             return obj
-    except Exception:
+    except ModuleNotFoundError as e:
+        raise ImportError(
+            f"Failed to load '{class_name}' from package '{package_name}'. "
+            f"Missing dependency: '{e.name}'. Please install it."
+        ) from e
+    except AttributeError:
         pass
 
     # if not in __init__.py, try to find the class in the directory (excluding sub-directories)
@@ -49,14 +54,17 @@ def class_from_package(package_name: str, class_name: str):
 
         try:
             module: ModuleType = importlib.import_module(full_name)
-        except ModuleNotFoundError:
-            continue
+        except ModuleNotFoundError as e:
+            raise ImportError(
+                f"Failed to load module '{full_name}' while looking for '{class_name}'. "
+                f"Missing dependency: '{e.name}'. Please install it."
+            ) from e
 
         obj = getattr(module, class_name, None)
         if inspect.isclass(obj):
             return obj
 
-    raise ImportError(f"Failed to load '{class_name}'. Please check that all required dependencies are installed and the class name is spelled correctly.")
+    raise ImportError(f"Failed to load '{class_name}'.")
 
 def contains_class(module_name: str, class_name: str) -> bool:
     """Check the existence of class (while avoiding ImportError)"""
