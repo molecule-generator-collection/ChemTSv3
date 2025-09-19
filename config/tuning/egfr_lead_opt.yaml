@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 600
-max_generations: 30000
+max_generations: 20000
 node_class: CanonicalSMILESStringNode
 silent: true
 use_canonical_smiles_as_key: true
@@ -14,19 +14,19 @@ reward_args:
     egfr:
       num: 1
       # threshold: 0.66 # for exclude_approved: false
-      threshold: 0.69
+      threshold: 0.79
       scaler: step
       weight: 1
     metabolic_stability:
       num: 1
       # threshold: 0.55 # for exclude_approved: false
-      threshold: 0.40
+      threshold: 0.45
       scaler: step
       weight: 1
     permeability:
       num: 1
       # threshold: 0.43 # for exclude_approved: false
-      threshold: 0.36
+      threshold: 0.45
       scaler: step
       weight: 1
   property:
@@ -46,22 +46,34 @@ reward_args:
       sigma: 1
       weight: 1
 
+filters:
+  - filter_class: WeightFilter
+    max: 500
+  - filter_class: LogPFilter
+    max: 5
+  - filter_class: CatalogFilter
+    catalogs:
+      - "NIH"
+  - filter_class: SAScoreFilter
+    max: 2.5
+
 transition_class: JensenTransition
 transition_args:
+  base_chances: [0,0,0,0,0,0,1]
   check_size: false
   check_ring: true
   filters:
-    - filter_class: ValidityFilter # put this first if unsure
-    - filter_class: HeavyAtomCountFilter
-      max: 45
     - filter_class: SubstructureFilter
-      smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+      # smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+      smarts: c1[c;H1]c([c;H1][c;H1][c;H1]1)[N;H1]c2ncnc3c2[c;H1]c(c(c3))
 
-policy_class: PUCT
+policy_class: UCT
 
 generator_class: MCTS
 generator_args:
   avoid_duplicates: true
+  reward_cutoff: 0.5
+  reward_cutoff_warmups: 10000
   n_eval_iters: 1
   n_eval_width: .inf
   n_tries: 1
