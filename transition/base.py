@@ -63,6 +63,7 @@ class TemplateTransition(Transition):
         if top_p is not None and (top_p <= 0 or 1 < top_p):
             raise ValueError(f"Invalid top_p range: {top_p}")
         self.top_p = top_p
+        self.filter_counts = [0] * len(filters)
         super().__init__(logger)
         
     @abstractmethod
@@ -74,7 +75,16 @@ class TemplateTransition(Transition):
         result = []
         
         # apply filters
-        result = [n for n in raw_nodes if all(f.check(n) for f in self.filters)]
+        result = []
+        for n in raw_nodes:
+            passed = True
+            for i, f in enumerate(self.filters):
+                if not f.check(n):
+                    self.filter_counts[i] += 1
+                    passed = False
+                    break
+            if passed:
+                result.append(n)
         if not result:
             return []
 
@@ -99,6 +109,10 @@ class TemplateTransition(Transition):
                 c.last_prob /= total
 
         return result
+    
+    # override
+    def analyze(self):
+        self.logger.info(f"Filter counts (transition): {self.filter_counts}")
     
 class BlackBoxTransition(TemplateTransition):
     def __init__(self, n_samples=2, filters: list[Filter]=None, logger: logging.Logger=None):

@@ -42,6 +42,7 @@ class Generator(ABC):
             if len(filters) != len(filter_reward):
                 raise ValueError(f"Size mismatch: 'filters': {len(filters)}, 'filter_reward': {len(filters)}")
             self.filter_reward = filter_reward
+        self.filter_counts = [0] * len(self.filters)
         self._output_dir = output_dir or make_subdirectory(os.path.join(REPO_ROOT, "sandbox", "generation_result"))
         os.makedirs(self.output_dir(), exist_ok=True)
         self.unique_keys = []
@@ -50,7 +51,6 @@ class Generator(ABC):
         self.passed_time = 0
         self.grab_count = 0
         self.duplicate_count = 0
-        self.filtered_count = 0
         self.return_nodes = return_nodes
         self._generated_nodes_tmp = []
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
@@ -202,7 +202,7 @@ class Generator(ABC):
         
         for i, filter in enumerate(self.filters):
             if not filter.check(node):
-                self.filtered_count += 1
+                self.filter_counts[i] += 1
                 self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
                 
                 self.transition.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
@@ -289,6 +289,7 @@ class Generator(ABC):
         self.logger.info(f"Average reward: {self.average_reward():.3f}")
         top_10_auc = self.auc(top_k=10)
         self.logger.info(f"Top 10 AUC: {top_10_auc:.3f}")
+        self.logger.info(f"Filter counts (reward): {self.filter_counts}")
         self.analyze_postfix()
         self.transition.analyze()
         for filter in self.filters:
@@ -308,7 +309,7 @@ class Generator(ABC):
         return len(self.unique_keys)
         
     def valid_rate(self):
-        return 1 - (self.filtered_count / self.grab_count)
+        return 1 - (sum(self.filter_counts) / self.grab_count)
     
     def unique_rate(self):
         return 1 - (self.duplicate_count / self.grab_count)
@@ -425,6 +426,7 @@ class Generator(ABC):
             self.next_save = self.n_generated_nodes() + self.next_save
         
     def log_verbose_info(self):
+        self.analyze()
         log_memory_usage(self.logger)
         
     def __getstate__(self):
