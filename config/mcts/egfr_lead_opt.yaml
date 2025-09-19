@@ -62,8 +62,8 @@ filters:
   - filter_class: CatalogFilter
     catalogs:
       - "NIH"
-  # - filter_class: SAScoreFilter
-  #   max: 2.5
+  - filter_class: SAScoreFilter
+    max: 2.5
 
 transition_class: JensenTransition
 transition_args:
@@ -99,7 +99,7 @@ generator_args:
   n_eval_iters: 1
   n_eval_width: .inf
   n_tries: 1
-  filter_reward: [-10,0,0]
+  filter_reward: [-10,0,0,0]
   info_interval: 1000
   save_interval: 200000
   verbose_interval: 5000
