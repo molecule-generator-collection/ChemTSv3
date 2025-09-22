@@ -47,6 +47,7 @@ class Generator(ABC):
         self.unique_keys = []
         self.record: dict[str, dict] = {} # save at least all of the following for unique keys: "objective_values", "reward", "generation_order", "time"
         self.best_reward = -float("inf")
+        self.worst_reward = float("inf")
         self.passed_time = 0
         self.grab_count = 0
         self.duplicate_count = 0
@@ -139,6 +140,8 @@ class Generator(ABC):
         self.record[key]["reward"] = reward
         self.record[key]["time"] = self.passed_time
         self.record[key]["generation_order"] = len(self.unique_keys)
+        
+        self.worst_reward = min(self.worst_reward, reward)
         
         if self.info_interval <= 1 or reward > self.best_reward:
             if reward > self.best_reward:
@@ -287,7 +290,8 @@ class Generator(ABC):
         self.logger.info(f"Best reward: {self.best_reward:.3f}")
         self.logger.info(f"Average reward: {self.average_reward():.3f}")
         top_10_auc = self.auc(top_k=10)
-        self.logger.info(f"Top 10 AUC: {top_10_auc:.3f}")
+        if self.worst_reward >= 0 and self.best_reward <= 1:
+            self.logger.info(f"Top 10 AUC: {top_10_auc:.3f}")
         if len(self.filters) != 0:
             self.logger.info(f"Filter counts (reward): {self.filter_counts}")
         self.transition.analyze()
