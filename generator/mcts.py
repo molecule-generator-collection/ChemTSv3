@@ -14,8 +14,8 @@ class MCTS(Generator):
                  cut_failed_child: bool=False, reward_cutoff: float=None, reward_cutoff_warmups: int=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=False, discard_unneeded_states: bool=None,
-                 max_tree_depth=None, use_dummy_reward: bool=False, return_nodes: bool=False, 
-                 name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, verbose_interval: int=None, save_interval: int=None):
+                 max_tree_depth=None, use_dummy_reward: bool=False,
+                 name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
@@ -35,7 +35,6 @@ class MCTS(Generator):
             
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             discard_unneeded_states: If True, discards variables of nodes that will no longer be used after expansion.
-            return_nodes: If set to True, generate() returns generated nodes as a list.
             
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
@@ -77,7 +76,7 @@ class MCTS(Generator):
             self.discard_unneeded_states = False if cut_failed_child else True
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
-        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, return_nodes=return_nodes, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval, save_interval=save_interval)
+        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval)
         self.root.n = 1
         
     def _selection(self) -> Node:
