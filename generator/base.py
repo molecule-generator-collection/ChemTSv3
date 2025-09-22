@@ -289,14 +289,10 @@ class Generator(ABC):
         top_10_auc = self.auc(top_k=10)
         self.logger.info(f"Top 10 AUC: {top_10_auc:.3f}")
         self.logger.info(f"Filter counts (reward): {self.filter_counts}")
-        self.analyze_postfix()
         self.transition.analyze()
         for filter in self.filters:
             filter.analyze()
         self.reward.analyze()
-        
-    def analyze_postfix(self):
-        return
         
     def display_top_k_molecules(self, str2mol_func, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):
         from utils import draw_mols, top_k_df
