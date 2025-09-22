@@ -87,6 +87,16 @@ class TemplateTransition(Transition):
                 result.append(n)
         if not result:
             return []
+        
+        # normalize after filters
+        total = sum(c.last_prob for c in result)
+        if total > 0:
+            for c in result:
+                c.last_prob /= total
+        else:
+            uniform = 1.0 / len(result)
+            for c in result:
+                c.last_prob = uniform
 
         # apply top_p
         if self.top_p is not None and len(result) > 0:
