@@ -174,7 +174,9 @@ class MCTS(Generator):
                 raise AttributeError("Node objects don't have lang: For molecule nodes that don't use lang, specify str2mol_func.")
             str2mol_func = c.lang.sentence2mol
             return super().display_top_k_molecules(str2mol_func, k=k, mols_per_row=mols_per_row, legends=legends, target=target, size=size)
-        
-    def analyze_postfix(self):
+
+    # override
+    def analyze(self):
+        super().analyze()
         if self.reward_cutoff is not None:
             self.logger.info(f"Reward cutoff count: {self.reward_cutoff_count}")
