@@ -288,7 +288,8 @@ class Generator(ABC):
         self.logger.info(f"Average reward: {self.average_reward():.3f}")
         top_10_auc = self.auc(top_k=10)
         self.logger.info(f"Top 10 AUC: {top_10_auc:.3f}")
-        self.logger.info(f"Filter counts (reward): {self.filter_counts}")
+        if len(self.filters) != 0:
+            self.logger.info(f"Filter counts (reward): {self.filter_counts}")
         self.transition.analyze()
         for filter in self.filters:
             filter.analyze()

@@ -112,7 +112,8 @@ class TemplateTransition(Transition):
     
     # override
     def analyze(self):
-        self.logger.info(f"Filter counts (transition): {self.filter_counts}")
+        if len(self.filters) != 0:
+            self.logger.info(f"Filter counts (transition): {self.filter_counts}")
     
 class BlackBoxTransition(TemplateTransition):
     def __init__(self, n_samples=2, filters: list[Filter]=None, logger: logging.Logger=None):
