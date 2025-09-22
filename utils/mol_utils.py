@@ -84,7 +84,7 @@ def top_k_df(df: str | pd.DataFrame, k: int, target: str) -> list[str]:
 
     return df.head(k)
 
-def draw_mols(df: pd.DataFrame, legends: list[str], mols_per_row=5, size=(200, 200), str2mol_func=None):
+def draw_mols(df: pd.DataFrame, legends: list[str], mols_per_row=5, size=(200, 200), max_mols=50, str2mol_func=None):
     mols = []
     legend_strings = []
     for _, row in df.iterrows():
@@ -100,7 +100,7 @@ def draw_mols(df: pd.DataFrame, legends: list[str], mols_per_row=5, size=(200, 2
                 legend += f"{val}: {row[val]:}\n"
         mols.append(mol)
         legend_strings.append(legend)
-    display(Draw.MolsToGridImage(mols, molsPerRow=mols_per_row, subImgSize=size, legends=legend_strings, useSVG=True))
+    display(Draw.MolsToGridImage(mols, molsPerRow=mols_per_row, subImgSize=size, legends=legend_strings, maxMols=max_mols, useSVG=True))
     
 def append_similarity_to_df(df: pd.DataFrame, goal_smiles: str, name: str="similarity"):
     mfgen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
