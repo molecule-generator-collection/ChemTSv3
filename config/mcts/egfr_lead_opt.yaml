@@ -22,19 +22,22 @@ reward_args:
     egfr:
       num: 1
       # threshold: 0.66 # for exclude_approved: false
-      threshold: 0.69
+      # threshold: 0.69
+      threshold: 0.79
       scaler: step
       weight: 1
     metabolic_stability:
       num: 1
       # threshold: 0.55 # for exclude_approved: false
-      threshold: 0.40
+      # threshold: 0.40
+      threshold: 0.45
       scaler: step
       weight: 1
     permeability:
       num: 1
       # threshold: 0.43 # for exclude_approved: false
-      threshold: 0.36
+      # threshold: 0.36
+      threshold: 0.45
       scaler: step
       weight: 1
   property:
@@ -95,7 +98,7 @@ generator_args:
   avoid_duplicates: true
   cut_failed_child: true
   reward_cutoff: 0.5
-  reward_cutoff_warmups: 0
+  reward_cutoff_warmups: 1000
   n_eval_iters: 1
   n_eval_width: .inf
   n_tries: 1
