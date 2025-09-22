@@ -93,7 +93,8 @@ class MCTS(Generator):
             objective_values, reward = self._get_objective_values_and_reward(node)
             node.reward = reward
             if self.reward_cutoff is not None and reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
-                self.reward_cutoff_count += 1
+                if type(objective_values[0]) != str or not self.cut_failed_child: # not filtered
+                    self.reward_cutoff_count += 1
                 node.leave(logger=self.logger)
         else:
             offspring = self.transition.rollout(node)
