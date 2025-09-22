@@ -10,6 +10,7 @@ class CatalogFilter(MolFilter):
         "PAINS":   FilterCatalogParams.FilterCatalogs.PAINS, 
         "BRENK":   FilterCatalogParams.FilterCatalogs.BRENK, 
         "CHEMBL":  FilterCatalogParams.FilterCatalogs.CHEMBL, 
+        "CHEMBL_BMS":  FilterCatalogParams.FilterCatalogs.CHEMBL_BMS, 
         "CHEMBL_DUNDEE":  FilterCatalogParams.FilterCatalogs.CHEMBL_Dundee, 
         "CHEMBL_GLAXO":  FilterCatalogParams.FilterCatalogs.CHEMBL_Glaxo, 
         "CHEMBL_INPHARMATICA":  FilterCatalogParams.FilterCatalogs.CHEMBL_Inpharmatica, 
