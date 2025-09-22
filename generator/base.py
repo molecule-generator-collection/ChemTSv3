@@ -20,11 +20,10 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, return_nodes: bool=False, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, verbose_interval: int=None, save_interval: int=None):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
-            return_nodes: If set to True, generate() returns generated nodes as a list.
             
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
@@ -51,11 +50,10 @@ class Generator(ABC):
         self.passed_time = 0
         self.grab_count = 0
         self.duplicate_count = 0
-        self.return_nodes = return_nodes
-        self._generated_nodes_tmp = []
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
         self.yaml_copy = None
         self.info_interval = info_interval
+        self.analyze_interval = analyze_interval
         self.verbose_interval = verbose_interval
         self.save_interval = save_interval
         self.last_saved = 0
@@ -67,7 +65,7 @@ class Generator(ABC):
 
     def generate(self, max_generations: int=None, time_limit: float=None):
         """
-        Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search. If 'self.return_nodes' is True, returns generated nodes as a list.
+        Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search.
 
         Args:
             max_generations: Generation stops after generating 'max_generations' number of nodes.
@@ -111,15 +109,8 @@ class Generator(ABC):
                 self.logger.info("Executor shutdown completed.")
             self.logger.info("Generation finished.")
             
-            if self.save_interval is not None and not self.return_nodes and self.n_generated_nodes() != self.last_saved:
+            if self.save_interval is not None and self.n_generated_nodes() != self.last_saved:
                 self.save(is_interval=False)
-            
-            if self.return_nodes:
-                result = self._generated_nodes_tmp
-                self._generated_nodes_tmp = []
-                return result
-            else:
-                return None
 
     def _make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
@@ -163,6 +154,8 @@ class Generator(ABC):
             
         self.logger.info(row)
         
+        if self.analyze_interval is not None and len(self.unique_keys) % self.analyze_interval == 0:
+            self.analyze()
         if self.verbose_interval is not None and len(self.unique_keys) % self.verbose_interval == 0:
             self.log_verbose_info()
         
@@ -219,12 +212,14 @@ class Generator(ABC):
         self.transition.observe(node=node, objective_values=objective_values, reward=reward, filtered=False)
         for filter in self.filters:
             filter.observe(node=node, objective_values=objective_values, reward=reward, filtered=False)
-            
-        if self.return_nodes:
-            self._generated_nodes_tmp.append(node)
+
+        self.on_generation(node)
         
         node.clear_cache()
         return objective_values, reward
+    
+    def on_generation(self, node: Node):
+        pass
 
     # visualize results
     def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None):
@@ -282,7 +277,6 @@ class Generator(ABC):
         if len(self.unique_keys) == 0:
             return
         self.logger.info(f"Generation count: {self.n_generated_nodes()}")
-        self.logger.info(f"Valid rate: {self.valid_rate():.3f}")
         self.logger.info(f"Unique rate: {self.unique_rate():.3f}")
         self.logger.info(f"Node per sec: {self.node_per_sec():.3f}")
         self.logger.info(f"Best reward: {self.best_reward:.3f}")
@@ -426,7 +420,6 @@ class Generator(ABC):
             self.next_save = self.n_generated_nodes() + self.next_save
         
     def log_verbose_info(self):
-        self.analyze()
         log_memory_usage(self.logger)
         
     def __getstate__(self):
