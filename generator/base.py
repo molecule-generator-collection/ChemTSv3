@@ -93,6 +93,8 @@ class Generator(ABC):
                     break
                 if max_generations is not None and len(self.unique_keys) - initial_count_generations >= max_generations:
                     break
+                if self.should_finish():
+                    break
                 self._generate_impl()
                 
                 if self.save_interval is not None and (self.n_generated_nodes() >= self.next_save):
@@ -111,6 +113,9 @@ class Generator(ABC):
             
             if self.save_interval is not None and self.n_generated_nodes() != self.last_saved:
                 self.save(is_interval=False)
+                
+    def should_finish(self):
+        return False
 
     def _make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
@@ -213,12 +218,12 @@ class Generator(ABC):
         for filter in self.filters:
             filter.observe(node=node, objective_values=objective_values, reward=reward, filtered=False)
 
-        self.on_generation(node)
+        self.on_generation(node, objective_values=objective_values, reward=reward)
         
         node.clear_cache()
         return objective_values, reward
     
-    def on_generation(self, node: Node):
+    def on_generation(self, node: Node, objective_values: list[float], reward: float):
         pass
 
     # visualize results
