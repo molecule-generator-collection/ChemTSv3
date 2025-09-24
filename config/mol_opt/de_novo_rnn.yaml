@@ -1,6 +1,6 @@
 output_dir: generation_result
 silent: true
-time_limit: 1000 # seconds
+time_limit: 1000 # Seconds
 max_generations: 400
 n_keys_to_pass: 4
 

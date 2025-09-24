@@ -1,6 +1,6 @@
 output_dir: generation_result
 silent: true
-time_limit: 2000 # seconds
+time_limit: 2000 # Seconds
 max_generations: 10000
 
 node_class: MolSentenceNode

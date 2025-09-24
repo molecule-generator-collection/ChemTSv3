@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 36000 # seconds
+time_limit: 36000 # Seconds
 max_generations: 200000
 # debug: true
 node_class: MolSentenceNode

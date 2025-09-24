@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 1800 # seconds
+time_limit: 1800 # Seconds
 max_generations: 100
 debug: true
 
