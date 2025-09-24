@@ -45,6 +45,6 @@ plot_args:
   reward_top_ps: [0.5, 0.1]
 
 filters:
-  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: ValidityFilter # Apply ValidityFilter first (unless molecular validity is already guaranteed), since other MolFilter and MolReward do not check validity by default.
   - filter_class: RadicalFilter
   - filter_class: ChargeFilter

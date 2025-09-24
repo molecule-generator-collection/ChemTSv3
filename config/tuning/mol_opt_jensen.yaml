@@ -9,7 +9,7 @@ transition_args:
   check_size: false
   check_ring: true
   filters:
-  - filter_class: ValidityFilter # put this first if unsure
+  - filter_class: ValidityFilter # Apply ValidityFilter first (unless molecular validity is already guaranteed), since other MolFilter and MolReward do not check validity by default.
   # - filter_class: RadicalFilter
 
 policy_class: PUCT
