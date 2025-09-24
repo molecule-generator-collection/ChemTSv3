@@ -118,9 +118,6 @@ class Generator(ABC):
                 
     def should_finish(self):
         return False
-    
-    def refresh_time(self):
-        self.passed_time = self.initial_time + (time.time() - self.time_start)
 
     def _make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
@@ -142,7 +139,7 @@ class Generator(ABC):
         self.record[key] = {}
         self.record[key]["objective_values"] = objective_values
         self.record[key]["reward"] = reward
-        self.refresh_time()
+        self.passed_time = self.initial_time + (time.time() - self.time_start)
         self.record[key]["time"] = self.passed_time
         self.record[key]["generation_order"] = len(self.unique_keys)
         
