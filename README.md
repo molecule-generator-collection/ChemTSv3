@@ -52,10 +52,10 @@ python sandbox/generation.py -c config/mcts/example.yaml
 # Chain generation
 python sandbox/generation.py -c config/mcts/example_chain_1.yaml
 # Load a checkpoint and continue the generation
-python sandbox/generation.py -l sandbox/~~~/checkpoint --max_generations 100 --time_limit 60
+python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_generations 100 --time_limit 60
 ```
 
 ## Notebooks
-- **Tutorials**: `sandbox/tutorial/tutorial_***.ipynb`
+- **Tutorials**: `sandbox/tutorial/***.ipynb`
 - **YAML-based Generation**: `sandbox/generation.ipynb`
 - **Model training**: `sandbox/train_rnn.ipynb` and `sandbox/train_gpt2.ipynb`
