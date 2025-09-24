@@ -1,4 +1,4 @@
-# Example: python sandbox/mol_opt/mol_opt_chain.py --name nosizecheck
+# Example: python sandbox/mol_opt/tuning_chain.py --name nosizecheck
 
 # Path setup / Imports
 import faulthandler
