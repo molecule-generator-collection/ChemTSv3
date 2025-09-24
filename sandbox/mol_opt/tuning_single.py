@@ -1,4 +1,4 @@
-# Example: python sandbox/mol_opt/mol_opt_single.py
+# Example: python sandbox/mol_opt/tuning_single.py
 
 # Path setup / Imports
 import faulthandler
