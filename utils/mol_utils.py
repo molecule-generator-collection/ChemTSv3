@@ -102,8 +102,8 @@ def draw_mols(df: pd.DataFrame, legends: list[str], mols_per_row=5, size=(200, 2
         legend_strings.append(legend)
     display(Draw.MolsToGridImage(mols, molsPerRow=mols_per_row, subImgSize=size, legends=legend_strings, maxMols=max_mols, useSVG=True))
     
-def append_similarity_to_df(df: pd.DataFrame, goal_smiles: str, name: str="similarity"):
-    mfgen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
+def append_similarity_to_df(df: pd.DataFrame, goal_smiles: str, radius=2, fp_size=2048, name: str="similarity"):
+    mfgen = rdFingerprintGenerator.GetMorganGenerator(radius=radius, fpSize=fp_size)
 
     goal = Chem.MolFromSmiles(goal_smiles)
     goal_fp = mfgen.GetFingerprint(goal)
