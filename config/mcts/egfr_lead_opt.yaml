@@ -7,7 +7,6 @@ node_class: CanonicalSMILESStringNode
 use_canonical_smiles_as_key: true
 
 root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
-# goal: Brc1cc(ccc1)Nc2ncnc3c2cc(c(c3)OC)OC
 
 # reward_class: SimilarityReward
 # reward_args:

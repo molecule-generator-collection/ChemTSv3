@@ -1,5 +1,5 @@
 output_dir: generation_result
-time_limit: 68000 # seconds
+time_limit: 68000 # Seconds
 max_generations: 200000
 node_class: MolSentenceNode
 use_canonical_smiles_as_key: false
