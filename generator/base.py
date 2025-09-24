@@ -59,6 +59,7 @@ class Generator(ABC):
         self.save_interval = save_interval
         self.last_saved = 0
         self.next_save = save_interval
+        self.initial_time, self.time_start = 0, 0 # precaution
     
     @abstractmethod
     def _generate_impl(self, *kwargs):
@@ -79,8 +80,8 @@ class Generator(ABC):
             self.log_verbose_info()
         
         # record current time and counts
-        time_start = time.time()
-        initial_time = self.passed_time
+        self.time_start = time.time()
+        self.initial_time = self.passed_time
         if self.passed_time == 0:
             self._write_csv_header()
         initial_count_generations = len(self.unique_keys)
@@ -88,8 +89,8 @@ class Generator(ABC):
         self.logger.info("Starting generation...")
         try:
             while True:
-                time_passed = time.time() - time_start
-                self.passed_time = initial_time + time_passed
+                time_passed = time.time() - self.time_start
+                self.passed_time = self.initial_time + time_passed
                 if time_limit is not None and time_passed >= time_limit:
                     break
                 if max_generations is not None and len(self.unique_keys) - initial_count_generations >= max_generations:
@@ -117,6 +118,9 @@ class Generator(ABC):
                 
     def should_finish(self):
         return False
+    
+    def refresh_time(self):
+        self.passed_time = self.initial_time + (time.time() - self.time_start)
 
     def _make_name(self):
         return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
@@ -138,6 +142,7 @@ class Generator(ABC):
         self.record[key] = {}
         self.record[key]["objective_values"] = objective_values
         self.record[key]["reward"] = reward
+        self.refresh_time()
         self.record[key]["time"] = self.passed_time
         self.record[key]["generation_order"] = len(self.unique_keys)
         
