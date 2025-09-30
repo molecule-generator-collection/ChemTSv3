@@ -1,4 +1,3 @@
-from collections import OrderedDict
 import itertools
 import numpy as np
 from rdkit import Chem
@@ -90,8 +89,8 @@ class JensenTransition(TemplateTransition):
 
     @staticmethod
     def change_bond_order():
-        choices = ['[*:1]!-[*:2]>>[*:1]-[*:2]','[*;!H0:1]-[*;!H0:2]>>[*:1]=[*:2]',
-                    '[*:1]#[*:2]>>[*:1]=[*:2]','[*;!R;!H1;!H0:1]~[*:2]>>[*:1]#[*:2]']
+        choices = ['[*:1]!-[*:2]>>[*:1]-[*:2]', '[*;!H0:1]-[*;!H0:2]>>[*:1]=[*:2]',
+                    '[*:1]#[*:2]>>[*:1]=[*:2]', '[*;!R;!H1;!H0:1]~[*:2]>>[*:1]#[*:2]']
         p = [0.45,0.45,0.05,0.05]
 
         return choices, p
