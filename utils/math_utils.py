@@ -42,7 +42,7 @@ def append_pareto_optimality_to_df(df: pd.DataFrame, objectives: list[str], maxi
 
     # Switch to maximize
     for k, is_max in enumerate(maximize):
-        if not is_max:
+        if is_max:
             F[:, k] = -F[:, k]
 
     try:
