@@ -20,7 +20,7 @@ def set_seed(seed: int=None, logger: logging.Logger=None):
     np.random.seed(seed)
     torch.manual_seed(seed)
     
-def add_pareto_optimal_column(df: pd.DataFrame, objectives: list[str], maximize: list[bool]=None, colname: str="is_pareto_optimal") -> pd.DataFrame:
+def append_pareto_optimality_to_df(df: pd.DataFrame, objectives: list[str], maximize: list[bool]=None, colname: str="is_pareto_optimal") -> pd.DataFrame:
     """
     Add a boolean column to df indicating whether each row is Pareto optimal. For more than 2 objectives, pymoo is required.
 
@@ -81,7 +81,7 @@ def pareto_optimal_df(df: pd.DataFrame, objectives: list[str], maximize: list[bo
     Returns:
         pd.DataFrame: Dataframe with Pareto optimal entries
     """
-    df = add_pareto_optimal_column(df, objectives=objectives, maximize=maximize, colname="is_pareto")
+    df = append_pareto_optimality_to_df(df, objectives=objectives, maximize=maximize, colname="is_pareto")
     result = df.loc[df["is_pareto"]]
     df.drop(columns=["is_pareto"], inplace=True)
     result = result.drop(columns=["is_pareto"])
