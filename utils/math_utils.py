@@ -4,6 +4,7 @@ import math
 import random
 import time
 import numpy as np
+import pandas as pd
 import torch
 
 def set_seed(seed: int=None, logger: logging.Logger=None):
@@ -18,6 +19,74 @@ def set_seed(seed: int=None, logger: logging.Logger=None):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    
+def add_pareto_optimal_column(df: pd.DataFrame, objectives: list[str], maximize: list[bool]=None, colname: str="is_pareto_optimal") -> pd.DataFrame:
+    """
+    Add a boolean column to df indicating whether each row is Pareto optimal. For more than 2 objectives, pymoo is required.
+
+    Args:
+        df: Input dataframe.
+        objectives: List of objective column names.
+        maximize: Same length as objectives. If True, higher values are better. If None, defaults to all True.
+        colname: Name of the output column.
+
+    Returns:
+        pd.DataFrame: Dataframe with added column for Pareto optimality.
+    """
+    if maximize is None:
+        maximize = [True] * len(objectives)
+    if len(maximize) != len(objectives):
+        raise ValueError("`maximize` must have the same length as `objectives`.")
+
+    F = df[objectives].to_numpy(dtype=np.float32)
+
+    # Switch to maximize
+    for k, is_max in enumerate(maximize):
+        if not is_max:
+            F[:, k] = -F[:, k]
+
+    try:
+        # If pymoo is available
+        from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
+
+        nds = NonDominatedSorting(method="efficient_non_dominated_sort")
+        first_front = nds.do(F, only_non_dominated_front=True) # Get non-dominated indices.
+        mask = np.zeros(len(F), dtype=bool)
+        mask[np.asarray(first_front, dtype=int)] = True
+
+    except ImportError as e:
+        # If pymoo is not available, fall back to a 2D O(N log N) skyline for m==2. For m >= 3 without pymoo, raise an error.
+        if F.shape[1] == 2:
+            order = np.argsort(-F[:, 0], kind="mergesort")
+            best2 = -np.inf
+            mask = np.zeros(F.shape[0], dtype=bool)
+            for idx in order:
+                v2 = F[idx, 1]
+                if v2 > best2:
+                    mask[idx] = True
+                    best2 = v2
+        else:
+            raise RuntimeError("Please install pymoo.") from e
+
+    df[colname] = mask
+    return df
+
+def pareto_optimal_df(df: pd.DataFrame, objectives: list[str], maximize: list[bool] = None) -> pd.DataFrame:
+    """
+    Args:
+        df: Input dataframe
+        objectives: List of objective column names
+        maximize: Same length as objectives. If True, higher values are better. If None, defaults to all True.
+
+    Returns:
+        pd.DataFrame: Dataframe with Pareto optimal entries
+    """
+    df = add_pareto_optimal_column(df, objectives=objectives, maximize=maximize, colname="is_pareto")
+    result = df.loc[df["is_pareto"]]
+    df.drop(columns=["is_pareto"], inplace=True)
+    result = result.drop(columns=["is_pareto"])
+
+    return result
 
 def apply_top_p(probs: torch.Tensor, top_p: float) -> torch.Tensor:
     sorted_probs, sorted_indices = torch.sort(probs, descending=True)
