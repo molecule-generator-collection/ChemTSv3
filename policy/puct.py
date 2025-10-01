@@ -4,7 +4,7 @@ from policy import UCT
 
 class PUCT(UCT):
     """
-    Modified PUCT based on AlphaZero.
+    Modified PUCT introduced in AlphaGo Zero. Ref: https://www.nature.com/articles/nature24270
     Args:
         c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
         best_rate: A value between 0 and 1. The exploitation term is computed as 
