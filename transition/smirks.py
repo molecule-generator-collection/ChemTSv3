@@ -1,10 +1,12 @@
+import os
+import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from node import CanonicalSMILESStringNode
 from transition import TemplateTransition
 
 class SMIRKSTransition(TemplateTransition):
-    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None, logger=None, record_actions=False):
+    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None, logger=None, record_actions=True, output_dir: str=None):
         """
         Args:
             smirks_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored. Optional weights can be specified after // (default: 1.0).
@@ -30,6 +32,16 @@ class SMIRKSTransition(TemplateTransition):
         self.with_Hs = with_Hs
         self.kekulize = kekulize
         self.record_actions = record_actions
+        self.output_dir = output_dir
+        
+        self.n = 0
+        self.sum_delta_unfiltered = 0
+        self.sum_delta_including_filtered = 0
+        self.sum_deltas_unfiltered = {}
+        self.sum_deltas_including_filtered = {}
+        self.ns = {}
+        self.n_filtered = {}
+        
         super().__init__(filters=filters, top_p=top_p, logger=logger)
                     
     def load_smirks(self, path: str):
@@ -96,7 +108,7 @@ class SMIRKSTransition(TemplateTransition):
                         actions[smiles] = smirks
                     else:
                         weights[smiles] += weight
-                        actions[smiles] += f" or {smirks}"
+                        # actions[smiles] += f" or {smirks}"
                 except:
                     continue
                 
@@ -110,3 +122,69 @@ class SMIRKSTransition(TemplateTransition):
             return children
         except:
             return []
+        
+    # override     
+    def observe(self, node, objective_values: list[float], reward: float, filtered: bool):
+        if self.record_actions is True:
+            action = node.last_action
+            if node.parent.reward is None:
+                return
+            dif = reward - node.parent.reward
+
+            self.n += 1
+            if not action in self.ns:
+                self.sum_deltas_unfiltered[action] = 0
+                self.sum_deltas_including_filtered[action] = 0
+                self.ns[action] = 1
+                self.n_filtered[action] = 0
+            else:
+                self.ns[action] += 1
+            
+            if not filtered:
+                self.sum_deltas_unfiltered[action] += dif
+                self.sum_deltas_including_filtered[action] += dif
+                self.sum_delta_unfiltered += dif
+                self.sum_delta_including_filtered += dif
+            else:
+                self.sum_deltas_including_filtered[action] += dif
+                self.sum_delta_including_filtered += dif
+                self.n_filtered[action] += 1
+                
+    # override
+    def analyze(self):
+        # self.logger.info(f"- Total evaluation count: {self.n}")
+        # self.logger.info(f"- Average delta (unfiltered): {self.sum_delta_unfiltered / self.n:.3f}")
+        # self.logger.info(f"- Average delta (with filtered): {self.sum_delta_including_filtered / self.n:.3f}")
+        # self.logger.info(f"----------------------------------------")
+        
+        # for key in self.ns.keys():
+        #     self.logger.info(f"SMIRKS: {key}")
+        #     self.logger.info(f"- Evaluation count: {self.ns[key]}")
+        #     self.logger.info(f"- Average delta (unfiltered): {self.sum_deltas_unfiltered[key] / self.ns[key]:.3f}")
+        #     self.logger.info(f"- Average delta (with filtered): {self.sum_deltas_including_filtered[key] / self.ns[key]:.3f}")
+        #     self.logger.info(f"- Filtered count: {self.n_filtered[key]}")
+        records = []
+        for key, _ in self.weighted_smirks:
+            if not key in self.ns:
+                continue
+            n = self.ns[key]
+            avg_unfiltered = self.sum_deltas_unfiltered[key] / n
+            avg_filtered = self.sum_deltas_including_filtered[key] / n
+            filtered_count = self.n_filtered[key]
+
+            records.append({
+                "SMIRKS": key,
+                "Evaluation count": n,
+                "Average delta (unfiltered)": avg_unfiltered,
+                "Average delta (with filtered)": avg_filtered,
+                "Filtered count": filtered_count
+            })
+
+        df = pd.DataFrame(records)
+
+        os.makedirs(self.output_dir, exist_ok=True)
+        output_path = os.path.join(self.output_dir, "smirks_stats.csv")
+        df.to_csv(output_path, index=False)
+
+        self.logger.info(f"Saved SMIRKS stats to {output_path}")
+        return super().analyze()
