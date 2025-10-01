@@ -35,12 +35,15 @@ class SMIRKSTransition(TemplateTransition):
         self.output_dir = output_dir
         
         self.n = 0
+        self.n_dict = {}
+        self.max_delta = -1000000
+        self.max_deltas = {}
         self.sum_delta_unfiltered = 0
         self.sum_delta_including_filtered = 0
         self.sum_deltas_unfiltered = {}
         self.sum_deltas_including_filtered = {}
-        self.ns = {}
-        self.n_filtered = {}
+        self.n_filtered = 0
+        self.n_filtered_dict = {}
         
         super().__init__(filters=filters, top_p=top_p, logger=logger)
                     
@@ -132,15 +135,18 @@ class SMIRKSTransition(TemplateTransition):
             dif = reward - node.parent.reward
 
             self.n += 1
-            if not action in self.ns:
+            if not action in self.n_dict:
+                self.max_deltas[action] = -1000000
                 self.sum_deltas_unfiltered[action] = 0
                 self.sum_deltas_including_filtered[action] = 0
-                self.ns[action] = 1
-                self.n_filtered[action] = 0
+                self.n_dict[action] = 1
+                self.n_filtered_dict[action] = 0
             else:
-                self.ns[action] += 1
+                self.n_dict[action] += 1
             
             if not filtered:
+                self.max_delta = max(self.max_delta, dif)
+                self.max_deltas[action] = max(self.max_deltas[action], dif)
                 self.sum_deltas_unfiltered[action] += dif
                 self.sum_deltas_including_filtered[action] += dif
                 self.sum_delta_unfiltered += dif
@@ -148,26 +154,34 @@ class SMIRKSTransition(TemplateTransition):
             else:
                 self.sum_deltas_including_filtered[action] += dif
                 self.sum_delta_including_filtered += dif
-                self.n_filtered[action] += 1
+                self.n_filtered += 1
+                self.n_filtered_dict[action] += 1
                 
     # override
     def analyze(self):
         records = []
         for key, _ in self.weighted_smirks:
-            if not key in self.ns:
+            if not key in self.n_dict:
                 continue
-            n = self.ns[key]
-            avg_unfiltered = self.sum_deltas_unfiltered[key] / n
-            avg_filtered = self.sum_deltas_including_filtered[key] / n
-            filtered_count = self.n_filtered[key]
+            n = self.n_dict[key]
 
             records.append({
                 "SMIRKS": key,
-                "Evaluation count": n,
-                "Average delta (unfiltered)": avg_unfiltered,
-                "Average delta (with filtered)": avg_filtered,
-                "Filtered count": filtered_count
+                "Evaluation count": self.n_dict[key],
+                "Filtered count": self.n_filtered_dict[key], 
+                "Average delta (unfiltered)": self.sum_deltas_unfiltered[key] / n,
+                "Average delta (with filtered)": self.sum_deltas_including_filtered[key] / n,
+                "Max delta": self.max_deltas[key]
             })
+            
+        records.append({
+            "SMIRKS": "Total",
+            "Evaluation count": self.n,
+            "Filtered count": self.n_filtered, 
+            "Average delta (unfiltered)": self.sum_delta_unfiltered / self.n,
+            "Average delta (with filtered)": self.sum_delta_including_filtered / self.n,
+            "Max delta": self.max_delta
+        })
 
         df = pd.DataFrame(records)
 
