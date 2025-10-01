@@ -152,17 +152,6 @@ class SMIRKSTransition(TemplateTransition):
                 
     # override
     def analyze(self):
-        # self.logger.info(f"- Total evaluation count: {self.n}")
-        # self.logger.info(f"- Average delta (unfiltered): {self.sum_delta_unfiltered / self.n:.3f}")
-        # self.logger.info(f"- Average delta (with filtered): {self.sum_delta_including_filtered / self.n:.3f}")
-        # self.logger.info(f"----------------------------------------")
-        
-        # for key in self.ns.keys():
-        #     self.logger.info(f"SMIRKS: {key}")
-        #     self.logger.info(f"- Evaluation count: {self.ns[key]}")
-        #     self.logger.info(f"- Average delta (unfiltered): {self.sum_deltas_unfiltered[key] / self.ns[key]:.3f}")
-        #     self.logger.info(f"- Average delta (with filtered): {self.sum_deltas_including_filtered[key] / self.ns[key]:.3f}")
-        #     self.logger.info(f"- Filtered count: {self.n_filtered[key]}")
         records = []
         for key, _ in self.weighted_smirks:
             if not key in self.ns:
