@@ -167,20 +167,20 @@ class SMIRKSTransition(TemplateTransition):
 
             records.append({
                 "SMIRKS": key,
-                "Evaluation count": self.n_dict[key],
-                "Filtered count": self.n_filtered_dict[key], 
-                "Average delta (unfiltered)": self.sum_deltas_unfiltered[key] / n,
-                "Average delta (with filtered)": self.sum_deltas_including_filtered[key] / n,
-                "Max delta": self.max_deltas[key]
+                "evaluation count": self.n_dict[key],
+                "filtered count": self.n_filtered_dict[key], 
+                "average delta (unfiltered)": self.sum_deltas_unfiltered[key] / n,
+                "average delta (with filtered)": self.sum_deltas_including_filtered[key] / n,
+                "max delta": self.max_deltas[key]
             })
             
         records.append({
             "SMIRKS": "Total",
-            "Evaluation count": self.n,
-            "Filtered count": self.n_filtered, 
-            "Average delta (unfiltered)": self.sum_delta_unfiltered / self.n,
-            "Average delta (with filtered)": self.sum_delta_including_filtered / self.n,
-            "Max delta": self.max_delta
+            "evaluation count": self.n,
+            "filtered count": self.n_filtered, 
+            "average delta (unfiltered)": self.sum_delta_unfiltered / self.n,
+            "average delta (with filtered)": self.sum_delta_including_filtered / self.n,
+            "max delta": self.max_delta
         })
 
         df = pd.DataFrame(records)
