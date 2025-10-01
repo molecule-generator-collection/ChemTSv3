@@ -22,7 +22,7 @@ def set_seed(seed: int=None, logger: logging.Logger=None):
     
 def append_pareto_optimality_to_df(df: pd.DataFrame, objectives: list[str], maximize: list[bool]=None, colname: str="is_pareto_optimal") -> pd.DataFrame:
     """
-    Add a boolean column to df indicating whether each row is Pareto optimal. For more than 2 objectives, pymoo is required.
+    Add a boolean column to df indicating whether each row is Pareto optimal. If installed, use pymoo (recommended when the number of objectives exceeds two).
 
     Args:
         df: Input dataframe.
@@ -55,8 +55,9 @@ def append_pareto_optimality_to_df(df: pd.DataFrame, objectives: list[str], maxi
         mask[np.asarray(first_front, dtype=int)] = True
 
     except ImportError as e:
-        # If pymoo is not available, fall back to a 2D O(N log N) skyline for m==2. For m >= 3 without pymoo, raise an error.
+        # If pymoo is not available
         if F.shape[1] == 2:
+            # O(NlogN) skyline for 2 objectives.
             order = np.argsort(-F[:, 0], kind="mergesort")
             best2 = -np.inf
             mask = np.zeros(F.shape[0], dtype=bool)
@@ -65,8 +66,21 @@ def append_pareto_optimality_to_df(df: pd.DataFrame, objectives: list[str], maxi
                 if v2 > best2:
                     mask[idx] = True
                     best2 = v2
-        else:
-            raise RuntimeError("Please install pymoo.") from e
+        else: 
+            # Fast non-dominated sort for more than 3 objectives
+            n = F.shape[0]
+            mask = np.ones(n, dtype=bool)
+            for i in range(n):
+                if not mask[i]:
+                    continue
+                fi = F[i]
+                le_all = np.all(F <= fi, axis=1)
+                lt_any = np.any(F < fi, axis=1)
+                # A point j dominates i if le_all[j] and lt_any[j], excluding i itself
+                dominates_i = np.where(le_all & lt_any)[0]
+                if dominates_i.size > 0:
+                    mask[i] = False
+                    continue
 
     df[colname] = mask
     return df
