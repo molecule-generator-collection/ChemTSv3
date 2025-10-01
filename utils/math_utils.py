@@ -67,7 +67,7 @@ def append_pareto_optimality_to_df(df: pd.DataFrame, objectives: list[str], maxi
                     mask[idx] = True
                     best2 = v2
         else: 
-            # Fast non-dominated sort for more than 3 objectives
+            # O(MN^2) for more than 3 objectives: pymoo was 20x faster with 200000 keys
             n = F.shape[0]
             mask = np.ones(n, dtype=bool)
             for i in range(n):
