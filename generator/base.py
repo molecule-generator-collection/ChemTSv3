@@ -219,6 +219,7 @@ class Generator(ABC):
         
         self._log_unique_node(key, objective_values, reward)
         
+        node.reward = reward
         self.transition.observe(node=node, objective_values=objective_values, reward=reward, filtered=False)
         for filter in self.filters:
             filter.observe(node=node, objective_values=objective_values, reward=reward, filtered=False)
