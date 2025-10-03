@@ -24,6 +24,7 @@ generator_args:
   n_eval_iters: 1
   n_tries: 3
   filter_reward: 0
+  avoid_duplicates: false
   terminal_reward: ignore
 
 filters:

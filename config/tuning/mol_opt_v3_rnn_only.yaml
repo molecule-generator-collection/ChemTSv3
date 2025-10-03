@@ -19,6 +19,7 @@ generator_args:
   cut_failed_child: false
   info_interval: 100
   filter_reward: 0
+  avoid_duplicates: false
   cut_terminal: true
 
 filters:

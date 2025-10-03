@@ -47,6 +47,7 @@ generator_args:
   filter_reward: ignore
   failed_parent_reward: -1
   terminal_reward: -1
+  avoid_duplicates: false
   cut_terminal: false
 
 plot_args:

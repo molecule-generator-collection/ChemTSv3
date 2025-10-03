@@ -94,7 +94,6 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  avoid_duplicates: true
   cut_failed_child: true
   reward_cutoff: 0.5
   reward_cutoff_warmups: 1000
@@ -102,6 +101,7 @@ generator_args:
   n_eval_width: .inf
   n_tries: 1
   filter_reward: [-10,0,0,0]
+  avoid_duplicates: true
   info_interval: 1000
   save_interval: 200000
   analyze_interval: 10000

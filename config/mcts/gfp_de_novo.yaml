@@ -30,6 +30,7 @@ generator_args:
   n_eval_width: 1
   n_eval_iters: 1
   filter_reward: -1
+  avoid_duplicates: false
   info_interval: 50
 
 plot_args:

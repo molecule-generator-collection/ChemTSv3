@@ -24,11 +24,11 @@ policy_args:
 
 generator_class: MCTS
 generator_args:
-  avoid_duplicates: true
   cut_failed_child: true
   n_eval_iters: 1
   n_tries: 1
   filter_reward: 0
+  avoid_duplicates: true
   info_interval: 100
 
 plot_args:
