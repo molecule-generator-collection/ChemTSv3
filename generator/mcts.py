@@ -69,7 +69,11 @@ class MCTS(Generator):
         self.cut_terminal = cut_terminal
         self.avoid_duplicates = avoid_duplicates
         if self.avoid_duplicates:
+            # prevent root nodes from being visited again
             self.node_keys = set()
+            self.node_keys.add(self.root.key())
+            for c in self.root.children:
+                self.node_keys.add(c.key())
         if discard_unneeded_states is not None:
             self.discard_unneeded_states = discard_unneeded_states
         else:
