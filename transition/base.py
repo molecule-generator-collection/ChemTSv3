@@ -49,7 +49,7 @@ class Transition(ABC):
         """Returns the maximum number of transitions from a single node. Should be overridden if not infinite."""
         return 10**18
     
-    def observe(self, node: Node, objective_values: list[float], reward: float, filtered: bool):
+    def observe(self, node: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Transitions can update their internal state when observing the reward of the node. By default, this method does nothing."""
         
     def analyze(self):
@@ -202,12 +202,12 @@ class LLMTransition(BlackBoxTransition):
         return results
     
     # implement
-    def observe(self, node: StringNode, objective_values: list[float], reward: float, filtered: bool):
+    def observe(self, node: StringNode, objective_values: list[float], reward: float, is_filtered: bool):
         action = node.last_action
         if node.parent.reward is None:
             return
         dif = reward - node.parent.reward
-        if not filtered:
+        if not is_filtered:
             self.sum_deltas_unfiltered[action] += dif
             self.sum_deltas_including_filtered[action] += dif
         else:

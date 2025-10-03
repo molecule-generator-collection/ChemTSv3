@@ -132,7 +132,7 @@ class SMIRKSTransition(TemplateTransition):
             return []
         
     # override     
-    def observe(self, node, objective_values: list[float], reward: float, filtered: bool):
+    def observe(self, node, objective_values: list[float], reward: float, is_filtered: bool):
         if self.record_actions is True:
             action = node.last_action
             if node.parent.reward is None:
@@ -152,7 +152,7 @@ class SMIRKSTransition(TemplateTransition):
             else:
                 self.counts[action] += 1
             
-            if not filtered:
+            if not is_filtered:
                 self.max_delta = max(self.max_delta, dif)
                 self.max_deltas[action] = max(self.max_deltas[action], dif)
                 self.sum_deltas_unfiltered[action] += dif
