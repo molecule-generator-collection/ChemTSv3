@@ -65,13 +65,13 @@ class LongChatGPTTransition(LLMTransition):
         self.prompt_queue = []
         
     # implement
-    def observe(self, node: SMILESStringNode, objective_values: list[float], reward: float, filtered: bool):
-        if not filtered:
+    def observe(self, node: SMILESStringNode, objective_values: list[float], reward: float, is_filtered: bool):
+        if not is_filtered:
             smiles = node.string
             text = f"The reward of molecule with SMILES {smiles} was: {reward:.3f}."
             self.logger.debug(f"Prompt prefix: '{text}'")
             self.prompt_queue.append(text)
-        super().observe(node, objective_values, reward, filtered)
+        super().observe(node, objective_values, reward, is_filtered)
         
     # implement
     def receive_response(self, prompt):
