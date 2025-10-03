@@ -35,9 +35,9 @@ class ChatGPTTransition(LLMTransition):
         self.logger.info(f"Total output tokens: {self.sum_output_tokens}")
         super().analyze()
 
-class LongChatGPTTransition(BlackBoxTransition):
+class LongChatGPTTransition(LLMTransition):
     """Keeps conversation"""
-    def __init__(self, prompt: str, initial_prompt: str=None, model: str="gpt-4o-mini", api_key: str=None, api_key_path: str=None, n_samples=2, logger: logging.Logger=None):
+    def __init__(self, prompt: str, initial_prompt: str=None, model: str="gpt-4o-mini", api_key: str=None, api_key_path: str=None, n_samples=1, logger: logging.Logger=None):
         if api_key is None and api_key_path is None:
             raise ValueError("Specify either 'api_key' or 'api_key_path'.")
         elif api_key is not None and api_key_path is not None:
@@ -47,7 +47,7 @@ class LongChatGPTTransition(BlackBoxTransition):
                 api_key = f.read().strip()
         self.client = OpenAI(api_key=api_key)
         
-        super().__init__(n_samples=n_samples, logger=logger)
+        super().__init__(prompt=prompt, n_samples=n_samples, logger=logger)
         
         self.response_id = None
         self.model = model
@@ -60,44 +60,32 @@ class LongChatGPTTransition(BlackBoxTransition):
             self.response_id = resp.id
             self.sum_input_tokens += resp.usage.input_tokens
             self.sum_output_tokens += resp.usage.output_tokens
-            self.logger.debug(f"Response: '{resp.output_text.strip()}', input_tokens: {resp.usage.input_tokens}, output_tokens: {resp.usage.output_tokens}")
-        
-        if not isinstance(prompt, list):
-            prompt = [prompt]
-        self.prompt = prompt
-        
-        self.observation_record = []
+            self.logger.debug(f"Response: '{resp.output_text.strip()}'")
+
+        self.prompt_queue = []
         
     # implement
     def observe(self, node: SMILESStringNode, objective_values: list[float], reward: float, filtered: bool):
         if not filtered:
             smiles = node.string
             text = f"The reward of molecule with SMILES {smiles} was: {reward:.3f}."
-            self.observation_record.append(text)
+            self.logger.debug(f"Prompt prefix: '{text}'")
+            self.prompt_queue.append(text)
+        super().observe(node, objective_values, reward, filtered)
         
     # implement
-    def sample_transition(self, node: SMILESStringNode) -> SMILESStringNode:
-        parent_smiles = node.string
+    def receive_response(self, prompt):
+        for text in self.prompt_queue:
+            prompt = text + "\n" + prompt
+        self.prompt_queue = []
         
-        results = []
-        for i, p in enumerate(self.prompt):
-            prompt = p.replace("###SMILES###", parent_smiles)
-            if i == 0: # Not actually needed
-                for text in self.observation_record:
-                    prompt = text + "\n" + prompt
-                self.observation_record = []
-            self.logger.debug(f"Prompt: '{prompt}'")
-            
-            resp = self.client.responses.create(model=self.model, input=prompt, previous_response_id=self.response_id)
-            self.response_id = resp.id
-            self.sum_input_tokens += resp.usage.input_tokens
-            self.sum_output_tokens += resp.usage.output_tokens
-            output_smiles = resp.output_text.strip()
-            self.logger.debug(f"Response: '{output_smiles}', input_tokens: {resp.usage.input_tokens}, output_tokens: {resp.usage.output_tokens}")
-            results.append(SMILESStringNode(string=output_smiles, parent=node))
+        resp = self.client.responses.create(model=self.model, input=prompt, previous_response_id=self.response_id)
+        self.response_id = resp.id
+        self.sum_input_tokens += resp.usage.input_tokens
+        self.sum_output_tokens += resp.usage.output_tokens
+        return resp.output_text.strip()
         
-        return results
-    
     def analyze(self):
-        self.logger.info(f"Sum input tokens: {self.sum_input_tokens}")
-        self.logger.info(f"Sum output tokens: {self.sum_output_tokens}")
+        self.logger.info(f"Total input tokens: {self.sum_input_tokens}")
+        self.logger.info(f"Total output tokens: {self.sum_output_tokens}")
+        super().analyze()
