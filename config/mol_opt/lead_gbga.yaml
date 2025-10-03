@@ -3,7 +3,6 @@ silent: true
 time_limit: 1000 # Seconds
 max_generations: 9600
 node_class: CanonicalSMILESStringNode
-use_canonical_smiles_as_key: true
 
 transition_class: GBGATransition
 transition_args:

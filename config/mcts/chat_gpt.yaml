@@ -5,6 +5,8 @@ debug: true
 
 node_class: SMILESStringNode
 root: "c1ccccc1"
+node_class_variables:
+  use_canonical_smiles_as_key: true
 
 transition_class: ChatGPTTransition
 transition_args:

@@ -2,7 +2,7 @@ time_limit: 60 # Seconds
 max_generations: 1000
 # seed: 0 # Set seed
 
-### Common Args - output_dir, device(, logger) are automatically applied to all classes (and node_from_key()) that have arguments with the same names. ###
+### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to class variables of the Node class.###
 output_dir: generation_result
 device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
 
@@ -10,9 +10,12 @@ device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU en
 debug: false # Set to true to enable debug logging
 silent: false # Set to true to disable console logging
 
-### Root Node - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
+### Node Setting ###
 node_class: MolSentenceNode
-use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the Canonical SMILES (If set to false, the same molecule may be counted multiple times.)
+node_class_variables:
+  use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the Canonical SMILES (If set to false, the same molecule may be counted multiple times.)
+
+### Root Node Specification - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
 # root: "N"   # Start from the specified root
 # root: ["Nc", "NC"]  # Start from multiple roots
 

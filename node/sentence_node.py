@@ -7,9 +7,11 @@ from node import Node, MolNode
 from utils import mol_validity_check
 
 class SentenceNode(Node):
-    def __init__(self, id_tensor: torch.Tensor, lang: Language, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+    lang: Language = None
+    device = None
+    
+    def __init__(self, id_tensor: torch.Tensor, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         self.id_tensor = id_tensor
-        self.lang = lang
         super().__init__(parent=parent, last_prob=last_prob, last_action=last_action)
 
     # implement
@@ -22,30 +24,26 @@ class SentenceNode(Node):
     
     # implement
     @classmethod
-    def node_from_key(cls, key: str, lang: Language, include_eos: bool=False, device: str=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
-        id_tensor = lang.sentence2tensor(key, include_eos=include_eos, device=device)
-        return cls(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None, include_eos: bool=False) -> Self:
+        id_tensor = cls.lang.sentence2tensor(key, include_eos=include_eos, device=cls.device)
+        return cls(id_tensor=id_tensor, parent=parent, last_prob=last_prob, last_action=last_action)
 
     def id_list(self) -> list[int]:
         """Output token id sequence as a list"""
         return self.id_tensor[0].tolist()
-
-    @classmethod
-    def bos_node(cls, lang: Language, device: str=None) -> Self:
-        """Make bos node. Often used as root."""
-        return cls.node_from_key(key="", lang=lang, device=device, include_eos=False)
     
     # override
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage."""
         self.id_tensor = None
-        self.lang = None
 
 class MolSentenceNode(SentenceNode, MolNode):
-    use_canonical_smiles_as_key = False
+    use_canonical_smiles_as_key: bool = False
+    lang: MolLanguage = None
+    device = None
 
-    def __init__(self, id_tensor: torch.Tensor, lang: MolLanguage, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
-        super().__init__(id_tensor=id_tensor, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
+    def __init__(self, id_tensor: torch.Tensor, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+        super().__init__(id_tensor=id_tensor, parent=parent, last_prob=last_prob, last_action=last_action)
 
     # implement
     def _mol_impl(self) -> Mol:
@@ -75,4 +73,3 @@ class MolSentenceNode(SentenceNode, MolNode):
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage."""
         self.id_tensor = None
-        self.lang = None

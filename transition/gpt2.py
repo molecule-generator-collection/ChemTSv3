@@ -67,7 +67,7 @@ class GPT2Transition(LanguageModel):
         for tok_id, prob in enumerate(probs):
             next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
             if prob != 0:
-                child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob, last_action=tok_id)
+                child = node.__class__(id_tensor=next_tensor, parent=node, last_prob=prob, last_action=tok_id)
                 children.append(child)
         return children
 
@@ -92,7 +92,7 @@ class GPT2Transition(LanguageModel):
                 pad_token_id=self.lang.pad_id(),
                 num_return_sequences=1
             )
-        return initial_node.__class__(id_tensor=result_tensor, lang=self.lang)
+        return initial_node.__class__(id_tensor=result_tensor)
     
     @staticmethod
     def train_gpt2_with_language(lang: Language, dataset_path: str, training_args: TrainingArguments, test_size=0.1, block_size=None, additional_length=0, n_embd=128, n_layer=6, n_head=4, dropout=0.1)-> tuple[GPT2LMHeadModel, Trainer]:

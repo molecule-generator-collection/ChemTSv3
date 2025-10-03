@@ -177,7 +177,7 @@ class RNNTransition(LanguageModel):
         for tok_id, prob in enumerate(probs):
             next_tensor = torch.cat([node.id_tensor, self.lang.list2tensor([tok_id]).to(self.device)], dim=1)
             if prob != 0:
-                child = node.__class__(id_tensor=next_tensor, lang=node.lang, parent=node, last_prob=prob, last_action=tok_id)
+                child = node.__class__(id_tensor=next_tensor, parent=node, last_prob=prob, last_action=tok_id)
                 children.append(child)
         return children
     
@@ -193,7 +193,7 @@ class RNNTransition(LanguageModel):
                 temperature=self.temperature,
                 sharpness=self.sharpness
             )
-        return initial_node.__class__(id_tensor=generated_tensor, lang=self.lang) # .to(initial_node.id_tensor.device)
+        return initial_node.__class__(id_tensor=generated_tensor)
 
     @staticmethod
     def train_rnn_with_language(lang: Language, dataset_path: str, test_dataset_path: str=None, test_size: float=0.1, batch_size=64, lr=1e-3, num_epochs=10, rnn_type="GRU", embed_size=None, hidden_size=256, num_layers=2, dropout=0.3) -> tuple[Self, dict]:

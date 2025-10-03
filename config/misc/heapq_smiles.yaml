@@ -2,7 +2,8 @@ output_dir: generation_result
 time_limit: 68000 # Seconds
 max_generations: 200000
 node_class: MolSentenceNode
-use_canonical_smiles_as_key: false
+node_class_variables:
+  use_canonical_smiles_as_key: false
 
 device: cpu
 transition_class: RNNTransition

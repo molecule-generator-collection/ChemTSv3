@@ -3,7 +3,8 @@ time_limit: 36000
 max_generations: 10000
 # debug: true
 node_class: MolSentenceNode
-use_canonical_smiles_as_key: true
+node_class_variables:
+  use_canonical_smiles_as_key: true
 
 device: cpu
 transition_class: RNNTransition

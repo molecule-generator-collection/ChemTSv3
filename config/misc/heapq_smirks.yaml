@@ -2,7 +2,6 @@ output_dir: generation_result
 time_limit: 3600 # Seconds
 max_generations: 200000
 node_class: CanonicalSMILESStringNode
-use_canonical_smiles_as_key: true
 # root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 # root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
 root: C
@@ -11,8 +10,11 @@ root: C
 
 transition_class: SMIRKSTransition
 transition_args:
-  smirks_list_path:  data/smirks/gbga.txt
-  check_Hs: true
+  smirks_path:  data/smirks/gbga.txt
+  filters:
+  - filter_class: ValidityFilter
+  - filter_class: RadicalFilter
+  - filter_class: ChargeFilter
 
 reward_class: DScoreReward
 reward_args:
@@ -43,8 +45,3 @@ generator_args:
 
 plot_args:
   reward_top_ps: [0.5, 0.1]
-
-filters:
-  - filter_class: ValidityFilter # Apply ValidityFilter first (unless molecular validity is already guaranteed), since other MolFilter and MolReward do not check validity by default.
-  - filter_class: RadicalFilter
-  - filter_class: ChargeFilter

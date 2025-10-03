@@ -2,7 +2,8 @@ time_limit: 1600 # Seconds
 csv_output: false
 silent: true
 node_class: SMILESStringNode
-use_canonical_smiles_as_key: true
+node_class_variables:
+  use_canonical_smiles_as_key: true
 
 transition_class: GBGATransition
 transition_args:

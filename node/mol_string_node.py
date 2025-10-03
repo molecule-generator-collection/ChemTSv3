@@ -6,12 +6,12 @@ from node import MolNode
 from utils import mol_validity_check
 
 class MolStringNode(MolNode):
-    use_canonical_smiles_as_key = False
-    eos = None # Can be optionally set (via Transition classes)
+    use_canonical_smiles_as_key: bool = False
+    lang: MolLanguage = None
+    eos: str = None # Can be optionally set
     
-    def __init__(self, string: str, lang: MolLanguage=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
+    def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         self.string = string
-        self.lang = lang
         super().__init__(parent=parent, last_prob=last_prob, last_action=last_action)
 
     def has_reward(self):
@@ -38,8 +38,8 @@ class MolStringNode(MolNode):
                 return "invalid mol"
     
     @classmethod
-    def node_from_key(cls, key: str, lang: MolLanguage=None, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
-        return MolStringNode(string=key, lang=lang, parent=parent, last_prob=last_prob, last_action=last_action)
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
+        return cls(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
 
     def _mol_impl(self) -> Mol:
         if self.eos is None:
@@ -50,18 +50,10 @@ class MolStringNode(MolNode):
     # override
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage."""
-        self.lang = None
         self.string = None
     
 class SMILESStringNode(MolStringNode):
-    smiles_lang = SMILES()
-    
-    def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
-        super().__init__(string=string, lang=self.smiles_lang, parent=parent, last_prob=last_prob, last_action=last_action)
-    
-    @classmethod
-    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
-        return SMILESStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
+    lang = SMILES()
     
     # override
     def smiles(self, use_cache=False) -> str:
@@ -75,11 +67,4 @@ class CanonicalSMILESStringNode(SMILESStringNode):
     
 class FASTAStringNode(MolStringNode):
     flavor = 0
-    fasta_lang = FASTA(flavor)
-    
-    def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
-        super().__init__(string=string, lang=self.fasta_lang, parent=parent, last_prob=last_prob, last_action=last_action)
-    
-    @classmethod
-    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
-        return FASTAStringNode(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
+    lang = FASTA(flavor)
