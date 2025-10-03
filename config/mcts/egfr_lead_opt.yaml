@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 43200
-max_generations: 5000000
+max_generations: 200000
 seed: 0
 
 node_class: CanonicalSMILESStringNode
@@ -67,7 +67,7 @@ filters:
   - filter_class: SAScoreFilter
     max: 2.5
 
-transition_class: JensenTransition
+transition_class: GBGATransition
 transition_args:
   # base_chances: [0,0,0,0,0,0,1]
   check_size: false

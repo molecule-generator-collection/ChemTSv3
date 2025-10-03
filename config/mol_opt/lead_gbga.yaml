@@ -5,7 +5,7 @@ max_generations: 9600
 node_class: CanonicalSMILESStringNode
 use_canonical_smiles_as_key: true
 
-transition_class: JensenTransition
+transition_class: GBGATransition
 transition_args:
   check_size: false
   check_ring: true

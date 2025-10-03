@@ -57,7 +57,7 @@ filters:
   - filter_class: SAScoreFilter
     max: 2.5
 
-transition_class: JensenTransition
+transition_class: GBGATransition
 transition_args:
   base_chances: [0,0,0,0,0,0,1]
   check_size: false

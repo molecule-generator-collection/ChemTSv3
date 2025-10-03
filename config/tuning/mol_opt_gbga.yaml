@@ -4,7 +4,7 @@ silent: true
 node_class: SMILESStringNode
 use_canonical_smiles_as_key: true
 
-transition_class: JensenTransition
+transition_class: GBGATransition
 transition_args:
   check_size: false
   check_ring: true
