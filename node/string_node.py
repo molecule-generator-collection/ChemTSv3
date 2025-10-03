@@ -1,19 +1,17 @@
 from typing import Self, Any
 from rdkit import Chem
 from rdkit.Chem import Mol
-from language import MolLanguage, SMILES, FASTA
+from language import Node, MolLanguage, SMILES, FASTA
 from node import MolNode
 from utils import mol_validity_check
 
-class MolStringNode(MolNode):
-    use_canonical_smiles_as_key: bool = False
-    lang: MolLanguage = None
+class StringNode(Node):
     eos: str = None # Can be optionally set
     
     def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         self.string = string
         super().__init__(parent=parent, last_prob=last_prob, last_action=last_action)
-
+        
     def has_reward(self):
         if self.eos is None:
             return True
@@ -22,7 +20,24 @@ class MolStringNode(MolNode):
                 return True
             else:
                 return False
+            
+    def key(self):
+        return self.string
+    
+    @classmethod
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
+        return cls(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
+    
+    # override
+    def discard_unneeded_states(self):
+        """Clear states no longer needed after transition to reduce memory usage."""
+        self.string = None
 
+class MolStringNode(MolNode, StringNode):
+    use_canonical_smiles_as_key: bool = False
+    lang: MolLanguage = None
+
+    # override
     def key(self):
         raw_key = self.string if self.eos is None else self.string.replace(self.eos, "")
 
@@ -36,21 +51,12 @@ class MolStringNode(MolNode):
                 return Chem.MolToSmiles(mol, canonical=True)
             except Exception:
                 return "invalid mol"
-    
-    @classmethod
-    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
-        return cls(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
 
     def _mol_impl(self) -> Mol:
         if self.eos is None:
             return self.lang.sentence2mol(self.string)
         else:
             return self.lang.sentence2mol(self.string.replace(self.eos, ""))
-    
-    # override
-    def discard_unneeded_states(self):
-        """Clear states no longer needed after transition to reduce memory usage."""
-        self.string = None
     
 class SMILESStringNode(MolStringNode):
     lang = SMILES()

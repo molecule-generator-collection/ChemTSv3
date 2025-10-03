@@ -166,3 +166,60 @@ class AutoRegressiveTransition(Transition):
     # override
     def max_length(self) -> int:
         return 10**18
+    
+# class LLMTransition(BlackBoxTransition):
+#     def __init__(self, prompt: str, n_samples=2, logger: logging.Logger=None):
+#         if not isinstance(prompt, list):
+#             prompt = [prompt]
+#         self.prompt = prompt
+        
+#         self.n = 0
+#         self.sum_deltas_unfiltered = [0] * len(self.prompt)
+#         self.sum_deltas_including_filtered = [0] * len(self.prompt)
+#         self.n_filtered = [0] * len(self.prompt)
+        
+#         super().__init__(n_samples=n_samples, logger=logger)
+        
+#     # implement
+#     def sample_transition(self, node: SMILESStringNode) -> SMILESStringNode:
+#         parent_smiles = node.string
+        
+#         results = []
+#         for i, p in enumerate(self.prompt):
+#             prompt = p.replace("###SMILES###", parent_smiles)
+#             self.logger.debug(f"Prompt: '{prompt}'")
+            
+#             client = OpenAI(api_key=self.api_key)
+#             resp = client.responses.create(model=self.model, input=prompt)
+            
+#             self.sum_input_tokens += resp.usage.input_tokens
+#             self.sum_output_tokens += resp.usage.output_tokens
+#             output_smiles = resp.output_text.strip()
+#             self.logger.debug(f"Response: '{output_smiles}', input_tokens: {resp.usage.input_tokens}, output_tokens: {resp.usage.output_tokens}")
+#             results.append(SMILESStringNode(string=output_smiles, parent=node, last_action=i))
+        
+#         self.n += 1
+#         return results
+    
+#     # implement
+#     def observe(self, node: SMILESStringNode, objective_values: list[float], reward: float, filtered: bool):
+#         action = node.last_action
+#         if node.parent.reward is None:
+#             return
+#         dif = reward - node.parent.reward
+#         if not filtered:
+#             self.sum_deltas_unfiltered[action] += dif
+#             self.sum_deltas_including_filtered[action] += dif
+#         else:
+#             self.sum_deltas_including_filtered[action] += dif
+#             self.n_filtered[action] += 1
+    
+#     def analyze(self):
+#         self.logger.info(f"Total conversations: {self.n} * {len(self.prompt)} = {self.n * len(self.prompt)}")
+#         self.logger.info(f"Total input tokens: {self.sum_input_tokens}")
+#         self.logger.info(f"Total output tokens: {self.sum_output_tokens}")
+#         for i in range(len(self.prompt)):
+#             self.logger.info(f"------------------------- Prompt {i} -------------------------")
+#             self.logger.info(f"Average delta (unfiltered): {self.sum_deltas_unfiltered[i] / self.n}")
+#             self.logger.info(f"Average delta (with filtered): {self.sum_deltas_including_filtered[i] / self.n}")
+#             self.logger.info(f"Number of filtered output: {self.n_filtered[i]}")
