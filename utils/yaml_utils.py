@@ -63,15 +63,19 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     if "logger" in inspect.signature(node_class.node_from_key).parameters:
         root_args["logger"] = logger
         
-    if n_top_keys_to_pass:
-        top_keys = [key for key, _ in predecessor.top_k(k=n_top_keys_to_pass)]
+    if n_top_keys_to_pass:        
+        top_k = predecessor.top_k(k=n_top_keys_to_pass)
+        top_keys = [key for key, _ in top_k]
+        top_values = [value for _, value in top_k]
         conf_clone["root"] = top_keys
     
     if type(conf_clone.get("root")) == list:
         root = SurrogateNode()
-        for s in conf_clone.get("root"):
+        for i, s in enumerate(conf_clone.get("root")):
             node = node_class.node_from_key(key=s, parent=root, last_prob=1/len(conf_clone.get("root")), last_action=s, **root_args)
             root.add_child(child=node)
+            if n_top_keys_to_pass:
+                node.reward = top_values[i]
     else:
         root = node_class.node_from_key(key=conf_clone.get("root", ""), **root_args)
 
