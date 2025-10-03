@@ -15,9 +15,9 @@ transition_args:
   model: gpt-4o-mini
   n_samples: 1
   prompt: 
-    - "I will provide you with a molecule in SMILES format. Transform the given molecule to improve its drug-likeness while preserving the core scaffold, and return the result as a SMILES string only. Do not include any additional text or explanation in the output. Starting molecule: ###SMILES###"
-    - "I will provide you with a molecule in SMILES format. Transform the given molecule to improve its drug-likeness by appending a single fragment, and return the result as a SMILES string only. Do not include any additional text or explanation in the output. Starting molecule: ###SMILES###"
-    - "I will provide you with a molecule in SMILES format. Transform the given molecule to improve its drug-likeness by modifying a single fragment, and return the result as a SMILES string only. Do not include any additional text or explanation in the output. Starting molecule: ###SMILES###"
+    - "I will provide you with a molecule in SMILES format. Transform the given molecule to improve its drug-likeness while preserving the core scaffold, and return the result as a SMILES string only. Do not include any additional text or explanation in the output. Starting molecule: ###KEY###"
+    - "I will provide you with a molecule in SMILES format. Transform the given molecule to improve its drug-likeness by appending a single fragment, and return the result as a SMILES string only. Do not include any additional text or explanation in the output. Starting molecule: ###KEY###"
+    - "I will provide you with a molecule in SMILES format. Transform the given molecule to improve its drug-likeness by modifying a single fragment, and return the result as a SMILES string only. Do not include any additional text or explanation in the output. Starting molecule: ###KEY###"
 
 reward_class: TDCReward
 reward_args:
