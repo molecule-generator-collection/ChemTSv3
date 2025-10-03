@@ -9,7 +9,7 @@ Temporary repository for ChemTSv3
 This section explains how to set up a minimal conda-forge environment. This environment can run all tutorial notebooks.
 
 ### Available classes
-- **Transition**: `RNNTransition`, `GPT2Transition`, `JensenTransition`, `SMIRKSTransition`
+- **Transition**: `RNNTransition`, `GPT2Transition`, `GBGATransition`, `SMIRKSTransition`
 - **Reward**: `JScoreReward`, `LogPReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
 
@@ -29,7 +29,7 @@ Note: For CPU-only environments, omit pytorch-gpu from the last command.
 This section explains how to set up a conda-forge environment to replicate benchmark results.
 
 ### Available classes
-- **Transition**: `RNNTransition`, `GPT2Transition`, `JensenTransition`, `SMIRKSTransition`
+- **Transition**: `RNNTransition`, `GPT2Transition`, `GBGATransition`, `SMIRKSTransition`
 - **Reward**: `GuacaMolReward`, `TDCReward`, `JScoreReward`, `LogPReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
 

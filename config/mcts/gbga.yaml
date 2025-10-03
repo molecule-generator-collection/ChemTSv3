@@ -13,7 +13,7 @@ reward_class: GuacaMolReward
 reward_args:
   objective: isomers_c7h8n2o2
 
-transition_class: JensenTransition
+transition_class: GBGATransition
 transition_args:
   check_size: false
   check_ring: true

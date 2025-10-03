@@ -11,7 +11,7 @@ root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
 
 transition_class: SMIRKSTransition
 transition_args:
-  smirks_path:  data/smirks/jensen.txt
+  smirks_path:  data/smirks/gbga.txt
   filters:
   - filter_class: ValidityFilter
   - filter_class: AtomCountFilter

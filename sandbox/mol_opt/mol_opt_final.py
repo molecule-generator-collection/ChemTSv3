@@ -24,7 +24,7 @@ def reward_class_name_from_oracle_name(oracle_name: str) -> str:
     
 def test_chain(oracle_name: str, seed: int) -> float:
     yaml_path_1 = "config/mol_opt/de_novo_rnn.yaml"
-    yaml_path_2 = "config/mol_opt/lead_jensen.yaml"
+    yaml_path_2 = "config/mol_opt/lead_gbga.yaml"
 
     conf_1 = conf_from_yaml(yaml_path_1)
     conf_1["seed"] = seed

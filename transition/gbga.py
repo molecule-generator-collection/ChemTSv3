@@ -6,7 +6,7 @@ from filter import Filter
 from node import CanonicalSMILESStringNode
 from transition import TemplateTransition
 
-class JensenTransition(TemplateTransition):
+class GBGATransition(TemplateTransition):
     """
     Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
     """
