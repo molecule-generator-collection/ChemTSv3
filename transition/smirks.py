@@ -192,14 +192,14 @@ class SMIRKSTransition(TemplateTransition):
             
         records.append({
             "SMIRKS": "Total",
-            "evaluation count": self.count,
-            "filter count (eval)": self.smirks_filter_count, 
+            "reward count": self.count,
+            "filter count (reward)": self.smirks_filter_count, 
             "average delta (unfiltered)": self.sum_delta_unfiltered / self.count,
             "average delta (with filtered)": self.sum_delta_including_filtered / self.count,
             "max delta": self.max_delta,
             "improvement count": self.improvement_count,
             "improvement average": self.improvement_sum / self.improvement_count if self.improvement_count > 0 else float("nan"),
-            "improvement sum / total count": self.improvement_sum / self.count
+            "improvement sum / reward count": self.improvement_sum / self.count
         })
 
         df = pd.DataFrame(records)
