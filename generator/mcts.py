@@ -13,7 +13,7 @@ class MCTS(Generator):
                  n_eval_width: int=float("inf"), allow_eval_overlaps: bool=False, n_eval_iters: int=1, n_tries: int=1, 
                  cut_failed_child: bool=False, reward_cutoff: float=None, reward_cutoff_warmups: int=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
-                 avoid_duplicates: bool=False, discard_unneeded_states: bool=None,
+                 avoid_duplicates: bool=True, discard_unneeded_states: bool=None,
                  max_tree_depth=None, use_dummy_reward: bool=False,
                  name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None):
         """
@@ -27,7 +27,7 @@ class MCTS(Generator):
             cut_failed_child: If True, child nodes will be removed when {n_eval_iters * n_tries} evals are filtered.
             reward_cutoff: Child nodes will be removed if their reward is lower than this value.
             reward_cutoff_warmups: If specified, reward_cutoff will be inactive until {reward_cutoff_warmups} generations.
-            avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph.
+            avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to False to reduce memory usage.
             
             failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {n_eval_width * n_eval_iters * n_tries} evals are filtered from the node.
             cut_terminal: (Set to False for v2 replication) If True, terminal nodes will be culled, and won't be visited twice.
