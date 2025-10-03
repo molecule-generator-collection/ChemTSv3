@@ -34,16 +34,21 @@ class SMIRKSTransition(TemplateTransition):
         self.record_actions = record_actions
         self.output_dir = output_dir
         
-        self.n = 0
-        self.n_dict = {}
-        self.max_delta = -1000000
+        # statistics
+        self.count = 0
+        self.counts = {}
+        self.max_delta = -float("inf")
         self.max_deltas = {}
         self.sum_delta_unfiltered = 0
         self.sum_delta_including_filtered = 0
         self.sum_deltas_unfiltered = {}
         self.sum_deltas_including_filtered = {}
-        self.n_filtered = 0
-        self.n_filtered_dict = {}
+        self.smirks_filter_count = 0
+        self.smirks_filter_counts = {}
+        self.improvement_count = 0
+        self.improvement_counts = {}
+        self.improvement_sum = 0
+        self.improvement_sums = {}
         
         super().__init__(filters=filters, top_p=top_p, logger=logger)
                     
@@ -134,15 +139,18 @@ class SMIRKSTransition(TemplateTransition):
                 return
             dif = reward - node.parent.reward
 
-            self.n += 1
-            if not action in self.n_dict:
-                self.max_deltas[action] = -1000000
+            self.count += 1
+            if not action in self.counts:
+                # initialize
+                self.max_deltas[action] = -float("inf")
                 self.sum_deltas_unfiltered[action] = 0
                 self.sum_deltas_including_filtered[action] = 0
-                self.n_dict[action] = 1
-                self.n_filtered_dict[action] = 0
+                self.counts[action] = 1
+                self.smirks_filter_counts[action] = 0
+                self.improvement_counts[action] = 0
+                self.improvement_sums[action] = 0
             else:
-                self.n_dict[action] += 1
+                self.counts[action] += 1
             
             if not filtered:
                 self.max_delta = max(self.max_delta, dif)
@@ -151,36 +159,47 @@ class SMIRKSTransition(TemplateTransition):
                 self.sum_deltas_including_filtered[action] += dif
                 self.sum_delta_unfiltered += dif
                 self.sum_delta_including_filtered += dif
+                if dif > 0:
+                    self.improvement_count += 1
+                    self.improvement_counts[action] += 1
+                    self.improvement_sum += dif
+                    self.improvement_sums[action] += dif
             else:
                 self.sum_deltas_including_filtered[action] += dif
                 self.sum_delta_including_filtered += dif
-                self.n_filtered += 1
-                self.n_filtered_dict[action] += 1
+                self.smirks_filter_count += 1
+                self.smirks_filter_counts[action] += 1
                 
     # override
     def analyze(self):
         records = []
         for key, _ in self.weighted_smirks:
-            if not key in self.n_dict:
+            if not key in self.counts:
                 continue
-            n = self.n_dict[key]
+            n = self.counts[key]
 
             records.append({
                 "SMIRKS": key,
-                "evaluation count": self.n_dict[key],
-                "filtered count": self.n_filtered_dict[key], 
+                "evaluation count": self.counts[key],
+                "filter count (eval)": self.smirks_filter_counts[key], 
                 "average delta (unfiltered)": self.sum_deltas_unfiltered[key] / n,
                 "average delta (with filtered)": self.sum_deltas_including_filtered[key] / n,
-                "max delta": self.max_deltas[key]
+                "max delta": self.max_deltas[key],
+                "improvement count": self.improvement_counts[key],
+                "improvement average": self.improvement_sums[key] / self.improvement_counts[key] if self.improvement_counts[key] > 0 else float("nan"), 
+                "improvement sum / total count": self.improvement_sums[key] / n
             })
             
         records.append({
             "SMIRKS": "Total",
-            "evaluation count": self.n,
-            "filtered count": self.n_filtered, 
-            "average delta (unfiltered)": self.sum_delta_unfiltered / self.n,
-            "average delta (with filtered)": self.sum_delta_including_filtered / self.n,
-            "max delta": self.max_delta
+            "evaluation count": self.count,
+            "filter count (eval)": self.smirks_filter_count, 
+            "average delta (unfiltered)": self.sum_delta_unfiltered / self.count,
+            "average delta (with filtered)": self.sum_delta_including_filtered / self.count,
+            "max delta": self.max_delta,
+            "improvement count": self.improvement_count,
+            "improvement average": self.improvement_sum / self.improvement_count if self.improvement_count > 0 else float("nan"),
+            "improvement sum / total count": self.improvement_sum / self.count
         })
 
         df = pd.DataFrame(records)
