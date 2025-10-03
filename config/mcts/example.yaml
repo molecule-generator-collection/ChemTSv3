@@ -2,7 +2,7 @@ time_limit: 60 # Seconds
 max_generations: 1000
 # seed: 0 # Set seed
 
-### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to class variables of the Node class.###
+### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to node_class_variables.###
 output_dir: generation_result
 device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
 
