@@ -33,7 +33,7 @@ class StringNode(Node):
         """Clear states no longer needed after transition to reduce memory usage."""
         self.string = None
 
-class MolStringNode(MolNode, StringNode):
+class MolStringNode(StringNode, MolNode):
     use_canonical_smiles_as_key: bool = False
     lang: MolLanguage = None
 
