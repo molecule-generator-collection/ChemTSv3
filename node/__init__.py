@@ -1,6 +1,6 @@
 from .base import Node, MolNode, SurrogateNode
 from .sentence_node import SentenceNode, MolSentenceNode
-from .mol_string_node import MolStringNode, SMILESStringNode, CanonicalSMILESStringNode, FASTAStringNode
+from .string_node import MolStringNode, SMILESStringNode, CanonicalSMILESStringNode, FASTAStringNode
 
 # lazy import
 def __getattr__(name):
