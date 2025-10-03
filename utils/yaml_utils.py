@@ -21,18 +21,34 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     device, logger, output_dir = prepare_common_args(conf_clone, predecessor)
 
     save_yaml(conf, output_dir=output_dir)
-    generator_args = conf_clone.get("generator_args", {})
+    generator_args = conf_clone.get("generator_args") or {}
     set_seed(seed=conf_clone.get("seed"), logger=logger)
 
-    # set node class
+    # set node class (Node.lang will be set later)
     node_class = class_from_package("node", conf_clone.get("node_class"))
-    if node_class == MolSentenceNode:
-        MolSentenceNode.use_canonical_smiles_as_key = conf_clone.get("use_canonical_smiles_as_key", False)
-    if issubclass(node_class, MolStringNode):
-        MolStringNode.use_canonical_smiles_as_key = conf_clone.get("use_canonical_smiles_as_key", False)
+    if hasattr(node_class, "device"):
+        node_class.device = device
+    if hasattr(node_class, "logger"):
+        node_class.logger = logger
+    if hasattr(node_class, "output_dir"):
+        node_class.output_dir = output_dir
+    node_class_variables = conf_clone.get("node_class_variables") or {}
+    for key, value in node_class_variables.items():
+        if hasattr(node_class, key):
+            if key == "device":
+                logger.warning("Node class are using 'device' in 'node_class_variables', which would override 'device' in common args.")
+            setattr(node_class, key, value)
+        else:
+            class_name = conf_clone.get("node_class")
+            logger.warning(f"Node class {class_name} has no class variable {key}. Ignoring this setting.")
+    # legacy (might be removed: please use node_class_variables): use_canonical_smiles_as_key can be set directly
+    if node_class == MolSentenceNode and "use_canonical_smiles_as_key" in conf_clone:
+        MolSentenceNode.use_canonical_smiles_as_key = conf_clone["use_canonical_smiles_as_key"]
+    if issubclass(node_class, MolStringNode) and "use_canonical_smiles_as_key" in conf_clone:
+        MolStringNode.use_canonical_smiles_as_key = conf_clone["use_canonical_smiles_as_key"]
 
     # set transition (and lang, if any)
-    transition_args = conf_clone.get("transition_args", {})
+    transition_args = conf_clone.get("transition_args") or {}
     transition_class = class_from_package("transition", conf_clone["transition_class"])
     adjust_args(transition_class, transition_args, device, logger, output_dir)
     
@@ -51,18 +67,12 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
         language_class = class_from_package("language", conf_clone["language_class"])
         language_args = conf_clone.get("language_args", {})
         lang = language_class(**language_args)
+    if hasattr(node_class, "lang") and "lang" in locals():
+        node_class.lang = lang
         
     transition = transition_class(**transition_args)
     
-    # set root
-    root_args = {}
-    if "lang" in locals() :
-        root_args["lang"] = lang
-    if "device" in inspect.signature(node_class.node_from_key).parameters:
-        root_args["device"] = device
-    if "logger" in inspect.signature(node_class.node_from_key).parameters:
-        root_args["logger"] = logger
-        
+    # set root nodes
     if n_top_keys_to_pass:        
         top_k = predecessor.top_k(k=n_top_keys_to_pass)
         top_keys = [key for key, _ in top_k]
@@ -72,26 +82,26 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     if type(conf_clone.get("root")) == list:
         root = SurrogateNode()
         for i, s in enumerate(conf_clone.get("root")):
-            node = node_class.node_from_key(key=s, parent=root, last_prob=1/len(conf_clone.get("root")), last_action=s, **root_args)
+            node = node_class.node_from_key(key=s, parent=root, last_prob=1/len(conf_clone.get("root")), last_action=s)
             root.add_child(child=node)
             if n_top_keys_to_pass:
                 node.reward = top_values[i]
     else:
-        root = node_class.node_from_key(key=conf_clone.get("root", ""), **root_args)
+        root = node_class.node_from_key(key=conf_clone.get("root", ""))
 
     # set reward
     if not "reward_class" in conf_clone and predecessor is not None:
         reward = predecessor.reward
     else:
         reward_class = class_from_package("reward", conf_clone.get("reward_class"))
-        reward_args = conf_clone.get("reward_args", {})
+        reward_args = conf_clone.get("reward_args") or {}
         adjust_args(reward_class, reward_args, device, logger, output_dir)
         reward = reward_class(**reward_args)
     
     # set policy
     if "policy_class" in conf_clone:
         policy_class = class_from_package("policy", conf_clone.get("policy_class"))
-        policy_args = conf_clone.get("policy_args", {})
+        policy_args = conf_clone.get("policy_args") or {}
         adjust_args(policy_class, policy_args, device, logger, output_dir)
         policy = policy_class(**policy_args)
         generator_args["policy"] = policy

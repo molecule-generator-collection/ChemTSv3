@@ -8,7 +8,8 @@ output_dir: generation_result
 device: cpu
 
 node_class: MolSentenceNode
-use_canonical_smiles_as_key: true
+node_class_variables:
+  use_canonical_smiles_as_key: true
 
 transition_class: RNNTransition
 transition_args:

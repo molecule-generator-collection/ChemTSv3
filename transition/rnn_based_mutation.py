@@ -12,7 +12,9 @@ class RNNBasedMutation(TemplateTransition):
         lang_path = find_lang_file(model_dir)
         self.lang = Language.load(lang_path)
         self.rnn = RNNTransition(lang=self.lang, model_dir=model_dir, device=device, top_p=rnn_top_p, temperature=rnn_temperature, sharpness=rnn_sharpness, logger=logger)
-        self.empty_node = MolSentenceNode.node_from_key(key="", lang=self.lang, device=device)
+        MolSentenceNode.lang = self.lang
+        MolSentenceNode.device = device
+        self.empty_node = MolSentenceNode.node_from_key(key="")
         super().__init__(filters=filters, logger=logger)
     
     def _next_nodes_impl(self, node: MolStringNode | FASTAStringNode):
@@ -36,4 +38,4 @@ class RNNBasedMutation(TemplateTransition):
         if isinstance(node, FASTAStringNode):
             return [FASTAStringNode.node_from_key(key=c, parent=node, last_prob=1/len(candidates)) for c in candidates]
         else:
-            return [MolStringNode.node_from_key(key=c, lang=self.lang, parent=node, last_prob=1/len(candidates)) for c in candidates]
+            return [MolStringNode.node_from_key(key=c, parent=node, last_prob=1/len(candidates)) for c in candidates]

@@ -4,7 +4,8 @@ silent: true
 
 time_limit: 1000 # Seconds
 node_class: MolSentenceNode
-use_canonical_smiles_as_key: true
+node_class_variables:
+  use_canonical_smiles_as_key: true
 
 device: cpu
 transition_class: RNNTransition

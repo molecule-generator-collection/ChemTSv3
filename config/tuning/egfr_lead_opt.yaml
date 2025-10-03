@@ -3,7 +3,6 @@ time_limit: 600
 max_generations: 20000
 node_class: CanonicalSMILESStringNode
 silent: true
-use_canonical_smiles_as_key: true
 
 root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 

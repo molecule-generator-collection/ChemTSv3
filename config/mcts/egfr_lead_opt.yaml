@@ -4,7 +4,8 @@ max_generations: 200000
 seed: 0
 
 node_class: CanonicalSMILESStringNode
-use_canonical_smiles_as_key: true
+node_class_variables:
+  use_canonical_smiles_as_key: true
 
 root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
 

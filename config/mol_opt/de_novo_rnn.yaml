@@ -5,7 +5,8 @@ max_generations: 400
 n_keys_to_pass: 4
 
 node_class: MolSentenceNode
-use_canonical_smiles_as_key: true
+node_class_variables:
+  use_canonical_smiles_as_key: true
 
 device: cpu
 transition_class: RNNTransition
