@@ -154,7 +154,7 @@ class BlackBoxTransition(TemplateTransition):
             child.last_prob = 1 / len(children)
         return children
     
-class LanguageModel(Transition):
+class AutoRegressiveTransition(Transition):
     def __init__(self, lang: Language, logger: logging.Logger=None):
         self.lang = lang
         super().__init__(logger)

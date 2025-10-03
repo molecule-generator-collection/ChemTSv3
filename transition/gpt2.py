@@ -6,12 +6,12 @@ import torch.nn.functional as F
 from transformers import GPT2LMHeadModel, Trainer, TrainingArguments
 from language import Language, DynamicLanguage
 from node import SentenceNode
-from transition import LanguageModel
+from transition import AutoRegressiveTransition
 from utils import apply_top_p
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
-class GPT2Transition(LanguageModel):
+class GPT2Transition(AutoRegressiveTransition):
     def __init__(self, lang: Language, model=None, model_dir: str=None, device: str=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
         """
         Args:
