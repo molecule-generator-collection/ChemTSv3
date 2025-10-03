@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from language import Language, DynamicLanguage
 from node import SentenceNode
-from transition import LanguageModel
+from transition import AutoRegressiveTransition
 from utils import apply_top_p, apply_sharpness
 
 class RNNLanguageModel(nn.Module):
@@ -109,7 +109,7 @@ class RNNLanguageModel(nn.Module):
         with open(os.path.join(model_dir, "config.json"), "w") as f:
             json.dump(cfg, f, indent=2)
 
-class RNNTransition(LanguageModel):
+class RNNTransition(AutoRegressiveTransition):
     def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, disable_top_p_on_rollout: bool=False, logger: logging.Logger=None):
         """
         Args:
