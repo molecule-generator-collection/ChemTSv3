@@ -1,8 +1,8 @@
 from typing import Self, Any
 from rdkit import Chem
 from rdkit.Chem import Mol
-from language import Node, MolLanguage, SMILES, FASTA
-from node import MolNode
+from language import MolLanguage, SMILES, FASTA
+from node import Node, MolNode
 from utils import mol_validity_check
 
 class StringNode(Node):
