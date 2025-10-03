@@ -13,7 +13,7 @@ def __getattr__(name):
         from .chat_gpt import ChatGPTTransition
         return ChatGPTTransition
     if name == "LongChatGPTTransition":
-        from .chat_gpt import LongChatGPTTransition
+        from .chat_gpt_with_memory import LongChatGPTTransition
         return LongChatGPTTransition
     if name == "ProtGPT2Transition":
         from .prot_gpt2 import ProtGPT2Transition
