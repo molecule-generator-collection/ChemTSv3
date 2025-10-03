@@ -2,7 +2,7 @@ import logging
 import os
 from openai import OpenAI
 from node import SMILESStringNode
-from transition import LLMTransition, BlackBoxTransition
+from transition import LLMTransition
 
 class ChatGPTTransition(LLMTransition):
     def __init__(self, prompt: str, model: str="gpt-4o-mini", api_key: str=None, api_key_path: str=None, n_samples=1, logger: logging.Logger=None):
