@@ -7,7 +7,7 @@ node_class: CanonicalSMILESStringNode
 node_class_variables:
   use_canonical_smiles_as_key: true
 
-root: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+root: c1ccc(Nc2ncnc3ccccc23)cc1
 
 # reward_class: SimilarityReward
 # reward_args:
@@ -75,7 +75,7 @@ transition_args:
   check_ring: true
   filters:
     - filter_class: SubstructureFilter
-      smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+      smiles: c1ccc(Nc2ncnc3ccccc23)cc1
       # smarts: c1[c;H1]c([c;H1][c;H1][c;H1]1)[N;H1]c2ncnc3c2[c;H1]c(c(c3))
 
 # transition_class: SMIRKSTransition
@@ -86,7 +86,7 @@ transition_args:
 #   - filter_class: ValidityFilter
 #   - filter_class: RadicalFilter
 #   - filter_class: SubstructureFilter
-#     smiles: c1cc(ccc1)Nc2ncnc3c2cc(c(c3))
+#     smiles: c1ccc(Nc2ncnc3ccccc23)cc1
 
 policy_class: UCT
 policy_args:
