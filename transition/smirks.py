@@ -180,14 +180,14 @@ class SMIRKSTransition(TemplateTransition):
 
             records.append({
                 "SMIRKS": key,
-                "evaluation count": self.counts[key],
-                "filter count (eval)": self.smirks_filter_counts[key], 
+                "reward count": self.counts[key],
+                "filter count (reward)": self.smirks_filter_counts[key], 
                 "average delta (unfiltered)": self.sum_deltas_unfiltered[key] / n,
                 "average delta (with filtered)": self.sum_deltas_including_filtered[key] / n,
                 "max delta": self.max_deltas[key],
                 "improvement count": self.improvement_counts[key],
                 "improvement average": self.improvement_sums[key] / self.improvement_counts[key] if self.improvement_counts[key] > 0 else float("nan"), 
-                "improvement sum / total count": self.improvement_sums[key] / n
+                "improvement sum / reward count": self.improvement_sums[key] / n
             })
             
         records.append({
