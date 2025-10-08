@@ -1,3 +1,4 @@
+import queue
 import logging
 from filter import Filter
 from generator import Generator
@@ -80,6 +81,11 @@ class MCTS(Generator):
             self.discard_unneeded_states = False if cut_failed_child else True
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
+        
+        self.reward_queue = queue.Queue()
+        self.current_parent = None
+        self.parent_unfiltered_flag = False
+
         super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval)
         self.root.n = 1
         
@@ -128,9 +134,16 @@ class MCTS(Generator):
         while node:
             node.observe(0 if use_dummy_reward else value)
             node = node.parent
-
-    # implement
+            
     def _generate_impl(self):
+        if self.reward_queue.empty():
+            if self.failed_parent_reward != "ignore" and not self.parent_unfiltered_flag:
+                self._backpropagate(self.current_parent, self.failed_parent_reward, False)
+            self._fill_queue()
+        else:
+            self._work_on_queue()
+            
+    def _fill_queue(self):
         node = self._selection()
         
         if node.depth > self.max_tree_depth:
@@ -151,24 +164,32 @@ class MCTS(Generator):
         else:
             children = self.policy.sample_candidates(node, max_size=self.n_eval_width, replace=self.allow_eval_overlaps)
         
-        parent_got_unfiltered_node = False
+        self.parent_unfiltered_flag = False
+        self.current_parent = node
         for child in children:
-            child_got_unfiltered_node = False
-            for _ in range(self.n_eval_iters):
-                for _ in range(self.n_tries):
-                    objective_values, reward = self._eval(child) # returns the child itself if terminal
-                    if type(objective_values[0]) != str: # not filtered
-                        break
-                if type(objective_values[0]) != str: # not filtered
-                    child_got_unfiltered_node = parent_got_unfiltered_node = True
-                    self._backpropagate(child, reward, self.use_dummy_reward)
-                elif self.filter_reward[int(objective_values[0])] != "ignore":
-                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
-            if self.cut_failed_child and not child_got_unfiltered_node:
-                child.leave(logger=self.logger)
-        if self.failed_parent_reward != "ignore" and not parent_got_unfiltered_node:
-            self._backpropagate(node, self.failed_parent_reward, False)
-            
+            self.reward_queue.put((child, self.n_eval_iters, self.n_tries, False)) # node for evaluation, remaining iters, remaining tries, already got unfiltered generation or not
+    
+    def _work_on_queue(self):
+        child, iters, tries, unfiltered_flag = self.reward_queue.get()
+        objective_values, reward = self._eval(child)
+        
+        if type(objective_values[0]) != str: # not filtered
+            unfiltered_flag = True
+            self.parent_unfiltered_flag = True
+            self._backpropagate(child, reward, self.use_dummy_reward)
+        else: # filtered
+            if tries > 1:
+                self.reward_queue.put((child, iters, tries-1, unfiltered_flag))
+                return
+            elif self.filter_reward[int(objective_values[0])] != "ignore":
+                self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
+                
+        if iters > 1:
+            self.reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
+        elif self.cut_failed_child and not unfiltered_flag:
+            child.leave(logger=self.logger)
+
+    # override
     def display_top_k_molecules(self, str2mol_func=None, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):
         if str2mol_func is not None:
             return super().display_top_k_molecules(str2mol_func, k=k, mols_per_row=mols_per_row, legends=legends, target=target, size=size)
@@ -178,7 +199,7 @@ class MCTS(Generator):
                 raise AttributeError("Node objects don't have lang: For molecule nodes that don't use lang, specify str2mol_func.")
             str2mol_func = c.lang.sentence2mol
             return super().display_top_k_molecules(str2mol_func, k=k, mols_per_row=mols_per_row, legends=legends, target=target, size=size)
-
+        
     # override
     def analyze(self):
         super().analyze()

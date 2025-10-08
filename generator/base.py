@@ -5,6 +5,7 @@ import logging
 import math
 import os
 import pickle
+import queue
 import time
 from typing import Self
 import yaml
@@ -435,7 +436,22 @@ class Generator(ABC):
         state = self.__dict__.copy()
         if "transition" in state:
             del state["transition"]
+        # make queue picklable (for MCTS)
+        rq = state.get("reward_queue", None)
+        if isinstance(rq, queue.Queue):
+            with rq.mutex:
+                state["reward_queue"] = list(rq.queue)
         return state
+    
+    def __setstate__(self, state):
+        # rebuild queue (for MCTS)
+        saved_queue = state.get("reward_queue", None)
+        if isinstance(saved_queue, list):
+            restored_queue = queue.Queue()
+            for item in saved_queue:
+                restored_queue.put(item)
+            state["reward_queue"] = restored_queue
+        self.__dict__.update(state)
     
     def _set_yaml_copy(self, conf: dict):
         self.yaml_copy = copy.deepcopy(conf)
