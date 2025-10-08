@@ -53,6 +53,11 @@ def main():
         max_generations = args.max_generations
         time_limit = args.time_limit
         generator.generate(max_generations=max_generations, time_limit=time_limit)
+        generator.analyze()
+        plot_args = generator.yaml_copy.get("plot_args", {})
+        if not "save_only" in plot_args:
+            plot_args["save_only"] = True
+        generator.plot(**plot_args)
     else:
         raise ValueError("Specify one of 'yaml_path' (-c) or 'load_dir' (-l), not both.")
 

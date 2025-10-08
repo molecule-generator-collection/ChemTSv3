@@ -21,7 +21,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
@@ -30,7 +30,8 @@ class Generator(ABC):
             logger: Logger instance used to record generation results.
             info_interval: Number of generations between each logging of the generation result.
             save_interval: Number of generations between each checkpoint save.
-            yaml_copy: If passed, yaml settings will be also saved.
+            save_on_completion: If True, saves the checkpoint when completing the generation.
+            include_transition_to_save: If True, transition will be included to the checkpoint file when saving.
         """
         self.transition = transition
         self._name = name or self._make_name()
@@ -58,6 +59,8 @@ class Generator(ABC):
         self.analyze_interval = analyze_interval
         self.verbose_interval = verbose_interval
         self.save_interval = save_interval
+        self.save_on_completion = save_on_completion
+        self.include_transition_to_save = include_transition_to_save
         self.last_saved = 0
         self.next_save = save_interval
         self.initial_time, self.time_start = 0, 0 # precaution
@@ -114,7 +117,7 @@ class Generator(ABC):
                 self.logger.info("Executor shutdown completed.")
             self.logger.info("Generation finished.")
             
-            if self.save_interval is not None and self.n_generated_nodes() != self.last_saved:
+            if (self.save_interval is not None or self.save_on_completion) and self.n_generated_nodes() != self.last_saved:
                 self.save(is_interval=False)
                 
     def should_finish(self):
@@ -434,7 +437,7 @@ class Generator(ABC):
         
     def __getstate__(self):
         state = self.__dict__.copy()
-        if "transition" in state:
+        if "transition" in state and not self.include_transition_to_save:
             del state["transition"]
         # make queue picklable (for MCTS)
         rq = state.get("reward_queue", None)
@@ -481,12 +484,17 @@ class Generator(ABC):
             pickle.dump(self, fo)
         self.logger.info(f"Checkpoint saved at {self.n_generated_nodes()} generations.")
 
-    def load_file(file: str, transition: Transition) -> Self:
+    def load_file(file: str, transition: Transition=None) -> Self:
         with open(file, "rb") as f:
             generator = pickle.load(f)
         generator.logger.warning(f"Logs will be written to: {generator._log_dir} instead of newly created one.")
         generator.logger = make_logger(output_dir=generator._log_dir, name=generator._log_file, console_level=generator._console_level, file_level=generator._file_level, csv_level=generator._csv_level)
-        generator.transition = transition
+        if transition is None and not hasattr(generator, "transition"):
+            raise ValueError("Transition is not specified in load_file(), nor saved in the checkpoint.")
+        elif transition is not None and not hasattr(generator, "transition"):
+            generator.transition = transition
+        else:
+            generator.logger.info(f"Loading transition from the checkpoint.")
         return generator
     
     def load_dir(dir: str) -> Self:
