@@ -104,7 +104,6 @@ generator_args:
   filter_reward: [-10,0,0,0]
   avoid_duplicates: true
   info_interval: 1000
-  save_interval: 200000
   analyze_interval: 10000
 
 plot_args:
