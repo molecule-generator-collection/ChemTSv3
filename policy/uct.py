@@ -37,15 +37,28 @@ class UCT(ValuePolicy):
     def get_exploration_term(self, node: Node):
         c = self.get_c_value(node)
         return c * sqrt(log(node.parent.n) / (node.n))
+    
+    def _unvisited_node_fallback(self, node: Node) -> float | str:
+        """
+        Return float value to override the value that evaluate() returns.
+        Return "retry" to try again (node.n should be > 0 before returning True to avoid infinite).
+        """
+        return 10**9
 
     # implement
     def evaluate(self, node: Node) -> float:
         if node.n == 0:
-            return 10**9 # tiebreaker is implemented in policy base
-        
-        mean_r = node.sum_r / node.n
-        u = self.get_exploration_term(node)
-        best_r = node.best_r
-        if self.max_prior is not None:
-            best_r = max(self.max_prior, best_r)
-        return (1 - self.best_ratio) * mean_r + self.best_ratio * best_r + u
+            fallback = self._unvisited_node_fallback(node)
+            if fallback == "retry":
+                return self.evaluate(node)
+            elif type(fallback) in (float, int):
+                return fallback
+            else:
+                raise AttributeError("Policy._unvisited_node_fallback() should return either float value or 'retry'.")
+        else:
+            mean_r = node.sum_r / node.n
+            u = self.get_exploration_term(node)
+            best_r = node.best_r
+            if self.max_prior is not None:
+                best_r = max(self.max_prior, best_r)
+            return (1 - self.best_ratio) * mean_r + self.best_ratio * best_r + u
