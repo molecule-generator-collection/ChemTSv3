@@ -113,7 +113,7 @@ class MCTS(Generator):
             offspring = self.transition.rollout(node)
             objective_values, reward = self._get_objective_values_and_reward(offspring)
         
-        self.policy.observe(child=node, objective_values=objective_values, reward=reward)
+        self.policy.observe(child=node, objective_values=objective_values, reward=reward, is_filtered=(type(objective_values[0])==str))
         return objective_values, reward
 
     def _expand(self, node: Node) -> bool:
@@ -207,5 +207,6 @@ class MCTS(Generator):
     # override
     def analyze(self):
         super().analyze()
+        self.policy.analyze()
         if self.reward_cutoff is not None:
             self.logger.info(f"Reward cutoff count: {self.reward_cutoff_count}")

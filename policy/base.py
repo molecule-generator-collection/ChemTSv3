@@ -11,7 +11,7 @@ class Policy(ABC):
         """Select one child of the given node. Must not be called if node.children is empty."""
         pass
     
-    def observe(self, child: Node, objective_values: list[float], reward: float):
+    def observe(self, child: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
         return
     
@@ -28,6 +28,9 @@ class Policy(ABC):
         total = weights.sum()
         probabilities = weights / total
         return np.random.choice(cands, size=size, replace=replace, p=probabilities)
+    
+    def analyze(self):
+        """This method is called within MCTS.analyze(). By default, this method does nothing."""
     
 class TemplatePolicy(Policy):
     """
