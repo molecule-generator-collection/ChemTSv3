@@ -79,7 +79,8 @@ class TemplateTransition(Transition):
         for n in raw_nodes:
             passed = True
             for i, f in enumerate(self.filters):
-                if not f.check(n):
+                filter_result = f.check(n)
+                if type(filter_result) in (float, int) or filter_result == False:
                     self.filter_counts[i] += 1
                     passed = False
                     break

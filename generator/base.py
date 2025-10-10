@@ -208,13 +208,19 @@ class Generator(ABC):
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
         for i, filter in enumerate(self.filters):
-            if not filter.check(node):
+            filter_result = filter.check(node)
+            if type(filter_result) in (float, int) or filter_result == False:
                 self.filter_counts[i] += 1
-                self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
+                if type(filter_result) in (float, int):
+                    filter_reward = filter_result
+                    self.logger.debug(f"Filtered by {filter.__class__.__name__}: {key}, reward override={filter_result}")
+                elif filter_result == False:
+                    filter_reward = self.filter_reward[i]
+                    self.logger.debug(f"Filtered by {filter.__class__.__name__}: {key}")
                 
-                self.transition.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], is_filtered=True)
+                self.transition.observe(node=node, objective_values=[str(i)], reward=filter_reward, is_filtered=True)
                 for filter in self.filters:
-                    filter.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], is_filtered=True)
+                    filter.observe(node=node, objective_values=[str(i)], reward=filter_reward, is_filtered=True)
                     
                 node.clear_cache()
                 return [str(i)], self.filter_reward[i]
