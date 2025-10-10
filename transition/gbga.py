@@ -9,6 +9,7 @@ from transition import TemplateTransition
 class GBGATransition(TemplateTransition):
     """
     Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
+    GBGA paper: https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c
     """
     
     def __init__(self, base_chances=[0.15,0.14,0.14,0.14,0.14,0.14,0.15], check_size: bool=False, average_size: float=50.0, size_stdev: float=5.0, check_ring: bool=True, merge_duplicates: bool=True, record_actions: bool=False, filters: list[Filter]=None, top_p=None, logger=None):
