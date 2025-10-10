@@ -4,8 +4,8 @@ from node import Node, MolNode
 
 class Filter(ABC):
     @abstractmethod
-    def check(self, node: Node) -> bool:
-        """Return False to skip reward calculation for the given node."""
+    def check(self, node: Node) -> bool | float:
+        """Return False to skip reward calculation for the given node. Return float value to override the reward. When applied for transition, float value won't be used, and will be considered False."""
         pass
     
     def observe(self, node: Node, objective_values: list[float], reward: float, is_filtered: bool):
@@ -18,12 +18,12 @@ class Filter(ABC):
 class MolFilter(Filter):
     """Filter for MolNode"""
     @abstractmethod
-    def mol_check(self, mol: Mol) -> bool:
+    def mol_check(self, mol: Mol) -> bool | float:
         """Return False to skip reward calculation for the given molecule."""
         pass
     
     # implement
-    def check(self, node: MolNode) -> bool:
+    def check(self, node: MolNode) -> bool | float:
         return self.mol_check(node.mol(use_cache=True))
 
 class ValueFilter(Filter):
