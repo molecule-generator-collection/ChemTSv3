@@ -1,4 +1,5 @@
 ## Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
+## GBGA paper: https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c
 
 ## delete atom
 [*:1]~[D1]>>[*:1]               // 3.75
