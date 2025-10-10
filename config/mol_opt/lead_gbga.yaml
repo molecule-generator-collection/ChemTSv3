@@ -17,6 +17,8 @@ policy_args:
   c: 0.25
   best_rate: 0.95
 
+filters: # Disable inheritation
+
 generator_class: MCTS
 generator_args:
   n_eval_width: 1
