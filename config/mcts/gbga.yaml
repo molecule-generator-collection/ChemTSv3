@@ -8,9 +8,7 @@ node_class: CanonicalSMILESStringNode
 root: c1ccccc1
 # root: O=C1C(CBr)S(=O)[C@H](Cl)N1
 
-reward_class: GuacaMolReward
-reward_args:
-  objective: isomers_c7h8n2o2
+reward_class: LogPReward
 
 transition_class: GBGATransition
 transition_args:
