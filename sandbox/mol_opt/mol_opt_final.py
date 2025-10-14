@@ -12,15 +12,7 @@ import argparse
 from statistics import mean
 from utils import conf_from_yaml, generator_from_conf
 
-guacamol_oracle_names = ["zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "deco_hop", "albuterol_similarity", "scaffold_hop", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts"]
-tdc_oracle_names = ["drd2", "gsk3b", "jnk3", "qed"]
-oracle_names = guacamol_oracle_names + tdc_oracle_names
-    
-def reward_class_name_from_oracle_name(oracle_name: str) -> str:
-    if oracle_name in tdc_oracle_names:
-        return "TDCReward"
-    else:
-        return "GuacaMolReward"
+oracle_names = ["zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "deco_hop", "albuterol_similarity", "scaffold_hop", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts", "drd2", "gsk3b", "jnk3", "qed"]
     
 def test_chain(oracle_name: str, seed: int) -> float:
     yaml_path_1 = "config/mol_opt/de_novo_rnn.yaml"
@@ -28,7 +20,7 @@ def test_chain(oracle_name: str, seed: int) -> float:
 
     conf_1 = conf_from_yaml(yaml_path_1)
     conf_1["seed"] = seed
-    conf_1["reward_class"] = reward_class_name_from_oracle_name(oracle_name)
+    conf_1["reward_class"] = "TDCReward"
     conf_1["reward_args"] = {}
     conf_1["reward_args"]["objective"] = oracle_name
     conf_1["output_dir"] = "generation_result" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
@@ -51,7 +43,7 @@ def test_single(oracle_name: str, seed: int) -> float:
 
     conf = conf_from_yaml(yaml_path)
     conf["seed"] = seed
-    conf["reward_class"] = reward_class_name_from_oracle_name(oracle_name)
+    conf["reward_class"] = "TDCReward"
     conf["reward_args"] = {}
     conf["reward_args"]["objective"] = oracle_name
     conf["output_dir"] = "generation_result" + os.sep + "seed_" + str(seed) + os.sep + oracle_name

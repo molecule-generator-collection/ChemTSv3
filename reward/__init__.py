@@ -13,9 +13,6 @@ def __getattr__(name):
     if name == "EGFRReward":
         from .egfr_reward import EGFRReward
         return EGFRReward
-    if name == "GuacaMolReward":
-        from .guacamol_reward import GuacaMolReward
-        return GuacaMolReward
     if name == "JScoreReward":
         from .j_score_reward import JScoreReward
         return JScoreReward

@@ -29,10 +29,6 @@ generator_args:
   cut_terminal: true
   info_interval: 100
 
-# reward_class: GuacaMolReward
-# reward_args:
-#   objective: osimertinib_mpo
-
 reward_class: TDCReward
 reward_args:
   objective: jnk3

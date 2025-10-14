@@ -30,7 +30,7 @@ This section explains how to set up a conda-forge environment to replicate bench
 
 ### Available classes
 - **Transition**: `RNNTransition`, `GPT2Transition`, `GBGATransition`, `SMIRKSTransition`
-- **Reward**: `GuacaMolReward`, `TDCReward`, `JScoreReward`, `LogPReward`
+- **Reward**: `TDCReward`, `JScoreReward`, `LogPReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
 
 ### Setup steps
@@ -38,7 +38,7 @@ This section explains how to set up a conda-forge environment to replicate bench
 ```bash
 conda create -n v3env-b python=3.11.13
 conda activate v3env-b
-conda install -c conda-forge pytdc=1.1.14 guacamol ipykernel
+conda install -c conda-forge pytdc=1.1.14 ipykernel
 conda install -c conda-forge pytorch pytorch-gpu
 ```
 Note: For CPU-only environments, omit pytorch-gpu from the last command.
