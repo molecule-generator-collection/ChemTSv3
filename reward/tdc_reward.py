@@ -20,7 +20,7 @@ class TDCReward(SMILESReward):
             self._name = objective.lower()
             self.oracle = Oracle(objective.upper())
         else:
-            raise ValueError("Invalid objective name (example of objective names: 'drd2', 'gsk3b', 'jnk3', or 'qed')")
+            raise ValueError("Invalid objective (example of objective names: 'drd2', 'gsk3b', 'jnk3', or 'qed')")
         
     # implement
     def smiles_objective_functions(self):
