@@ -1,0 +1,40 @@
+output_dir: generation_result
+silent: true
+time_limit: 2000 # Seconds
+max_generations: 10000
+
+node_class: MolSentenceNode
+node_class_variables:
+  use_canonical_smiles_as_key: false
+
+device: cpu
+transition_class: RNNTransition
+transition_args:
+  model_dir: model/smiles/drugs_zinc/tf25_ported
+  top_p: 0.995
+  disable_top_p_on_rollout: true # Turn top_p to expansion_threshold
+
+policy_class: UCT
+policy_args:
+  # best_rate: 0 (default)
+  c: 0.01144112167596284
+
+generator_class: MCTS
+generator_args:
+  n_eval_width: .inf
+  n_eval_iters: 5
+  n_tries: 1
+  cut_failed_child: true
+  filter_reward: ignore
+  failed_parent_reward: -1
+  terminal_reward: -1
+  cut_terminal: false
+  avoid_duplicates: false
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
+  save_only: true
+
+filters:
+  - filter_class: ValidityFilter # Apply ValidityFilter first (unless molecular validity is already guaranteed), since other MolFilter and MolReward do not check validity by default.
+  - filter_class: RadicalFilter
