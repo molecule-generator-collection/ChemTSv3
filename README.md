@@ -18,9 +18,8 @@ This section explains how to set up a minimal conda-forge environment. This envi
 ```bash
 conda create -n v3env-m python=3.11.13
 conda activate v3env-m
-conda install -c conda-forge ipykernel rdkit transformers pytorch pytorch-gpu
+conda install -c conda-forge ipykernel rdkit transformers pytorch
 ```
-Note: For CPU-only environments, omit pytorch-gpu from the last command.
 </details>
 
 <details>
@@ -39,7 +38,6 @@ This section explains how to set up a conda-forge environment to replicate bench
 conda create -n v3env-b python=3.11.13
 conda activate v3env-b
 conda install -c conda-forge pytdc=1.1.14 ipykernel
-conda install -c conda-forge pytorch pytorch-gpu
 ```
 Note: For CPU-only environments, omit pytorch-gpu from the last command.
 </details>
