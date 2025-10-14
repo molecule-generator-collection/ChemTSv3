@@ -1,4 +1,6 @@
-# Example: python sandbox/mol_opt/mol_opt_final.py --method chain
+# Example (Chain: python sandbox/mol_opt/mol_opt_final.py --method chain
+# Example (No chain / RNN only): python sandbox/mol_opt/mol_opt_final.py --method no_chain
+# Example (ChemTSv2 replication): python sandbox/mol_opt/mol_opt_final.py --method v2_replication
 
 # Path setup / Imports
 import faulthandler
@@ -38,9 +40,7 @@ def test_chain(oracle_name: str, seed: int) -> float:
     
     return result
 
-def test_single(oracle_name: str, seed: int) -> float:
-    yaml_path = "config/mol_opt/rnn_only.yaml"
-
+def test_single(oracle_name: str, seed: int, yaml_path: str) -> float:
     conf = conf_from_yaml(yaml_path)
     conf["seed"] = seed
     conf["reward_class"] = "TDCReward"
@@ -60,12 +60,16 @@ def test_objective(oracle_name: str, seed: int, method: str="chain") -> float:
     # return test_single(oracle_name, seed)
     if method == "chain":
         return test_chain(oracle_name, seed)
+    elif method == "no_chain":
+        return test_single(oracle_name, seed, "config/mol_opt/no_chain.yaml")
+    elif method == "v2_replication":
+        return test_single(oracle_name, seed, "config/mol_opt/v2_replication.yaml")
     else:
-        return test_single(oracle_name, seed)
+        raise ValueError("Invalid method name.")
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", choices=["chain", "single"], default="chain", help="Generation mode")
+    parser.add_argument("--method", choices=["chain", "no_chain", "v2_replication"], default="chain", help="Generation mode")
     parser.add_argument("--n_trials", type=int, default=5, help="Number of seeds (trials)")
     args = parser.parse_args()
     
