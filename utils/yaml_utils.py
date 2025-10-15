@@ -149,10 +149,10 @@ def adjust_path_args(args_dict: dict):
 def prepare_common_args(conf: dict, predecessor: Generator=None) -> tuple[str, logging.Logger, str]:
     _slurm_dir_caution = None
     if predecessor is None:
-        if is_running_under_slurm() and not conf.get("direct_output_on_slurm", False):
+        if is_running_under_slurm() and not conf.get("direct_output_on_slurm", True):
             output_dir = make_subdirectory(os.path.join(setup_local_workdir(), conf["output_dir"]))
             output_dir_2 = make_subdirectory(os.path.join(REPO_ROOT, "sandbox", conf["output_dir"]))
-            _slurm_dir_caution = f"Slurm detected: creating a temporary directory at {output_dir} to avoid I/O overhead: files will be copied to {output_dir_2} upon completion. Note that if the job is terminated before completion, files in the temporary directory will be lost. To suppress this behavior, put 'direct_output_on_slurm: true' to the top level of the YAML file."
+            _slurm_dir_caution = f"Creating a temporary directory at {output_dir} to avoid I/O overhead: files will be copied to {output_dir_2} upon completion. Note that if the job is terminated before completion, files in the temporary directory will be lost. To suppress this behavior, remove 'direct_output_on_slurm: false' in the YAML file."
             conf["_slurm_tmp_dir"] = True
             register_finalize_sync(output_dir, output_dir_2)
         else:

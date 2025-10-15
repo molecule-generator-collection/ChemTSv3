@@ -59,7 +59,8 @@ class Generator(ABC):
         if logging_interval is None:
             if is_running_under_slurm():
                 if not is_tmp_path(self._output_dir):
-                    self.logger.info("Slurm detected, but not using a temporary directory. Setting logging_interval to 100 to avoid I/O overhead. Specify logging_interval to override this behavior.")
+                    self.logger.info("Slurm detected. Setting logging_interval to 100 to avoid I/O overhead. Specify logging_interval to override this behavior.")
+                    # It is also possible to put 'direct_output_on_slurm: false' on the top level of the YAML file to create a temporary directory and copy results to the output directory on completition.
                 self.logging_interval = 100
             else:
                 self.logging_interval = 1
