@@ -1,13 +1,18 @@
+import atexit
 import copy
 import inspect
 import logging
 import os
+from pathlib import Path
+import shutil
+import subprocess
 from typing import Any
 import yaml
+
 from generator import Generator
 from language import Language
 from node import SurrogateNode, SentenceNode, MolSentenceNode, MolStringNode
-from utils import class_from_package, make_logger, set_seed, make_subdirectory, find_lang_file
+from utils import class_from_package, make_logger, set_seed, make_subdirectory, find_lang_file, is_running_under_slurm, setup_local_workdir
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
@@ -142,8 +147,16 @@ def adjust_path_args(args_dict: dict):
             args_dict[key] = os.path.join(REPO_ROOT, val)
 
 def prepare_common_args(conf: dict, predecessor: Generator=None) -> tuple[str, logging.Logger, str]:
+    _slurm_dir_caution = None
     if predecessor is None:
-        output_dir = make_subdirectory(os.path.join(REPO_ROOT, "sandbox", conf["output_dir"]))
+        if is_running_under_slurm() and not conf.get("direct_output_on_slurm", False):
+            output_dir = make_subdirectory(os.path.join(setup_local_workdir(), conf["output_dir"]))
+            output_dir_2 = make_subdirectory(os.path.join(REPO_ROOT, "sandbox", conf["output_dir"]))
+            _slurm_dir_caution = f"Slurm detected: creating a temporary directory at {output_dir} to avoid I/O overhead: files will be copied to {output_dir_2} upon completion. To suppress this behavior, put 'direct_output_on_slurm: false' to the top level of the YAML file."
+            conf["_slurm_tmp_dir"] = True
+            register_finalize_sync(output_dir, output_dir_2)
+        else:
+            output_dir = make_subdirectory(os.path.join(REPO_ROOT, "sandbox", conf["output_dir"]))
 
         console_level = logging.ERROR if conf.get("silent") else logging.INFO
         file_level = logging.DEBUG if conf.get("debug") else logging.INFO
@@ -154,7 +167,44 @@ def prepare_common_args(conf: dict, predecessor: Generator=None) -> tuple[str, l
         logger = predecessor.logger
     device = conf.get("device")
     
+    if _slurm_dir_caution is not None:
+        logger.warning(_slurm_dir_caution)
+    
     return device, logger, output_dir
+
+def register_finalize_sync(src_dir: str, dest_root: str):
+    """
+    On process exit, rsync node-local results to a shared destination.
+
+    Args:
+        src_dir: Node-local working directory to sync from.
+        dest_root: Shared filesystem directory to sync into.
+    """
+    src_dir = Path(src_dir).resolve()
+    dest_root = Path(dest_root).expanduser().resolve()
+    job_id = os.environ.get("SLURM_JOB_ID", "local")
+    dest = dest_root / str(job_id)
+
+    def _sync():
+        try:
+            dest.mkdir(parents=True, exist_ok=True)
+            # Use rsync if available; fallback to shutil.copytree
+            if shutil.which("rsync"):
+                subprocess.run(
+                    ["rsync", "-a", "--partial", f"{src_dir}/", f"{dest}/"],
+                    check=False,
+                )
+            else:
+                # shallow copy; overwrite if exists
+                for root, _, files in os.walk(src_dir):
+                    root_p = Path(root)
+                    rel = root_p.relative_to(src_dir)
+                    (dest / rel).mkdir(parents=True, exist_ok=True)
+                    for f in files:
+                        shutil.copy2(root_p / f, dest / rel / f)
+        except Exception as e:
+            print(f"[WARN] finalize sync failed: {e}")
+    atexit.register(_sync)
 
 def construct_filters(filter_settings, device, logger, output_dir):
     if filter_settings is None:
