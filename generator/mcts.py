@@ -16,7 +16,7 @@ class MCTS(Generator):
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=True, discard_unneeded_states: bool=None,
                  max_tree_depth=None, use_dummy_reward: bool=False,
-                 name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
+                 name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
@@ -39,6 +39,7 @@ class MCTS(Generator):
             
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
+            logging_interval: Number of generations between each logging. Overrides info_interval.
             info_interval: Number of generations between each logging of the generation result.
             analyze_interval: Number of generations between each call of analyze().
             save_interval: Number of generations between each checkpoint save.
@@ -90,7 +91,7 @@ class MCTS(Generator):
         self.current_parent = None
         self.parent_unfiltered_flag = False
 
-        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval, save_on_completion=save_on_completion, include_transition_to_save=include_transition_to_save)
+        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, name=name, output_dir=output_dir, logger=logger, logging_interval=logging_interval, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval, save_on_completion=save_on_completion, include_transition_to_save=include_transition_to_save)
         self.root.n = 1
         
     def _selection(self) -> Node:

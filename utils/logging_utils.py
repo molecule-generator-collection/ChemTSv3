@@ -1,6 +1,7 @@
 import csv
 from datetime import datetime
 import logging
+from logging.handlers import MemoryHandler
 import os
 import psutil
 
@@ -27,7 +28,7 @@ class NotListFilter(logging.Filter):
     def filter(self, record):
         return not isinstance(record.msg, list)
     
-def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, file_level=logging.INFO, csv_level=logging.INFO) -> logging.Logger:
+def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, file_level=logging.INFO, csv_level=logging.INFO, delay=True) -> logging.Logger:
     if name is None:
         name = datetime.now().strftime("%m-%d_%H-%M")
     os.makedirs(output_dir, exist_ok=True)
@@ -45,12 +46,35 @@ def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, fil
     csv_handler = CSVHandler(os.path.join(output_dir, name) + ".csv")
     csv_handler.addFilter(ListFilter())
     csv_handler.setLevel(csv_level)
+    
+    if delay:
+        file_handler = MemoryHandler(capacity=10**9,
+                                     target=file_handler,
+                                     flushLevel=logging.CRITICAL)
+        csv_handler = MemoryHandler(capacity=10**9,
+                                    target=csv_handler,
+                                    flushLevel=logging.CRITICAL)
+
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
     logger.addHandler(csv_handler)
     
     return logger
 
+def flush_delayed_logger(logger: logging.Logger):
+    logger.handlers[1].flush() # file_handler
+    logger.handlers[2].flush() # csv_handler
+
 def log_memory_usage(logger: logging.Logger):
     process = psutil.Process(os.getpid())
     logger.info(f"Memory usage: {process.memory_info().rss / 1024**2:.2f} MB")
+    
+def is_running_under_slurm() -> bool:
+    slurm_vars = [
+        "SLURM_JOB_ID",
+        "SLURM_JOB_NAME",
+        "SLURM_JOB_NODELIST",
+        "SLURM_SUBMIT_DIR",
+        "SLURM_CLUSTER_NAME",
+    ]
+    return any(var in os.environ for var in slurm_vars)
