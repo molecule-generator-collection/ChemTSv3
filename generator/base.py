@@ -21,7 +21,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=1, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
@@ -59,15 +59,12 @@ class Generator(ABC):
         if logging_interval is None:
             if is_running_under_slurm():
                 self.logger.info("Slurm detected. Setting logging_interval to 1000 to avoid I/O overhead. Specify logging_interval to override this behavior.")
-                self.logging_interval = logging_interval = 1000
+                self.logging_interval = 1000
             else:
                 self.logging_interval = 1
         else:
             self.logging_interval = logging_interval
-        if logging_interval is not None:
-            self.info_interval = logging_interval # maybe should warn?
-        else:
-            self.info_interval = info_interval
+        self.info_interval = info_interval
         self.analyze_interval = analyze_interval
         self.verbose_interval = verbose_interval
         self.save_interval = save_interval
@@ -127,7 +124,6 @@ class Generator(ABC):
             if hasattr(self, "executor"): # for MP
                 self.executor.shutdown(cancel_futures=True)
                 self.logger.info("Executor shutdown completed.")
-            flush_delayed_logger(self.logger)
             self.logger.info("Generation finished.")
             
             if (self.save_interval is not None or self.save_on_completion) and self.n_generated_nodes() != self.last_saved:
