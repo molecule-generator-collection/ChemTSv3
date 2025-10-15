@@ -153,3 +153,7 @@ def is_running_under_slurm() -> bool:
         "SLURM_CLUSTER_NAME",
     ]
     return any(var in os.environ for var in slurm_vars)
+
+def is_tmp_path(path: str | Path) -> bool:
+    path = Path(path).resolve()
+    return any("v3tmp" in part for part in path.parts)
