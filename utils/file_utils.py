@@ -111,8 +111,8 @@ def choose_node_local_base() -> Path:
 
     Priority:
         1) $SLURM_TMPDIR (if set and writable)
-        2) /tmp (node-local SSD)
-        3) /dev/shm (tmpfs; very fast but memory-backed)
+        2) /tmp (node-local)
+        3) /dev/shm (tmpfs; fast but memory-backed)
 
     Returns:
         Path: existing, writable directory path.
