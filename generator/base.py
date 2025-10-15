@@ -15,7 +15,7 @@ from filter import Filter
 from node import Node
 from reward import Reward, LogPReward
 from transition import Transition
-from utils import moving_average, log_memory_usage, make_logger, flush_delayed_logger, is_running_under_slurm, make_subdirectory, plot_xy
+from utils import moving_average, log_memory_usage, make_logger, flush_delayed_logger, is_running_under_slurm, is_tmp_path, make_subdirectory, plot_xy
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
@@ -58,7 +58,7 @@ class Generator(ABC):
         self.yaml_copy = None
         if logging_interval is None:
             if is_running_under_slurm():
-                if not self.yaml_copy.get("_slurm_tmp_dir", False):
+                if not is_tmp_path(self._output_dir):
                     self.logger.info("Slurm detected, but not using a temporary directory. Setting logging_interval to 100 to avoid I/O overhead. Specify logging_interval to override this behavior.")
                 self.logging_interval = 100
             else:

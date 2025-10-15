@@ -1,4 +1,4 @@
-from .file_utils import class_from_class_path, class_from_package, camel2snake, add_sep, make_subdirectory, find_lang_file, setup_local_workdir, is_running_under_slurm
+from .file_utils import class_from_class_path, class_from_package, camel2snake, add_sep, make_subdirectory, find_lang_file, setup_local_workdir, is_running_under_slurm, is_tmp_path
 from .helm_utils import MonomerLibrary, HELMConverter
 from .logging_utils import CSVHandler, NotListFilter, ListFilter, make_logger, log_memory_usage, flush_delayed_logger
 from .math_utils import set_seed, append_pareto_optimality_to_df, pareto_optimal_df, apply_top_p, apply_sharpness, moving_average, max_gauss, min_gauss, rectangular, PointCurve
