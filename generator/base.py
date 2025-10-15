@@ -58,7 +58,8 @@ class Generator(ABC):
         self.yaml_copy = None
         if logging_interval is None:
             if is_running_under_slurm():
-                self.logger.info("Slurm detected. Setting logging_interval to 100 to avoid I/O overhead. Specify logging_interval to override this behavior.")
+                if not self.yaml_copy.get("_slurm_tmp_dir", False):
+                    self.logger.info("Slurm detected, but not using a temporary directory. Setting logging_interval to 100 to avoid I/O overhead. Specify logging_interval to override this behavior.")
                 self.logging_interval = 100
             else:
                 self.logging_interval = 1

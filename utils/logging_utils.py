@@ -67,13 +67,3 @@ def flush_delayed_logger(logger: logging.Logger):
 def log_memory_usage(logger: logging.Logger):
     process = psutil.Process(os.getpid())
     logger.info(f"Memory usage: {process.memory_info().rss / 1024**2:.2f} MB")
-    
-def is_running_under_slurm() -> bool:
-    slurm_vars = [
-        "SLURM_JOB_ID",
-        "SLURM_JOB_NAME",
-        "SLURM_JOB_NODELIST",
-        "SLURM_SUBMIT_DIR",
-        "SLURM_CLUSTER_NAME",
-    ]
-    return any(var in os.environ for var in slurm_vars)
