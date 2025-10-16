@@ -129,7 +129,7 @@ class PUCTWithPredictor(PUCT):
                 
     def analyze(self):
         self.logger.info(f"Number of prediction: {self.pred_count}")
-        self.logger.info(f"Number of predicted, but not actually calculated nodes: {self.pred_count - self.reprediction_count}")
+        self.logger.info(f"Number of reprediction: {self.reprediction_count}")
             
     # override
     def _unvisited_node_fallback(self, node):
