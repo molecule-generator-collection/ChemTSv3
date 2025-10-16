@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 import math
 import random
 from typing import Iterable
@@ -37,13 +38,14 @@ class TemplatePolicy(Policy):
     Policy with progressive widening.
     Progressive widening ref: https://www.researchgate.net/publication/23751563_Progressive_Strategies_for_Monte-Carlo_Tree_Search
     """
-    def __init__(self, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0):
+    def __init__(self, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, logger: logging.Logger=None):
         if pw_c is None and pw_alpha is not None or pw_c is not None and pw_alpha is None:
             raise ValueError("Specify both (or none) of 'pw_c' and 'pw_alpha'.")
         
         self.pw_c = pw_c
         self.pw_alpha = pw_alpha
         self.pw_beta = pw_beta
+        self.logger = logger
 
     @abstractmethod
     def select_child(self, node: Node) -> Node:
@@ -58,9 +60,9 @@ class TemplatePolicy(Policy):
 
 class ValuePolicy(TemplatePolicy):
     """Policy that selects the node with the highest score. Supports epsilon greedy."""
-    def __init__(self, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0):
+    def __init__(self, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0, logger: logging.Logger=None):
         self.epsilon = epsilon
-        super().__init__(pw_c=pw_c, pw_alpha=pw_alpha, pw_beta=pw_beta)
+        super().__init__(pw_c=pw_c, pw_alpha=pw_alpha, pw_beta=pw_beta, logger=logger)
 
     @abstractmethod
     def evaluate(self, node: Node) -> float:
@@ -77,7 +79,8 @@ class ValuePolicy(TemplatePolicy):
         for c in candidates:
             try:
                 y = self.evaluate(c)
-            except Exception:
+            except Exception as e:
+                self.logger.debug(f"Evaluation failed: {e}")
                 y = float("-inf")
             if not math.isfinite(y):
                 y = float("-inf")
