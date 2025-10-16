@@ -1,22 +1,24 @@
 from abc import ABC, abstractmethod
+import copy
 import logging
 import numpy as np
 from rdkit import DataStructs
 from rdkit.Chem import Mol, rdFingerprintGenerator
-from sklearn.metrics import r2_score
+from sklearn.metrics import mean_pinball_loss
 from node import Node, MolStringNode, SurrogateNode
 from policy import PUCT
 
 
 class PUCTWithPredictor(PUCT):
-    def __init__(self, r2_threshold: float=0.6, n_warmup_steps=2000, batch_size=500, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=1024, logger= logging.Logger, **kwargs):
+    def __init__(self, alpha=0.9, score_threshold: float=0.6, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=400, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=1024, logger= logging.Logger, **kwargs):
         """
         (IMPORTANT) n_eval_width must be set to 0 when using this policy.
         
         Modified PUCT introduced in AlphaGo Zero. Ref: https://www.nature.com/articles/nature24270
         This version uses predictor similar to the original, unlike the vanilla PUCT class.
         Args:
-            r2_threshold: If the last model (before training) had r2 score better than this threshold, the model will be used afterwards.
+            alpha: Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used.
+            score_threshold: If the recent prediction score (1 - {pinball loss} / {baseline pinball loss}) is better than this threshold, the model will be used afterwards.
             
             c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
             best_rate: A value between 0 and 1. The exploitation term is computed as 
@@ -25,11 +27,14 @@ class PUCTWithPredictor(PUCT):
             pw_c: Used for progressive widening.
             pw_alpha: Used for progressive widening.
         """
+        self.alpha = alpha
+        self.score_threshold = score_threshold
+        self.recent_score = -float("inf")
+        self.reprediction_threshold = reprediction_threshold
         self.n_warmup_steps = n_warmup_steps or batch_size
         self.batch_size = batch_size
-        self.r2_threshold = r2_threshold
         if predictor_type == "lightgbm":
-            self.predictor = LightGBMPredictor(predictor_params)
+            self.predictor = LightGBMPredictor(alpha, predictor_params)
         else:
             raise ValueError("Invalid predictor type")
         
@@ -43,32 +48,64 @@ class PUCTWithPredictor(PUCT):
         self.X_train_new = []
         self.y_train = []
         self.y_train_new = []
-        self.predicted_value_dict = {}
+        self.predicted_upper_dict = {}
         self.warned = False
-        self.trained = False
-        self.n_preds = 0
-        self.predicted = []
-        self.target = []
+        self.model_count = 0
+        self.pred_count = 0
+        self.reprediction_count = 0
+        self.predicted_uppers = {}
+        self.targets = {}
+        self.model_scores = {}
         super().__init__(logger=logger, **kwargs)
     
     def try_model_training(self):
-        if (not self.trained and len(self.X_train_new) >= self.n_warmup_steps) or (self.trained and len(self.X_train_new) >= self.batch_size):
+        if (self.model_count == 0 and len(self.X_train_new) >= self.n_warmup_steps) or (self.model_count > 0 and len(self.X_train_new) >= self.batch_size):
             self.X_train += self.X_train_new
             self.X_train_new = []
             self.y_train += self.y_train_new
             self.y_train_new = []
             self.logger.info(f"Starting model training with {len(self.y_train)} data...")
             self.predictor.train(self.X_train, self.y_train)
-            self.trained = True
+            self.model_count += 1
+            self.predicted_uppers[self.model_count] = []
+            self.targets[self.model_count] = []
             self.logger.info("Model training finished.")
             
-            if len(self.target) > 0:
-                r2 = r2_score(self.target, self.predicted)
-                self.logger.info(f"R2 score: {r2:.3f} in the last {len(self.target)} predicted/actual value pairs.")
-                if r2 > self.r2_threshold:
-                    self.use_model = True
-                self.predicted = []
-                self.target = []
+            for i in range(1, self.model_count):
+                if len(self.targets[i]) > 5:
+                    self.model_scores[i] = self.prediction_score(self.targets[i], self.predicted_uppers[i])
+            
+            self.logger.info("Model scores: " + ", ".join(f"{k}: {v:.3f}" for k, v in self.model_scores.items()))
+            if self.calc_recent_score() > self.score_threshold:
+                self.use_model = True
+                self.logger.info(f"Recent score: {self.recent_score:.3f}. Surrogation will be applied.")
+            else:
+                self.use_model = False
+                if self.recent_score != -float("inf"):
+                    self.logger.info(f"Recent score: {self.recent_score:.3f}. Surrogation won't be applied.")
+            self.use_model = True if self.calc_recent_score() > self.score_threshold else False
+            
+    def calc_recent_score(self):
+        predicted_upper = []
+        target = []
+        model = self.model_count - 1
+        while(len(target) < self.batch_size):
+            if model == 0:
+                return -float("inf")
+            predicted_upper += self.predicted_uppers[model]
+            target += self.targets[model]
+            model -= 1
+        self.recent_score = self.prediction_score(target, predicted_upper)
+        return self.recent_score
+        
+    def prediction_score(self, target, predicted_upper):
+        q_baseline = np.quantile(self.y_train, self.alpha)
+        baseline_pred = np.full_like(target, q_baseline, dtype=float)
+
+        pl_model = mean_pinball_loss(target, predicted_upper, alpha=self.alpha)
+        pl_base  = mean_pinball_loss(target, baseline_pred, alpha=self.alpha)
+
+        return 1 - pl_model / pl_base
 
     def observe(self, child: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
@@ -85,29 +122,35 @@ class PUCTWithPredictor(PUCT):
         self.y_train_new.append(reward)
         
         key = child.key()
-        if key in self.predicted_value_dict:
-            self.predicted.append(self.predicted_value_dict[key])
-            self.target.append(reward)
+        if key in self.predicted_upper_dict:
+            model, pred = self.predicted_upper_dict[key]
+            self.predicted_uppers[model].append(pred)
+            self.targets[model].append(reward)
                 
     def analyze(self):
-        self.logger.info(f"Number of prediction: {self.n_preds}")
+        self.logger.info(f"Number of prediction: {self.pred_count}")
+        self.logger.info(f"Number of predicted, but not actually calculated nodes: {self.pred_count - self.reprediction_count}")
             
     # override
     def _unvisited_node_fallback(self, node):
         self.try_model_training()
         
-        if self.trained:
+        if self.model_count > 0:
             key = node.key()
-            if key in self.predicted_value_dict:
-                predicted_reward = self.predicted_value_dict[key]
-            else:
-                x = self.get_feature_vector(node)
-                predicted_reward = self.predictor.predict(x)
-                self.n_preds += 1
-                self.predicted_value_dict[key] = predicted_reward
+            if key in self.predicted_upper_dict:
+                model, prev_pred = self.predicted_upper_dict[key]
+                if model >= self.model_count - 1 or self.model_scores[model] + self.reprediction_threshold > self.recent_score:
+                    return prev_pred
+                else:
+                    self.reprediction_count += 1
+
+            x = self.get_feature_vector(node)
+            predicted_upper_reward = self.predictor.predict_upper(x)
+            self.pred_count += 1
+            self.predicted_upper_dict[key] = (self.model_count, predicted_upper_reward)
             
         if self.use_model: # safe to assume predicted_reward is defined
-            return predicted_reward + self.get_exploration_term(node)
+            return predicted_upper_reward + self.get_exploration_term(node)
         else:
             return super()._unvisited_node_fallback(node)
         
@@ -126,27 +169,33 @@ class PUCTWithPredictor(PUCT):
         DataStructs.ConvertToNumpyArray(fp, arr)
         return arr
         
-class Predictor(ABC):
+class UpperPredictor(ABC):
+    def __init__(self, alpha=0.9, predictor_params: dict=None):
+        pass
+        
     @abstractmethod
     def train(self, X_train, y_train):
         pass
     
     @abstractmethod
-    def predict(self, x: np.ndarray) -> float:
+    def predict_upper(self, x: np.ndarray) -> float:
         pass
     
-class LightGBMPredictor(Predictor):
-    def __init__(self, predictor_params: dict=None):
-        self.model = None
-        self.params = predictor_params or dict(objective="regression", learning_rate=0.05, num_leaves=15, max_depth=6, seed=0, verbose=-1)
-    
+class LightGBMPredictor(UpperPredictor):
+    def __init__(self, alpha=0.9, predictor_params: dict=None):
+        self.params = predictor_params or dict(learning_rate=0.05, num_leaves=15, max_depth=6)
+        self.params.setdefault("seed", 0)
+        self.params.setdefault("verbose", -1)
+        self.params["objective"] = "quantile"
+        self.params["alpha"] = alpha
+            
     def train(self, X_train, y_train):
         import lightgbm as lgb # lazy import: will be cached
         X = np.vstack(X_train).astype(np.float32)
         train_ds = lgb.Dataset(X, label=y_train)
         self.model = lgb.train(self.params, train_ds, num_boost_round=200)
     
-    def predict(self, x: np.ndarray) -> float:
+    def predict_upper(self, x: np.ndarray) -> float:
         X = np.asarray(x, dtype=np.float32).reshape(1, -1)
         pred = self.model.predict(X)
-        return float(pred[0]) # LightGBM returns shape (1,)
+        return float(pred[0])
