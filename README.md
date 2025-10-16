@@ -43,7 +43,7 @@ Note: For CPU-only environments, omit pytorch-gpu from the last command.
 </details>
 
 ## Generation via CLI
-See `config/mcts/example.yaml` and `config/mcts/example_chain_*.yaml` for setting options.
+See `config/mcts/example.yaml` for setting options. For chain settings, refer to `config/mcts/example_chain_*.yaml`.
 ```bash
 # Simple generation
 python sandbox/generation.py -c config/mcts/example.yaml
@@ -57,3 +57,9 @@ python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_g
 - **Tutorials**: `sandbox/tutorial/***.ipynb`
 - **YAML-based Generation**: `sandbox/generation.ipynb`
 - **Model training**: `sandbox/train_rnn.ipynb` and `sandbox/train_gpt2.ipynb`
+
+## Optional Dependencies
+- `lightgbm==3.2.1~3.3.5` — required for **DScoreReward**, **DyRAMOReward**
+- `selfies` — required for **SELFIESStringNode**  
+- `openai` — required for **ChatGPT2Transition**  
+- `tdc` — required for **TDCReward**

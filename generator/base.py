@@ -15,19 +15,20 @@ from filter import Filter
 from node import Node
 from reward import Reward, LogPReward
 from transition import Transition
-from utils import moving_average, log_memory_usage, make_logger, make_subdirectory, plot_xy
+from utils import moving_average, log_memory_usage, make_logger, flush_delayed_logger, is_running_under_slurm, is_tmp_path, make_subdirectory, plot_xy
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
             
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
+            logging_interval: Number of generations between each logging. Overrides info_interval.
             info_interval: Number of generations between each logging of the generation result.
             save_interval: Number of generations between each checkpoint save.
             save_on_completion: If True, saves the checkpoint when completing the generation.
@@ -55,6 +56,16 @@ class Generator(ABC):
         self.duplicate_count = 0
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
         self.yaml_copy = None
+        if logging_interval is None:
+            if is_running_under_slurm():
+                if not is_tmp_path(self._output_dir):
+                    self.logger.info("Slurm detected. Setting logging_interval to 100 to avoid I/O overhead. Specify logging_interval to override this behavior.")
+                    # It is also possible to put 'direct_output_on_slurm: false' on the top level of the YAML file to create a temporary directory and copy results to the output directory on completition.
+                self.logging_interval = 100
+            else:
+                self.logging_interval = 1
+        else:
+            self.logging_interval = logging_interval
         self.info_interval = info_interval
         self.analyze_interval = analyze_interval
         self.verbose_interval = verbose_interval
@@ -170,6 +181,8 @@ class Generator(ABC):
         
         if self.analyze_interval is not None and len(self.unique_keys) % self.analyze_interval == 0:
             self.analyze()
+        if self.logging_interval is not None and len(self.unique_keys) % self.logging_interval == 0:
+            flush_delayed_logger(self.logger)
         if self.verbose_interval is not None and len(self.unique_keys) % self.verbose_interval == 0:
             self.log_verbose_info()
         

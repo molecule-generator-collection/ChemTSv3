@@ -1,10 +1,11 @@
 import ast
+from datetime import datetime
 import glob
 import importlib
 import inspect
 import os
+from pathlib import Path
 import pkgutil
-from datetime import datetime
 import re
 from types import ModuleType
 
@@ -103,3 +104,56 @@ def find_lang_file(model_dir: str) -> str:
         raise ValueError(f"Multiple .lang files found in {model_dir}: {lang_files}")
 
     return lang_files[0]
+
+def choose_node_local_base() -> Path:
+    """
+    Choose a node-local base directory.
+
+    Priority:
+        1) $SLURM_TMPDIR (if set and writable)
+        2) /tmp (node-local)
+        3) /dev/shm (tmpfs; fast but memory-backed)
+
+    Returns:
+        Path: existing, writable directory path.
+    """
+    candidates = []
+    slurm_tmp = os.environ.get("SLURM_TMPDIR")
+    if slurm_tmp:
+        candidates.append(Path(slurm_tmp))
+    candidates += [Path("/tmp"), Path("/dev/shm")]
+
+    for p in candidates:
+        try:
+            p.mkdir(parents=True, exist_ok=True)
+            if os.access(p, os.W_OK):
+                return p
+        except Exception:
+            pass
+    # Fallback: current directory
+    return Path.cwd()
+
+def setup_local_workdir(base_name: str="v3tmp", subdir: str=None, chdir: bool=False) -> Path:
+    base = choose_node_local_base()
+    job_id = os.environ.get("SLURM_JOB_ID", "local")
+    root = base / f"{base_name}_{job_id}_{os.getpid()}"
+    if subdir:
+        root = root / subdir
+    root.mkdir(parents=True, exist_ok=True)
+    if chdir:
+        os.chdir(root)
+    return root.resolve()
+
+def is_running_under_slurm() -> bool:
+    slurm_vars = [
+        "SLURM_JOB_ID",
+        "SLURM_JOB_NAME",
+        "SLURM_JOB_NODELIST",
+        "SLURM_SUBMIT_DIR",
+        "SLURM_CLUSTER_NAME",
+    ]
+    return any(var in os.environ for var in slurm_vars)
+
+def is_tmp_path(path: str | Path) -> bool:
+    path = Path(path).resolve()
+    return any("v3tmp" in part for part in path.parts)
