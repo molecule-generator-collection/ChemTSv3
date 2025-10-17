@@ -3,7 +3,6 @@ silent: true
 time_limit: 7200 # Seconds
 max_generations: 9600
 node_class: CanonicalSMILESStringNode
-debug: true
 
 transition_class: GBGATransition
 transition_args:
@@ -22,7 +21,7 @@ policy_args:
   n_warmup_steps: 1500
   batch_size: 500
   fp_radius: 2
-  fp_size: 256
+  fp_size: 1024
   c: 0.25
   best_rate: 0.95
   predictor_params:
@@ -40,7 +39,7 @@ generator_args:
   filter_reward: 0
   avoid_duplicates: true
   info_interval: 100
-  analyze_interval: 5000
+  analyze_interval: 500
 
 plot_args:
   reward_top_ps: [0.5, 0.1]
