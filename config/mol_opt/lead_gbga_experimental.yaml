@@ -1,6 +1,6 @@
 output_dir: generation_result
 silent: true
-time_limit: 4000 # Seconds
+time_limit: 7200 # Seconds
 max_generations: 9600
 node_class: CanonicalSMILESStringNode
 debug: true
@@ -22,11 +22,11 @@ policy_args:
   n_warmup_steps: 1500
   batch_size: 500
   fp_radius: 2
-  fp_size: 512
+  fp_size: 256
   c: 0.25
   best_rate: 0.95
   predictor_params:
-    learning_rate: 0.1
+    learning_rate: 0.05
     num_leaves: 15
     max_depth: 6
 
@@ -40,7 +40,7 @@ generator_args:
   filter_reward: 0
   avoid_duplicates: true
   info_interval: 100
-  analyze_interval: 2000
+  analyze_interval: 5000
 
 plot_args:
   reward_top_ps: [0.5, 0.1]

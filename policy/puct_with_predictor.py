@@ -64,12 +64,11 @@ class PUCTWithPredictor(PUCT):
             self.X_train_new = []
             self.y_train += self.y_train_new
             self.y_train_new = []
-            self.logger.info(f"Starting model training with {len(self.y_train)} data...")
             self.predictor.train(self.X_train, self.y_train)
             self.model_count += 1
             self.predicted_uppers[self.model_count] = []
             self.targets[self.model_count] = []
-            self.logger.info("Model training finished.")
+            self.logger.info(f"Model {self.model_count} trained.")
             
             for i in range(1, self.model_count):
                 if len(self.targets[i]) > 5:
