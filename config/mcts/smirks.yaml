@@ -1,9 +1,8 @@
 output_dir: generation_result
 time_limit: 36000
-# max_generations: 200000
+max_generations: 200000
 node_class: CanonicalSMILESStringNode
-root: "O[C@H](c1csc2ncncc12)/c1nc(C(=O)[O-])nc(N)n1"
-# root: "O[C@@H](c1cc(C(=O)[O-])cc2cncnc12)C(=O)C1=COCC(O)=CCO1"
+root: "c1ccccc1"
 # root: C
 # root: c1ccccc1
 # root: c1cccc2cncnc12
@@ -13,11 +12,13 @@ transition_args:
   smirks_path:  data/smirks/gbga.txt
   filters:
   - filter_class: ValidityFilter
-  - filter_class: AtomCountFilter
   - filter_class: MaxRingSizeFilter
   - filter_class: RingBondFilter
   - filter_class: RadicalFilter
   - filter_class: ChargeFilter
+  # It is recommended to restrict the molecular size (via atom counts or molecular weight etc.) when using transitions like SMIRKSTransition or GBGATransition to prevent excessive growth of the search tree.
+  - filter_class: HeavyAtomCountFilter
+    max: 50
 
 reward_class: JScoreReward
 

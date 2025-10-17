@@ -1,4 +1,4 @@
-# Example (Chain: python sandbox/mol_opt/mol_opt_final.py --method chain
+# Example (Chain): python sandbox/mol_opt/mol_opt_final.py --method chain
 # Example (No chain / RNN only): python sandbox/mol_opt/mol_opt_final.py --method no_chain
 # Example (ChemTSv2 replication): python sandbox/mol_opt/mol_opt_final.py --method v2_replication
 
