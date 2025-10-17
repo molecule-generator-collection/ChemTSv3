@@ -32,6 +32,9 @@ class Policy(ABC):
     
     def analyze(self):
         """This method is called within MCTS.analyze(). By default, this method does nothing."""
+        
+    def on_inherit(self, generator):
+        """This method is called when inheriting the generator states on chain generation. By default, this method does nothing."""
     
 class TemplatePolicy(Policy):
     """

@@ -206,6 +206,11 @@ class MCTS(Generator):
             return super().display_top_k_molecules(str2mol_func, k=k, mols_per_row=mols_per_row, legends=legends, target=target, size=size)
         
     # override
+    def inherit(self, predecessor):
+        super().inherit(predecessor)
+        self.policy.on_inherit(self)
+        
+    # override
     def analyze(self):
         super().analyze()
         self.policy.analyze()
