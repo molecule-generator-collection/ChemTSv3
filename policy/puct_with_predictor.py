@@ -3,7 +3,7 @@ import copy
 import logging
 import numpy as np
 from rdkit import DataStructs
-from rdkit.Chem import Mol, rdFingerprintGenerator
+from rdkit.Chem import Descriptors, Mol, rdFingerprintGenerator
 from sklearn.metrics import mean_pinball_loss
 from node import Node, MolStringNode, SurrogateNode
 from policy import PUCT
@@ -55,6 +55,7 @@ class PUCTWithPredictor(PUCT):
         self.predicted_uppers = {}
         self.targets = {}
         self.model_scores = {}
+        self.observe_flag = True
         super().__init__(logger=logger, **kwargs)
     
     def try_model_training(self):
@@ -82,7 +83,6 @@ class PUCTWithPredictor(PUCT):
                 self.use_model = False
                 if self.recent_score != -float("inf"):
                     self.logger.info(f"Recent score: {self.recent_score:.3f}. Surrogation won't be applied.")
-            self.use_model = True if self.calc_recent_score() > self.score_threshold else False
             
     def calc_recent_score(self):
         predicted_upper = []
@@ -108,6 +108,7 @@ class PUCTWithPredictor(PUCT):
 
     def observe(self, child: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
+        self.observe_flag = True
         if is_filtered or isinstance(child, SurrogateNode):
             return
         x = self.get_feature_vector(child)
@@ -125,6 +126,23 @@ class PUCTWithPredictor(PUCT):
             model, pred = self.predicted_upper_dict[key]
             self.predicted_uppers[model].append(pred)
             self.targets[model].append(reward)
+            
+    def on_inherit(self, generator):
+        rep = generator.root
+        if rep.children:
+            rep = rep.sample_child()
+        node_class = rep.__class__
+
+        for key in generator.generated_keys():
+            try:
+                node = node_class.node_from_key(key)
+                x = self.get_feature_vector(node)
+                self.X_train_new.append(x)
+                self.y_train_new.append(generator.record[key]["reward"])
+            except Exception as e:
+                self.logger.warning(f"Generation results conversion for PUCT predictor was failed. Generation results before this message won't be used for the training of the predictor. Error details: {e}")
+                return
+        self.logger.info(f"Inherited generated results are converted to the training data for the PUCT predictor.")
                 
     def analyze(self):
         self.logger.info(f"Number of prediction: {self.pred_count}")
@@ -133,8 +151,18 @@ class PUCTWithPredictor(PUCT):
     # override
     def _unvisited_node_fallback(self, node):
         self.try_model_training()
-        
-        if self.model_count > 0:
+        if not self.use_model:
+            if self.model_count > 0 and self.observe_flag == True:
+                self.observe_flag = False
+                key = node.key()
+                x = self.get_feature_vector(node)
+                predicted_upper_reward = self.predictor.predict_upper(x)
+                self.pred_count += 1
+                self.predicted_upper_dict[key] = (self.model_count, predicted_upper_reward)
+                return super()._unvisited_node_fallback(node) + 1 # Should be evaluated
+            else:
+                return super()._unvisited_node_fallback(node)
+        else: # self.use_model == True
             key = node.key()
             if key in self.predicted_upper_dict:
                 model, prev_pred = self.predicted_upper_dict[key]
@@ -147,18 +175,20 @@ class PUCTWithPredictor(PUCT):
             predicted_upper_reward = self.predictor.predict_upper(x)
             self.pred_count += 1
             self.predicted_upper_dict[key] = (self.model_count, predicted_upper_reward)
-            
-        if self.use_model: # safe to assume predicted_reward is defined
             return predicted_upper_reward + self.get_exploration_term(node)
-        else:
-            return super()._unvisited_node_fallback(node)
         
     # override here to apply for other node classes
     def get_feature_vector(self, node: Node) -> np.ndarray:
         if isinstance(node, MolStringNode):
-            return self.calc_fingerprint(node.mol(use_cache=True))
+            mol = node.mol(use_cache=True)
+            features = np.concatenate([self.get_rdkit_features(mol), self.calc_fingerprint(mol)])
+            return features
         else:
             return None
+
+    @staticmethod
+    def get_rdkit_features(mol) -> np.ndarray:
+        return np.array([desc_fn(mol) for _, desc_fn in Descriptors.descList], dtype=float)
         
     def calc_fingerprint(self, mol: Mol) -> np.ndarray:
         if self.mfgen is None:
