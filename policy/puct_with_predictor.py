@@ -55,7 +55,6 @@ class PUCTWithPredictor(PUCT):
         self.predicted_uppers = {}
         self.targets = {}
         self.model_scores = {}
-        self.observe_flag = True
         super().__init__(logger=logger, **kwargs)
     
     def try_model_training(self):
@@ -77,11 +76,11 @@ class PUCTWithPredictor(PUCT):
             self.logger.info("Model scores: " + ", ".join(f"{k}: {v:.3f}" for k, v in self.model_scores.items()))
             if self.calc_recent_score() > self.score_threshold:
                 self.use_model = True
-                self.logger.info(f"Recent score: {self.recent_score:.3f}. Surrogation will be applied.")
+                self.logger.info(f"Recent score: {self.recent_score:.3f}. Model output will be applied to the policy.")
             else:
                 self.use_model = False
                 if self.recent_score != -float("inf"):
-                    self.logger.info(f"Recent score: {self.recent_score:.3f}. Surrogation won't be applied.")
+                    self.logger.info(f"Recent score: {self.recent_score:.3f}. Model output won't be applied to the policy.")
             
     def calc_recent_score(self):
         predicted_upper = []
@@ -107,7 +106,6 @@ class PUCTWithPredictor(PUCT):
 
     def observe(self, child: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
-        self.observe_flag = True
         if is_filtered or isinstance(child, SurrogateNode):
             return
         x = self.get_feature_vector(child)
@@ -125,6 +123,13 @@ class PUCTWithPredictor(PUCT):
             model, pred = self.predicted_upper_dict[key]
             self.predicted_uppers[model].append(pred)
             self.targets[model].append(reward)
+        elif self.model_count > 0:
+            x = self.get_feature_vector(child)
+            pred = self.predictor.predict_upper(x)
+            self.pred_count += 1
+            self.predicted_upper_dict[key] = (self.model_count, pred)
+            self.predicted_uppers[self.model_count].append(pred)
+            self.targets[self.model_count].append(reward)
             
     def on_inherit(self, generator):
         rep = generator.root
@@ -141,7 +146,7 @@ class PUCTWithPredictor(PUCT):
             except Exception as e:
                 self.logger.warning(f"Generation results conversion for PUCT predictor was failed. Generation results before this message won't be used for the training of the predictor. Error details: {e}")
                 return
-        self.logger.info(f"Inherited generated results are converted to the training data for the PUCT predictor.")
+        self.logger.info(f"Inherited generated results are converted to the training data for the PUCT model.")
                 
     def analyze(self):
         self.logger.info(f"Number of prediction: {self.pred_count}")
@@ -151,16 +156,7 @@ class PUCTWithPredictor(PUCT):
     def _unvisited_node_fallback(self, node):
         self.try_model_training()
         if not self.use_model:
-            if self.model_count > 0 and self.observe_flag == True:
-                self.observe_flag = False
-                key = node.key()
-                x = self.get_feature_vector(node)
-                predicted_upper_reward = self.predictor.predict_upper(x)
-                self.pred_count += 1
-                self.predicted_upper_dict[key] = (self.model_count, predicted_upper_reward)
-                return super()._unvisited_node_fallback(node) + 1 # Should be evaluated
-            else:
-                return super()._unvisited_node_fallback(node)
+            return super()._unvisited_node_fallback(node)
         else: # self.use_model == True
             key = node.key()
             if key in self.predicted_upper_dict:
