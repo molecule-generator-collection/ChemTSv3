@@ -19,6 +19,7 @@ oracle_names = ["zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "t
 def test_chain(oracle_name: str, seed: int) -> float:
     yaml_path_1 = "config/mol_opt/de_novo_rnn.yaml"
     yaml_path_2 = "config/mol_opt/lead_gbga.yaml"
+    # yaml_path_2 = "config/mol_opt/lead_gbga_experimental.yaml"
 
     conf_1 = conf_from_yaml(yaml_path_1)
     conf_1["seed"] = seed

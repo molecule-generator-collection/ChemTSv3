@@ -19,14 +19,14 @@ policy_class: PUCTWithPredictor
 policy_args:
   alpha: 0.9
   score_threshold: 0.4
-  n_warmup_steps: 1200
-  batch_size: 400
+  n_warmup_steps: 1500
+  batch_size: 500
   fp_radius: 2
   fp_size: 512
   c: 0.25
   best_rate: 0.95
   predictor_params:
-    learning_rate: 0.05
+    learning_rate: 0.1
     num_leaves: 15
     max_depth: 6
 

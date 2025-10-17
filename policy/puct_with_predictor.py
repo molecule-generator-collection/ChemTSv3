@@ -10,7 +10,7 @@ from policy import PUCT
 
 
 class PUCTWithPredictor(PUCT):
-    def __init__(self, alpha=0.9, score_threshold: float=0.6, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=400, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=1024, logger= logging.Logger, **kwargs):
+    def __init__(self, alpha=0.9, score_threshold: float=0.4, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=500, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=512, logger= logging.Logger, **kwargs):
         """
         (EXPERIMENTAL) Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity.
         (IMPORTANT) n_eval_width must be set to 0 when using this policy to actually make use of it.

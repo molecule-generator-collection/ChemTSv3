@@ -52,6 +52,9 @@ class Transition(ABC):
     def observe(self, node: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Transitions can update their internal state when observing the reward of the node. By default, this method does nothing."""
         
+    def on_inherit(self, generator):
+        """This method is called after inheriting the generator states on chain generation. By default, this method does nothing."""
+        
     def analyze(self):
         """This method is called within Generation.analyze(). By default, this method does nothing."""
     

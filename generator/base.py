@@ -450,6 +450,9 @@ class Generator(ABC):
         if self.save_interval is not None:
             self.last_saved = predecessor.last_saved
             self.next_save = self.n_generated_nodes() + self.next_save
+        self.transition.on_inherit(self)
+        for filter in self.filters:
+            filter.on_inherit(self)
         
     def log_verbose_info(self):
         log_memory_usage(self.logger)
