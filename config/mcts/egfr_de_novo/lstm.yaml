@@ -1,71 +1,93 @@
 time_limit: 1200 # Seconds
-max_generations: 1000
+max_generations: 3000
 # seed: 0 # Set seed
 
-### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to node_class_variables.###
 output_dir: generation_result
 device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
 
-### Logging Options ###
 debug: false # Set to true to enable debug logging
 silent: false # Set to true to disable console logging
 
-### Node Setting ###
 node_class: MolSentenceNode
 node_class_variables:
-  use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the Canonical SMILES (If set to false, the same molecule may be counted multiple times.)
+  use_canonical_smiles_as_key: true
 
-### Root Node Specification - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
-# root: "N"   # Start from the specified root
-# root: ["Nc", "NC"]  # Start from multiple roots
-
-### Transition ###
 transition_class: RNNTransition
 transition_args:
   top_p: 0.995
-  model_dir: model/smiles/drugs_zinc/gru  # GRU model
-  # model_dir: model/smiles/drugs_zinc/lstm # LSTM model
+  # model_dir: model/smiles/drugs_zinc/gru  # GRU model
+  model_dir: model/smiles/drugs_zinc/lstm # LSTM model
   # model_dir: model/smiles/drugs_zinc/tf25_ported  # Ported model from ChemTSv2
 ## For developers: lang file in the model directory will be automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
 
-### Reward ###
-reward_class: JScoreReward
-# reward_args:  # JScoreReward takes no arguments in its __init__() method.
+reward_class: DyRAMOReward
+reward_args:
+  exclude_approved: true
+  ad:
+    egfr:
+      num: 1
+      # threshold: 0.66 # for exclude_approved: false
+      # threshold: 0.69
+      threshold: 0.3
+      # threshold: 0.79
+      scaler: step
+      weight: 1
+    metabolic_stability:
+      num: 1
+      # threshold: 0.55 # for exclude_approved: false
+      # threshold: 0.40
+      threshold: 0.2
+      # threshold: 0.45
+      scaler: step
+      weight: 1
+    permeability:
+      num: 1
+      # threshold: 0.43 # for exclude_approved: false
+      # threshold: 0.36
+      threshold: 0.2
+      # threshold: 0.45
+      scaler: step
+      weight: 1
+  property:
+    egfr:
+      scaler: max_gauss
+      mu: 9
+      sigma: 2
+      weight: 1
+    metabolic_stability:
+      scaler: max_gauss
+      mu: 75
+      sigma: 20
+      weight: 1
+    permeability:
+      scaler: max_gauss
+      mu: 1
+      sigma: 1
+      weight: 1
 
-### Filters ###
 filters:
   - filter_class: ValidityFilter # Checks whether the molecule is valid. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
   - filter_class: RadicalFilter
-  # - filter_class: LogPFilter
-  #   max: 5
-  # - filter_class: MaxRingSizeFilter
-  #   max: 6
+  - filter_class: HeavyAtomCountFilter
+    max: 45
 
-### Policy ###
 policy_class: UCT
 # policy_class: PUCT  # Shares the same arguments with UCT
 policy_args:
   c: 0.1
   best_rate: 0.5
 
-### Generator ###
 generator_class: MCTS
 generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
   n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might work better.
   n_eval_iters: 1
   n_tries: 1
-  filter_reward: 0  # Applies the same fallback reward value to all filter steps
-  # filter_reward: [0, 0.1] # Specifies different fallback reward values to each filter step
+  filter_reward: -1  # Applies the same fallback reward value to all filter steps
+  # filter_reward: [0, 0,1] # Specifies different fallback reward values to each filter step
   avoid_duplicates: false # If set to true, duplicate nodes won't be added to the search tree. Should be true (default value) if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to false to reduce memory usage.
   info_interval: 100  # Interval to log the average reward
   # save_interval: 500  # Interval to save the progress
-  save_on_completion: true # If true, saves the checkpoint when completing the generation.
-
-### Plot Setting ###
+  
 plot_args:
   moving_average_window: 0.05
   reward_top_ps: [0.5, 0.1]
-
-### Chain Setting ###
-# n_keys_to_pass: 10 # (Chain) Number of generated keys to pass to the next generator
-# next_yaml_path: config/mcts/chain_example_2.yaml # (Chain) Path to the config of the next generator
