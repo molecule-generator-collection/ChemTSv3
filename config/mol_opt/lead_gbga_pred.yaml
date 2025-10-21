@@ -1,6 +1,6 @@
 output_dir: generation_result
 silent: true
-time_limit: 7200 # Seconds
+time_limit: 10000 # Seconds
 max_generations: 9600
 node_class: CanonicalSMILESStringNode
 
@@ -17,8 +17,8 @@ transition_args:
 policy_class: PUCTWithPredictor
 policy_args:
   alpha: 0.9
-  score_threshold: 0.5
-  n_warmup_steps: 1500
+  score_threshold: 0.4
+  n_warmup_steps: 500
   batch_size: 500
   fp_radius: 2
   fp_size: 0
