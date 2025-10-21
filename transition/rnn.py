@@ -152,7 +152,6 @@ class RNNTransition(AutoRegressiveTransition):
         self.name = os.path.basename(os.path.normpath(model_dir))
         return self
     
-    # override
     def max_length(self):
         return self._max_length
 

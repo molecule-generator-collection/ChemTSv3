@@ -61,7 +61,7 @@ class MCTS(Generator):
             raise ValueError("cut_failed_child=True with discard_unneeded_states=True is not supported.")
 
         self.root = root
-        self.max_tree_depth = max_tree_depth or transition.max_length()
+        self.max_tree_depth = max_tree_depth
         self.policy = policy
         self.n_eval_width = n_eval_width
         self.allow_eval_overlaps = allow_eval_overlaps
@@ -118,6 +118,8 @@ class MCTS(Generator):
         return objective_values, reward
 
     def _expand(self, node: Node) -> bool:
+        if self.max_tree_depth is not None and node.depth > self.max_tree_depth:
+            return False
         nexts = self.transition.next_nodes(node)
         if self.discard_unneeded_states:
             node.discard_unneeded_states()
@@ -151,9 +153,7 @@ class MCTS(Generator):
     def _fill_queue(self):
         node = self._selection()
         
-        if node.depth > self.max_tree_depth:
-            node.mark_as_terminal(cut=self.cut_terminal, logger=self.logger)  
-        elif not node.children and node.n != 0:
+        if not node.children and node.n != 0:
             if not self._expand(node):
                 node.mark_as_terminal(cut=self.cut_terminal, logger=self.logger)
                 

@@ -44,13 +44,14 @@ class GPT2Transition(AutoRegressiveTransition):
         self.name = os.path.basename(os.path.normpath(model_dir))
         return self
 
-    # override
     def max_length(self):
         return self.model.config.n_positions
 
     # implement
     def next_nodes(self, node: SentenceNode) -> list[SentenceNode]:
         if node.id_tensor[0][-1] == self.lang.eos_id():
+            return []
+        if len(node.id_tensor[0]) >= self.max_length():
             return []
 
         with torch.no_grad():
