@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 3600
-max_generations: 7000
+max_generations: 3000
 seed: 0
 
 node_class: CanonicalSMILESStringNode
@@ -92,7 +92,7 @@ transition_args:
 policy_class: UCT
 policy_args:
   c: 0.2
-  best_rate: 0.5
+  best_rate: 0.2
 
 generator_class: MCTS
 generator_args:
