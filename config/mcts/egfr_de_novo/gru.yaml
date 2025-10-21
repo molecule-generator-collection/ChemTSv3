@@ -1,5 +1,5 @@
 time_limit: 1200 # Seconds
-max_generations: 10000
+max_generations: 5000
 # seed: 0 # Set seed
 
 output_dir: generation_result
@@ -72,8 +72,8 @@ filters:
 policy_class: UCT
 # policy_class: PUCT  # Shares the same arguments with UCT
 policy_args:
-  c: 0.1
-  best_rate: 0.5
+  c: 0.2
+  best_rate: 0.2
 
 generator_class: MCTS
 generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
