@@ -6,8 +6,8 @@ test_size: 0.1
 batch_size: 512
 lr: 0.001
 num_epochs: 100
-# rnn_type: "LSTM"
-rnn_type: "GRU"
+rnn_type: "LSTM"
+# rnn_type: "GRU"
 # embed_size: 64
 hidden_size: 256
 num_layers: 2
