@@ -1,5 +1,5 @@
 time_limit: 1200 # Seconds
-max_generations: 5000
+max_generations: 3000
 # seed: 0 # Set seed
 
 output_dir: generation_result
@@ -28,7 +28,7 @@ reward_args:
       num: 1
       # threshold: 0.66 # for exclude_approved: false
       # threshold: 0.69
-      threshold: 0.2
+      threshold: 0.3
       # threshold: 0.79
       scaler: step
       weight: 1
@@ -68,19 +68,21 @@ reward_args:
 filters:
   - filter_class: ValidityFilter # Checks whether the molecule is valid. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
   - filter_class: RadicalFilter
+  - filter_class: HeavyAtomCountFilter
+    max: 45
 
 policy_class: UCT
 # policy_class: PUCT  # Shares the same arguments with UCT
 policy_args:
-  c: 0.2
-  best_rate: 0.2
+  c: 0.1
+  best_rate: 0.5
 
 generator_class: MCTS
 generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
   n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might work better.
   n_eval_iters: 1
   n_tries: 1
-  filter_reward: 0  # Applies the same fallback reward value to all filter steps
+  filter_reward: -1  # Applies the same fallback reward value to all filter steps
   # filter_reward: [0, 0,1] # Specifies different fallback reward values to each filter step
   avoid_duplicates: false # If set to true, duplicate nodes won't be added to the search tree. Should be true (default value) if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to false to reduce memory usage.
   info_interval: 100  # Interval to log the average reward
