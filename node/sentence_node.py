@@ -53,7 +53,7 @@ class MolSentenceNode(SentenceNode, MolNode):
     def key(self):
         if not self.use_canonical_smiles_as_key:
             return super().key()
-        mol = self.mol(use_cache=True)
+        mol = self.mol(use_cache=False)
         if not mol_validity_check(mol):
             return super().key()
         else:
