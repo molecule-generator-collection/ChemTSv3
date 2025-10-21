@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import copy
 import logging
 import numpy as np
 from rdkit import DataStructs
@@ -8,16 +7,16 @@ from sklearn.metrics import mean_pinball_loss
 from node import Node, MolStringNode, SurrogateNode
 from policy import PUCT
 
-
 class PUCTWithPredictor(PUCT):
-    def __init__(self, alpha=0.9, score_threshold: float=0.4, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=500, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=512, logger= logging.Logger, **kwargs):
+    def __init__(self, alpha=0.9, score_threshold: float=0.4, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=500, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=0, logger=logging.Logger, **kwargs):
         """
-        (EXPERIMENTAL) Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity.
+        (EXPERIMENTAL) Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity. Memory inefficient with the current implementation.
         (IMPORTANT) n_eval_width must be set to 0 when using this policy to actually make use of it.
         
         Args:
             alpha: Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used.
             score_threshold: If the recent prediction score (1 - {pinball loss} / {baseline pinball loss}) is better than this threshold, the model will be used afterwards.
+            fp_size: 0...disabled.
             
             c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
             best_rate: A value between 0 and 1. The exploitation term is computed as 
@@ -176,7 +175,10 @@ class PUCTWithPredictor(PUCT):
     def get_feature_vector(self, node: Node) -> np.ndarray:
         if isinstance(node, MolStringNode):
             mol = node.mol(use_cache=True)
-            features = np.concatenate([self.get_rdkit_features(mol), self.calc_fingerprint(mol)])
+            if self.fp_size <= 0:
+                features = self.get_rdkit_features(mol)
+            else:
+                features = np.concatenate([self.get_rdkit_features(mol), self.calc_fingerprint(mol)])
             return features
         else:
             return None

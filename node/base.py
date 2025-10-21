@@ -4,7 +4,7 @@ import logging
 from typing import Self, Any
 import numpy as np
 from rdkit import Chem
-from rdkit.Chem import Mol
+from rdkit.Chem import Mol, inchi
 
 class Node(ABC):
     initial_best_r = 0.0
@@ -36,11 +36,18 @@ class Node(ABC):
         """Define the reward condition."""
         pass
     
-    # should be overridden if root specification is needed
+    # should be overridden for YAML compatibility etc.
     @classmethod
     def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
-        """Create a Node instance from a key."""
+        """
+        Create a Node instance from a key.
+        For a minimal YAML compatibility, a starting node for empty string "" should be defined here. (ex: if key=="" return ~)
+        For YAML root specification / auto chain generation, nodes correspond to possible keys (string values) should be defined here.
+        """
         raise NotImplementedError("node_from_key() is not supported in this class.")
+    
+    # def hash(self):
+    #     return self.key()
     
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage. Can be overridden for marginal efficiency."""
@@ -137,7 +144,9 @@ class Node(ABC):
         state["_parent_ref"] = weakref.ref(parent_obj) if parent_obj is not None else None
         self.__dict__.update(state)
 
-class MolNode(Node):    
+class MolNode(Node):
+    use_inchikey_as_hash = False # Not fully implemented / tested yet
+    
     @abstractmethod
     def key(self) -> str:
         pass
@@ -163,6 +172,13 @@ class MolNode(Node):
     def smiles(self, use_cache=False) -> str:
         """Should be overridden if the node has an explicit SMILES as a variable."""
         return Chem.MolToSmiles(self.mol(use_cache=use_cache))
+    
+    # override
+    # def hash(self):
+    #     if not self.use_inchikey_as_hash:
+    #         return super().hash()
+    #     else:
+    #         return inchi.MolToInchiKey(self.mol()) 
 
 class SurrogateNode(Node):
     """Surrogate node for multiple roots."""
