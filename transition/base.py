@@ -86,8 +86,10 @@ class TemplateTransition(Transition):
                 if type(filter_result) in (float, int) or filter_result == False:
                     self.filter_counts[i] += 1
                     passed = False
+                    n.clear_cache()
                     break
             if passed:
+                n.clear_cache()
                 result.append(n)
         if not result:
             return []

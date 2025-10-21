@@ -14,12 +14,12 @@ import argparse
 from statistics import mean
 from utils import conf_from_yaml, generator_from_conf
 
-oracle_names = ["zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "deco_hop", "albuterol_similarity", "scaffold_hop", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts", "drd2", "gsk3b", "jnk3", "qed"]
+oracle_names = ["scaffold_hop", "deco_hop", "drd2", "zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "albuterol_similarity", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts", "gsk3b", "jnk3", "qed"]
     
 def test_chain(oracle_name: str, seed: int) -> float:
     yaml_path_1 = "config/mol_opt/de_novo_rnn.yaml"
-    yaml_path_2 = "config/mol_opt/lead_gbga.yaml"
-    # yaml_path_2 = "config/mol_opt/lead_gbga_experimental.yaml"
+    # yaml_path_2 = "config/mol_opt/lead_gbga.yaml"
+    yaml_path_2 = "config/mol_opt/lead_gbga_experimental.yaml"
 
     conf_1 = conf_from_yaml(yaml_path_1)
     conf_1["seed"] = seed
