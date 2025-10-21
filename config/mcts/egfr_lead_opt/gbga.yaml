@@ -1,0 +1,112 @@
+output_dir: generation_result
+time_limit: 3600
+max_generations: 7000
+seed: 0
+
+node_class: CanonicalSMILESStringNode
+node_class_variables:
+  use_canonical_smiles_as_key: true
+
+root: c1ccc(Nc2ncnc3ccccc23)cc1
+
+# reward_class: SimilarityReward
+# reward_args:
+#   target_smiles: Brc1cc(ccc1)Nc2ncnc3c2cc(c(c3)OC)OC
+
+# reward_class: EGFRReward
+
+reward_class: DyRAMOReward
+reward_args:
+  exclude_approved: true
+  ad:
+    egfr:
+      num: 1
+      # threshold: 0.66 # for exclude_approved: false
+      # threshold: 0.69
+      # threshold: 0.79
+      threshold: 0.3
+      scaler: step
+      weight: 1
+    metabolic_stability:
+      num: 1
+      # threshold: 0.55 # for exclude_approved: false
+      # threshold: 0.40
+      # threshold: 0.45
+      threshold: 0.2
+      scaler: step
+      weight: 1
+    permeability:
+      num: 1
+      # threshold: 0.43 # for exclude_approved: false
+      # threshold: 0.36
+      # threshold: 0.45
+      threshold: 0.2
+      scaler: step
+      weight: 1
+  property:
+    egfr:
+      scaler: max_gauss
+      mu: 9
+      sigma: 2
+      weight: 1
+    metabolic_stability:
+      scaler: max_gauss
+      mu: 75
+      sigma: 20
+      weight: 1
+    permeability:
+      scaler: max_gauss
+      mu: 1
+      sigma: 1
+      weight: 1
+
+filters:
+  - filter_class: WeightFilter
+    max: 500
+  - filter_class: LogPFilter
+    max: 5
+  - filter_class: CatalogFilter
+    catalogs:
+      - "NIH"
+  - filter_class: SAScoreFilter
+    max: 2.5
+
+transition_class: GBGATransition
+transition_args:
+  check_size: false
+  check_ring: true
+  filters:
+    - filter_class: SubstructureFilter
+      smiles: c1ccc(Nc2ncnc3ccccc23)cc1
+
+# transition_class: SMIRKSTransition
+# transition_args:
+#   smirks_path: data/smirks/chembl17_ki_mmp_cliff.txt
+#   # record_actions: true
+#   filters:
+#   - filter_class: ValidityFilter
+#   - filter_class: RadicalFilter
+#   - filter_class: SubstructureFilter
+#     smiles: c1ccc(Nc2ncnc3ccccc23)cc1
+
+policy_class: UCT
+policy_args:
+  c: 0.2
+  best_rate: 0.5
+
+generator_class: MCTS
+generator_args:
+  cut_failed_child: true
+  reward_cutoff: 0.5
+  reward_cutoff_warmups: 1000
+  n_eval_iters: 1
+  n_eval_width: 1
+  n_tries: 1
+  filter_reward: [-10,0,0,0]
+  avoid_duplicates: true
+  info_interval: 500
+  analyze_interval: 10000
+
+plot_args:
+  moving_average_window: 0.05
+  reward_top_ps: [0.5, 0.1]
