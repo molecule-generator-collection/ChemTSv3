@@ -1,5 +1,6 @@
 # Example (Chain): python sandbox/mol_opt/mol_opt_final.py --method chain
 # Example (No chain / RNN only): python sandbox/mol_opt/mol_opt_final.py --method no_chain
+# Example (Chain with predictor): python sandbox/mol_opt/mol_opt_final.py --method chain_with_pred
 # Example (ChemTSv2 replication): python sandbox/mol_opt/mol_opt_final.py --method v2_replication
 
 # Path setup / Imports
