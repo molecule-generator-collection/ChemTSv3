@@ -16,11 +16,7 @@ from utils import conf_from_yaml, generator_from_conf
 
 oracle_names = ["scaffold_hop", "deco_hop", "drd2", "zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "albuterol_similarity", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts", "gsk3b", "jnk3", "qed"]
     
-def test_chain(oracle_name: str, seed: int) -> float:
-    yaml_path_1 = "config/mol_opt/de_novo_rnn.yaml"
-    # yaml_path_2 = "config/mol_opt/lead_gbga.yaml"
-    yaml_path_2 = "config/mol_opt/lead_gbga_experimental.yaml"
-
+def test_chain(oracle_name: str, seed: int, yaml_path_1: str, yaml_path_2: str) -> float:
     conf_1 = conf_from_yaml(yaml_path_1)
     conf_1["seed"] = seed
     conf_1["reward_class"] = "TDCReward"
@@ -58,9 +54,10 @@ def test_single(oracle_name: str, seed: int, yaml_path: str) -> float:
     return result
 
 def test_objective(oracle_name: str, seed: int, method: str="chain") -> float:
-    # return test_single(oracle_name, seed)
     if method == "chain":
-        return test_chain(oracle_name, seed)
+        return test_chain(oracle_name, seed, "config/mol_opt/de_novo_rnn.yaml", "config/mol_opt/lead_gbga.yaml")
+    elif method == "chain_with_pred":
+        return test_chain(oracle_name, seed, "config/mol_opt/de_novo_rnn.yaml", "config/mol_opt/lead_gbga_pred.yaml")
     elif method == "no_chain":
         return test_single(oracle_name, seed, "config/mol_opt/no_chain.yaml")
     elif method == "v2_replication":
@@ -70,7 +67,7 @@ def test_objective(oracle_name: str, seed: int, method: str="chain") -> float:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", choices=["chain", "no_chain", "v2_replication"], default="chain", help="Generation mode")
+    parser.add_argument("--method", choices=["chain", "chain_with_pred", "no_chain", "v2_replication"], default="chain", help="Generation mode")
     parser.add_argument("--n_trials", type=int, default=5, help="Number of seeds (trials)")
     args = parser.parse_args()
     
