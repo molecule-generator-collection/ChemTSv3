@@ -45,10 +45,6 @@ class Transition(ABC):
             transitions.append((action, node, prob))
         return transitions
     
-    def max_length(self) -> int:
-        """Returns the maximum number of transitions from a single node. Should be overridden if not infinite."""
-        return 10**18
-    
     def observe(self, node: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Transitions can update their internal state when observing the reward of the node. By default, this method does nothing."""
         
