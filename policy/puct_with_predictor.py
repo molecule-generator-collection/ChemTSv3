@@ -174,7 +174,7 @@ class PUCTWithPredictor(PUCT):
     # override here to apply for other node classes
     def get_feature_vector(self, node: Node) -> np.ndarray:
         if isinstance(node, MolStringNode):
-            mol = node.mol(use_cache=True)
+            mol = node.mol(use_cache=False)
             if self.fp_size <= 0:
                 features = self.get_rdkit_features(mol)
             else:

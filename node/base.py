@@ -160,10 +160,10 @@ class MolNode(Node):
         pass
     
     def mol(self, use_cache=False) -> Mol:
-        if not use_cache:
-            return self._mol_impl()
         if "mol" in self.cache:
             return self.cache["mol"]
+        if not use_cache:
+            return self._mol_impl()
         else:
             mol = self._mol_impl()
             self.cache["mol"] = mol
