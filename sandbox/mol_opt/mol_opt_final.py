@@ -15,7 +15,7 @@ import argparse
 from statistics import mean
 from utils import conf_from_yaml, generator_from_conf
 
-oracle_names = ["scaffold_hop", "deco_hop", "drd2", "zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "albuterol_similarity", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts", "gsk3b", "jnk3", "qed"]
+oracle_names = ["fexofenadine_mpo", "thiothixene_rediscovery", "jnk3", "scaffold_hop", "deco_hop", "zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "albuterol_similarity", "amlodipine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "celecoxib_rediscovery", "valsartan_smarts", "drd2", "gsk3b", "qed"]
     
 def test_chain(oracle_name: str, seed: int, yaml_path_1: str, yaml_path_2: str) -> float:
     conf_1 = conf_from_yaml(yaml_path_1)

@@ -10,13 +10,14 @@ from policy import PUCT
 class PUCTWithPredictor(PUCT):
     def __init__(self, alpha=0.9, score_threshold: float=0.4, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=500, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=0, logger=logging.Logger, **kwargs):
         """
-        (EXPERIMENTAL) Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity. Memory inefficient with the current implementation.
+        Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity. Currently only supports subclasses of MolStringNode. However, get_feature_vector() can be overridden for other node classes. Predictor can be also interchanged by implementing a subclass of Predictor and overriding set_predictor().
         (IMPORTANT) n_eval_width must be set to 0 when using this policy to actually make use of it.
         
         Args:
-            alpha: Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used.
+            alpha: Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used. Set to 0.5 when using mean predictor so that pinball loss can take account of that.
             score_threshold: If the recent prediction score (1 - {pinball loss} / {baseline pinball loss}) is better than this threshold, the model will be used afterwards.
-            fp_size: 0...disabled.
+            fp_radius: Only used if fp_size > 0 and when predicting subclasses of MolStringNode
+            fp_size: Set to 0 to disable.
             
             c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
             best_rate: A value between 0 and 1. The exploitation term is computed as 
@@ -31,10 +32,7 @@ class PUCTWithPredictor(PUCT):
         self.reprediction_threshold = reprediction_threshold
         self.n_warmup_steps = n_warmup_steps or batch_size
         self.batch_size = batch_size
-        if predictor_type == "lightgbm":
-            self.predictor = LightGBMPredictor(alpha, predictor_params)
-        else:
-            raise ValueError("Invalid predictor type")
+        self.set_predictor(predictor_type, alpha, predictor_params)
         
         # MolStringNode
         self.mfgen = None
@@ -54,7 +52,14 @@ class PUCTWithPredictor(PUCT):
         self.predicted_uppers = {}
         self.targets = {}
         self.model_scores = {}
+        self.to_skip = 0
         super().__init__(logger=logger, **kwargs)
+        
+    def set_predictor(self, predictor_type, alpha, predictor_params):
+        if predictor_type == "lightgbm":
+            self.predictor = LightGBMPredictor(alpha, predictor_params)
+        else:
+            raise ValueError("Invalid predictor type")
     
     def try_model_training(self):
         if (self.model_count == 0 and len(self.X_train_new) >= self.n_warmup_steps) or (self.model_count > 0 and len(self.X_train_new) >= self.batch_size):
@@ -105,6 +110,9 @@ class PUCTWithPredictor(PUCT):
 
     def observe(self, child: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
+        if self.to_skip > 0:
+            self.to_skip -= 1
+            return
         if is_filtered or isinstance(child, SurrogateNode):
             return
         x = self.get_feature_vector(child)
@@ -133,6 +141,7 @@ class PUCTWithPredictor(PUCT):
     def on_inherit(self, generator):
         rep = generator.root
         if rep.children:
+            self.to_skip = len(rep.children)
             rep = rep.sample_child()
         node_class = rep.__class__
 
