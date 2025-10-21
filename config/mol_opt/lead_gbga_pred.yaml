@@ -11,6 +11,8 @@ transition_args:
   filters:
   - filter_class: ValidityFilter
   - filter_class: RadicalFilter
+  - filter_class: WeightFilter
+    max: 800
 
 policy_class: PUCTWithPredictor
 policy_args:
@@ -27,16 +29,12 @@ policy_args:
     num_leaves: 15
     max_depth: 6
 
-filters: # Disable inheritation
-  - filter_class: WeightFilter
-    max: 800
-
 generator_class: MCTS
 generator_args:
   n_eval_width: 0
   n_eval_iters: 1
   n_tries: 1
-  filter_reward: -1
+  filter_reward: 0
   avoid_duplicates: true
   info_interval: 100
   analyze_interval: 500
