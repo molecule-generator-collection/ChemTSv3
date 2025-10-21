@@ -82,7 +82,7 @@ class Generator(ABC):
 
     def generate(self, max_generations: int=None, time_limit: float=None):
         """
-        Generate nodes that either is_terminal() = True or depth = max_length. Tries to maximize the reward by MCTS search.
+        Generate nodes (while trying to maximize the reward).
 
         Args:
             max_generations: Generation stops after generating 'max_generations' number of nodes.
