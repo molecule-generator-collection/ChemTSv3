@@ -1,0 +1,40 @@
+output_dir: generation_result
+silent: true
+time_limit: 10000 # Seconds
+max_generations: 9600
+node_class: CanonicalSMILESStringNode
+
+transition_class: GBGATransition
+transition_args:
+  check_size: false
+  check_ring: true
+  filters:
+  - filter_class: ValidityFilter
+  - filter_class: RadicalFilter
+  - filter_class: WeightFilter
+    max: 800
+
+policy_class: PUCTWithPredictor
+policy_args:
+  n_warmup_steps: 500
+  batch_size: 500
+  score_calculation_window: 200
+  fp_radius: 2
+  fp_size: 0
+  c: 0.25
+  best_rate: 0.95
+
+generator_class: MCTS
+generator_args:
+  n_eval_width: 0
+  n_eval_iters: 1
+  n_tries: 1
+  filter_reward: 0
+  avoid_duplicates: true
+  info_interval: 100
+  analyze_interval: 500
+  verbose_interval: 500
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
+  save_only: true
