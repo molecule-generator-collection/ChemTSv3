@@ -10,7 +10,7 @@ Temporary repository for ChemTSv3
 - **Transition**: `BioT5Transition`, `ChatGPTTransition`, `ChatGPTTransitionWithMemory`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `DScoreReward`, `DyRAMOReward`, `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`, `TDCReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
-- `ChatGPTTransition` and `ChatGPTTransitionWithMemory` also requires api key. 
+- `ChatGPTTransition` and `ChatGPTTransitionWithMemory` also requires openai api key. 
 
 ### Setup steps
 
