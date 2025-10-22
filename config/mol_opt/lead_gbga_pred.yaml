@@ -1,6 +1,6 @@
 output_dir: generation_result
 silent: true
-time_limit: 10000 # Seconds
+time_limit: 18000 # Seconds
 max_generations: 9600
 node_class: CanonicalSMILESStringNode
 

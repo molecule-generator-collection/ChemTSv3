@@ -110,10 +110,12 @@ class PUCTWithPredictor(PUCT):
 
     def observe(self, child: Node, objective_values: list[float], reward: float, is_filtered: bool):
         """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
+        if isinstance(child, SurrogateNode):
+            return
         if self.to_skip > 0:
             self.to_skip -= 1
             return
-        if is_filtered or isinstance(child, SurrogateNode):
+        if is_filtered:
             return
         x = self.get_feature_vector(child)
         if x is None:
