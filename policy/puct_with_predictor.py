@@ -8,7 +8,7 @@ from node import Node, MolStringNode, SurrogateNode
 from policy import PUCT
 
 class PUCTWithPredictor(PUCT):
-    def __init__(self, alpha=0.9, score_threshold: float=0.4, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=500, score_calculation_interval: int=25, score_calculation_window: int=250, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=0, logger=logging.Logger, **kwargs):
+    def __init__(self, alpha=0.9, score_threshold: float=0.4, n_warmup_steps=2000, batch_size=500, score_calculation_interval: int=25, score_calculation_window: int=250, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=0, logger=logging.Logger, **kwargs):
         """
         Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity. Currently only supports subclasses of MolStringNode. However, get_feature_vector() can be overridden for other node classes. Predictor can be also interchanged by implementing a subclass of Predictor and overriding set_predictor().
         (IMPORTANT) n_eval_width must be set to 0 when using this policy to actually make use of it.
@@ -29,7 +29,6 @@ class PUCTWithPredictor(PUCT):
         self.alpha = alpha
         self.score_threshold = score_threshold
         self.recent_score = -float("inf")
-        self.reprediction_threshold = reprediction_threshold
         self.n_warmup_steps = n_warmup_steps or batch_size
         self.batch_size = batch_size
         self.set_predictor(predictor_type, alpha, predictor_params)
@@ -51,7 +50,6 @@ class PUCTWithPredictor(PUCT):
         self.model_count = 0
         self.pred_count = 0
         self.pairs_count = 0
-        self.reprediction_count = 0
         self.predicted_uppers = {}
         self.targets = {}
         self.model_scores = {}
@@ -138,11 +136,11 @@ class PUCTWithPredictor(PUCT):
             model, pred = self.predicted_upper_dict[key]
             self.predicted_uppers[model].append(pred)
             self.targets[model].append(reward)
-        elif self.model_count > 0:
+        elif self.model_count > 0: # self.use_model == False
             x = self.get_feature_vector(child)
             pred = self.predictor.predict_upper(x)
             self.pred_count += 1
-            self.predicted_upper_dict[key] = (self.model_count, pred)
+            # self.predicted_upper_dict[key] = (self.model_count, pred)
             self.predicted_uppers[self.model_count].append(pred)
             self.targets[self.model_count].append(reward)
         else:
@@ -171,22 +169,17 @@ class PUCTWithPredictor(PUCT):
                 
     def analyze(self):
         self.logger.info(f"Number of prediction: {self.pred_count}")
-        self.logger.info(f"Number of reprediction: {self.reprediction_count}")
             
     # override
     def _unvisited_node_fallback(self, node):
         self.try_model_training()
-        if not self.use_model:
+        key = node.key()
+        if key in self.predicted_upper_dict:
+            _, prev_pred = self.predicted_upper_dict[key]
+            return prev_pred
+        elif not self.use_model:
             return super()._unvisited_node_fallback(node)
         else: # self.use_model == True
-            key = node.key()
-            if key in self.predicted_upper_dict:
-                model, prev_pred = self.predicted_upper_dict[key]
-                if model >= self.model_count - 1 or self.model_scores[model] + self.reprediction_threshold > self.recent_score:
-                    return prev_pred
-                else:
-                    self.reprediction_count += 1
-
             x = self.get_feature_vector(node)
             predicted_upper_reward = self.predictor.predict_upper(x)
             self.pred_count += 1

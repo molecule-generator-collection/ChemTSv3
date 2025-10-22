@@ -21,7 +21,7 @@ policy_args:
   n_warmup_steps: 500
   batch_size: 500
   score_calculation_interval: 25
-  score_calculation_window: 250
+  score_calculation_window: 100
   fp_radius: 2
   fp_size: 0
   c: 0.25
