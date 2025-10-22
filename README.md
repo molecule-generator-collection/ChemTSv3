@@ -4,13 +4,13 @@ Temporary repository for ChemTSv3
 ## Setup
 
 <details>
-  <summary><b>Full installation / Paper replication</b></summary><br>
+  <summary><b>Full installation</b></summary><br>
   
 ### Available classes
 - **Transition**: `BioT5Transition`, `ChatGPTTransition`, `ChatGPTTransitionWithMemory`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`, `TDCReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
-- To use `DyRAMOReward` for the EGFR experiments replication, `lightgbm==4.6.0` needs to be replaced with `lightgbm==3.3.5`, which might require setting up CMake on your environment.
+- To replicate the EGFR experiments using `DyRAMOReward`, replace `lightgbm==4.6.0` with `lightgbm==3.3.5`. Note that this may require additional build tools such as CMake and OpenMP libraries, depending on the environment.
 - `ChatGPTTransition` and `ChatGPTTransitionWithMemory` also requires openai api key.
 
 ### Setup steps
@@ -32,6 +32,7 @@ To deactivate the virtual environment, run:
 ```bash
 deactivate
 ```
+</details>
 
 <details>
   <summary><b>Minimal installation</b></summary><br>
