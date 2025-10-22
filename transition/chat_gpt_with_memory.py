@@ -3,7 +3,7 @@ from openai import OpenAI
 from node import SMILESStringNode
 from transition import LLMTransition
 
-class LongChatGPTTransition(LLMTransition):
+class ChatGPTTransitionWithMemory(LLMTransition):
     """Keeps conversation"""
     def __init__(self, prompt: str, initial_prompt: str=None, model: str="gpt-4o-mini", api_key: str=None, api_key_path: str=None, n_samples=1, logger: logging.Logger=None):
         if api_key is None and api_key_path is None:

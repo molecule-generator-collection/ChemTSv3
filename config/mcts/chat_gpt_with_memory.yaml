@@ -8,7 +8,7 @@ root: "c1ccccc1"
 node_class_variables:
   use_canonical_smiles_as_key: true
 
-transition_class: LongChatGPTTransition
+transition_class: ChatGPTTransitionWithMemory
 transition_args:
   api_key_path: data/personal/api_key.txt
   model: gpt-4o-mini
