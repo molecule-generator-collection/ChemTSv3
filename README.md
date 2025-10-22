@@ -7,9 +7,10 @@ Temporary repository for ChemTSv3
   <summary><b>Full installation / Benchmark replication</b></summary><br>
 
 ### Available classes
-- **Transition**: `BioT5Transition`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
+- **Transition**: `BioT5Transition`, `ChatGPTTransition`, `ChatGPTTransitionWithMemory`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `DScoreReward`, `DyRAMOReward`, `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`, `TDCReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
+- `ChatGPTTransition` and `ChatGPTTransitionWithMemory` also requires api key. 
 
 ### Setup steps
 
@@ -20,7 +21,7 @@ Temporary repository for ChemTSv3
 ```bash
 uv venv --python 3.11.11
 source .venv/bin/activate
-uv pip install pytdc==1.1.14 numpy==1.26.4 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 setuptools==78.1.1 lightgbm==3.3.5 torch==2.5.1 --torch-backend=auto
+uv pip install pytdc==1.1.14 numpy==1.26.4 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 setuptools==78.1.1 lightgbm==3.3.5 openai==2.6.0 torch==2.5.1 --torch-backend=auto
 ```
 </details>
 
