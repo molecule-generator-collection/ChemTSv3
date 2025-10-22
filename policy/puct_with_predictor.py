@@ -8,7 +8,7 @@ from node import Node, MolStringNode, SurrogateNode
 from policy import PUCT
 
 class PUCTWithPredictor(PUCT):
-    def __init__(self, alpha=0.9, score_threshold: float=0.4, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=500, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=0, logger=logging.Logger, **kwargs):
+    def __init__(self, alpha=0.9, score_threshold: float=0.4, reprediction_threshold: float=0.1, n_warmup_steps=2000, batch_size=500, score_calculation_interval: int=25, score_calculation_window: int=250, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=0, logger=logging.Logger, **kwargs):
         """
         Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity. Currently only supports subclasses of MolStringNode. However, get_feature_vector() can be overridden for other node classes. Predictor can be also interchanged by implementing a subclass of Predictor and overriding set_predictor().
         (IMPORTANT) n_eval_width must be set to 0 when using this policy to actually make use of it.
@@ -33,6 +33,8 @@ class PUCTWithPredictor(PUCT):
         self.n_warmup_steps = n_warmup_steps or batch_size
         self.batch_size = batch_size
         self.set_predictor(predictor_type, alpha, predictor_params)
+        self.score_calculation_interval = score_calculation_interval
+        self.score_calculation_window = score_calculation_window
         
         # MolStringNode
         self.mfgen = None
@@ -48,6 +50,7 @@ class PUCTWithPredictor(PUCT):
         self.warned = False
         self.model_count = 0
         self.pred_count = 0
+        self.pairs_count = 0
         self.reprediction_count = 0
         self.predicted_uppers = {}
         self.targets = {}
@@ -78,19 +81,22 @@ class PUCTWithPredictor(PUCT):
                     self.model_scores[i] = self.prediction_score(self.targets[i], self.predicted_uppers[i])
             
             self.logger.info("Model scores: " + ", ".join(f"{k}: {v:.3f}" for k, v in self.model_scores.items()))
-            if self.calc_recent_score() > self.score_threshold:
-                self.use_model = True
+                    
+    def score_check(self):
+        if self.calc_recent_score() > self.score_threshold:
+            if not self.use_model:
                 self.logger.info(f"Recent score: {self.recent_score:.3f}. Model output will be applied to the policy.")
-            else:
-                self.use_model = False
-                if self.recent_score != -float("inf"):
-                    self.logger.info(f"Recent score: {self.recent_score:.3f}. Model output won't be applied to the policy.")
+            self.use_model = True
+        else:
+            if self.use_model:
+                self.logger.info(f"Recent score: {self.recent_score:.3f}. Model output won't be applied to the policy.")
+            self.use_model = False
             
-    def calc_recent_score(self):
+    def calc_recent_score(self) -> float:
         predicted_upper = []
         target = []
-        model = self.model_count - 1
-        while(len(target) < self.batch_size):
+        model = self.model_count
+        while(len(target) < self.score_calculation_window):
             if model == 0:
                 return -float("inf")
             predicted_upper += self.predicted_uppers[model]
@@ -139,6 +145,11 @@ class PUCTWithPredictor(PUCT):
             self.predicted_upper_dict[key] = (self.model_count, pred)
             self.predicted_uppers[self.model_count].append(pred)
             self.targets[self.model_count].append(reward)
+        else:
+            return
+        self.pairs_count += 1
+        if self.pairs_count % self.score_calculation_interval == 0:
+            self.score_check()
             
     def on_inherit(self, generator):
         rep = generator.root

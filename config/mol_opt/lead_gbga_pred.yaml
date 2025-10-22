@@ -1,6 +1,6 @@
 output_dir: generation_result
 silent: true
-time_limit: 18000 # Seconds
+time_limit: 20000 # Seconds
 max_generations: 9600
 node_class: CanonicalSMILESStringNode
 
@@ -20,6 +20,8 @@ policy_args:
   score_threshold: 0.4
   n_warmup_steps: 500
   batch_size: 500
+  score_calculation_interval: 25
+  score_calculation_window: 250
   fp_radius: 2
   fp_size: 0
   c: 0.25
