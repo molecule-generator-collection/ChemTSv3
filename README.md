@@ -13,11 +13,11 @@ Temporary repository for ChemTSv3
 - `ChatGPTTransition` and `ChatGPTTransitionWithMemory` also requires openai api key.
 
 ### Setup steps
-
-1. Install uv: https://docs.astral.sh/uv/getting-started/installation/
-2. Restart the shell
-3. Move to the repository root (e.g., cd molgen)
-4. Run the following commands:
+1. Clone the repository
+2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
+3. Restart the shell
+4. Move to the repository root (e.g., cd molgen)
+5. Run the following commands:
 ```bash
 uv venv --python 3.11.11
 source .venv/bin/activate
@@ -45,10 +45,11 @@ deactivate
 
 ### Setup steps
 
-1. Install uv: https://docs.astral.sh/uv/getting-started/installation/
-2. Restart the shell
-3. Move to the repository root (e.g., cd molgen)
-4. Run the following commands:
+1. Clone the repository
+2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
+3. Restart the shell
+4. Move to the repository root (e.g., cd molgen)
+5. Run the following commands:
 ```bash
 uv venv --python 3.11.11
 source .venv/bin/activate
