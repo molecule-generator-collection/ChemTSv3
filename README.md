@@ -4,42 +4,46 @@ Temporary repository for ChemTSv3
 ## Setup
 
 <details>
-  <summary><b>Setting up a minimal conda-forge environment</b></summary><br>
-
-This section explains how to set up a minimal conda-forge environment. This environment can run all tutorial notebooks.
+  <summary><b>Full installation / Benchmark replication</b></summary><br>
 
 ### Available classes
-- **Transition**: `RNNTransition`, `GPT2Transition`, `GBGATransition`, `SMIRKSTransition`
-- **Reward**: `JScoreReward`, `LogPReward`
+- **Transition**: `BioT5Transition`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
+- **Reward**: `DScoreReward`, `DyRAMOReward`, `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`, `TDCReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
 
 ### Setup steps
 
+1. Install uv: https://docs.astral.sh/uv/getting-started/installation/
+2. Restart the shell
+3. Move to the repository root (e.g., cd molgen)
+4. Run the following commands:
 ```bash
-conda create -n v3env-m python=3.11.13
-conda activate v3env-m
-conda install -c conda-forge ipykernel rdkit transformers pytorch
+uv venv --python 3.11.11
+source .venv/bin/activate
+uv pip install pytdc==1.1.14 numpy==1.26.4 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 setuptools==78.1.1 lightgbm==3.3.5 torch==2.5.1 --torch-backend=auto
 ```
 </details>
 
 <details>
-  <summary><b>Setting up a conda-forge environment for benchmark replication</b></summary><br>
-
-This section explains how to set up a conda-forge environment to replicate benchmark results.
+  <summary><b>Minimal installation</b></summary><br>
 
 ### Available classes
-- **Transition**: `RNNTransition`, `GPT2Transition`, `GBGATransition`, `SMIRKSTransition`
-- **Reward**: `TDCReward`, `JScoreReward`, `LogPReward`
-- The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
+- **Transition**: `BioT5Transition`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
+- **Reward**: `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`
+- **Policy**: `UCT`, `PUCT`
+- The corresponding Node classes and all implemented Filter classes are also available in this environment.
 
 ### Setup steps
 
+1. Install uv: https://docs.astral.sh/uv/getting-started/installation/
+2. Restart the shell
+3. Move to the repository root (e.g., cd molgen)
+4. Run the following commands:
 ```bash
-conda create -n v3env-b python=3.11.13
-conda activate v3env-b
-conda install -c conda-forge pytdc=1.1.14 ipykernel
+uv venv --python 3.11.11
+source .venv/bin/activate
+uv pip install numpy==1.26.4 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 torch==2.5.1 --torch-backend=auto
 ```
-Note: For CPU-only environments, omit pytorch-gpu from the last command.
 </details>
 
 ## Generation via CLI
