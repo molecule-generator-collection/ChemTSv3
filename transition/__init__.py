@@ -12,9 +12,9 @@ def __getattr__(name):
     if name == "ChatGPTTransition":
         from .chat_gpt import ChatGPTTransition
         return ChatGPTTransition
-    if name == "LongChatGPTTransition":
-        from .chat_gpt_with_memory import LongChatGPTTransition
-        return LongChatGPTTransition
+    if name == "ChatGPTTransitionWithMemory":
+        from .chat_gpt_with_memory import ChatGPTTransitionWithMemory
+        return ChatGPTTransitionWithMemory
     if name == "ProtGPT2Transition":
         from .prot_gpt2 import ProtGPT2Transition
         return ProtGPT2Transition
