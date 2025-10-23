@@ -1,10 +1,11 @@
 """
 ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/reward/dscore_reward.py
-requires: lightgbm==3.2.1~3.3.5
+requires: lightgbm (tested: 3.3.5, 4.6.0)
 """
-import pickle
-import numpy as np
+import json
 import os
+import lightgbm as lgb
+import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -13,18 +14,18 @@ from reward import MolReward
 from utils import max_gauss, min_gauss, rectangular
 from utils.third_party import sascorer
 
-LGB_MODELS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/lgb_models.pickle"))
+LGB_MODELS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/lgb_models.json"))
 SURE_CHEMBL_ALERTS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/sure_chembl_alerts.txt"))
 CHEMBL_FPS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/chembl_fps.npy"))
 
-with open(LGB_MODELS_PATH, mode='rb') as models,\
-    open(SURE_CHEMBL_ALERTS_PATH, mode='rb') as alerts, \
-    open(CHEMBL_FPS_PATH, mode='rb') as fps:
-    lgb_models = pickle.load(models)
+with open(LGB_MODELS_PATH, mode="r") as l, \
+    open(SURE_CHEMBL_ALERTS_PATH, mode="rb") as alerts, \
+    open(CHEMBL_FPS_PATH, mode="rb") as fps:
+    ms = json.load(l)
+    lgb_models = {k: lgb.Booster(model_str=v) for k, v in ms.items()}
     smarts = pd.read_csv(alerts, header=None, sep='\t')[1].tolist()
     alert_mols = [Chem.MolFromSmarts(smart) for smart in smarts if Chem.MolFromSmarts(smart) is not None]
     chebml_fps = np.load(fps, allow_pickle=True).item()
-
 
 def scale_objective_value(params, value):
     scaling = params["type"]
