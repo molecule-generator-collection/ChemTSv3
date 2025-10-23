@@ -72,8 +72,9 @@ deactivate
   
 ### Available classes
 - **Transition**: `BioT5Transition`, `ChatGPTTransition`, `ChatGPTTransitionWithMemory`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
-- **Reward**: `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`, `TDCReward`
+- **Reward**: `DScoreReward`, `DyRAMOReward`, `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`, `TDCReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
+- `ChatGPTTransition` and `ChatGPTTransitionWithMemory` requires openai api key to use.
 
 ### Setup steps
 1. Clone the repository
@@ -94,16 +95,8 @@ To deactivate the virtual environment, run:
 ```bash
 deactivate
 ```
-
-### Note
-- To replicate the EGFR experiments using `DyRAMOReward`, replace `lightgbm==4.6.0` with `lightgbm==3.3.5`. Note that this may require additional build tools such as CMake and OpenMP libraries, depending on the environment.
-- `ChatGPTTransition` and `ChatGPTTransitionWithMemory` requires openai api key to use.
   
 </details>
-
-### Note
-- To replicate the EGFR experiments using `DyRAMOReward`, replace `lightgbm==4.6.0` with `lightgbm==3.3.5`. Note that this may require additional build tools such as CMake and OpenMP libraries, depending on the environment.
-- `ChatGPTTransition` and `ChatGPTTransitionWithMemory` requires openai api key to use.
   
 </details>
 
@@ -124,7 +117,7 @@ python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_g
 - **Model training**: `sandbox/train_rnn.ipynb` and `sandbox/train_gpt2.ipynb`
 
 ## Optional Dependencies
-- `lightgbm==3.2.1~3.3.5` — required for **DScoreReward**, **DyRAMOReward**
-- `selfies==2.2.0` — required for **SELFIESStringNode**  
-- `openai==2.6.0` — required for **ChatGPT2Transition**, **ChatGPT2TransitionWithMemory** 
-- `pytdc==1.1.14` — required for **TDCReward**
+- `lightgbm` — required for **DScoreReward**, **DyRAMOReward**, **PUCTWithPredictor** / tested version: 3.3.5, 4.6.0
+- `selfies` — required for **SELFIESStringNode** / tested version: 2.2.0
+- `openai` — required for **ChatGPT2Transition**, **ChatGPT2TransitionWithMemory** / tested version: 2.6.0
+- `pytdc` — required for **TDCReward** / tested version: 1.1.14
