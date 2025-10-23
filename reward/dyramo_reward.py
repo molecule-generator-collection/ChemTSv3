@@ -1,10 +1,12 @@
 """
 ported and edited from: https://github.com/ycu-iil/DyRAMO/blob/main/reward/DyRAMO_reward.py
-requires: lightgbm==3.2.1~3.3.5
+requires: lightgbm (tested: 3.3.5, 4.6.0)
 """
+import json
 import os
 import pickle
 import numpy as np
+import lightgbm as lgb
 from rdkit import DataStructs
 from rdkit.Chem import AllChem
 from reward import MolReward
@@ -45,15 +47,16 @@ class DyRAMOReward(MolReward):
         self.ad = ad
         
         if exclude_approved:
-            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models_wo_approved_v1.pkl"))
+            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models_wo_approved_v1.json"))
             feature_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/fps_wo_approved_v1.pkl"))
         else:
-            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models.pkl"))
+            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models.json"))
             feature_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/fps.pkl"))
             
-        with open(lgb_models_path, mode='rb') as l, \
-            open(feature_path, mode='rb') as f:
-            self.lgb_models = pickle.load(l)
+        with open(lgb_models_path, mode="r") as l, \
+            open(feature_path, mode="rb") as f:
+            ms = json.load(l)
+            self.lgb_models = {k: lgb.Booster(model_str=v) for k, v in ms.items()}
             self.feature_dict = pickle.load(f)
     
     # override
