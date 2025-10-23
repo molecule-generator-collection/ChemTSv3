@@ -4,7 +4,7 @@ Temporary repository for ChemTSv3
 ## Setup
 
 <details>
-  <summary><b>Minimal installation</b></summary><br>
+  <summary><b>Minimal installation (Mac, Linux)</b></summary><br>
 
 ### Available classes
 - **Transition**: `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
@@ -22,6 +22,38 @@ Temporary repository for ChemTSv3
 ```bash
 uv venv --python 3.11.11
 source .venv/bin/activate
+uv pip install numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 torch==2.5.1 --torch-backend=auto
+```
+
+To activate the virtual environment, run the following command from the repository root (this process can also be automated through VS Code settings):
+```bash
+source .venv/bin/activate
+```
+To deactivate the virtual environment, run:
+```bash
+deactivate
+```
+</details>
+
+<details>
+  <summary><b>Minimal installation (Windows)</b></summary><br>
+
+### Available classes
+- **Transition**: `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
+- **Reward**: `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`
+- **Policy**: `UCT`, `PUCT`
+- The corresponding Node classes and all implemented Filter classes are also available in this environment.
+
+### Setup steps
+
+1. Clone the repository
+2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
+3. Restart the shell (and VSCode if used)
+4. Move to the repository root (e.g., cd molgen)
+5. Run the following commands:
+```bash
+uv venv --python 3.11.11
+source .venv\Scripts\activate
 uv pip install numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 torch==2.5.1 --torch-backend=auto
 ```
 
