@@ -125,6 +125,6 @@ python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_g
 
 ## Optional Dependencies
 - `lightgbm==3.2.1~3.3.5` — required for **DScoreReward**, **DyRAMOReward**
-- `selfies` — required for **SELFIESStringNode**  
-- `openai` — required for **ChatGPT2Transition**  
-- `tdc` — required for **TDCReward**
+- `selfies==2.2.0` — required for **SELFIESStringNode**  
+- `openai==2.6.0` — required for **ChatGPT2Transition**, **ChatGPT2TransitionWithMemory** 
+- `pytdc==1.1.14` — required for **TDCReward**
