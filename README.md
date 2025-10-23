@@ -53,13 +53,13 @@ deactivate
 5. Run the following commands:
 ```bash
 uv venv --python 3.11.11
-source .venv\Scripts\activate
+.venv\Scripts\activate
 uv pip install numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 torch==2.5.1 --torch-backend=auto
 ```
 
 To activate the virtual environment, run the following command from the repository root (this process can also be automated through VS Code settings):
 ```bash
-source .venv/bin/activate
+.venv\Scripts\activate
 ```
 To deactivate the virtual environment, run:
 ```bash
@@ -68,7 +68,7 @@ deactivate
 </details>
 
 <details>
-  <summary><b>Full installation</b></summary><br>
+  <summary><b>Full installation (Mac, Linux)</b></summary><br>
   
 ### Available classes
 - **Transition**: `BioT5Transition`, `ChatGPTTransition`, `ChatGPTTransitionWithMemory`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
@@ -94,6 +94,12 @@ To deactivate the virtual environment, run:
 ```bash
 deactivate
 ```
+
+### Note
+- To replicate the EGFR experiments using `DyRAMOReward`, replace `lightgbm==4.6.0` with `lightgbm==3.3.5`. Note that this may require additional build tools such as CMake and OpenMP libraries, depending on the environment.
+- `ChatGPTTransition` and `ChatGPTTransitionWithMemory` requires openai api key to use.
+  
+</details>
 
 ### Note
 - To replicate the EGFR experiments using `DyRAMOReward`, replace `lightgbm==4.6.0` with `lightgbm==3.3.5`. Note that this may require additional build tools such as CMake and OpenMP libraries, depending on the environment.
