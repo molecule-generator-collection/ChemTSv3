@@ -48,11 +48,12 @@ class PUCTWithPredictor(PUCT):
         self.predicted_upper_dict = {}
         self.preds = [] # paired with targets
         self.targets = []
+        self.used_preds = []
+        self.used_targets = []
         self.warned = False
         self.model_count = 0
         self.pred_count = 0
         self.pairs_count = 0
-        self.model_scores = {}
         self.to_skip = 0
         super().__init__(logger=logger, **kwargs)
         
@@ -83,9 +84,9 @@ class PUCTWithPredictor(PUCT):
             self.use_model = False
             
     def calc_recent_score(self) -> float:
-        self.preds = self.preds[-200:] if len(self.preds) > 200 else self.preds
-        self.targets = self.targets[-200:] if len(self.targets) > 200 else self.targets
-        self.recent_score = self.prediction_score(self.targets, self.preds)
+        preds = self.preds[-200:] if len(self.preds) > 200 else self.preds
+        targets = self.targets[-200:] if len(self.targets) > 200 else self.targets
+        self.recent_score = self.prediction_score(targets, preds)
         return self.recent_score
         
     def prediction_score(self, target, predicted_upper):
@@ -121,6 +122,8 @@ class PUCTWithPredictor(PUCT):
             _, pred = self.predicted_upper_dict[key]
             self.preds.append(pred)
             self.targets.append(reward)
+            self.used_preds.append(pred)
+            self.used_targets.append(reward)
         elif self.model_count > 0: # self.use_model == False
             x = self.get_feature_vector(child)
             pred = self.predictor.predict_upper(x)
@@ -153,6 +156,10 @@ class PUCTWithPredictor(PUCT):
                 
     def analyze(self):
         self.logger.info(f"Number of prediction: {self.pred_count}")
+        if len(self.used_targets) > 0:
+            self.logger.info(f"Prediction score (when used): {self.prediction_score(self.used_targets, self.used_preds):.3f}")
+        if len(self.targets) > 0:    
+            self.logger.info(f"Prediction score (total): {self.prediction_score(self.targets, self.preds):.3f}")
             
     # override
     def _unvisited_node_fallback(self, node):
