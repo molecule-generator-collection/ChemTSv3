@@ -1,7 +1,6 @@
 output_dir: generation_result
 time_limit: 3600
 max_generations: 7000
-seed: 0
 
 node_class: CanonicalSMILESStringNode
 node_class_variables:
@@ -54,10 +53,10 @@ reward_args:
       sigma: 1
       weight: 1
 
-transition_class: GBGATransition
+transition_class: SMIRKSTransition
 transition_args:
-  check_size: false
-  check_ring: true
+  smirks_path: data/smirks/chembl17_ki_mmp_cliff.txt
+  limit: 50
   filters:
     - filter_class: ValidityFilter
     - filter_class: RadicalFilter
