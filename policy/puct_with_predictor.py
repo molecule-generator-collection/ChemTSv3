@@ -8,7 +8,7 @@ from node import Node, MolStringNode, SurrogateNode
 from policy import PUCT
 
 class PUCTWithPredictor(PUCT):
-    def __init__(self, alpha=0.9, score_threshold: float=0.4, n_warmup_steps=2000, batch_size=500, score_calculation_interval: int=25, score_calculation_window: int=250, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=0, logger=logging.Logger, **kwargs):
+    def __init__(self, alpha=0.9, score_threshold: float=0.6, n_warmup_steps=None, batch_size=500, score_calculation_interval: int=25, score_calculation_window: int=100, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=2048, logger=logging.Logger, **kwargs):
         """
         Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity. Currently only supports subclasses of MolStringNode. However, get_feature_vector() can be overridden for other node classes. Predictor can be also interchanged by implementing a subclass of Predictor and overriding set_predictor().
         (IMPORTANT) n_eval_width must be set to 0 when using this policy to actually make use of it.
