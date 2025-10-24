@@ -1,7 +1,6 @@
 output_dir: generation_result
 time_limit: 3600
 max_generations: 3000
-seed: 0
 
 node_class: CanonicalSMILESStringNode
 node_class_variables:
