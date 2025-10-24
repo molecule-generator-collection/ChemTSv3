@@ -12,7 +12,7 @@ class SMIRKSTransition(TemplateTransition):
         Args:
             smirks_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored. Optional weights can be specified after // (default: 1.0).
             weighted_smirks: A list of SMIRKS patterns (can be received instead of 'smirks_path')
-            limit: If the number of generated SMILES exceeded this value, stops applying further SMIRKS patterns. The order of SMIRKS patterns are shuffled each time if this option is enabled.
+            limit: If the number of generated SMILES exceeded this value, stops applying further SMIRKS patterns. The order of SMIRKS patterns are shuffled with weights before applying transition if this option is enabled.
             without_Hs: If True, SMIRKS reactions are applied to the molecule without explicit hydrogens. Defaults to True.
             with_Hs: If True, SMIRKS reactions are applied to the molecule with explicit hydrogens (via 'Chem.AddHs'). Defaults to False.
         
@@ -73,11 +73,17 @@ class SMIRKSTransition(TemplateTransition):
                     smirks = line
                     weight = 1.0  # default weight
                 self.weighted_smirks.append((smirks, weight))
-        
+
+    @staticmethod
+    def weighted_shuffle(items: list[tuple[str, float]]) -> list[tuple[str, float]]:
+        items = list(items)
+        shuffled = sorted(items, key=lambda x: -random.random() ** (1 / (x[1] + 1e-9)))
+        return shuffled
+
     # implement
     def _next_nodes_impl(self, node: CanonicalSMILESStringNode) -> list[CanonicalSMILESStringNode]:
         if self.limit is not None:
-            random.shuffle(self.weighted_smirks)
+            self.weighted_smirks = self.weighted_shuffle(self.weighted_smirks)
         try:
             initial_mol = node.mol(use_cache=False)
             if self.kekulize:
