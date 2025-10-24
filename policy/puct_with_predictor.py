@@ -46,12 +46,12 @@ class PUCTWithPredictor(PUCT):
         self.y_train = []
         self.y_train_new = []
         self.predicted_upper_dict = {}
+        self.preds = [] # paired with targets
+        self.targets = []
         self.warned = False
         self.model_count = 0
         self.pred_count = 0
         self.pairs_count = 0
-        self.predicted_uppers = {}
-        self.targets = {}
         self.model_scores = {}
         self.to_skip = 0
         super().__init__(logger=logger, **kwargs)
@@ -70,15 +70,7 @@ class PUCTWithPredictor(PUCT):
             self.y_train_new = []
             self.predictor.train(self.X_train, self.y_train)
             self.model_count += 1
-            self.predicted_uppers[self.model_count] = []
-            self.targets[self.model_count] = []
             self.logger.info(f"Model {self.model_count} trained.")
-            
-            for i in range(1, self.model_count):
-                if len(self.targets[i]) > 5:
-                    self.model_scores[i] = self.prediction_score(self.targets[i], self.predicted_uppers[i])
-            
-            self.logger.info("Model scores: " + ", ".join(f"{k}: {v:.3f}" for k, v in self.model_scores.items()))
                     
     def score_check(self):
         if self.calc_recent_score() > self.score_threshold:
@@ -91,16 +83,9 @@ class PUCTWithPredictor(PUCT):
             self.use_model = False
             
     def calc_recent_score(self) -> float:
-        predicted_upper = []
-        target = []
-        model = self.model_count
-        while(len(target) < self.score_calculation_window):
-            if model == 0:
-                return -float("inf")
-            predicted_upper += self.predicted_uppers[model]
-            target += self.targets[model]
-            model -= 1
-        self.recent_score = self.prediction_score(target, predicted_upper)
+        self.preds = self.preds[-200:] if len(self.preds) > 200 else self.preds
+        self.targets = self.targets[-200:] if len(self.targets) > 200 else self.targets
+        self.recent_score = self.prediction_score(self.targets, self.preds)
         return self.recent_score
         
     def prediction_score(self, target, predicted_upper):
@@ -133,16 +118,15 @@ class PUCTWithPredictor(PUCT):
         
         key = child.key()
         if key in self.predicted_upper_dict:
-            model, pred = self.predicted_upper_dict[key]
-            self.predicted_uppers[model].append(pred)
-            self.targets[model].append(reward)
+            _, pred = self.predicted_upper_dict[key]
+            self.preds.append(pred)
+            self.targets.append(reward)
         elif self.model_count > 0: # self.use_model == False
             x = self.get_feature_vector(child)
             pred = self.predictor.predict_upper(x)
             self.pred_count += 1
-            # self.predicted_upper_dict[key] = (self.model_count, pred)
-            self.predicted_uppers[self.model_count].append(pred)
-            self.targets[self.model_count].append(reward)
+            self.preds.append(pred)
+            self.targets.append(reward)
         else:
             return
         self.pairs_count += 1
