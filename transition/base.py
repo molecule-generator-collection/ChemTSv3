@@ -172,7 +172,7 @@ class AutoRegressiveTransition(Transition):
 class LLMTransition(BlackBoxTransition):
     key_in_prompt = "###KEY###"
     
-    def __init__(self, prompt: str, n_samples=1, logger: logging.Logger=None):
+    def __init__(self, prompt: str, n_samples=1, filters: list[Filter]=None, logger: logging.Logger=None):
         if not isinstance(prompt, list):
             prompt = [prompt]
         self.prompt = prompt
@@ -182,10 +182,14 @@ class LLMTransition(BlackBoxTransition):
         self.sum_deltas_including_filtered = [0] * len(self.prompt)
         self.n_filtered = [0] * len(self.prompt)
         
-        super().__init__(n_samples=n_samples, logger=logger)
+        super().__init__(n_samples=n_samples, filters=filters, logger=logger)
         
     @abstractmethod
     def receive_response(self, prompt: str) -> str:
+        """
+        Return a response string.
+        If the output contains multiple lines, it will be split into a list of strings, one per line.
+        """
         pass
         
     # implement
@@ -198,7 +202,8 @@ class LLMTransition(BlackBoxTransition):
             self.logger.debug(f"Prompt: '{prompt}'")
             response = self.receive_response(prompt)
             self.logger.debug(f"Response: '{response}'")
-            results.append(node.__class__(string=response, parent=node, last_action=i))
+            for r in response.splitlines():
+                results.append(node.__class__(string=r, parent=node, last_action=i))
         
         self.n += 1
         return results

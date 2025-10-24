@@ -1,0 +1,88 @@
+output_dir: generation_result
+time_limit: 3600
+max_generations: 3000
+debug: true
+
+node_class: CanonicalSMILESStringNode
+node_class_variables:
+  use_canonical_smiles_as_key: true
+
+root: c1ccc(Nc2ncnc3ccccc23)cc1
+
+transition_class: ChatGPTTransition
+transition_args:
+  api_key_path: data/personal/api_key.txt
+  # model: gpt-5-mini
+  model: gpt-4o-mini
+  n_samples: 1
+  filters:
+  - filter_class: ValidityFilter
+  - filter_class: RadicalFilter
+  - filter_class: HeavyAtomCountFilter
+    max: 45
+  - filter_class: SubstructureFilter
+    smiles: c1ccc(Nc2ncnc3ccccc23)cc1
+  prompt: 
+    - "I will provide you with a molecule in SMILES format. Modify the given molecule to enhance its EGFR inhibitory activity while preserving the 4-anilino-quinazoline scaffold (c1ccc(Nc2ncnc3ccccc23)cc1). You may add, replace, or modify atoms and fragments. You may also explore scaffold hopping and other creative transformations that could improve potency, permeability, or metabolic stability. Generate and output as many candidate SMILES as possible. Each SMILES must appear on a separate line, and there should be no additional text before or after the list. Starting molecule: ###KEY###"
+
+reward_class: DyRAMOReward
+reward_args:
+  exclude_approved: true
+  ad:
+    egfr:
+      num: 1
+      # threshold: 0.66 # for exclude_approved: false
+      # threshold: 0.69
+      # threshold: 0.79
+      threshold: 0.3
+      scaler: step
+      weight: 1
+    metabolic_stability:
+      num: 1
+      # threshold: 0.55 # for exclude_approved: false
+      # threshold: 0.40
+      # threshold: 0.45
+      threshold: 0.2
+      scaler: step
+      weight: 1
+    permeability:
+      num: 1
+      # threshold: 0.43 # for exclude_approved: false
+      # threshold: 0.36
+      # threshold: 0.45
+      threshold: 0.2
+      scaler: step
+      weight: 1
+  property:
+    egfr:
+      scaler: max_gauss
+      mu: 9
+      sigma: 2
+      weight: 1
+    metabolic_stability:
+      scaler: max_gauss
+      mu: 75
+      sigma: 20
+      weight: 1
+    permeability:
+      scaler: max_gauss
+      mu: 1
+      sigma: 1
+      weight: 1
+
+policy_class: UCT
+policy_args:
+  c: 0.1
+  best_rate: 0.95
+
+generator_class: MCTS
+generator_args:
+  n_eval_iters: 1
+  n_eval_width: .inf
+  n_tries: 1
+  avoid_duplicates: true
+  info_interval: 200
+
+plot_args:
+  moving_average_window: 0.05
+  reward_top_ps: [0.5, 0.1]
