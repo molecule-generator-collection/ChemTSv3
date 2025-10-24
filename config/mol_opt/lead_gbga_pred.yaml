@@ -12,23 +12,25 @@ transition_args:
   - filter_class: ValidityFilter
   - filter_class: RadicalFilter
   - filter_class: WeightFilter
-    max: 800
+    max: 700
+  - filter_class: HeavyAtomCountFilter
+    max: 45
 
 policy_class: PUCTWithPredictor
 policy_args:
   alpha: 0.9
-  score_threshold: 0.4
+  score_threshold: 0.6
   n_warmup_steps: 500
   batch_size: 500
   score_calculation_interval: 25
   score_calculation_window: 100
   fp_radius: 2
-  fp_size: 0
+  fp_size: 2048
   c: 0.25
   best_rate: 0.95
   predictor_params:
     learning_rate: 0.05
-    num_leaves: 15
+    num_leaves: 11
     max_depth: 6
 
 generator_class: MCTS
