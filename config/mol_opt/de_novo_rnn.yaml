@@ -31,3 +31,8 @@ generator_args:
 filters:
   - filter_class: ValidityFilter # Apply ValidityFilter first (unless molecular validity is already guaranteed), since other MolFilter and MolReward do not check validity by default.
   - filter_class: RadicalFilter
+  - filter_class: WeightFilter
+    max: 700
+  - filter_class: HeavyAtomCountFilter
+    max: 45
+  - filter_class: RingBondFilter
