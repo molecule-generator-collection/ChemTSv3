@@ -1,18 +1,20 @@
 import os
 import pandas as pd
+import random
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from node import CanonicalSMILESStringNode
 from transition import TemplateTransition
 
 class SMIRKSTransition(TemplateTransition):
-    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None, logger=None, record_actions=True, output_dir: str=None):
+    def __init__(self, smirks_path: str=None, weighted_smirks: list[tuple[str, float]]=None, limit: int=None, without_Hs: bool=True, with_Hs: bool=False, kekulize=True, filters=None, top_p=None, logger=None, record_actions=True, output_dir: str=None):
         """
         Args:
             smirks_path: Path to a .txt file containing SMIRKS patterns, one per line. Empty lines and text after '##' are ignored. Optional weights can be specified after // (default: 1.0).
-            weighted_smirks: A list of SMIRKS patterns.
+            weighted_smirks: A list of SMIRKS patterns (can be received instead of 'smirks_path')
+            limit: If the number of generated SMILES exceeded this value, stops applying further SMIRKS patterns. The order of SMIRKS patterns are shuffled each time if this option is enabled.
             without_Hs: If True, SMIRKS reactions are applied to the molecule without explicit hydrogens. Defaults to True.
-            with_Hs: If True, SMIRKS reactions are applied to the molecule with explicit hydrogens (via `Chem.AddHs`). Defaults to False.
+            with_Hs: If True, SMIRKS reactions are applied to the molecule with explicit hydrogens (via 'Chem.AddHs'). Defaults to False.
         
         Raises:
             ValueError: If both or neither of 'smirks_path' and 'weighted_smirks' are specified.
@@ -28,6 +30,7 @@ class SMIRKSTransition(TemplateTransition):
         if not without_Hs and not with_Hs:
             raise ValueError("Set one or both of 'check_no_Hs' or 'check_Hs' to True.")        
 
+        self.limit = limit
         self.without_Hs = without_Hs
         self.with_Hs = with_Hs
         self.kekulize = kekulize
@@ -73,6 +76,8 @@ class SMIRKSTransition(TemplateTransition):
         
     # implement
     def _next_nodes_impl(self, node: CanonicalSMILESStringNode) -> list[CanonicalSMILESStringNode]:
+        if self.limit is not None:
+            random.shuffle(self.weighted_smirks)
         try:
             initial_mol = node.mol(use_cache=False)
             if self.kekulize:
@@ -103,6 +108,8 @@ class SMIRKSTransition(TemplateTransition):
                                     continue
                 except:
                     continue
+                if self.limit is not None and len(generated_smis) > self.limit:
+                        break
                 
             sum_weight = 0
             weights = {}
@@ -182,24 +189,24 @@ class SMIRKSTransition(TemplateTransition):
                 "SMIRKS": key,
                 "reward count": self.counts[key],
                 "filter count (reward)": self.smirks_filter_counts[key], 
-                "average delta (unfiltered)": self.sum_deltas_unfiltered[key] / n,
-                "average delta (with filtered)": self.sum_deltas_including_filtered[key] / n,
+                "average delta (unfiltered)": self.sum_deltas_unfiltered[key] / n if n > 0 else float("nan"),
+                "average delta (with filtered)": self.sum_deltas_including_filtered[key] / n if n > 0 else float("nan"),
                 "max delta": self.max_deltas[key],
                 "improvement count": self.improvement_counts[key],
                 "improvement average": self.improvement_sums[key] / self.improvement_counts[key] if self.improvement_counts[key] > 0 else float("nan"), 
-                "improvement sum / reward count": self.improvement_sums[key] / n
+                "improvement sum / reward count": self.improvement_sums[key] / n if n > 0 else float("nan")
             })
             
         records.append({
             "SMIRKS": "Total",
             "reward count": self.count,
             "filter count (reward)": self.smirks_filter_count, 
-            "average delta (unfiltered)": self.sum_delta_unfiltered / self.count,
-            "average delta (with filtered)": self.sum_delta_including_filtered / self.count,
+            "average delta (unfiltered)": self.sum_delta_unfiltered / self.count if self.count > 0 else float("nan"),
+            "average delta (with filtered)": self.sum_delta_including_filtered / self.count if self.count > 0 else float("nan"),
             "max delta": self.max_delta,
             "improvement count": self.improvement_count,
             "improvement average": self.improvement_sum / self.improvement_count if self.improvement_count > 0 else float("nan"),
-            "improvement sum / reward count": self.improvement_sum / self.count
+            "improvement sum / reward count": self.improvement_sum / self.count if self.count > 0 else float("nan")
         })
 
         df = pd.DataFrame(records)
