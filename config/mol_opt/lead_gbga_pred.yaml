@@ -19,7 +19,7 @@ transition_args:
 policy_class: PUCTWithPredictor
 policy_args:
   alpha: 0.9
-  score_threshold: 0.6
+  score_threshold: 0.5
   n_warmup_steps: 500
   batch_size: 500
   score_calculation_interval: 25
