@@ -27,6 +27,7 @@ class GBGATransition(TemplateTransition):
         self.check_ring = check_ring
         self.merge_duplicates = merge_duplicates
         self.record_actions = record_actions
+        self.prepare_rxn_smarts_list()
         super().__init__(filters=filters, top_p=top_p, logger=logger)
 
     @staticmethod
@@ -163,23 +164,18 @@ class GBGATransition(TemplateTransition):
         except:
             return False
 
+    def prepare_rxn_smarts_list(self):
+        self.rxn_smarts_list = [self.insert_atom(), self.change_bond_order(), self.delete_cyclic_bond(), self.add_ring(), self.delete_atom(), self.change_atom(), self.append_atom()]
+
     # implement
     def _next_nodes_impl(self, node: CanonicalSMILESStringNode) -> list[CanonicalSMILESStringNode]:
         try:
             mol = node.mol(use_cache=False)
         
             Chem.Kekulize(mol, clearAromaticFlags=True)
-            rxn_smarts_list = 7*['']
-            rxn_smarts_list[0] = self.insert_atom()
-            rxn_smarts_list[1] = self.change_bond_order()
-            rxn_smarts_list[2] = self.delete_cyclic_bond()
-            rxn_smarts_list[3] = self.add_ring()
-            rxn_smarts_list[4] = self.delete_atom()
-            rxn_smarts_list[5] = self.change_atom()
-            rxn_smarts_list[6] = self.append_atom()
             raw_result = [] # action, SMILES, raw_prob
 
-            for i, (choices, probs) in enumerate(rxn_smarts_list):
+            for i, (choices, probs) in enumerate(self.rxn_smarts_list):
                 if self.base_chances[i] == 0:
                     continue
                 for smarts, prob in zip(choices, probs):
