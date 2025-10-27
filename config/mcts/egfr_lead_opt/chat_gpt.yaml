@@ -1,6 +1,6 @@
 output_dir: generation_result
 time_limit: 3600
-max_generations: 3000
+max_generations: 36000
 debug: true
 
 node_class: CanonicalSMILESStringNode
@@ -81,7 +81,7 @@ generator_args:
   n_eval_width: .inf
   n_tries: 1
   avoid_duplicates: true
-  info_interval: 200
+  info_interval: 1
 
 plot_args:
   moving_average_window: 0.05
