@@ -1,4 +1,5 @@
 output_dir: "sandbox/training_result/rnn_model"
+model_type: RNN
 lang_class: FASTA
 dataset_path: data/fasta/aav.txt
 

@@ -12,7 +12,7 @@ from utils import apply_top_p, apply_sharpness
 
 class RNNLanguageModel(nn.Module):
     """
-    Auto-regressive RNN model, used internally by RNNTransition
+    Auto-regressive RNN model, internally used by RNNTransition.
     """
     def __init__(self, pad_id: int, vocab_size: int, embed_size: int=None, hidden_size: int=256, num_layers: int=2, rnn_type: str="GRU", dropout: float=0.3, use_input_dropout=True):
         super().__init__()
