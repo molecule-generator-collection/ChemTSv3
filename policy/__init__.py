@@ -1,4 +1,4 @@
-from .base import Policy, ValuePolicy
+from .base import Policy, ScoreBasedPolicy
 from .uct import UCT
 from .puct import PUCT
 

@@ -61,14 +61,14 @@ class TemplatePolicy(Policy):
         k = max(1, int(self.pw_c * (node.n ** self.pw_alpha) + self.pw_beta)) if self.pw_c is not None else len(children)
         return children[:min(k, len(children))]
 
-class ValuePolicy(TemplatePolicy):
+class ScoreBasedPolicy(TemplatePolicy):
     """Policy that selects the node with the highest score. Supports epsilon greedy."""
     def __init__(self, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0, logger: logging.Logger=None):
         self.epsilon = epsilon
         super().__init__(pw_c=pw_c, pw_alpha=pw_alpha, pw_beta=pw_beta, logger=logger)
 
     @abstractmethod
-    def evaluate(self, node: Node) -> float:
+    def score(self, node: Node) -> float:
         """Return the selection score of the given child node."""
         pass
     
@@ -81,7 +81,7 @@ class ValuePolicy(TemplatePolicy):
         
         for c in candidates:
             try:
-                y = self.evaluate(c)
+                y = self.score(c)
             except Exception as e:
                 self.logger.debug(f"Evaluation failed: {e}")
                 y = float("-inf")
