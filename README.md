@@ -101,7 +101,7 @@ deactivate
   <summary><b>Troubleshooting</b></summary><br>
   
 ### CUDA not available
-In some cases (for example, when setting up environments on a control node), it may be necessary to reinstall torch with a different backend to enable CUDA support. However, since major implemented classes are likely to run faster on the CPU, this is not strictly required. After reinstalling torch, you may also need to downgrade numpy to version 1.26.4 if it was upgraded during the process.
+In some cases (for example, when setting up environments on a control node), it may be necessary to reinstall torch with a different backend to enable CUDA support. However, since major implemented classes (including `RNNTransition`) are likely to run faster on the CPU, this is not strictly required. After reinstalling torch, you may also need to downgrade numpy to version 1.26.4 if it was upgraded during the process.
 </details>
   
 </details>
