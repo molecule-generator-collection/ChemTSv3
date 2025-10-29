@@ -2,6 +2,10 @@ output_dir: "sandbox/training_result/rnn_model"
 lang_class: HELM
 lang_args:
   has_period: false
+  monomer_library_paths:
+  - "data/helm/library/chembl_35_monomer_library.xml"
+  - "data/helm/library/HELMCoreLibrary.json"
+  - "data/helm/library/monomerLib2.0.json"
 dataset_path: data/helm/chembl34_protein_helm_only.helm
 
 test_size: 0.1
