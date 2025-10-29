@@ -6,7 +6,7 @@ from node import Node, MolNode
 from utils import mol_validity_check
 
 class StringNode(Node):
-    eos: str = None # Can be optionally set
+    eos: str = None # If set, string that does not end with EOS will be considered incomplete.
     
     def __init__(self, string: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None):
         self.string = string
