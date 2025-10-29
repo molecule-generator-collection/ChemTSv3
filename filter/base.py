@@ -17,6 +17,15 @@ class Filter(ABC):
 
     def analyze(self):
         """This method is called within Generation.analyze(). By default, this method does nothing."""
+        
+    def can_pass(self, node, clear_cache: bool=True) -> bool:
+        result = self.check(node)
+        if clear_cache:
+            node.clear_cache()
+        if type(result) in (float, int) or result == False:
+            return False
+        else:
+            return True
 
 class MolFilter(Filter):
     """Filter for MolNode"""
