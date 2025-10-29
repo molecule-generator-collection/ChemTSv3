@@ -1,3 +1,4 @@
+import os
 import pickle
 import re
 from typing import Self
@@ -6,11 +7,19 @@ from rdkit.Chem import Mol
 from language import DynamicMolLanguage
 from utils import HELMConverter
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+
 class HELM(DynamicMolLanguage):
-    def __init__(self, has_period=False, converter: HELMConverter=None):
+    def __init__(self, has_period=False, converter: HELMConverter=None, monomer_library_paths: list=None, culling_on_save: bool=True):
         self.has_period = has_period
         self.converter = converter
+        self.monomer_library_paths = monomer_library_paths
+        self.culling_on_save = culling_on_save
         super().__init__()
+        
+        if self.monomer_library_paths is not None:
+            self.monomer_library_paths = [os.path.join(REPO_ROOT, path) if not os.path.isabs(path) else path for path in self.monomer_library_paths]
+            self.load_monomer_library(*self.monomer_library_paths, culling=False)
     
     def load_monomer_library(self, *args: str, culling=False):
         self.converter = HELMConverter().load(*args)
@@ -88,6 +97,8 @@ class HELM(DynamicMolLanguage):
     def save(self, file: str):
         # decompose the mol object for RDKit cross-version compatibility
         if self.converter:
+            if self.culling_on_save:
+                self.converter.lib.cull(self.vocab())
             self.converter.lib.cap_group_mols = {key: None for key in self.converter.lib.cap_group_mols}
         with open(file, mode="wb") as fo:
             pickle.dump(self, fo)
