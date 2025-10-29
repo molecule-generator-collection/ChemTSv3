@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 import logging
 import math
 import random
-from typing import Iterable
 import numpy as np
 from node import Node
 
