@@ -44,8 +44,7 @@ def main():
         save_conf_and_lang(output_dir, conf, lang)
     else: # GPT2
         model, trainer, lang = GPT2Transition.train_gpt2_from_conf(conf)
-        save_yaml(conf=conf, output_dir=output_dir)
-        lang.save(os.path.join(output_dir, "language.lang"))
+        save_conf_and_lang(output_dir, conf, lang)
 
 if __name__ == "__main__":
     faulthandler.enable()
