@@ -62,7 +62,7 @@ def draw_mol(mol: Mol, width=300, height=300, all_prop=False):
     rdDepictor.Compute2DCoords(mol, clearConfs=True)
     display(Draw.MolToImage(mol, size = (width, height)))
     
-def top_k_df(df: str | pd.DataFrame, k: int, target: str) -> list[str]:
+def top_k_df(df: str | pd.DataFrame, k: int, target: str="reward") -> list[str]:
     if isinstance(df, (str, os.PathLike)):
         df = pd.read_csv(df)
     elif isinstance(df, pd.DataFrame):
