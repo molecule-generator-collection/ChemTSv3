@@ -80,10 +80,10 @@ def main():
 
     # test
     for i in range(args.n_trials):
-        print(f"----------- seed: {i} -----------")
+        print(f"----------- seed: {i + args.initial_seed} -----------")
         sum = 0
         for oracle_name in oracle_names:
-            score = test_objective(oracle_name, seed=i+args.initial_seed, method=args.method)
+            score = test_objective(oracle_name, seed=i + args.initial_seed, method=args.method)
             print(oracle_name, score)
             results[oracle_name].append(score)
             sum += score
