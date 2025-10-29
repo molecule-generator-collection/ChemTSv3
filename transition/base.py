@@ -171,6 +171,7 @@ class AutoRegressiveTransition(Transition):
     
 class LLMTransition(BlackBoxTransition):
     key_in_prompt = "###KEY###"
+    string_in_prompt = "###STRING###"
     
     def __init__(self, prompt: str, n_samples=1, filters: list[Filter]=None, logger: logging.Logger=None):
         if not isinstance(prompt, list):
@@ -194,11 +195,11 @@ class LLMTransition(BlackBoxTransition):
         
     # implement
     def sample_transition(self, node: StringNode) -> StringNode:
-        parent_key = node.string
-        
         results = []
         for i, p in enumerate(self.prompt):
-            prompt = p.replace(self.key_in_prompt, parent_key)
+            prompt = p.replace(self.string_in_prompt, node.string)
+            if prompt.contains(self.key_in_prompt):
+                prompt = p.replace(self.key_in_prompt, node.key())
             self.logger.debug(f"Prompt: '{prompt}'")
             response = self.receive_response(prompt)
             self.logger.debug(f"Response: '{response}'")

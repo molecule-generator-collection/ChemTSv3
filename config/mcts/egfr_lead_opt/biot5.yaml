@@ -18,9 +18,9 @@ transition_args:
   - filter_class: HeavyAtomCountFilter
     max: 45
   prompt: 
-    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory activity while preserving the core scaffold. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
-    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory by editing the given molecule. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
-    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory activity by adding, replacing, or modifying atoms and fragments. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory activity while preserving the core scaffold. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory by editing the given molecule. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory activity by adding, replacing, or modifying atoms and fragments. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
 
 reward_class: DyRAMOReward
 reward_args:

@@ -23,7 +23,7 @@ transition_args:
   # - filter_class: SubstructureFilter
   #   smiles: c1ccc(Nc2ncnc3ccccc23)cc1
   prompt: 
-    - "I will provide you with a molecule in SMILES format. Modify the given molecule to enhance its EGFR inhibitory activity by adding, replacing, or modifying atoms and fragments. You may also explore scaffold hopping and other creative transformations that could improve potency, permeability, or metabolic stability. Generate as many candidate SMILES as possible, with each SMILES on a separate line and no additional text before or after the list. Starting molecule: ###KEY###"
+    - "I will provide you with a molecule in SMILES format. Modify the given molecule to enhance its EGFR inhibitory activity by adding, replacing, or modifying atoms and fragments. You may also explore scaffold hopping and other creative transformations that could improve potency, permeability, or metabolic stability. Generate as many candidate SMILES as possible, with each SMILES on a separate line and no additional text before or after the list. Starting molecule: ###STRING###"
 
 reward_class: DyRAMOReward
 reward_args:

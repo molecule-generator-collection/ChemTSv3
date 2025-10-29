@@ -14,9 +14,9 @@ transition_args:
   model: gpt-4o-mini
   n_samples: 1
   prompt:
-    - "Transform the given molecule to improve its drug-likeness while preserving the core scaffold. Starting molecule: ###KEY###."
-    - "Transform the given molecule to improve its drug-likeness by appending a single fragment. Starting molecule: ###KEY###"
-    - "Transform the given molecule to improve its drug-likeness by modifying a single fragment. Starting molecule: ###KEY###"
+    - "Transform the given molecule to improve its drug-likeness while preserving the core scaffold. Starting molecule: ###STRING###."
+    - "Transform the given molecule to improve its drug-likeness by appending a single fragment. Starting molecule: ###STRING###"
+    - "Transform the given molecule to improve its drug-likeness by modifying a single fragment. Starting molecule: ###STRING###"
   initial_prompt: "Your ultimate goal is to generate molecules that maximize the reward (drug-likeness) by iteratively transforming the given ones. All molecules will be provided in SMILES format, and your response must return the result strictly as a SMILES string, without any additional text or explanation. Do not output any molecule that has already been generated previously."
 
 reward_class: TDCReward

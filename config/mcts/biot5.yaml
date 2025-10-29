@@ -10,9 +10,9 @@ transition_class: BioT5Transition
 transition_args:
   n_samples: 1
   prompt: 
-    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value while preserving the core scaffold. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
-    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value by appending a single fragment. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
-    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value by modifying a single fragment. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value while preserving the core scaffold. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value by appending a single fragment. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value by modifying a single fragment. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
 
 reward_class: LogPReward
 
