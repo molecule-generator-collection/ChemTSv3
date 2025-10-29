@@ -1,4 +1,5 @@
 output_dir: "sandbox/training_result/rnn_model"
+model_type: RNN
 lang_class: SELFIES
 dataset_path: data/selfies/250k_rndm_zinc_drugs_clean.sel
 
