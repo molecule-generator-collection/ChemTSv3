@@ -41,10 +41,11 @@ def main():
         model.save(os.path.join(output_dir, "last"))
         model.load_state_dict(best_state_dict)
         model.save(os.path.join(output_dir, "best"))
-        save_conf_and_lang(output_dir, conf, lang)
     else: # GPT2
         model, trainer, lang = GPT2Transition.train_gpt2_from_conf(conf)
-        save_conf_and_lang(output_dir, conf, lang)
+        
+    save_conf_and_lang(output_dir, conf, lang)
+    print("Training finished / Model saved.")
 
 if __name__ == "__main__":
     faulthandler.enable()
