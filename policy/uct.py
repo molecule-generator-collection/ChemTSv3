@@ -2,10 +2,10 @@ import logging
 from math import log, sqrt
 from typing import Callable
 from node import Node
-from policy import ValuePolicy
+from policy import ScoreBasedPolicy
 from utils import PointCurve
 
-class UCT(ValuePolicy):
+class UCT(ScoreBasedPolicy):
     def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0, logger: logging.Logger=None):
         """
         Args:
@@ -47,11 +47,11 @@ class UCT(ValuePolicy):
         return 10**9
 
     # implement
-    def evaluate(self, node: Node) -> float:
+    def score(self, node: Node) -> float:
         if node.n == 0:
             fallback = self._unvisited_node_fallback(node)
             if fallback == "retry":
-                return self.evaluate(node)
+                return self.score(node)
             elif type(fallback) in (float, int):
                 return fallback
             else:
