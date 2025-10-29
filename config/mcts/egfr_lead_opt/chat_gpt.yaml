@@ -1,6 +1,6 @@
 output_dir: generation_result
-time_limit: 3600
-max_generations: 36000
+time_limit: 9600
+max_generations: 3000
 debug: true
 
 node_class: CanonicalSMILESStringNode
@@ -20,8 +20,8 @@ transition_args:
   - filter_class: RadicalFilter
   - filter_class: HeavyAtomCountFilter
     max: 45
-  - filter_class: SubstructureFilter
-    smiles: c1ccc(Nc2ncnc3ccccc23)cc1
+  # - filter_class: SubstructureFilter
+  #   smiles: c1ccc(Nc2ncnc3ccccc23)cc1
   prompt: 
     - "I will provide you with a molecule in SMILES format. Modify the given molecule to enhance its EGFR inhibitory activity while preserving the 4-anilino-quinazoline scaffold (c1ccc(Nc2ncnc3ccccc23)cc1). You may add, replace, or modify atoms and fragments. You may also explore scaffold hopping and other creative transformations that could improve potency, permeability, or metabolic stability. Generate and output as many candidate SMILES as possible. Each SMILES must appear on a separate line, and there should be no additional text before or after the list. Starting molecule: ###KEY###"
 
