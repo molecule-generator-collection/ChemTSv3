@@ -1,0 +1,85 @@
+output_dir: generation_result
+time_limit: 9600
+max_generations: 3000
+debug: true
+
+node_class: SELFIESStringNode
+node_class_variables:
+  use_canonical_smiles_as_key: true
+
+root: "[C][=C][C][=C][Branch1][S][N][C][=N][C][=N][C][=C][C][=C][C][=C][Ring1][#Branch2][Ring1][=Branch1][C][=C][Ring1][P]"
+
+transition_class: BioT5Transition
+transition_args:
+  n_samples: 1
+  filters:
+  - filter_class: ValidityFilter
+  - filter_class: RadicalFilter
+  - filter_class: HeavyAtomCountFilter
+    max: 45
+  prompt: 
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory activity while preserving the core scaffold. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory by editing the given molecule. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
+    - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that enhance its EGFR inhibitory activity by adding, replacing, or modifying atoms and fragments. Now complete the following example - Input: <bom>###KEY###<eom> Output: "
+
+reward_class: DyRAMOReward
+reward_args:
+  exclude_approved: true
+  ad:
+    egfr:
+      num: 1
+      # threshold: 0.66 # for exclude_approved: false
+      # threshold: 0.69
+      # threshold: 0.79
+      threshold: 0.3
+      scaler: step
+      weight: 1
+    metabolic_stability:
+      num: 1
+      # threshold: 0.55 # for exclude_approved: false
+      # threshold: 0.40
+      # threshold: 0.45
+      threshold: 0.2
+      scaler: step
+      weight: 1
+    permeability:
+      num: 1
+      # threshold: 0.43 # for exclude_approved: false
+      # threshold: 0.36
+      # threshold: 0.45
+      threshold: 0.2
+      scaler: step
+      weight: 1
+  property:
+    egfr:
+      scaler: max_gauss
+      mu: 9
+      sigma: 2
+      weight: 1
+    metabolic_stability:
+      scaler: max_gauss
+      mu: 75
+      sigma: 20
+      weight: 1
+    permeability:
+      scaler: max_gauss
+      mu: 1
+      sigma: 1
+      weight: 1
+
+policy_class: UCT
+policy_args:
+  c: 0.1
+  best_rate: 0.95
+
+generator_class: MCTS
+generator_args:
+  n_eval_iters: 1
+  n_eval_width: .inf
+  n_tries: 1
+  avoid_duplicates: true
+  info_interval: 100
+
+plot_args:
+  moving_average_window: 0.05
+  reward_top_ps: [0.5, 0.1]
