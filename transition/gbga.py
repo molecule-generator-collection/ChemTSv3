@@ -12,18 +12,18 @@ class GBGATransition(TemplateTransition):
     GBGA paper: https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c
     """
     
-    def __init__(self, base_chances=[0.15,0.14,0.14,0.14,0.14,0.14,0.15], check_size: bool=False, average_size: float=50.0, size_stdev: float=5.0, check_ring: bool=True, merge_duplicates: bool=True, record_actions: bool=False, filters: list[Filter]=None, top_p=None, logger=None):
+    def __init__(self, base_chances=[0.15,0.14,0.14,0.14,0.14,0.14,0.15], check_size: bool=False, average_size: float=50.0, size_std: float=5.0, check_ring: bool=True, merge_duplicates: bool=True, record_actions: bool=False, filters: list[Filter]=None, top_p=None, logger=None):
         """
         Args:
             base_chances: chances of [insert_atom, change_bond_order, delete_cyclic_bond, add_ring, delete_atom, change_atom, append_atom]
             average_size: Used for the molecule size filter only if check_size is True.
-            size_stdev: Used for the molecule size filter only if check_size is True.
+            size_std: Used for the molecule size filter only if check_size is True.
             record_actions: If True, used smirks will be recorded as actions in child nodes.
         """
         self.base_chances = base_chances
         self.check_size = check_size
         self.average_size = average_size
-        self.size_stdev = size_stdev
+        self.size_std = size_std
         self.check_ring = check_ring
         self.merge_duplicates = merge_duplicates
         self.record_actions = record_actions
@@ -148,7 +148,7 @@ class GBGATransition(TemplateTransition):
 
     def mol_OK(self, mol):
         try:
-            target_size = self.size_stdev*np.random.randn() + self.average_size
+            target_size = self.size_std*np.random.randn() + self.average_size
             if mol.GetNumAtoms() > 5 and mol.GetNumAtoms() < target_size:
                 return True
             else:
