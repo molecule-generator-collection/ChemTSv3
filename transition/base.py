@@ -198,7 +198,7 @@ class LLMTransition(BlackBoxTransition):
         results = []
         for i, p in enumerate(self.prompt):
             prompt = p.replace(self.string_in_prompt, node.string)
-            if prompt.contains(self.key_in_prompt):
+            if self.key_in_prompt in prompt: # to prevent calling key() for nothing
                 prompt = p.replace(self.key_in_prompt, node.key())
             self.logger.debug(f"Prompt: '{prompt}'")
             response = self.receive_response(prompt)
