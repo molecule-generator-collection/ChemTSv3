@@ -33,7 +33,7 @@ class Node(ABC):
     
     @abstractmethod
     def has_reward(self) -> bool:
-        """Define the reward condition."""
+        """Define the reward condition (e.g. whether it is complete molecule or not)."""
         pass
     
     # should be overridden for YAML compatibility etc.
