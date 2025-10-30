@@ -14,7 +14,7 @@ class GBGMTransition(TemplateTransition):
     GBGM paper: https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c
     """
     
-    def __init__(self, size_mean: float=39.15, size_std: float=3.50, max_children: int=25, max_expansion_tries: int=1000, prob_ring_atom: float=0.63, prob_double=0.8, filters: list[Filter]=None, top_p=None, logger=None):
+    def __init__(self, size_mean: float=39.15, size_std: float=3.50, max_children: int=25, prob_ring_atom: float=0.63, prob_double=0.8, filters: list[Filter]=None, top_p=None, max_expansion_tries: int=1000, max_depth: int=200, logger=None):
         """
         Args:
             size_mean: Used for the molecule size filter only if check_size is True.
@@ -28,6 +28,7 @@ class GBGMTransition(TemplateTransition):
         self.prob_ring_atom = prob_ring_atom
         self.prob_double = prob_double
         self.max_expansion_tries = max_expansion_tries
+        self.max_depth = max_depth
         
         self.rxn_smarts_make_ring = pickle.load(open(os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/gbgm/rs_make_ring.p")),"rb"))
         self.rxn_smarts_ring_list = pickle.load(open(os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/gbgm/rs_ring.p")),"rb"))
@@ -62,6 +63,27 @@ class GBGMTransition(TemplateTransition):
         # print(scale_double, scale_single*prob_single, sum(p_ring))
         return p_ring
     
+    @staticmethod
+    def valences_not_too_large(mol):
+        valence_dict = {5:3, 6:4, 7:3, 8:2, 9:1, 16:6, 17:1, 35:1, 53:1}
+        atomicNumList = [a.GetAtomicNum() for a in mol.GetAtoms()]
+        valences = [valence_dict[atomic_num] for atomic_num in atomicNumList]
+        BO = Chem.GetAdjacencyMatrix(mol, useBO=True)
+        number_of_bonds_list = BO.sum(axis=1)
+        for valence, number_of_bonds in zip(valences, number_of_bonds_list):
+            if number_of_bonds > valence:
+                return False
+        return True
+
+    @classmethod
+    def expand_small_rings(cls, mol):  
+        Chem.Kekulize(mol, clearAromaticFlags=True)
+        rxn_smarts = '[*;r3,r4;!R2:1][*;r3,r4:2]>>[*:1]C[*:2]'
+        while mol.HasSubstructMatch(Chem.MolFromSmarts('[r3,r4]=[r3,r4]')):
+            mol = cls.run_rxn(rxn_smarts, mol)
+            
+        return mol
+
     @staticmethod
     def run_rxn(rxn_smarts, mol) -> Mol:
         new_mol_list = []
@@ -132,16 +154,18 @@ class GBGMTransition(TemplateTransition):
             mol, smiles = self.sample_child(initial_mol, initial_smiles)
             if not smiles in seen:
                 seen.add(smiles)
-                children.append((mol, smiles))
+                
+                if mol.GetNumAtoms() > self.size_std*np.random.randn() + self.size_mean or node.depth+1 > self.max_depth:
+                    if self.valences_not_too_large(mol):
+                        mol = self.expand_small_rings(mol)
+                        s = Chem.MolToSmiles(mol) + node.eos
+                    else:
+                        continue
+                else:
+                    s = smiles
+                children.append(CanonicalSMILESStringNode(s, parent=node))                    
+
                 if for_rollout:
                     break
-        
-        results = []
-        for i, (mol, smiles) in enumerate(children):
-            if mol.GetNumAtoms() > self.size_std*np.random.randn() + self.size_mean:
-                s = smiles + node.eos
-            else:
-                s = smiles
-            results.append(CanonicalSMILESStringNode(s, parent=node))
                 
-        return results
+        return children
