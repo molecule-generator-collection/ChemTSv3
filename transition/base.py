@@ -17,7 +17,7 @@ class Transition(ABC):
         pass
 
     def rollout(self, initial_node: Node) -> Node:
-        """Sample an offspring with has_reward() = True"""
+        """For efficiency, it is recommended to override this method if rollouts are needed."""
         if initial_node.is_terminal():
             return initial_node
         
