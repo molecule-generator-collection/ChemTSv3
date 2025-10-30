@@ -24,8 +24,8 @@ class Transition(ABC):
         """
         Sample an offspring node that satisfies has_reward() = True.
         By default, this method repeatedly calls next_nodes().
-        If next_nodes() defines a 'for_rollout: bool=False' argument, it will be invoked as next_nodes(..., for_rollout=True), allowing early termination for improved efficiency.
-        Depending on the transition type, overriding this method may yield better performance.
+        If next_nodes() (or _next_nodes_impl() in TemplateTransition) defines a 'for_rollout: bool=False' argument, it will be invoked as next_nodes(..., for_rollout=True), allowing early termination for improved efficiency. (Example: transition/gbgm.py)
+        Depending on the transition type, overriding this method might be better for performance or exception handlings.
         """
         if initial_node.is_terminal():
             return initial_node
