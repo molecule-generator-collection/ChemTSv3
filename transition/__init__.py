@@ -1,6 +1,7 @@
 from .base import Transition, AutoRegressiveTransition, TemplateTransition, BlackBoxTransition, LLMTransition
 from .gpt2 import GPT2Transition
 from .gbga import GBGATransition
+from .gbgm import GBGMTransition
 from .rnn import RNNLanguageModel, RNNTransition
 from .smirks import SMIRKSTransition
 
