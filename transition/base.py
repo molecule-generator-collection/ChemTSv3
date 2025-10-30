@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import inspect
 import logging
 import random
 from typing import Any
@@ -10,26 +11,38 @@ from node import Node, SentenceNode, StringNode
 class Transition(ABC):
     def __init__(self, logger: logging.Logger=None):
         self.logger = logger or logging.getLogger(__name__)
+        self._is_for_rollout_defined = "for_rollout" in inspect.signature(self.next_nodes).parameters
         
     @abstractmethod
     def next_nodes(self, node: Node) -> list[Node]:
-        """Return the list of the child nodes. If the node is terminal, an empty list [] should be returned."""
+        """
+        Return the list of the child nodes. If the node is terminal, an empty list [] should be returned.
+        """
         pass
 
     def rollout(self, initial_node: Node) -> Node:
-        """For efficiency, it is recommended to override this method if rollouts are needed."""
+        """
+        Sample an offspring node that satisfies has_reward() = True.
+        By default, this method repeatedly calls next_nodes().
+        If next_nodes() defines a 'for_rollout: bool=False' argument, it will be invoked as next_nodes(..., for_rollout=True), allowing early termination for improved efficiency.
+        Depending on the transition type, overriding this method may yield better performance.
+        """
         if initial_node.is_terminal():
             return initial_node
-        
+
         current_node = initial_node
         while True:
-            transitions = self.transitions(current_node)
-            if not transitions:
+            if self._is_for_rollout_defined:
+                children = self.next_nodes(current_node, for_rollout=True)
+            else:
+                children = self.next_nodes(current_node)
+                
+            if not children:
                 current_node.mark_as_terminal()
                 return current_node
             
-            _, next_nodes, probs = zip(*transitions)
-            next_node = random.choices(next_nodes, weights=probs, k=1)[0]
+            probs = [c.last_prob for c in children]
+            next_node = random.choices(children, weights=probs, k=1)[0]
             
             if next_node.has_reward():
                 return next_node
@@ -63,14 +76,19 @@ class TemplateTransition(Transition):
             raise ValueError(f"Invalid top_p range: {top_p}")
         self.top_p = top_p
         self.filter_counts = [0] * len(filters)
+        
         super().__init__(logger)
+        self._is_for_rollout_defined = "for_rollout" in inspect.signature(self._next_nodes_impl).parameters
         
     @abstractmethod
     def _next_nodes_impl(self, node: Node) -> list[Node]:
         pass
 
-    def next_nodes(self, node: Node):
-        raw_nodes = self._next_nodes_impl(node)
+    def next_nodes(self, node: Node, for_rollout: bool=False):
+        if self._is_for_rollout_defined:
+            raw_nodes = self._next_nodes_impl(node, for_rollout=for_rollout)
+        else:
+            raw_nodes = self._next_nodes_impl(node)
         result = []
         
         # apply filters

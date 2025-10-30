@@ -14,15 +14,15 @@ class GBGMTransition(TemplateTransition):
     GBGM paper: https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c
     """
     
-    def __init__(self, average_size: float=50.0, size_std: float=5.0, max_children: int=25, max_expansion_tries: int=5000, prob_ring_atom: float=0.63, prob_double=0.8, filters: list[Filter]=None, top_p=None, logger=None):
+    def __init__(self, size_mean: float=39.15, size_std: float=3.50, max_children: int=25, max_expansion_tries: int=1000, prob_ring_atom: float=0.63, prob_double=0.8, filters: list[Filter]=None, top_p=None, logger=None):
         """
         Args:
-            average_size: Used for the molecule size filter only if check_size is True.
+            size_mean: Used for the molecule size filter only if check_size is True.
             size_std: Used for the molecule size filter only if check_size is True.
             prob_ring_atom: The probability of adding ring atom
             record_actions: If True, used smirks will be recorded as actions in child nodes.
         """
-        self.average_size = average_size
+        self.size_mean = size_mean
         self.size_std = size_std
         self.max_children = max_children
         self.prob_ring_atom = prob_ring_atom
@@ -117,7 +117,7 @@ class GBGMTransition(TemplateTransition):
         return mol, smiles
 
     # implement
-    def _next_nodes_impl(self, node: CanonicalSMILESStringNode) -> list[CanonicalSMILESStringNode]:
+    def _next_nodes_impl(self, node: CanonicalSMILESStringNode, for_rollout: bool=False) -> list[CanonicalSMILESStringNode]:
         if node.has_reward():
             return []
         seen = set()
@@ -133,10 +133,12 @@ class GBGMTransition(TemplateTransition):
             if not smiles in seen:
                 seen.add(smiles)
                 children.append((mol, smiles))
+                if for_rollout:
+                    break
         
         results = []
         for i, (mol, smiles) in enumerate(children):
-            if mol.GetNumAtoms() > self.size_std*np.random.randn() + self.average_size:
+            if mol.GetNumAtoms() > self.size_std*np.random.randn() + self.size_mean:
                 s = smiles + node.eos
             else:
                 s = smiles
