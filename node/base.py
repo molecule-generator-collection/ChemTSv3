@@ -145,7 +145,7 @@ class Node(ABC):
         self.__dict__.update(state)
 
 class MolNode(Node):
-    use_inchikey_as_hash = False # Not fully implemented / tested yet
+    # use_inchikey_as_hash = False # Not fully implemented / tested yet
     
     @abstractmethod
     def key(self) -> str:
