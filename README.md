@@ -123,7 +123,7 @@ python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_g
 
 ## Notebooks
 - **Tutorials**: `sandbox/tutorial/***.ipynb`
-- **YAML-based Generation**: `sandbox/generation.ipynb`
+- **Generation via notebook**: `sandbox/generation.ipynb`
 - **Model training**: `sandbox/train_rnn.ipynb` and `sandbox/train_gpt2.ipynb`
 
 ## Optional Dependencies
