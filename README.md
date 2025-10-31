@@ -1,5 +1,9 @@
-# ChemTSv3
-Temporary repository for ChemTSv3
+## ChemTSv3
+A unified tree search framework for molecular generation.
+- **Node is modular**: Supports any molecular representation (e.g., SMILES, SELFIES, FASTA, or HELM) in either string or tensor format.
+- **Transition is modular**: Allows any molecular transformation strategy, including graph-based editing, sequence generation with RNN or GPT-2, sequence mutation, or LLM-guided modification.
+- **Filter is modular**: Enables flexible constraints such as structural alerts, scaffold preservation, or physicochemical property filters.
+- **Reward is modular**: Anything can be optimized, including QSAR predictions or simulation results, for both single- and multi-objective tasks.
 
 ## Setup
 
