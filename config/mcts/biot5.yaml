@@ -13,6 +13,9 @@ transition_args:
     - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value while preserving the core scaffold. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
     - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value by appending a single fragment. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
     - "Definition: You are given a molecule SELFIES. Your job is to generate a SELFIES molecule that improve LogP value by modifying a single fragment. Now complete the following example - Input: <bom>###STRING###<eom> Output: "
+  filters:
+  - filter_class: ValidityFilter
+  - filter_class: ConnectivityFilter
 
 reward_class: LogPReward
 
