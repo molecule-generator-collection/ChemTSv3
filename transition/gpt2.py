@@ -51,7 +51,7 @@ class GPT2Transition(AutoRegressiveTransition):
     def next_nodes(self, node: SentenceNode) -> list[SentenceNode]:
         if node.id_tensor[0][-1] == self.lang.eos_id():
             return []
-        if len(node.id_tensor[0]) >= self.max_length():
+        if len(node.id_tensor[0]) >= self.max_length() - 1: # needs -1
             return []
 
         with torch.no_grad():
