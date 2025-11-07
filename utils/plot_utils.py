@@ -42,22 +42,21 @@ def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, 
     else:
         plt.grid(axis="y")
          
-    
     if moving_average_window is not None:
         label = f"moving average ({moving_average_window})"
         y_ma = moving_average(y, moving_average_window)
         plt.plot(x, y_ma, label=label, linewidth=linewidth)
         if top_ps is not None:
-                for p in top_ps:
-                    if 0 < p < 1:
-                        y_ma_top = moving_average(y, moving_average_window, top_p=p)
-                        label_top = f"top-{int(p*100)}% moving average"
-                        plt.plot(x, y_ma_top, label=label_top, linewidth=linewidth)
+            for p in top_ps:
+                if 0 < p < 1:
+                    y_ma_top = moving_average(y, moving_average_window, top_p=p)
+                    label_top = f"top-{int(p*100)}% moving average"
+                    plt.plot(x, y_ma_top, label=label_top, linewidth=linewidth)
+                else:
+                    if logger is not None:
+                        logger.warning(f"Ignored top_p={p} in top_ps (must be in (0,1))")
                     else:
-                        if logger is not None:
-                            logger.warning(f"Ignored top_p={p} in top_ps (must be in (0,1))")
-                        else:
-                            print(f"Ignored top_p={p} in top_ps (must be in (0,1))")
+                        print(f"Ignored top_p={p} in top_ps (must be in (0,1))")
 
     if max_curve:
         y_max_curve = np.maximum.accumulate(y)

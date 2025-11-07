@@ -144,6 +144,16 @@ def moving_average(values: list[float], window: float=0.05, top_p: float=None) -
         tail = np.convolve(values, np.ones(window)/window, mode='valid')
     return np.array(head + list(tail))
 
+def moving_average_and_std(values: list[float], window: float=0.05) -> np.ndarray:
+    if window < 1:
+        window = max(1, math.floor(len(values) * window))
+    window = min(window, len(values))
+    
+    head = [np.nan] * (window - 1)
+    avgs = np.convolve(values, np.ones(window)/window, mode='valid')
+    stds = np.array([np.std(values[i:i+window]) for i in range(len(values) - window + 1)])
+    return np.array(head + list(avgs)), np.array(head + list(stds))
+
 def max_gauss(x, a=1, mu=8, sigma=2):
     if x > mu:
         return 1
