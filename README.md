@@ -121,14 +121,23 @@ python sandbox/generation.py -c config/mcts/example_chain_1.yaml
 python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_generations 100 --time_limit 60
 ```
 
+## Main Options
+
+|Class|Option|Description|
+|---|---|---|
+|-|`max_generations`|Stops generation after producing the specified number of molecules.|
+|-|`time_limit`|Stops generation once the time limit (in seconds) is reached.|
+|`UCT`, `PUCT`|`c`|A larger value prioritizes exploration over exploitation. Recommended range: 0.01–1.|
+|`UCT`, `PUCT`|`best_rate`|A value between 0 and 1. The exploitation term is calculated as: `best_rate` * {best reward} + (1 - `best_rate`) * {average reward}.|
+
 ## Notebooks
 - **Tutorials**: `sandbox/tutorial/***.ipynb`
 - **Generation via notebook**: `sandbox/generation.ipynb`
 
 ## Model training
-- **RNN (GRU) training example**: `python sandbox/model_training.py -c config/training/train_rnn_smiles.yaml`
-- **Transformer (GPT-2) training example**: `python sandbox/model_training.py -c config/training/train_gpt2.yaml`
-Change `dataset_path` to train on an arbitrary dataset (1 sentence per line).
+- **RNN (GRU) training** (example): `python sandbox/model_training.py -c config/training/train_rnn_smiles.yaml`
+- **Transformer (GPT-2) training** (example): `python sandbox/model_training.py -c config/training/train_gpt2.yaml`
+Change `dataset_path` in YAML to train on an arbitrary dataset (1 sentence per line).
 
 ## Optional Dependencies
 - `lightgbm` — required for **DScoreReward**, **DyRAMOReward**, **PUCTWithPredictor** / tested version: 3.3.5, 4.6.0
