@@ -121,7 +121,7 @@ python sandbox/generation.py -c config/mcts/example_chain_1.yaml
 python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_generations 100 --time_limit 60
 ```
 
-## Main Options
+## Main options
 
 |Class|Option|Description|
 |---|---|---|
