@@ -111,7 +111,7 @@ In some cases (for example, when setting up environments on a control node), it 
 </details>
 
 ## Generation via CLI
-See `config/mcts/example.yaml` for setting options. For chain settings, refer to `config/mcts/example_chain_*.yaml`.
+See `config/mcts/example.yaml` for setting options.
 ```bash
 # Simple generation
 python sandbox/generation.py -c config/mcts/example.yaml
@@ -121,18 +121,38 @@ python sandbox/generation.py -c config/mcts/example_chain_1.yaml
 python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_generations 100 --time_limit 60
 ```
 
-## Main options
+## Notebooks
+- **Tutorials**: `sandbox/tutorial/***.ipynb`
+- **Generation via notebook**: `sandbox/generation.ipynb`
 
+## Main options
+See `config/mcts/example.yaml` for an example and advanced options.
+All options for each component (class) are defined as arguments in the `__init__()` method of the corresponding class.
+
+**Node / Transition**:
+|Node class|Transition class|Description|
+|---|---|---|
+|`MolSentenceNode`|`RNNTransition`|For de novo generation. Uses the specified RNN (GRU / LSTM) model.|
+|`MolSentenceNode`|`GPT2Transition`|For de novo generation. Uses the specified Transformer (GPT-2) model.|
+|`CanonicalSMILESStringNode`|`GBGATransition`|For lead optimization. Uses GB-GA mutation rules.|
+|`CanonicalSMILESStringNode`|`SMIRKSTransition`|For lead optimization. Uses the specified SMIRKS rules (e.g. MMP-based).|
+|`SMILESStringNode`|`ChatGPTTransition`|For lead optimization. Uses the specified prompt(s). Requires OpenAI API key.|
+
+
+**Policy**:
+- `UCT`: Does not use transition probabilities. Performed better with `RNNTransition` in our testing.
+- `PUCT`: Incorporates transition probabilities. Performed better with `GBGATransition` in our testing.
+- `PUCTWithPredictor`: Trains a predictor from the generation history and uses it when the prediction score exceeds a threshold. This option adds a few seconds of overhead per generation (depending on the number of child nodes per transition and the computational cost of each prediction), and is recommended only when reward functions are expensive. For non-molecular nodes, a function that returns a feature vector must be defined  (see `policy/puct_with_predictor.py` for details.)
+
+**Options and arguments**
 |Class|Option|Description|
 |---|---|---|
 |-|`max_generations`|Stops generation after producing the specified number of molecules.|
 |-|`time_limit`|Stops generation once the time limit (in seconds) is reached.|
+|-|`root`|Key (string) for the root node (e.g. Canonical SMILES of the starting molecule for `CanonicalSMILESStringNode`). If `root` is not specified, an empty string "" will be used as the root node's key.|
 |`UCT`, `PUCT`|`c`|A larger value prioritizes exploration over exploitation. Recommended range: 0.01–1.|
 |`UCT`, `PUCT`|`best_rate`|A value between 0 and 1. The exploitation term is calculated as: `best_rate` * {best reward} + (1 - `best_rate`) * {average reward}.|
-
-## Notebooks
-- **Tutorials**: `sandbox/tutorial/***.ipynb`
-- **Generation via notebook**: `sandbox/generation.ipynb`
+|`MCTS`|`n_eval_width`|By default (= ∞), evaluates all new leaf nodes after each transition. Setting `n_eval_width = 1` often improves sample efficiency and can be beneficial when reward computation is expensive.|
 
 ## Model training
 - **RNN (GRU) training** (example): `python sandbox/model_training.py -c config/training/train_rnn_smiles.yaml`
