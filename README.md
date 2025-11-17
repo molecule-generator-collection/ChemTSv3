@@ -126,7 +126,8 @@ python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_g
 - **Generation via notebook**: `sandbox/generation.ipynb`
 
 ## Main options
-See `config/mcts/example.yaml` for an example and advanced options.
+See `config/mcts/example.yaml` for an example and advanced options. More examples (settings used in the paper) can be found in `config/mcts/egfr_de_novo` and `config/mcts/egfr_lead_opt`.
+
 All options for each component (class) are defined as arguments in the `__init__()` method of the corresponding class.
 
 **Node / Transition**:
@@ -135,9 +136,8 @@ All options for each component (class) are defined as arguments in the `__init__
 |`MolSentenceNode`|`RNNTransition`|For de novo generation. Uses the specified RNN (GRU / LSTM) model.|
 |`MolSentenceNode`|`GPT2Transition`|For de novo generation. Uses the specified Transformer (GPT-2) model.|
 |`CanonicalSMILESStringNode`|`GBGATransition`|For lead optimization. Uses GB-GA mutation rules.|
-|`CanonicalSMILESStringNode`|`SMIRKSTransition`|For lead optimization. Uses the specified SMIRKS rules (e.g. MMP-based).|
+|`CanonicalSMILESStringNode`|`SMIRKSTransition`|For lead optimization. Uses the specified SMIRKS rules (e.g. MMP-based ones).|
 |`SMILESStringNode`|`ChatGPTTransition`|For lead optimization. Uses the specified prompt(s). Requires OpenAI API key.|
-
 
 **Policy**:
 - `UCT`: Does not use transition probabilities. Performed better with `RNNTransition` in our testing.
