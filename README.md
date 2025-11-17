@@ -124,7 +124,11 @@ python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_g
 ## Notebooks
 - **Tutorials**: `sandbox/tutorial/***.ipynb`
 - **Generation via notebook**: `sandbox/generation.ipynb`
-- **Model training**: `sandbox/train_rnn.ipynb` and `sandbox/train_gpt2.ipynb`
+
+## Model training
+- **RNN (GRU) training example: `python sandbox/model_training.py -c config/training/train_rnn_smiles.yaml`
+- **Transformer (GPT-2) training example: `python sandbox/model_training.py -c config/training/train_gpt2.yaml`
+Change `dataset_path` to train on an arbitrary dataset (1 sentence per line).
 
 ## Optional Dependencies
 - `lightgbm` — required for **DScoreReward**, **DyRAMOReward**, **PUCTWithPredictor** / tested version: 3.3.5, 4.6.0
