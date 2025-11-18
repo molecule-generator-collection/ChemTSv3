@@ -125,7 +125,7 @@ python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_g
 - **Tutorials**: `sandbox/tutorial/***.ipynb`
 - **Generation via notebook**: `sandbox/generation.ipynb`
 
-## Main options
+## Options
 See `config/mcts/example.yaml` for an example and advanced options. More examples (settings used in the paper) can be found in `config/mcts/egfr_de_novo` and `config/mcts/egfr_lead_opt`.
 
 All options for each component (class) are defined as arguments in the `__init__()` method of the corresponding class.
@@ -144,23 +144,35 @@ All options for each component (class) are defined as arguments in the `__init__
 - `PUCT`: Incorporates transition probabilities. Performed better with `GBGATransition` in our testing.
 - `PUCTWithPredictor`: Trains a predictor from the generation history and uses it when the prediction score exceeds a threshold. This option adds a few seconds of overhead per generation (depending on the number of child nodes per transition and the computational cost of each prediction), and is recommended only when reward functions are expensive. For non-molecular nodes, a function that returns a feature vector must be defined  (see `policy/puct_with_predictor.py` for details.)
 
-**Options and arguments**
-|Class|Option|Description|
-|---|---|---|
-|-|`max_generations`|Stops generation after producing the specified number of molecules.|
-|-|`time_limit`|Stops generation once the time limit (in seconds) is reached.|
-|-|`root`|Key (string) for the root node (e.g. Canonical SMILES of the starting molecule for `CanonicalSMILESStringNode`). If `root` is not specified, an empty string "" will be used as the root node's key.|
-|`UCT`, `PUCT`|`c`|A larger value prioritizes exploration over exploitation. Recommended range: 0.01–1.|
-|`UCT`, `PUCT`|`best_rate`|A value between 0 and 1. The exploitation term is calculated as: `best_rate` * {best reward} + (1 - `best_rate`) * {average reward}.|
-|`MCTS`|`n_eval_width`|By default (= ∞), evaluates all new leaf nodes after each transition. Setting `n_eval_width = 1` often improves sample efficiency and can be beneficial when reward computation is expensive.|
+**Basic options**
+|Class|Option|Default|Description|
+|---|---|---|---|
+|-|`max_generations`|-|Stops generation after producing the specified number of molecules.|
+|-|`time_limit`|-|Stops generation once the time limit (in seconds) is reached.|
+|-|`root`|""|Key (string) for the root node (e.g. Canonical SMILES of the starting molecule for `CanonicalSMILESStringNode`). If `root` is not specified, an empty string "" will be used as the root node's key.|
+|`UCT`, `PUCT`|`c`|0.3|A larger value prioritizes exploration over exploitation. Recommended range: 0.01–1.|
+|`UCT`, `PUCT`|`best_rate`|0|A value between 0 and 1. The exploitation term is calculated as: `best_rate` * {best reward} + (1 - `best_rate`) * {average reward}. For better sample efficiency, it might be better to set this value to around 0.5 for de novo generations, and around 0.9 for lead optimizations.|
+|`MCTS`|`n_eval_width`|∞|By default (= ∞), evaluates all new leaf nodes after each transition. Setting `n_eval_width = 1` often improves sample efficiency and can be beneficial when reward computation is expensive.|
+
+**Advanced options**
+|Class|Option|Default|Description|
+|---|---|---|---|
+|`UCT`, `PUCT`|`max_prior`|None (0)|A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.|
+|`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
+|`MCTS`|`n_tries`|1|The number of attempts to obtain an unfiltered node in a single evaluation. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
+|`MCTS`|`allow_eval_overlaps`|False|Whether to allow overlap nodes when sampling eval candidates (recommended: False)|
+|`MCTS`|`cut_failed_child`|False|If True, child nodes will be removed when {n_eval_iters * n_tries} evals are filtered.|
 
 ## Model training
 - **RNN (GRU) training** (example): `python sandbox/model_training.py -c config/training/train_rnn_smiles.yaml`
 - **Transformer (GPT-2) training** (example): `python sandbox/model_training.py -c config/training/train_gpt2.yaml`
 Change `dataset_path` in YAML to train on an arbitrary dataset (1 sentence per line).
 
-## Optional Dependencies
-- `lightgbm` — required for **DScoreReward**, **DyRAMOReward**, **PUCTWithPredictor** / tested version: 3.3.5, 4.6.0
-- `selfies` — required for **SELFIESStringNode** / tested version: 2.2.0
-- `openai` — required for **ChatGPT2Transition**, **ChatGPT2TransitionWithMemory** / tested version: 2.6.0
-- `pytdc` — required for **TDCReward** / tested version: 1.1.14
+## Optional dependencies
+|Package|Required for|Tested version|
+|---|---|---|
+|`lightgbm`|`DScoreReward`, `DyRAMOReward`, `PUCTWithPredictor`|3.3.5, 4.6.0|
+|`selfies`|`SELFIESStringNode`|2.2.0|
+|`openai`|`ChatGPT2Transition`, `ChatGPT2TransitionWithMemory`|2.6.0|
+|`pytdc`|`TDCReward`|1.1.14|
+
