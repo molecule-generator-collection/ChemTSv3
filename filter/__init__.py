@@ -18,6 +18,7 @@ from .substructure_filter import SubstructureFilter
 from .tpsa_filter import TPSAFilter
 from .validity_filter import ValidityFilter
 from .weight_filter import WeightFilter
+from .oota_cho_filter import OotaChoFilter
 
 # lazy import
 def __getattr__(name):
