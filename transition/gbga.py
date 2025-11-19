@@ -15,7 +15,7 @@ class GBGATransition(TemplateTransition):
     def __init__(self, base_chances=[0.15,0.14,0.14,0.14,0.14,0.14,0.15], check_size: bool=False, average_size: float=50.0, size_std: float=5.0, check_ring: bool=True, merge_duplicates: bool=True, record_actions: bool=False, filters: list[Filter]=None, top_p=None, logger=None):
         """
         Args:
-            base_chances: chances of [insert_atom, change_bond_order, delete_cyclic_bond, add_ring, delete_atom, change_atom, append_atom]
+            base_chances: Chances of [insert_atom, change_bond_order, delete_cyclic_bond, add_ring, delete_atom, change_atom, append_atom]
             average_size: Used for the molecule size filter only if check_size is True.
             size_std: Used for the molecule size filter only if check_size is True.
             record_actions: If True, used smirks will be recorded as actions in child nodes.
