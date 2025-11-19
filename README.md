@@ -151,11 +151,13 @@ All options for each component (class) are defined as arguments in the `__init__
 |-|`time_limit`|-|Stops generation once the time limit (in seconds) is reached.|
 |-|`root`|""|Key (string) for the root node (e.g. Canonical SMILES of the starting molecule for `CanonicalSMILESStringNode`). If `root` is not specified, an empty string "" will be used as the root node's key.|
 |`MCTS`|`n_eval_width`|∞|By default (= ∞), evaluates all new leaf nodes after each transition. Setting `n_eval_width = 1` often improves sample efficiency and can be beneficial when reward computation is expensive.|
-|`MCTS`|`filter_reward`|0|Substitutes the reward with this value when nodes are filtered. Use a list to specify different reward values for each filtering step. Set to "ignore" to skip reward assignment (in this case, other penalty types for filtered nodes, such as `failed_parent_reward`, needs to be set).|
+|`MCTS`|`filter_reward`|0|Substitutes the reward with this value when nodes are filtered. Use a list to specify different reward values for each filtering step. Set to `"ignore"` to skip reward assignment (in this case, other penalty types for filtered nodes, such as `failed_parent_reward`, needs to be set).|
 |`UCT`, `PUCT`|`c`|0.3|A larger value prioritizes exploration over exploitation. Recommended range: 0.01–1.|
 |`UCT`, `PUCT`|`best_rate`|0|A value between 0 and 1. The exploitation term is calculated as: `best_rate` * {best reward} + (1 - `best_rate`) * {average reward}. For better sample efficiency, it might be better to set this value to around 0.5 for de novo generations, and around 0.9 for lead optimizations.|
 
-**Advanced options**
+<details>
+  <summary><b>Advanced options</b></summary><br>
+  
 |Class|Option|Default|Description|
 |---|---|---|---|
 |`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
@@ -164,8 +166,8 @@ All options for each component (class) are defined as arguments in the `__init__
 |`MCTS`|`reward_cutoff`|None|Child nodes are removed if their reward is lower than this value. This applies only to nodes for which `has_reward() = True` (i.e., complete molecules). |
 |`MCTS`|`reward_cutoff_warmups`|None|If specified, reward_cutoff will be inactive until `reward_cutoff_warmups` generations.|
 |`MCTS`|`cut_failed_child`|False|If True, child nodes will be removed when {`n_eval_iters` * `n_tries`} evals are filtered.|
-|`MCTS`|`failed_parent_reward`|"ignore"|Backpropagate this value when {`n_eval_width` * `n_eval_iters` * `n_tries`} evals are filtered from the node.|
-|`MCTS`|`terminal_reward`|"ignore"|If a float value is set, that value is backpropagated when a leaf node reaches a terminal state. If set to "ignore", no value is backpropagated.|
+|`MCTS`|`failed_parent_reward`|`"ignore"`|Backpropagate this value when {`n_eval_width` * `n_eval_iters` * `n_tries`} evals are filtered from the node.|
+|`MCTS`|`terminal_reward`|`"ignore"`|If a float value is set, that value is backpropagated when a leaf node reaches a terminal state. If set to `"ignore"`, no value is backpropagated.|
 |`MCTS`|`cut_terminal`|True|If True, terminal nodes are pruned from the search tree and will not be visited more than once.|
 |`MCTS`|`avoid_duplicates`|True|If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to False to reduce memory usage.|
 |`MCTS`|`discard_unneeded_states`|True|If True, discards node variables that are no longer needed after expansion. Set this to False when using custom classes that utilize these values.|
@@ -177,6 +179,8 @@ All options for each component (class) are defined as arguments in the `__init__
 |`RNNTransition`|`sharpness`|1| Probability distribution sharpness > 0 applied **after** top_p; values < 1.0 smooth, > 1.0 sharp.|
 |`RNNTransition`|`disable_top_p_on_rollout`|False| If True, top_p won't be applied for rollouts.|
 |`SMIRKSTransition`|`limit`|None| If the number of generated SMILES exceeded this value, stops applying further SMIRKS patterns. The order of SMIRKS patterns are shuffled with weights before applying transition if this option is enabled.|
+
+</details>
 
 ## Model training
 - **RNN (GRU) training** (example): `python sandbox/model_training.py -c config/training/train_rnn_smiles.yaml`
