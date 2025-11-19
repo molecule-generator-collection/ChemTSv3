@@ -210,9 +210,9 @@ All options for each component (class) are defined as arguments in the `__init__
 |`UCT`, `PUCT`|`max_prior`|None (0)|A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.|
 |`UCT`, `PUCT`|`epsilon`|0|The probability of randomly selecting a child node while descending the search tree.|
 |`RNNTransition`, `GPT2Transition`|`top_p`|0.995| Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`.|
-|`RNNTransition`, `GPT2Transition`|`temperature`|1| Logit temperature > 0 applied **before** top_p; values < 1.0 sharp, > 1.0 smooth.|
-|`RNNTransition`|`sharpness`|1| Probability distribution sharpness > 0 applied **after** top_p; values < 1.0 smooth, > 1.0 sharp.|
-|`RNNTransition`|`disable_top_p_on_rollout`|False| If True, top_p won't be applied for rollouts.|
+|`RNNTransition`, `GPT2Transition`|`temperature`|1| Logit temperature > 0 applied **before** `top_p`; values < 1.0 sharp, > 1.0 smooth.|
+|`RNNTransition`|`sharpness`|1| Probability distribution sharpness > 0 applied **after** `top_p`; values < 1.0 smooth, > 1.0 sharp.|
+|`RNNTransition`|`disable_top_p_on_rollout`|False| If True, `top_p` won't be applied for rollouts.|
 |`SMIRKSTransition`|`limit`|None| If the number of generated SMILES exceeded this value, stops applying further SMIRKS patterns. The order of SMIRKS patterns are shuffled with weights before applying transition if this option is enabled.|
 
 </details>
