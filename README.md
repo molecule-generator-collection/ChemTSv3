@@ -10,13 +10,13 @@ A unified tree search framework for molecular generation.
 <details>
   <summary><b>Minimal installation (Mac, Linux)</b></summary><br>
 
-## Available classes
+### Available classes
 - **Transition**: `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`
 - **Policy**: `UCT`, `PUCT`
 - The corresponding Node classes and all implemented Filter classes are also available in this environment.
 
-## Setup steps
+### Setup steps
 
 1. Clone the repository
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
@@ -42,13 +42,13 @@ deactivate
 <details>
   <summary><b>Minimal installation (Windows)</b></summary><br>
 
-## Available classes
+### Available classes
 - **Transition**: `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`
 - **Policy**: `UCT`, `PUCT`
 - The corresponding Node classes and all implemented Filter classes are also available in this environment.
 
-## Setup steps
+### Setup steps
 
 1. Clone the repository
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
@@ -74,13 +74,13 @@ deactivate
 <details>
   <summary><b>Full installation (Mac, Linux)</b></summary><br>
   
-## Available classes
+### Available classes
 - **Transition**: `BioT5Transition`, `ChatGPTTransition`, `ChatGPTTransitionWithMemory`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `DScoreReward`, `DyRAMOReward`, `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`, `TDCReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
 - `ChatGPTTransition` and `ChatGPTTransitionWithMemory` requires openai api key to use.
 
-## Setup steps
+### Setup steps
 1. Clone the repository
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
 3. Restart the shell
@@ -118,7 +118,7 @@ The full installation includes the following optional packages:
 <details>
   <summary><b>Troubleshooting</b></summary><br>
   
-## CUDA not available
+### CUDA not available
 In some cases (for example, when setting up environments on a control node), it may be necessary to reinstall torch with a different backend to enable CUDA support. However, since major implemented classes (including `RNNTransition`) are likely to run faster on the CPU, this is not strictly required. After reinstalling torch, you may also need to downgrade numpy to version 1.26.4 if it was upgraded during the process.
 </details>
   
