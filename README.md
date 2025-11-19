@@ -182,7 +182,7 @@ All options for each component (class) are defined as arguments in the `__init__
 |---|---|---|---|
 |-|`max_generations`|-|Stops generation after producing the specified number of molecules.|
 |-|`time_limit`|-|Stops generation once the time limit (in seconds) is reached.|
-|-|`root`|""|Key (string) for the root node (e.g. Canonical SMILES of the starting molecule for `CanonicalSMILESStringNode`). If `root` is not specified, an empty string "" will be used as the root node's key.|
+|-|`root`|`""`|Key (string) for the root node (e.g. SMILES of the starting molecule for `SMILESStringNode`). Multiple roots can be specified by list input. If not specified, an empty string `""` will be used as the root node's key.|
 |`MCTS`|`n_eval_width`|∞|By default (= ∞), evaluates all new leaf nodes after each transition. Setting `n_eval_width = 1` often improves sample efficiency and can be beneficial when reward computation is expensive.|
 |`MCTS`|`filter_reward`|0|Substitutes the reward with this value when nodes are filtered. Use a list to specify different reward values for each filtering step. Set to `"ignore"` to skip reward assignment (in this case, other penalty types for filtered nodes, such as `failed_parent_reward`, needs to be set).|
 |`UCT`, `PUCT`, `PUCTWithPredictor`|`c`|0.3|A larger value prioritizes exploration over exploitation. Recommended range: [0.01, 1]|
@@ -199,7 +199,15 @@ For other options and further details, please refer to each class’s `__init__(
 
 |Class|Option|Default|Description|
 |---|---|---|---|
-|`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
+|-|`seed`|-|The seed value for `random`, `np.random` and `torch`.|
+|-|`device`|-|Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For RNNTransition, using the CPU tends to be faster even in GPU environments.|
+|-|`debug`|False|If True, debug logging are enabled.|
+|-|`silent`|False|If True, console logging are disabled.|
+|-|`save_interval`|None|If True, periodically saves checkpoints during generation.|
+|-|`save_on_completion`|False|If True, saves a checkpoint upon completion of the generation.|
+|-|`next_yaml_path`|False|If a path to the YAML config for the next generator is set, the generated molecules will be passed for chain generation.|
+|-|`n_keys_to_pass`|3|Number of top-k generated molecules (keys) to be used as root nodes for the next generator.|
+|`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be > 1 unless the evaluations are undeterministic (e.g. involve rollouts).|
 |`MCTS`|`n_tries`|1|The number of attempts to obtain an unfiltered node in a single evaluation. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
 |`MCTS`|`allow_eval_overlaps`|False|Whether to allow overlap nodes when sampling eval candidates (recommended: False)|
 |`MCTS`|`reward_cutoff`|None|Child nodes are removed if their reward is lower than this value. This applies only to nodes for which `has_reward() = True` (i.e., complete molecules). |
@@ -215,11 +223,11 @@ For other options and further details, please refer to each class’s `__init__(
 |`UCT`, `PUCT`, `PUCTWithPredictor`|`epsilon`|0|The probability of randomly selecting a child node while descending the search tree.|
 |`PUCTWithPredictor`|`alpha`|0.9|Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used.|
 |`PUCTWithPredictor`|`score_threshold`|0.6|If the recent prediction score (1 - {pinball loss} / {baseline pinball loss}) is better than this threshold, the model will be used afterwards.|
-|`RNNTransition`, `GPT2Transition`|`top_p`|0.995| Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`.|
-|`RNNTransition`, `GPT2Transition`|`temperature`|1| Logit temperature > 0 applied **before** `top_p`; values < 1.0 sharp, > 1.0 smooth.|
+|`RNNTransition`, `GPT2Transition`|`top_p`|0.995|Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`.|
+|`RNNTransition`, `GPT2Transition`|`temperature`|1|Logit temperature > 0 applied **before** `top_p`; values < 1.0 sharp, > 1.0 smooth.|
 |`RNNTransition`|`sharpness`|1| Probability distribution sharpness > 0 applied **after** `top_p`; values < 1.0 smooth, > 1.0 sharp.|
-|`RNNTransition`|`disable_top_p_on_rollout`|False| If True, `top_p` won't be applied for rollouts.|
-|`SMIRKSTransition`|`limit`|None| If the number of generated SMILES exceeded this value, stops applying further SMIRKS patterns. The order of SMIRKS patterns are shuffled with weights before applying transition if this option is enabled.|
+|`RNNTransition`|`disable_top_p_on_rollout`|False|If True, `top_p` won't be applied for rollouts.|
+|`SMIRKSTransition`|`limit`|None|If the number of generated SMILES exceeded this value, stops applying further SMIRKS patterns. The order of SMIRKS patterns are shuffled with weights before applying transition if this option is enabled.|
 
 </details>
 
