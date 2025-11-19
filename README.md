@@ -223,6 +223,7 @@ For other options and further details, please refer to each class’s `__init__(
 |`UCT`, `PUCT`, `PUCTWithPredictor`|`epsilon`|0|The probability of randomly selecting a child node while descending the search tree.|
 |`PUCTWithPredictor`|`alpha`|0.9|Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used.|
 |`PUCTWithPredictor`|`score_threshold`|0.6|If the recent prediction score (1 - {pinball loss} / {baseline pinball loss}) is better than this threshold, the model will be used afterwards.|
+|`MolSentenceNode`, `SMILESStringNode`, `SELFIESStringNode`, `FASTAStringNode`|`use_canonical_smiles_as_key`|False|Whether to convert generated molecules to canonical SMILES when generating keys. If False, the same molecule may be counted multiple times.|
 |`RNNTransition`, `GPT2Transition`|`top_p`|0.995|Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`.|
 |`RNNTransition`, `GPT2Transition`|`temperature`|1|Logit temperature > 0 applied **before** `top_p`; values < 1.0 sharp, > 1.0 smooth.|
 |`RNNTransition`|`sharpness`|1| Probability distribution sharpness > 0 applied **after** `top_p`; values < 1.0 smooth, > 1.0 sharp.|
