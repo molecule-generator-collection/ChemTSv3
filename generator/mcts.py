@@ -24,7 +24,7 @@ class MCTS(Generator):
             allow_eval_overlaps: whether to allow overlap nodes when sampling eval candidates (recommended: False)
             n_eval_iters: the number of child node evaluations (rollouts for children that has_reward = False)
             n_tries: the number of attempts to obtain an unfiltered node in a single eval (should be 1 unless has_reward() can be False or filters are probabilistic)
-            filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
+            filter_reward: Substitutes the reward with this value when nodes are filtered. Use a list to specify different reward values for each filtering step. Set to "ignore" to skip reward assignment (in this case, other penalty types for filtered nodes, such as failed_parent_reward, needs to be set).
             cut_failed_child: If True, child nodes will be removed when {n_eval_iters * n_tries} evals are filtered.
             reward_cutoff: Child nodes will be removed if their reward is lower than this value.
             reward_cutoff_warmups: If specified, reward_cutoff will be inactive until {reward_cutoff_warmups} generations.
