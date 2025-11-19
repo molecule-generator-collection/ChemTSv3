@@ -31,8 +31,8 @@ class MCTS(Generator):
             avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to False to reduce memory usage.
             
             failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {n_eval_width * n_eval_iters * n_tries} evals are filtered from the node.
-            cut_terminal: (Set to False for v2 replication) If True, terminal nodes will be culled, and won't be visited twice.
-            terminal_reward: (Set to -1 for v2 replication) If "ignore", doesn't backpropagate anything. If float value, backpropagate specified value.
+            cut_terminal: (Set to False for v2 replication) If True, terminal nodes are pruned from the search tree and will not be visited more than once.
+            terminal_reward: (Set to -1 for v2 replication) If a float value is set, that value is backpropagated when a leaf node reaches a terminal state. If set to "ignore", no value is backpropagated.
             
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             discard_unneeded_states: If True, discards variables of nodes that will no longer be used after expansion.
