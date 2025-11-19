@@ -204,30 +204,30 @@ For other options and further details, please refer to each class’s `__init__(
 |-|`debug`|False|If True, debug logging are enabled.|
 |-|`silent`|False|If True, console logging are disabled.|
 |-|`save_interval`|None|If True, periodically saves checkpoints during generation.|
-|-|`save_on_completion`|False|If True, saves a checkpoint upon completion of the generation.|
+|-|`save​_on​_completion`|False|If True, saves a checkpoint upon completion of the generation.|
 |-|`next_yaml_path`|False|If a path to the YAML config for the next generator is set, the generated molecules will be passed for chain generation.|
 |-|`n_keys_to_pass`|3|Number of top-k generated molecules (keys) to be used as root nodes for the next generator.|
 |`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be > 1 unless the evaluations are undeterministic (e.g. involve rollouts).|
 |`MCTS`|`n_tries`|1|The number of attempts to obtain an unfiltered node in a single evaluation. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
-|`MCTS`|`allow_eval_overlaps`|False|Whether to allow overlap nodes when sampling eval candidates (recommended: False)|
+|`MCTS`|`allow​_eval​_overlaps`|False|Whether to allow overlap nodes when sampling eval candidates (recommended: False)|
 |`MCTS`|`reward_cutoff`|None|Child nodes are removed if their reward is lower than this value. This applies only to nodes for which `has_reward() = True` (i.e., complete molecules). |
-|`MCTS`|`reward_cutoff_warmups`|None|If specified, reward_cutoff will be inactive until `reward_cutoff_warmups` generations.|
+|`MCTS`|`reward​_cutoff​_warmups`|None|If specified, reward_cutoff will be inactive until `reward_cutoff_warmups` generations.|
 |`MCTS`|`cut_failed_child`|False|If True, child nodes will be removed when {`n_eval_iters` * `n_tries`} evals are filtered.|
-|`MCTS`|`failed_parent_reward`|`"ignore"`|Backpropagate this value when {`n_eval_width` * `n_eval_iters` * `n_tries`} evals are filtered from the node.|
+|`MCTS`|`failed​_parent​_reward`|`"ignore"`|Backpropagate this value when {`n_eval_width` * `n_eval_iters` * `n_tries`} evals are filtered from the node.|
 |`MCTS`|`terminal_reward`|`"ignore"`|If a float value is set, that value is backpropagated when a leaf node reaches a terminal state. If set to `"ignore"`, no value is backpropagated.|
 |`MCTS`|`cut_terminal`|True|If True, terminal nodes are pruned from the search tree and will not be visited more than once.|
 |`MCTS`|`avoid_duplicates`|True|If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to False to reduce memory usage.|
-|`MCTS`|`discard_unneeded_states`|True|If True, discards node variables that are no longer needed after expansion. Set this to False when using custom classes that utilize these values.|
+|`MCTS`|`discard​_unneeded​_states`|True|If True, discards node variables that are no longer needed after expansion. Set this to False when using custom classes that utilize these values.|
 |`UCT`, `PUCT`, `PUCTWithPredictor`|`pw_c`, `pw_alpha`, `pw_beta`|None, 0, 0|If `pw_c` is set, the number of available child nodes is limited to `pw_c` * ({visit count} ** `pw_alpha`) + `pw_beta`.|
 |`UCT`, `PUCT`, `PUCTWithPredictor`|`max_prior`|None (0)|A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.|
 |`UCT`, `PUCT`, `PUCTWithPredictor`|`epsilon`|0|The probability of randomly selecting a child node while descending the search tree.|
 |`PUCTWithPredictor`|`alpha`|0.9|Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used.|
 |`PUCTWithPredictor`|`score_threshold`|0.6|If the recent prediction score (1 - {pinball loss} / {baseline pinball loss}) is better than this threshold, the model will be used afterwards.|
-|`MolSentenceNode`, `SMILESStringNode`, `SELFIESStringNode`, `FASTAStringNode`|`use_canonical_smiles_as_key`|False|Whether to convert generated molecules to canonical SMILES when generating keys. If False, the same molecule may be counted multiple times.|
+|`MolSentenceNode​`, `MolStringNode`|`use​_canonical​_smiles​_as​_key`|False|Whether to convert generated molecules to canonical SMILES when generating keys. If False, the same molecule may be counted multiple times.|
 |`RNNTransition`, `GPT2Transition`|`top_p`|0.995|Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`.|
 |`RNNTransition`, `GPT2Transition`|`temperature`|1|Logit temperature > 0 applied **before** `top_p`; values < 1.0 sharp, > 1.0 smooth.|
 |`RNNTransition`|`sharpness`|1| Probability distribution sharpness > 0 applied **after** `top_p`; values < 1.0 smooth, > 1.0 sharp.|
-|`RNNTransition`|`disable_top_p_on_rollout`|False|If True, `top_p` won't be applied for rollouts.|
+|`RNNTransition`|`disable​_top​_p​_on​_rollout`|False|If True, `top_p` won't be applied for rollouts.|
 |`SMIRKSTransition`|`limit`|None|If the number of generated SMILES exceeded this value, stops applying further SMIRKS patterns. The order of SMIRKS patterns are shuffled with weights before applying transition if this option is enabled.|
 
 </details>
