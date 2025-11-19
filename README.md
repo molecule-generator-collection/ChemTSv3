@@ -10,13 +10,13 @@ A unified tree search framework for molecular generation.
 <details>
   <summary><b>Minimal installation (Mac, Linux)</b></summary><br>
 
-### Available classes
+## Available classes
 - **Transition**: `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`
 - **Policy**: `UCT`, `PUCT`
 - The corresponding Node classes and all implemented Filter classes are also available in this environment.
 
-### Setup steps
+## Setup steps
 
 1. Clone the repository
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
@@ -42,13 +42,13 @@ deactivate
 <details>
   <summary><b>Minimal installation (Windows)</b></summary><br>
 
-### Available classes
+## Available classes
 - **Transition**: `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`
 - **Policy**: `UCT`, `PUCT`
 - The corresponding Node classes and all implemented Filter classes are also available in this environment.
 
-### Setup steps
+## Setup steps
 
 1. Clone the repository
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
@@ -74,13 +74,13 @@ deactivate
 <details>
   <summary><b>Full installation (Mac, Linux)</b></summary><br>
   
-### Available classes
+## Available classes
 - **Transition**: `BioT5Transition`, `ChatGPTTransition`, `ChatGPTTransitionWithMemory`, `GBGATransition`, `GPT2Transition`, `RNNBasedMutation`, `RNNTransition`, `SMIRKSTransition`
 - **Reward**: `DScoreReward`, `DyRAMOReward`, `GFPReward`, `SimilarityReward`, `JScoreReward`, `LogPReward`, `TDCReward`
 - The corresponding Node classes, along with all implemented Filter and Policy classes, are also available in this environment.
 - `ChatGPTTransition` and `ChatGPTTransitionWithMemory` requires openai api key to use.
 
-### Setup steps
+## Setup steps
 1. Clone the repository
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
 3. Restart the shell
@@ -102,9 +102,21 @@ deactivate
 </details>
 
 <details>
+  <summary><b>Optional dependencies</b></summary><br>
+
+|Package|Required for|Tested version|
+|---|---|---|
+|`lightgbm`|`DScoreReward`, `DyRAMOReward`, `PUCTWithPredictor`|3.3.5, 4.6.0|
+|`selfies`|`SELFIESStringNode`|2.2.0|
+|`openai`|`ChatGPT2Transition`, `ChatGPT2TransitionWithMemory`|2.6.0|
+|`pytdc`|`TDCReward`|1.1.14|
+
+</details>
+
+<details>
   <summary><b>Troubleshooting</b></summary><br>
   
-### CUDA not available
+## CUDA not available
 In some cases (for example, when setting up environments on a control node), it may be necessary to reinstall torch with a different backend to enable CUDA support. However, since major implemented classes (including `RNNTransition`) are likely to run faster on the CPU, this is not strictly required. After reinstalling torch, you may also need to downgrade numpy to version 1.26.4 if it was upgraded during the process.
 </details>
   
@@ -126,11 +138,13 @@ python sandbox/generation.py -l sandbox/generation_result/~~~/checkpoint --max_g
 - **Generation via notebook**: `sandbox/generation.ipynb`
 
 ## Options
-See `config/mcts/example.yaml` for an example and advanced options. More examples (settings used in the paper) can be found in `config/mcts/egfr_de_novo` and `config/mcts/egfr_lead_opt`.
+See `config/mcts/example.yaml` for an example and advanced options. More examples (settings used in the paper) can be found in `config/mcts/egfr_de_novo/` and `config/mcts/egfr_lead_opt/`.
 
 All options for each component (class) are defined as arguments in the `__init__()` method of the corresponding class.
 
-**Node / Transition**:
+<details>
+  <summary><b>Nodes and Transitions</b></summary><br>
+
 |Node class|Transition class|Description|
 |---|---|---|
 |`MolSentenceNode`|`RNNTransition`|For de novo generation. Uses the specified RNN (GRU / LSTM) model.|
@@ -139,12 +153,20 @@ All options for each component (class) are defined as arguments in the `__init__
 |`CanonicalSMILESStringNode`|`SMIRKSTransition`|For lead optimization. Uses the specified SMIRKS rules (e.g. MMP-based ones).|
 |`SMILESStringNode`|`ChatGPTTransition`|For lead optimization. Uses the specified prompt(s). Requires OpenAI API key.|
 
-**Policy**:
+</details>
+
+<details>
+  <summary><b>Policies</b></summary><br>
+
 - `UCT`: Does not use transition probabilities. Performed better with `RNNTransition` in our testing.
 - `PUCT`: Incorporates transition probabilities. Performed better with `GBGATransition` in our testing.
 - `PUCTWithPredictor`: Trains a predictor from the generation history and uses it when the prediction score exceeds a threshold. This option adds a few seconds of overhead per generation (depending on the number of child nodes per transition and the computational cost of each prediction), and is recommended only when reward functions are expensive. For non-molecular nodes, a function that returns a feature vector must be defined  (see `policy/puct_with_predictor.py` for details.)
 
-**Basic options**
+</details>
+
+<details>
+  <summary><b>Basic options</b></summary><br>
+
 |Class|Option|Default|Description|
 |---|---|---|---|
 |-|`max_generations`|-|Stops generation after producing the specified number of molecules.|
@@ -152,8 +174,10 @@ All options for each component (class) are defined as arguments in the `__init__
 |-|`root`|""|Key (string) for the root node (e.g. Canonical SMILES of the starting molecule for `CanonicalSMILESStringNode`). If `root` is not specified, an empty string "" will be used as the root node's key.|
 |`MCTS`|`n_eval_width`|∞|By default (= ∞), evaluates all new leaf nodes after each transition. Setting `n_eval_width = 1` often improves sample efficiency and can be beneficial when reward computation is expensive.|
 |`MCTS`|`filter_reward`|0|Substitutes the reward with this value when nodes are filtered. Use a list to specify different reward values for each filtering step. Set to `"ignore"` to skip reward assignment (in this case, other penalty types for filtered nodes, such as `failed_parent_reward`, needs to be set).|
-|`UCT`, `PUCT`|`c`|0.3|A larger value prioritizes exploration over exploitation. Recommended range: 0.01–1.|
+|`UCT`, `PUCT`|`c`|0.3|A larger value prioritizes exploration over exploitation. Recommended range: [0.01, 1]|
 |`UCT`, `PUCT`|`best_rate`|0|A value between 0 and 1. The exploitation term is calculated as: `best_rate` * {best reward} + (1 - `best_rate`) * {average reward}. For better sample efficiency, it might be better to set this value to around 0.5 for de novo generations, and around 0.9 for lead optimizations.|
+
+</details>
 
 <details>
   <summary><b>Advanced options</b></summary><br>
@@ -182,16 +206,32 @@ All options for each component (class) are defined as arguments in the `__init__
 
 </details>
 
+<details>
+  <summary><b>Filters</b></summary><br>
+
+- `ValidityFilter`: Excludes invalid molecule objects. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
+- `SubstructureFilter`: Excludes molecules that **do not** contain the specified (list of) substructure(s) by `smiles` or `smarts` arguments. If `preserve` is set to False, excludes molecules that **do** contain the specified (list of) substructure(s) instead. By specifying appropriate SMARTS patterns, it is possible to control where substitutions or structural modifications (i.e., adding a substituent or arm) are allowed to occur.
+  
+- `AromaticRingFilter`: Excludes molecules whose number of aromatic rings falls outside the range [min, max]. (Default: [1, ∞))
+- `CatalogFilter`: Excludes molecules based on the specified list of `rdkit.Chem.FilterCatalogParams.FilterCatalogs`. (ex. `catalogs = ["PAINS_A", "PAINS_B", "PAINS_C", "NIH", "BRENK"]`)
+- `ChargeFilter`: Excludes molecules whose formal charge is not 0.
+- `ConnectivityFilter`: Excludes molecules whose number of disconnected fragments is not 1.
+- `HBAFilter`: Excludes molecules whose number of hydrogen bond acceptors falls outside the range [min, max]. (Default: [0, 10])
+- `HBDFilter`: Excludes molecules whose number of hydrogen bond donors falls outside the range [min, max]. (Default: [0, 5])
+- `HeavyAtomCountFilter`: Excludes molecules whose number of heavy atoms falls outside the range [min, max]. (Default: [0, 45])
+- `LipinskiFilter`: Excludes molecules based on Lipinski’s Rule of Five. Set `rule_of` to 3 to apply the Rule of Three instead.
+- `LogPFilter`: Excludes molecules whose LogP value falls outside the range [min, max]. (Default: (-∞, 5])
+- `MaxRingSizeFilter`: Excludes molecules whose largest ring size falls outside the range [min, max]. (Default: [0, 6])
+- `RadicalFilter`: Excludes molecules whose number of radical electrons is not 0.
+- `RingBondFilter`: Excludes molecules containing ring allenes (`[R]=[R]=[R]`) or double bonds in small rings (`[r3,r4]=[r3,r4]`).
+- `RotatableBondsFilter`: Excludes molecules whose number of rotatable bonds falls outside the range [min, max]. (Default: [0, 10])
+- `SAScoreFilter`: Excludes molecules whose synthetic accessibility score (SA Score) falls outside the range [min, max]. (Default: [1, 3.5])
+- `TPSAFilter`: Excludes molecules whose topological polar surface area (TPSA) falls outside the range [min, max]. (Default: [0, 140])
+- `WeightFilter`: Excludes molecules whose molecular weight falls outside the range [min, max]. (Default: [0, 500])
+
+</details>
+
 ## Model training
 - **RNN (GRU) training** (example): `python sandbox/model_training.py -c config/training/train_rnn_smiles.yaml`
 - **Transformer (GPT-2) training** (example): `python sandbox/model_training.py -c config/training/train_gpt2.yaml`
 Change `dataset_path` in YAML to train on an arbitrary dataset (1 sentence per line).
-
-## Optional dependencies
-|Package|Required for|Tested version|
-|---|---|---|
-|`lightgbm`|`DScoreReward`, `DyRAMOReward`, `PUCTWithPredictor`|3.3.5, 4.6.0|
-|`selfies`|`SELFIESStringNode`|2.2.0|
-|`openai`|`ChatGPT2Transition`, `ChatGPT2TransitionWithMemory`|2.6.0|
-|`pytdc`|`TDCReward`|1.1.14|
-
