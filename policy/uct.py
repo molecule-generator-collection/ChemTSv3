@@ -13,8 +13,9 @@ class UCT(ScoreBasedPolicy):
             best_rate: A value between 0 and 1. The exploitation term is computed as 
                        best_rate * (best reward) + (1 - best_rate) * (average reward).
             max_prior: A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.
-            pw_c: Used for progressive widening.
+            pw_c: Used for progressive widening. If `pw_c` is set, the number of available child nodes is limited to `pw_c` * ({visit count} ** `pw_alpha`) + `pw_beta`.
             pw_alpha: Used for progressive widening.
+            pw_beta: Used for progressive widening.
         """
         if type(c) == Callable:
             self.c = c
