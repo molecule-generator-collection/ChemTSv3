@@ -3,6 +3,9 @@ from rdkit.Chem.FilterCatalog import FilterCatalogParams
 from filter import MolFilter
 
 class CatalogFilter(MolFilter):
+    """
+    Excludes molecules based on the specified list of `rdkit.Chem.FilterCatalogParams.FilterCatalogs`. (ex. `catalogs = ["PAINS", "NIH", "BRENK"]`)
+    """
     VALID_CATALOGS = {
         "PAINS_A": FilterCatalogParams.FilterCatalogs.PAINS_A, 
         "PAINS_B": FilterCatalogParams.FilterCatalogs.PAINS_B, 
@@ -22,7 +25,7 @@ class CatalogFilter(MolFilter):
         "ALL":     FilterCatalogParams.FilterCatalogs.ALL
     }
     
-    def __init__(self, catalogs: list[str]=["A", "B", "C"]):
+    def __init__(self, catalogs: list[str]=["PAINS", "NIH"]):
         self.catalogs = [f.upper() for f in catalogs]
         
         params = FilterCatalogParams()

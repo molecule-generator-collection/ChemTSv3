@@ -3,6 +3,9 @@ from rdkit.Chem import Mol
 from filter import MolValueFilter
 
 class ChargeFilter(MolValueFilter):
+    """
+    Excludes molecules whose formal charge is not 0.
+    """
     def __init__(self, allowed=0, disallowed=None, max=None, min=None):
         super().__init__(allowed=allowed, disallowed=disallowed, max=max, min=min)
         

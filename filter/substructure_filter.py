@@ -5,6 +5,7 @@ from filter import MolFilter
 class SubstructureFilter(MolFilter):
     def __init__(self, smiles: str | list[str]=None, smarts: str | list[str]=None, kekulize: bool=False, preserve: bool=True):
         """
+        Excludes molecules that do not contain the specified (list of) substructure(s) by smiles or smarts arguments. If preserve is set to False, excludes molecules that do contain the specified (list of) substructure(s) instead. By specifying appropriate SMARTS patterns, it is possible to control where substitutions or structural modifications (i.e., adding a substituent or arm) are allowed to occur.
         Args:
             preserve: If True, pass molecules WITH all of the specified substructures. If False, pass molecules WITHOUT any of the specified substructures.
         """

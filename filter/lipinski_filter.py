@@ -3,7 +3,10 @@ from filter import MolFilter
 
 class LipinskiFilter(MolFilter):
     def __init__(self, rule_of: int=5, max_weight=None, max_log_p=None, max_hydrogen_bond_donors=None, max_hydrogen_bond_acceptors=None, max_rotatable_bonds=None):
-        """Prioritize max_*** over rule_of value."""
+        """
+        Excludes molecules based on Lipinski’s Rule of Five. Set `rule_of` to 3 to apply the Rule of Three instead.
+        Prioritize max_*** over rule_of value.
+        """
         if not (rule_of is None or rule_of == 3 or rule_of == 5):
             raise ValueError("rule_of must be either 5, 3, or None")
         

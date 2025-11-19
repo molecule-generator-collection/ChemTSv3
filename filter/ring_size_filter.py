@@ -1,8 +1,11 @@
-from rdkit.Chem import Mol, Descriptors
+from rdkit.Chem import Mol
 from filter import MolValueFilter
 
 class MaxRingSizeFilter(MolValueFilter):
     def __init__(self, max=6, min=None, allowed=None, disallowed=None):
+        """
+        Excludes molecules whose largest ring size falls outside the range [min, max]. (Default: [0, 6])
+        """
         super().__init__(max=max, min=min, allowed=allowed, disallowed=disallowed)
         
     # implement

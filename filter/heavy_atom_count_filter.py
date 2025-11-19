@@ -3,6 +3,9 @@ from filter import MolValueFilter
 
 class HeavyAtomCountFilter(MolValueFilter):
     def __init__(self, max=45, min=None, allowed=None, disallowed=None):
+        """
+        Excludes molecules whose number of heavy atoms falls outside the range [min, max]. (Default: [0, 45])
+        """
         super().__init__(max=max, min=min, allowed=allowed, disallowed=disallowed)
         
     # implement

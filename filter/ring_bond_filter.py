@@ -4,6 +4,7 @@ from filter import MolFilter
 
 class RingBondFilter(MolFilter):
     """
+    Excludes molecules containing ring allenes (`[R]=[R]=[R]`) or double bonds in small rings (`[r3,r4]=[r3,r4]`).
     Ref: https://github.com/jensengroup/GB_GA/tree/master by Jan H. Jensen 2018
     """
     # implement
