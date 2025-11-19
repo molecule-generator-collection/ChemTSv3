@@ -171,7 +171,7 @@ All options for each component (class) are defined as arguments in the `__init__
 
 - `UCT`: Does not use transition probabilities. Performed better with `RNNTransition` in our testing.
 - `PUCT`: Incorporates transition probabilities (follows the modification introduced in AlphaGo Zero). Performed better with `GBGATransition` in our testing.
-- `PUCTWithPredictor`: Trains an optimistic predictor of leaf-node evaluations using the generation history, and uses its output as the score for unvisited nodes when the model’s performance (measured by the normalized pinball loss) exceeds a specified threshold. This option adds a few seconds of overhead per generation (depending on the number of child nodes per transition and the computational cost of each prediction), and is recommended only when reward functions are expensive. Inherits all the arguments of `UCT` and `PUCT`. For non-molecular nodes, a function that returns a feature vector must be defined  (see `policy/puct_with_predictor.py` for details.)
+- `PUCTWithPredictor`: Trains an optimistic predictor of leaf-node evaluations using the generation history, and uses its output as the score for unvisited nodes when the model’s performance (measured by the normalized pinball loss) exceeds a specified threshold. This option adds a few seconds of overhead per generation (depending on the number of child nodes per transition and the computational cost of each prediction), and is recommended only when the reward calculations are expensive. Inherits all the arguments of `UCT` and `PUCT`. For non-molecular nodes, a function that returns a feature vector must be defined  (see `policy/puct_with_predictor.py` for details.)
 
 </details>
 
@@ -185,8 +185,8 @@ All options for each component (class) are defined as arguments in the `__init__
 |-|`root`|""|Key (string) for the root node (e.g. Canonical SMILES of the starting molecule for `CanonicalSMILESStringNode`). If `root` is not specified, an empty string "" will be used as the root node's key.|
 |`MCTS`|`n_eval_width`|∞|By default (= ∞), evaluates all new leaf nodes after each transition. Setting `n_eval_width = 1` often improves sample efficiency and can be beneficial when reward computation is expensive.|
 |`MCTS`|`filter_reward`|0|Substitutes the reward with this value when nodes are filtered. Use a list to specify different reward values for each filtering step. Set to `"ignore"` to skip reward assignment (in this case, other penalty types for filtered nodes, such as `failed_parent_reward`, needs to be set).|
-|`UCT`, `PUCT`|`c`|0.3|A larger value prioritizes exploration over exploitation. Recommended range: [0.01, 1]|
-|`UCT`, `PUCT`|`best_rate`|0|A value between 0 and 1. The exploitation term is calculated as: `best_rate` * {best reward} + (1 - `best_rate`) * {average reward}. For better sample efficiency, it might be better to set this value to around 0.5 for de novo generations, and around 0.9 for lead optimizations.|
+|`UCT`, `PUCT`, `PUCTWithPredictor`|`c`|0.3|A larger value prioritizes exploration over exploitation. Recommended range: [0.01, 1]|
+|`UCT`, `PUCT`, `PUCTWithPredictor`|`best_rate`|0|A value between 0 and 1. The exploitation term is calculated as: `best_rate` * {best reward} + (1 - `best_rate`) * {average reward}. For better sample efficiency, it might be better to set this value to around 0.5 for de novo generations, and around 0.9 for lead optimizations.|
 
 </details>
 
@@ -206,9 +206,11 @@ All options for each component (class) are defined as arguments in the `__init__
 |`MCTS`|`cut_terminal`|True|If True, terminal nodes are pruned from the search tree and will not be visited more than once.|
 |`MCTS`|`avoid_duplicates`|True|If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to False to reduce memory usage.|
 |`MCTS`|`discard_unneeded_states`|True|If True, discards node variables that are no longer needed after expansion. Set this to False when using custom classes that utilize these values.|
-|`UCT`, `PUCT`|`pw_c`, `pw_alpha`, `pw_beta`|None, 0, 0|If `pw_c` is set, the number of available child nodes is limited to `pw_c` * ({visit count} ** `pw_alpha`) + `pw_beta`.|
-|`UCT`, `PUCT`|`max_prior`|None (0)|A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.|
-|`UCT`, `PUCT`|`epsilon`|0|The probability of randomly selecting a child node while descending the search tree.|
+|`UCT`, `PUCT`, `PUCTWithPredictor`|`pw_c`, `pw_alpha`, `pw_beta`|None, 0, 0|If `pw_c` is set, the number of available child nodes is limited to `pw_c` * ({visit count} ** `pw_alpha`) + `pw_beta`.|
+|`UCT`, `PUCT`, `PUCTWithPredictor`|`max_prior`|None (0)|A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.|
+|`UCT`, `PUCT`, `PUCTWithPredictor`|`epsilon`|0|The probability of randomly selecting a child node while descending the search tree.|
+|`PUCTWithPredictor`|`alpha`|0.9|Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used.|
+|`PUCTWithPredictor`|`score_threshold`|0.6|If the recent prediction score (1 - {pinball loss} / {baseline pinball loss}) is better than this threshold, the model will be used afterwards.|
 |`RNNTransition`, `GPT2Transition`|`top_p`|0.995| Nucleus sampling threshold in (0, 1]; keeps the smallest probability mass ≥ `top_p`.|
 |`RNNTransition`, `GPT2Transition`|`temperature`|1| Logit temperature > 0 applied **before** `top_p`; values < 1.0 sharp, > 1.0 smooth.|
 |`RNNTransition`|`sharpness`|1| Probability distribution sharpness > 0 applied **after** `top_p`; values < 1.0 smooth, > 1.0 sharp.|
