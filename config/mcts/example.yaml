@@ -4,7 +4,7 @@ max_generations: 1000
 
 ### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to node_class_variables.###
 output_dir: generation_result
-device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
+device: cpu # Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For RNNTransition, using the CPU tends to be faster even in GPU environments.
 
 ### Logging Options ###
 debug: false # Set to true to enable debug logging
@@ -13,7 +13,7 @@ silent: false # Set to true to disable console logging
 ### Node Setting ###
 node_class: MolSentenceNode
 node_class_variables:
-  use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the Canonical SMILES (If set to false, the same molecule may be counted multiple times.)
+  use_canonical_smiles_as_key: true # Whether to convert generated molecules to canonical SMILES when generating keys. If False, the same molecule may be counted multiple times.
 
 ### Root Node Specification - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
 # root: "N"   # Start from the specified root
