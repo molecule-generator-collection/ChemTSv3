@@ -110,7 +110,7 @@ class RNNLanguageModel(nn.Module):
             json.dump(cfg, f, indent=2)
 
 class RNNTransition(AutoRegressiveTransition):
-    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=1.0, temperature=1.0, sharpness=1.0, disable_top_p_on_rollout: bool=False, logger: logging.Logger=None):
+    def __init__(self, lang: Language, model: RNNLanguageModel=None, model_dir: str=None, device: str=None, max_length=None, top_p=0.995, temperature=1.0, sharpness=1.0, disable_top_p_on_rollout: bool=False, logger: logging.Logger=None):
         """
         Args:
             device: Torch device specification (e.g., "cpu", "cuda", "cuda:0").
