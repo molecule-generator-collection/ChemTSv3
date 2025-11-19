@@ -104,6 +104,8 @@ deactivate
 <details>
   <summary><b>Optional dependencies</b></summary><br>
 
+The full installation includes the following optional packages:
+
 |Package|Required for|Tested version|
 |---|---|---|
 |`lightgbm`|`DScoreReward`, `DyRAMOReward`, `PUCTWithPredictor`|3.3.5, 4.6.0|
