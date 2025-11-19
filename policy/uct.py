@@ -16,6 +16,7 @@ class UCT(ScoreBasedPolicy):
             pw_c: Used for progressive widening. If `pw_c` is set, the number of available child nodes is limited to `pw_c` * ({visit count} ** `pw_alpha`) + `pw_beta`.
             pw_alpha: Used for progressive widening.
             pw_beta: Used for progressive widening.
+            epsilon: The probability of randomly selecting a child node while descending the search tree.
         """
         if type(c) == Callable:
             self.c = c
