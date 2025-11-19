@@ -125,7 +125,7 @@ In some cases (for example, when setting up environments on a control node), it 
 </details>
 
 ## Generation via CLI
-See `config/mcts/example.yaml` for setting options.
+See `config/mcts/example.yaml` for an example YAML configuration.
 ```bash
 # Simple generation
 python sandbox/generation.py -c config/mcts/example.yaml
