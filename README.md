@@ -192,7 +192,11 @@ All options for each component (class) are defined as arguments in the `__init__
 
 <details>
   <summary><b>Advanced options</b></summary><br>
-  
+
+
+For other options and further details, please refer to each class’s `__init__()` method.
+
+
 |Class|Option|Default|Description|
 |---|---|---|---|
 |`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
