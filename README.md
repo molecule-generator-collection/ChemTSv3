@@ -150,8 +150,8 @@ All options for each component (class) are defined as arguments in the `__init__
 **For general usage:**
 |Node class|Transition class|Description|
 |---|---|---|
-|`MolSentenceNode`|`RNNTransition`|For de novo generation. Uses the specified RNN (GRU / LSTM) model.|
-|`MolSentenceNode`|`GPT2Transition`|For de novo generation. Uses the specified Transformer (GPT-2) model.|
+|`MolSentenceNode`|`RNNTransition`|For de novo generation. Uses the RNN (GRU / LSTM) model specified by `model_dir`.|
+|`MolSentenceNode`|`GPT2Transition`|For de novo generation. Uses the Transformer (GPT-2) model specified by `model_dir`.|
 |`CanonicalSMILESStringNode`|`GBGATransition`|For lead optimization. Uses [GB-GA mutation rules](https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c).|
 |`CanonicalSMILESStringNode`|`SMIRKSTransition`|For lead optimization. Uses the specified SMIRKS rules (e.g. MMP-based ones).|
 |`SMILESStringNode`|`ChatGPTTransition`|For lead optimization. Uses the specified prompt(s) as input to the GPT model specified by `model` (e.g., `"gpt-4o-mini"`). Requires an OpenAI API key.|
