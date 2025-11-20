@@ -4,7 +4,7 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 from filter import MolFilter
 
-class OotaChoFilter(MolFilter):
+class ROCFilter(MolFilter):
     def __init__(self, filtering_level: int=1, kekulize: bool=False):
         """
         Args:
