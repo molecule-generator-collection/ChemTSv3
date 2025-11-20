@@ -1,3 +1,4 @@
+import os
 from typing import Self, Any
 from rdkit import Chem
 from rdkit.Chem import Mol
@@ -73,4 +74,33 @@ class CanonicalSMILESStringNode(SMILESStringNode):
     
 class FASTAStringNode(MolStringNode):
     flavor = 0
+    reformat_input = True
     lang = FASTA(flavor)
+    
+    @staticmethod
+    def _strip_fasta_header(lines):
+        seq_lines = []
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith(">"):
+                continue
+            seq_lines.append(line)
+        return "".join(seq_lines)
+
+    @staticmethod
+    def remove_header(seq: str) -> str:
+        return FASTAStringNode._strip_fasta_header(seq.splitlines())
+
+    @staticmethod
+    def remove_header_from_path(path):
+        with open(path) as f:
+            return FASTAStringNode._strip_fasta_header(f)
+    
+    @classmethod
+    def node_from_key(cls, key: str, parent: Self=None, last_prob: float=1.0, last_action: Any=None) -> Self:
+        if cls.reformat_input:
+            if isinstance(key, (str, os.PathLike)) and os.path.exists(key):
+                key = cls.remove_header_from_path(key)
+            else:
+                key = cls.remove_header(key)
+        return cls(string=key, parent=parent, last_prob=last_prob, last_action=last_action)
