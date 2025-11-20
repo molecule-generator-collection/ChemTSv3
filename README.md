@@ -265,6 +265,8 @@ For other options and further details, please refer to each class’s `__init__(
 - `TPSAFilter`: Excludes molecules whose topological polar surface area (TPSA) falls outside the range [`min`, `max`]. (Default: [0, 140])
 - `WeightFilter`: Excludes molecules whose molecular weight falls outside the range [`min`, `max`]. (Default: [0, 500])
 
+Filters can also be specified using `filters` argument of transitions that inherit from `TemplateTransition` (e.g. `GBGATransition`, `SMIRKSTransition`, `ChatGPTTransition`) to directly exclude molecules from child nodes.
+
 </details>
 
 ## Model training
