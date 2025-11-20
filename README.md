@@ -150,18 +150,18 @@ All options for each component (class) are defined as arguments in the `__init__
 **For general usage:**
 |Node class|Transition class|Description|
 |---|---|---|
-|`MolSentenceNode`|`RNNTransition`|For de novo generation. Uses the specified RNN (GRU / LSTM) model.|
-|`MolSentenceNode`|`GPT2Transition`|For de novo generation. Uses the specified Transformer (GPT-2) model.|
-|`CanonicalSMILESStringNode`|`GBGATransition`|For lead optimization. Uses GB-GA mutation rules.|
+|`MolSentenceNode`|`RNNTransition`|For de novo generation. Uses the RNN (GRU / LSTM) model specified by `model_dir`.|
+|`MolSentenceNode`|`GPT2Transition`|For de novo generation. Uses the Transformer (GPT-2) model specified by `model_dir`.|
+|`CanonicalSMILESStringNode`|`GBGATransition`|For lead optimization. Uses [GB-GA mutation rules](https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c).|
 |`CanonicalSMILESStringNode`|`SMIRKSTransition`|For lead optimization. Uses the specified SMIRKS rules (e.g. MMP-based ones).|
 |`SMILESStringNode`|`ChatGPTTransition`|For lead optimization. Uses the specified prompt(s) as input to the GPT model specified by `model` (e.g., `"gpt-4o-mini"`). Requires an OpenAI API key.|
 
 **For research purposes (did not perform well in our testing):**
 |Node class|Transition class|Description|
 |---|---|---|
-|`CanonicalSMILESStringNode`|`GBGMTransition`|For de novo generation. Uses GB-GM rules. Rollouts iteratively apply transitions until the molecule size reaches a sampled value determined by `size_mean` and `size_std`.|
-|`FASTAStringNode`|`ProtGPT2Transition`|For de novo protein generation. Uses the ProtGPT2 model.|
-|`SELFIESStringNode`|`BioT5Transition`|For lead optimization. Uses the specified prompt(s) as input to the BioT5 text2mol model.|
+|`CanonicalSMILESStringNode`|`GBGMTransition`|For de novo generation. Uses [GB-GM rules](https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c). Rollouts iteratively apply transitions until the molecule size reaches a sampled value determined by `size_mean` and `size_std`.|
+|`FASTAStringNode`|`ProtGPT2Transition`|For de novo protein generation. Uses the [ProtGPT2 model](https://www.nature.com/articles/s41467-022-32007-7).|
+|`SELFIESStringNode`|`BioT5Transition`|For lead optimization. Uses the specified prompt(s) as input to the [BioT5 text2mol model](https://github.com/QizhiPei/BioT5).|
 |`SMILESStringNode`|`ChatGPTTransitionWithMemory`|For lead optimization. Unlike `ChatGPTTransition`, retains conversation history and feedback reward calculation results to the model.|
 
 </details>
@@ -170,7 +170,7 @@ All options for each component (class) are defined as arguments in the `__init__
   <summary><b>Policies</b></summary><br>
 
 - `UCT`: Does not use transition probabilities. Performed better with `RNNTransition` in our testing.
-- `PUCT`: Incorporates transition probabilities (follows the modification introduced in AlphaGo Zero). Performed better with `GBGATransition` in our testing.
+- `PUCT`: Incorporates transition probabilities (follows the modification introduced in [AlphaGo Zero](https://www.nature.com/articles/nature24270)). Performed better with `GBGATransition` in our testing.
 - `PUCTWithPredictor`: Trains an optimistic predictor of leaf-node evaluations using the generation history, and uses its output as the score for unvisited nodes when the model’s performance (measured by the normalized pinball loss) exceeds a specified threshold. This option adds a few seconds of overhead per generation (depending on the number of child nodes per transition and the computational cost of each prediction), and is recommended only when the reward calculations are expensive. Inherits all the arguments of `UCT` and `PUCT`. For non-molecular nodes, a function that returns a feature vector must be defined  (see `policy/puct_with_predictor.py` for details.)
 
 </details>
@@ -203,7 +203,6 @@ For other options and further details, please refer to each class’s `__init__(
 |-|`device`|-|Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For RNNTransition, using the CPU tends to be faster even in GPU environments.|
 |-|`debug`|False|If True, debug logging are enabled.|
 |-|`silent`|False|If True, console logging are disabled.|
-|-|`save_interval`|None|If True, periodically saves checkpoints during generation.|
 |-|`save​_on​_completion`|False|If True, saves a checkpoint upon completion of the generation.|
 |-|`next_yaml_path`|False|If a path to the YAML config for the next generator is set, the generated molecules will be passed for chain generation.|
 |-|`n_keys_to_pass`|3|Number of top-k generated molecules (keys) to be used as root nodes for the next generator.|
@@ -235,25 +234,36 @@ For other options and further details, please refer to each class’s `__init__(
 <details>
   <summary><b>Filters</b></summary><br>
 
-- `ValidityFilter`: Excludes invalid molecule objects. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
-- `SubstructureFilter`: Excludes molecules that **do not** contain the specified (list of) substructure(s) by `smiles` or `smarts` arguments. If `preserve` is set to False, excludes molecules that **do** contain the specified (list of) substructure(s) instead. By specifying appropriate SMARTS patterns, it is possible to control where substitutions or structural modifications (i.e., adding a substituent or arm) are allowed to occur.
-  
-- `AromaticRingFilter`: Excludes molecules whose number of aromatic rings falls outside the range [min, max]. (Default: [1, ∞))
-- `CatalogFilter`: Excludes molecules based on the specified list of `rdkit.Chem.FilterCatalogParams.FilterCatalogs`. (ex. `catalogs = ["PAINS_A", "PAINS_B", "PAINS_C", "NIH", "BRENK"]`)
-- `ChargeFilter`: Excludes molecules whose formal charge is not 0.
-- `ConnectivityFilter`: Excludes molecules whose number of disconnected fragments is not 1.
-- `HBAFilter`: Excludes molecules whose number of hydrogen bond acceptors falls outside the range [min, max]. (Default: [0, 10])
-- `HBDFilter`: Excludes molecules whose number of hydrogen bond donors falls outside the range [min, max]. (Default: [0, 5])
-- `HeavyAtomCountFilter`: Excludes molecules whose number of heavy atoms falls outside the range [min, max]. (Default: [0, 45])
-- `LipinskiFilter`: Excludes molecules based on Lipinski’s Rule of Five. Set `rule_of` to 3 to apply the Rule of Three instead.
-- `LogPFilter`: Excludes molecules whose LogP value falls outside the range [min, max]. (Default: (-∞, 5])
-- `MaxRingSizeFilter`: Excludes molecules whose largest ring size falls outside the range [min, max]. (Default: [0, 6])
+**Sanity**
+- `ValidityFilter`: Excludes invalid molecule objects. Since other filters and rewards typically assume validity and do not recheck it, usually this filter should be applied first in molecular generation.
 - `RadicalFilter`: Excludes molecules whose number of radical electrons is not 0.
+- `ConnectivityFilter`: Excludes molecules whose number of disconnected fragments is not 1.
+
+**Topological**
+- `SubstructureFilter`: Excludes molecules that **do not** contain the specified (list of) substructure(s) by `smiles` or `smarts` arguments. If `preserve` is set to False, excludes molecules that **do** contain the specified (list of) substructure(s) instead. By specifying appropriate SMARTS patterns, it is possible to control where substitutions or structural modifications (i.e., adding a substituent or arm) are allowed to occur.
+- `AromaticRingFilter`: Excludes molecules whose number of aromatic rings falls outside the range [`min`, `max`]. (Default: [1, ∞))
+- `HeavyAtomCountFilter`: Excludes molecules whose number of heavy atoms falls outside the range [`min`, `max`]. (Default: [0, 45])
+- `MaxRingSizeFilter`: Excludes molecules whose largest ring size falls outside the range [`min`, `max`]. (Default: [0, 6])
+- `MinRingSizeFilter`: Excludes molecules whose smallest ring size falls outside the range [`min`, `max`]. (Default: (-∞, ∞))
 - `RingBondFilter`: Excludes molecules containing ring allenes (`[R]=[R]=[R]`) or double bonds in small rings (`[r3,r4]=[r3,r4]`).
-- `RotatableBondsFilter`: Excludes molecules whose number of rotatable bonds falls outside the range [min, max]. (Default: [0, 10])
-- `SAScoreFilter`: Excludes molecules whose synthetic accessibility score (SA Score) falls outside the range [min, max]. (Default: [1, 3.5])
-- `TPSAFilter`: Excludes molecules whose topological polar surface area (TPSA) falls outside the range [min, max]. (Default: [0, 140])
-- `WeightFilter`: Excludes molecules whose molecular weight falls outside the range [min, max]. (Default: [0, 500])
+- `RotatableBondsFilter`: Excludes molecules whose number of rotatable bonds falls outside the range [`min`, `max`]. (Default: [0, 10])
+
+**Structural alert**
+- `ROCFilter`: Excludes molecules that contain structural alerts defined by Ohta and Cho.
+- `CatalogFilter`: Excludes molecules that contain structural alerts in the specified list of [rdkit.Chem.FilterCatalogParams.FilterCatalogs](https://www.rdkit.org/docs/source/rdkit.Chem.rdfiltercatalog.html#rdkit.Chem.rdfiltercatalog.FilterCatalogParams.FilterCatalogs). (e.g. `catalogs = ["PAINS_A", "PAINS_B", "PAINS_C", "NIH", "BRENK"]`)
+
+**Drug-likeness**
+- `PubChemFilter`: Excludes molecules based on the frequency of occurrence of molecular patterns in the PubChem database. Reported in [Ma et al.](https://doi.org/10.1021/acs.jcim.1c00679).
+- `LipinskiFilter`: Excludes molecules based on Lipinski’s Rule of Five. Set `rule_of` to 3 to apply the Rule of Three instead.
+- `SAScoreFilter`: Excludes molecules whose synthetic accessibility score (SA Score) falls outside the range [`min`, `max`]. (Default: [1, 3.5])
+
+**Physicochemical**
+- `ChargeFilter`: Excludes molecules whose formal charge is not 0.
+- `HBAFilter`: Excludes molecules whose number of hydrogen bond acceptors falls outside the range [`min`, `max`]. (Default: [0, 10])
+- `HBDFilter`: Excludes molecules whose number of hydrogen bond donors falls outside the range [`min`, `max`]. (Default: [0, 5])
+- `LogPFilter`: Excludes molecules whose LogP value falls outside the range [`min`, `max`]. (Default: (-∞, 5])
+- `TPSAFilter`: Excludes molecules whose topological polar surface area (TPSA) falls outside the range [`min`, `max`]. (Default: [0, 140])
+- `WeightFilter`: Excludes molecules whose molecular weight falls outside the range [`min`, `max`]. (Default: [0, 500])
 
 </details>
 
