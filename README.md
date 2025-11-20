@@ -203,7 +203,6 @@ For other options and further details, please refer to each class’s `__init__(
 |-|`device`|-|Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For RNNTransition, using the CPU tends to be faster even in GPU environments.|
 |-|`debug`|False|If True, debug logging are enabled.|
 |-|`silent`|False|If True, console logging are disabled.|
-|-|`save_interval`|None|If True, periodically saves checkpoints during generation.|
 |-|`save​_on​_completion`|False|If True, saves a checkpoint upon completion of the generation.|
 |-|`next_yaml_path`|False|If a path to the YAML config for the next generator is set, the generated molecules will be passed for chain generation.|
 |-|`n_keys_to_pass`|3|Number of top-k generated molecules (keys) to be used as root nodes for the next generator.|
@@ -235,25 +234,36 @@ For other options and further details, please refer to each class’s `__init__(
 <details>
   <summary><b>Filters</b></summary><br>
 
-- `ValidityFilter`: Excludes invalid molecule objects. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
-- `SubstructureFilter`: Excludes molecules that **do not** contain the specified (list of) substructure(s) by `smiles` or `smarts` arguments. If `preserve` is set to False, excludes molecules that **do** contain the specified (list of) substructure(s) instead. By specifying appropriate SMARTS patterns, it is possible to control where substitutions or structural modifications (i.e., adding a substituent or arm) are allowed to occur.
-  
-- `AromaticRingFilter`: Excludes molecules whose number of aromatic rings falls outside the range [min, max]. (Default: [1, ∞))
-- `CatalogFilter`: Excludes molecules based on the specified list of `rdkit.Chem.FilterCatalogParams.FilterCatalogs`. (ex. `catalogs = ["PAINS_A", "PAINS_B", "PAINS_C", "NIH", "BRENK"]`)
-- `ChargeFilter`: Excludes molecules whose formal charge is not 0.
-- `ConnectivityFilter`: Excludes molecules whose number of disconnected fragments is not 1.
-- `HBAFilter`: Excludes molecules whose number of hydrogen bond acceptors falls outside the range [min, max]. (Default: [0, 10])
-- `HBDFilter`: Excludes molecules whose number of hydrogen bond donors falls outside the range [min, max]. (Default: [0, 5])
-- `HeavyAtomCountFilter`: Excludes molecules whose number of heavy atoms falls outside the range [min, max]. (Default: [0, 45])
-- `LipinskiFilter`: Excludes molecules based on Lipinski’s Rule of Five. Set `rule_of` to 3 to apply the Rule of Three instead.
-- `LogPFilter`: Excludes molecules whose LogP value falls outside the range [min, max]. (Default: (-∞, 5])
-- `MaxRingSizeFilter`: Excludes molecules whose largest ring size falls outside the range [min, max]. (Default: [0, 6])
+**Sanity**
+- `ValidityFilter`: Excludes invalid molecule objects. Since other filters and rewards typically assume validity and do not recheck it, usually this filter should be applied first in molecular generation.
 - `RadicalFilter`: Excludes molecules whose number of radical electrons is not 0.
+- `ConnectivityFilter`: Excludes molecules whose number of disconnected fragments is not 1.
+
+**Topological**
+- `SubstructureFilter`: Excludes molecules that **do not** contain the specified (list of) substructure(s) by `smiles` or `smarts` arguments. If `preserve` is set to False, excludes molecules that **do** contain the specified (list of) substructure(s) instead. By specifying appropriate SMARTS patterns, it is possible to control where substitutions or structural modifications (i.e., adding a substituent or arm) are allowed to occur.
+- `AromaticRingFilter`: Excludes molecules whose number of aromatic rings falls outside the range [`min`, `max`]. (Default: [1, ∞))
+- `HeavyAtomCountFilter`: Excludes molecules whose number of heavy atoms falls outside the range [`min`, `max`]. (Default: [0, 45])
+- `MaxRingSizeFilter`: Excludes molecules whose largest ring size falls outside the range [`min`, `max`]. (Default: [0, 6])
+- `MinRingSizeFilter`: Excludes molecules whose smallest ring size falls outside the range [`min`, `max`]. (Default: (-∞, ∞))
 - `RingBondFilter`: Excludes molecules containing ring allenes (`[R]=[R]=[R]`) or double bonds in small rings (`[r3,r4]=[r3,r4]`).
-- `RotatableBondsFilter`: Excludes molecules whose number of rotatable bonds falls outside the range [min, max]. (Default: [0, 10])
-- `SAScoreFilter`: Excludes molecules whose synthetic accessibility score (SA Score) falls outside the range [min, max]. (Default: [1, 3.5])
-- `TPSAFilter`: Excludes molecules whose topological polar surface area (TPSA) falls outside the range [min, max]. (Default: [0, 140])
-- `WeightFilter`: Excludes molecules whose molecular weight falls outside the range [min, max]. (Default: [0, 500])
+- `RotatableBondsFilter`: Excludes molecules whose number of rotatable bonds falls outside the range [`min`, `max`]. (Default: [0, 10])
+
+**Structural alert**
+- `ROCFilter`: Excludes molecules with alert structures selected by Ohta and Cho.
+- `CatalogFilter`: Excludes molecules with alert structures based on the specified list of `rdkit.Chem.FilterCatalogParams.FilterCatalogs`. (ex. `catalogs = ["PAINS_A", "PAINS_B", "PAINS_C", "NIH", "BRENK"]`)
+
+**Drug-likeness**
+- `PubChemFilter`: Excludes molecules based on the frequency of occurrence of molecular patterns in the PubChem database. Reported in [Ma et al.](https://doi.org/10.1021/acs.jcim.1c00679).
+- `LipinskiFilter`: Excludes molecules based on Lipinski’s Rule of Five. Set `rule_of` to 3 to apply the Rule of Three instead.
+- `SAScoreFilter`: Excludes molecules whose synthetic accessibility score (SA Score) falls outside the range [`min`, `max`]. (Default: [1, 3.5])
+
+**Physicochemical**
+- `ChargeFilter`: Excludes molecules whose formal charge is not 0.
+- `HBAFilter`: Excludes molecules whose number of hydrogen bond acceptors falls outside the range [`min`, `max`]. (Default: [0, 10])
+- `HBDFilter`: Excludes molecules whose number of hydrogen bond donors falls outside the range [`min`, `max`]. (Default: [0, 5])
+- `LogPFilter`: Excludes molecules whose LogP value falls outside the range [`min`, `max`]. (Default: (-∞, 5])
+- `TPSAFilter`: Excludes molecules whose topological polar surface area (TPSA) falls outside the range [`min`, `max`]. (Default: [0, 140])
+- `WeightFilter`: Excludes molecules whose molecular weight falls outside the range [`min`, `max`]. (Default: [0, 500])
 
 </details>
 
