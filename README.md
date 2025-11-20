@@ -152,16 +152,16 @@ All options for each component (class) are defined as arguments in the `__init__
 |---|---|---|
 |`MolSentenceNode`|`RNNTransition`|For de novo generation. Uses the specified RNN (GRU / LSTM) model.|
 |`MolSentenceNode`|`GPT2Transition`|For de novo generation. Uses the specified Transformer (GPT-2) model.|
-|`CanonicalSMILESStringNode`|`GBGATransition`|For lead optimization. Uses GB-GA mutation rules.|
+|`CanonicalSMILESStringNode`|`GBGATransition`|For lead optimization. Uses [GB-GA mutation rules](https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c).|
 |`CanonicalSMILESStringNode`|`SMIRKSTransition`|For lead optimization. Uses the specified SMIRKS rules (e.g. MMP-based ones).|
 |`SMILESStringNode`|`ChatGPTTransition`|For lead optimization. Uses the specified prompt(s) as input to the GPT model specified by `model` (e.g., `"gpt-4o-mini"`). Requires an OpenAI API key.|
 
 **For research purposes (did not perform well in our testing):**
 |Node class|Transition class|Description|
 |---|---|---|
-|`CanonicalSMILESStringNode`|`GBGMTransition`|For de novo generation. Uses GB-GM rules. Rollouts iteratively apply transitions until the molecule size reaches a sampled value determined by `size_mean` and `size_std`.|
-|`FASTAStringNode`|`ProtGPT2Transition`|For de novo protein generation. Uses the ProtGPT2 model.|
-|`SELFIESStringNode`|`BioT5Transition`|For lead optimization. Uses the specified prompt(s) as input to the BioT5 text2mol model.|
+|`CanonicalSMILESStringNode`|`GBGMTransition`|For de novo generation. Uses [GB-GM rules](https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c). Rollouts iteratively apply transitions until the molecule size reaches a sampled value determined by `size_mean` and `size_std`.|
+|`FASTAStringNode`|`ProtGPT2Transition`|For de novo protein generation. Uses the [ProtGPT2 model](https://www.nature.com/articles/s41467-022-32007-7).|
+|`SELFIESStringNode`|`BioT5Transition`|For lead optimization. Uses the specified prompt(s) as input to the [BioT5 text2mol model](https://github.com/QizhiPei/BioT5).|
 |`SMILESStringNode`|`ChatGPTTransitionWithMemory`|For lead optimization. Unlike `ChatGPTTransition`, retains conversation history and feedback reward calculation results to the model.|
 
 </details>
@@ -170,7 +170,7 @@ All options for each component (class) are defined as arguments in the `__init__
   <summary><b>Policies</b></summary><br>
 
 - `UCT`: Does not use transition probabilities. Performed better with `RNNTransition` in our testing.
-- `PUCT`: Incorporates transition probabilities (follows the modification introduced in AlphaGo Zero). Performed better with `GBGATransition` in our testing.
+- `PUCT`: Incorporates transition probabilities (follows the modification introduced in [AlphaGo Zero](https://www.nature.com/articles/nature24270)). Performed better with `GBGATransition` in our testing.
 - `PUCTWithPredictor`: Trains an optimistic predictor of leaf-node evaluations using the generation history, and uses its output as the score for unvisited nodes when the model’s performance (measured by the normalized pinball loss) exceeds a specified threshold. This option adds a few seconds of overhead per generation (depending on the number of child nodes per transition and the computational cost of each prediction), and is recommended only when the reward calculations are expensive. Inherits all the arguments of `UCT` and `PUCT`. For non-molecular nodes, a function that returns a feature vector must be defined  (see `policy/puct_with_predictor.py` for details.)
 
 </details>
