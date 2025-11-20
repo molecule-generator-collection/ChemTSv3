@@ -200,7 +200,7 @@ For other options and further details, please refer to each class’s `__init__(
 |Class|Option|Default|Description|
 |---|---|---|---|
 |-|`seed`|-|The seed value for `random`, `np.random` and `torch`.|
-|-|`device`|-|Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For RNNTransition, using the CPU tends to be faster even in GPU environments.|
+|-|`device`|-|Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For `RNNTransition`, using the CPU tends to be faster.|
 |-|`debug`|False|If True, debug logging are enabled.|
 |-|`silent`|False|If True, console logging are disabled.|
 |-|`save​_on​_completion`|False|If True, saves a checkpoint upon completion of the generation.|
