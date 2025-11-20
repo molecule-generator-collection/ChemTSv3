@@ -249,8 +249,8 @@ For other options and further details, please refer to each class’s `__init__(
 - `RotatableBondsFilter`: Excludes molecules whose number of rotatable bonds falls outside the range [`min`, `max`]. (Default: [0, 10])
 
 **Structural alert**
-- `ROCFilter`: Excludes molecules with alert structures selected by Ohta and Cho.
-- `CatalogFilter`: Excludes molecules with alert structures based on the specified list of `rdkit.Chem.FilterCatalogParams.FilterCatalogs`. (ex. `catalogs = ["PAINS_A", "PAINS_B", "PAINS_C", "NIH", "BRENK"]`)
+- `ROCFilter`: Excludes molecules that contain structural alerts defined by Ohta and Cho.
+- `CatalogFilter`: Excludes molecules that contain structural alerts in the specified list of [rdkit.Chem.FilterCatalogParams.FilterCatalogs](https://www.rdkit.org/docs/source/rdkit.Chem.rdfiltercatalog.html#rdkit.Chem.rdfiltercatalog.FilterCatalogParams.FilterCatalogs). (e.g. `catalogs = ["PAINS_A", "PAINS_B", "PAINS_C", "NIH", "BRENK"]`)
 
 **Drug-likeness**
 - `PubChemFilter`: Excludes molecules based on the frequency of occurrence of molecular patterns in the PubChem database. Reported in [Ma et al.](https://doi.org/10.1021/acs.jcim.1c00679).
