@@ -34,8 +34,6 @@ def resolve_output_dir(output_dir: str | Path | None) -> str:
         base.mkdir(exist_ok=True)
         return make_subdirectory(base)
 
-    return make_subdirectory(str(path))
-
 def default_base_dir() -> Path:
     return Path.cwd().resolve()
 
