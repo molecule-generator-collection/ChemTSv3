@@ -27,8 +27,12 @@ def make_subdirectory(dir: str, name: str=None):
 def resolve_output_dir(output_dir: str | Path | None) -> str:
     if output_dir is not None:
         path = Path(output_dir).expanduser().resolve()
+        path.mkdir(parents=True, exist_ok=True)
+        return str(path)
     else:
-        path = Path.cwd() / "generation_result"
+        base = Path.cwd() / "generation_result"
+        base.mkdir(exist_ok=True)
+        return make_subdirectory(base)
 
     return make_subdirectory(str(path))
 
@@ -83,20 +87,8 @@ def resolve_path(
     return p
 
 def class_from_package(base_dir: str, package_name: str, class_name: str):
-    # find classes in __init__.py
-    # try:
-    #     pkg = importlib.import_module(package_name)
-    #     obj = getattr(pkg, class_name)
-    #     if inspect.isclass(obj):
-    #         return obj
-    # except ModuleNotFoundError as e:
-    #     raise ImportError(
-    #         f"Failed to load '{class_name}' from package '{package_name}'. "
-    #         f"Missing dependency: '{e.name}'. Please install it."
-    #     ) from e
-    # except AttributeError:
-    #     pass
     
+    # search chemtsv3 package first
     chemtsv3_pkg = f"chemtsv3.{package_name}"
     try:
         pkg = importlib.import_module(chemtsv3_pkg)
@@ -106,6 +98,7 @@ def class_from_package(base_dir: str, package_name: str, class_name: str):
     except (ModuleNotFoundError, AttributeError):
         pass
     
+    # search local classes
     base_dir = Path(base_dir)
     pkg_path = base_dir / package_name
     
@@ -118,7 +111,6 @@ def class_from_package(base_dir: str, package_name: str, class_name: str):
     import sys
     sys.path.insert(0, str(base_dir))
 
-    # if not in __init__.py, try to find the class in the directory (excluding sub-directories)
     pkg = importlib.import_module(package_name)
     for _, mod_name, is_pkg in pkgutil.iter_modules([str(pkg_path)]):
         if is_pkg:
