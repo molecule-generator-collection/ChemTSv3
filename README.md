@@ -1,3 +1,5 @@
+## Currently under preparation for pip. It is not recommended to pull the repository now.
+
 ## ChemTSv3
 A unified tree search framework for molecular generation.
 - **Node is modular**: Supports any molecular representation (e.g., SMILES, SELFIES, FASTA, or HELM) in either string or tensor format.
