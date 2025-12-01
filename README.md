@@ -1,4 +1,5 @@
-## WARNING: Currently being prepared for PyPI distribution. Pulling the repository at this time is not recommended.
+## Currently being prepared for PyPI distribution.
+Use `uv pip install -e .` after the setup instead.
 
 ## ChemTSv3
 A unified tree search framework for molecular generation.
