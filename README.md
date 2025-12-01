@@ -1,4 +1,4 @@
-## Currently under preparation for pip. It is not recommended to pull the repository now.
+## WARNING: Currently being prepared for PyPI distribution. Pulling the repository at this time is not recommended.
 
 ## ChemTSv3
 A unified tree search framework for molecular generation.
