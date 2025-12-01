@@ -1,0 +1,22 @@
+from rdkit.Chem import Mol
+from chemtsv3.filter import MolValueFilter
+
+class MaxRingSizeFilter(MolValueFilter):
+    def __init__(self, max=6, min=None, allowed=None, disallowed=None):
+        """
+        Excludes molecules whose largest ring size falls outside the range [min, max]. (Default: [0, 6])
+        """
+        super().__init__(max=max, min=min, allowed=allowed, disallowed=disallowed)
+        
+    # implement
+    def mol_value(self, mol: Mol) -> int:
+        ri = mol.GetRingInfo()
+        max_ring_size = max((len(r) for r in ri.AtomRings()), default=0)
+        return max_ring_size
+    
+class MinRingSizeFilter(MolValueFilter):
+    # implement
+    def mol_value(self, mol: Mol) -> int:
+        ri = mol.GetRingInfo()
+        min_ring_size = min((len(r) for r in ri.AtomRings()), default=float("inf"))
+        return min_ring_size

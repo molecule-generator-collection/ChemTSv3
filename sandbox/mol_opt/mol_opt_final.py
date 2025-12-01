@@ -13,7 +13,7 @@ if repo_root not in sys.path:
 
 import argparse
 from statistics import mean
-from utils import conf_from_yaml, generator_from_conf
+from chemtsv3.utils import conf_from_yaml, generator_from_conf
 
 oracle_names = ["troglitazone_rediscovery", "deco_hop", "ranolazine_mpo", "celecoxib_rediscovery", "drd2", "gsk3b", "fexofenadine_mpo", "thiothixene_rediscovery", "jnk3", "scaffold_hop", "zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "median1", "sitagliptin_mpo", "albuterol_similarity", "amlodipine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "qed", "valsartan_smarts"]
     

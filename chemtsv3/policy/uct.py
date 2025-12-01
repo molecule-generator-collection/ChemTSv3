@@ -1,0 +1,67 @@
+import logging
+from math import log, sqrt
+from typing import Callable
+from chemtsv3.node import Node
+from chemtsv3.policy import ScoreBasedPolicy
+from chemtsv3.utils import PointCurve
+
+class UCT(ScoreBasedPolicy):
+    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0, logger: logging.Logger=None):
+        """
+        Args:
+            c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
+            best_rate: A value between 0 and 1. The exploitation term is computed as 
+                       best_rate * (best reward) + (1 - best_rate) * (average reward).
+            max_prior: A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.
+            pw_c: Used for progressive widening. If `pw_c` is set, the number of available child nodes is limited to `pw_c` * ({visit count} ** `pw_alpha`) + `pw_beta`.
+            pw_alpha: Used for progressive widening.
+            pw_beta: Used for progressive widening.
+            epsilon: The probability of randomly selecting a child node while descending the search tree.
+        """
+        if type(c) == Callable:
+            self.c = c
+        elif type(c) == list:
+            self.c = PointCurve(c)
+        else:
+            self.c = c
+        self.best_ratio = best_rate
+        self.max_prior = max_prior
+        super().__init__(pw_c=pw_c, pw_alpha=pw_alpha, pw_beta=pw_beta, epsilon=epsilon, logger=logger)
+
+    def get_c_value(self, node: Node) -> float:
+        if type(self.c) == Callable:
+            c = self.c(node.depth)
+        elif type(self.c) == PointCurve:
+            c = self.c.curve(node.depth)
+        else:
+            c = self.c
+        return c
+    
+    def get_exploration_term(self, node: Node):
+        c = self.get_c_value(node)
+        return c * sqrt(log(node.parent.n) / (node.n))
+    
+    def _unvisited_node_fallback(self, node: Node) -> float | str:
+        """
+        Return float value to override the value that evaluate() returns.
+        Return "retry" to try again (node.n should be > 0 before returning True to avoid infinite).
+        """
+        return 10**9
+
+    # implement
+    def score(self, node: Node) -> float:
+        if node.n == 0:
+            fallback = self._unvisited_node_fallback(node)
+            if fallback == "retry":
+                return self.score(node)
+            elif type(fallback) in (float, int):
+                return fallback
+            else:
+                raise AttributeError("Policy._unvisited_node_fallback() should return either float value or 'retry'.")
+        else:
+            mean_r = node.sum_r / node.n
+            u = self.get_exploration_term(node)
+            best_r = node.best_r
+            if self.max_prior is not None:
+                best_r = max(self.max_prior, best_r)
+            return (1 - self.best_ratio) * mean_r + self.best_ratio * best_r + u

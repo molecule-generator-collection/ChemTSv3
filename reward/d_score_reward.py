@@ -10,9 +10,9 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from reward import MolReward
-from utils import max_gauss, min_gauss, rectangular
-from utils.third_party import sascorer
+from chemtsv3.reward import MolReward
+from chemtsv3.utils import max_gauss, min_gauss, rectangular
+from chemtsv3.utils.third_party import sascorer
 
 LGB_MODELS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/lgb_models.json"))
 SURE_CHEMBL_ALERTS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/d_score/sure_chembl_alerts.txt"))

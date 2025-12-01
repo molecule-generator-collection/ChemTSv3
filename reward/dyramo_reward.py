@@ -9,8 +9,8 @@ import numpy as np
 import lightgbm as lgb
 from rdkit import DataStructs
 from rdkit.Chem import AllChem
-from reward import MolReward
-from utils import max_gauss, min_gauss, rectangular
+from chemtsv3.reward import MolReward
+from chemtsv3.utils import max_gauss, min_gauss, rectangular
 
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn")

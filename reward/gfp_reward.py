@@ -8,8 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from node import FASTAStringNode, SentenceNode
-from reward import Reward
+from chemtsv3.node import FASTAStringNode, SentenceNode
+from chemtsv3.reward import Reward
 
 ORACLE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/gfp_oracle.ckpt"))
 HMM_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fluorescence/PF01353.hmm"))

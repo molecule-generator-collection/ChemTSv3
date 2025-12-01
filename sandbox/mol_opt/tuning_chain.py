@@ -12,7 +12,7 @@ import argparse
 from statistics import mean
 import traceback
 import optuna
-from utils import conf_from_yaml, generator_from_conf
+from chemtsv3.utils import conf_from_yaml, generator_from_conf
 
 oracle_names = ["zaleplon_mpo", "isomers_c7h8n2o2", "isomers_c9h10n2o2pf2cl", "troglitazone_rediscovery", "median1", "sitagliptin_mpo", "thiothixene_rediscovery", "deco_hop", "albuterol_similarity", "scaffold_hop", "amlodipine_mpo", "celecoxib_rediscovery", "fexofenadine_mpo", "median2", "mestranol_similarity", "perindopril_mpo", "osimertinib_mpo", "ranolazine_mpo", "valsartan_smarts", "drd2", "gsk3b", "jnk3", "qed"]
 

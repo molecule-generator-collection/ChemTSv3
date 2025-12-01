@@ -1,0 +1,233 @@
+from abc import ABC, abstractmethod
+import logging
+import numpy as np
+from rdkit import DataStructs
+from rdkit.Chem import Descriptors, Mol, rdFingerprintGenerator
+from sklearn.metrics import mean_pinball_loss
+from chemtsv3.node import Node, MolStringNode, SurrogateNode
+from chemtsv3.policy import PUCT
+
+class PUCTWithPredictor(PUCT):
+    def __init__(self, alpha=0.9, score_threshold: float=0.6, n_warmup_steps=None, batch_size=500, score_calculation_interval: int=25, score_calculation_window: int=100, predictor_type="lightgbm", predictor_params=None, fp_radius=2, fp_size=2048, logger=logging.Logger, **kwargs):
+        """
+        Unlike the parent PUCT policy, uses {predicted evaluation value + exploration term} as a score for nodes with 0 visit count, instead of inifinity. Currently only supports subclasses of MolStringNode. However, get_feature_vector() can be overridden for other node classes. Predictor can be also interchanged by implementing a subclass of Predictor and overriding set_predictor().
+        (IMPORTANT) n_eval_width must be set to 0 when using this policy to actually make use of it.
+        
+        Args:
+            alpha: Quantile level for the predictor, representing the target percentile of the response variable to be estimated and used. Set to 0.5 when using mean predictor so that pinball loss can take account of that.
+            score_threshold: If the recent prediction score (1 - {pinball loss} / {baseline pinball loss}) is better than this threshold, the model will be used afterwards.
+            fp_radius: Only used if fp_size > 0 and when predicting subclasses of MolStringNode
+            fp_size: Set to 0 to disable.
+            
+            c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
+            best_rate: A value between 0 and 1. The exploitation term is computed as 
+                        best_rate * (best reward) + (1 - best_rate) * (average reward).
+            max_prior: A lower bound for the best reward. If the actual best reward is lower than this value, this value is used instead.
+            pw_c: Used for progressive widening.
+            pw_alpha: Used for progressive widening.
+        """
+        self.alpha = alpha
+        self.score_threshold = score_threshold
+        self.recent_score = -float("inf")
+        self.n_warmup_steps = n_warmup_steps or batch_size
+        self.batch_size = batch_size
+        self.set_predictor(predictor_type, alpha, predictor_params)
+        self.score_calculation_interval = score_calculation_interval
+        self.score_calculation_window = score_calculation_window
+        
+        # MolStringNode
+        self.mfgen = None
+        self.fp_size = fp_size
+        self.fp_radius = fp_radius
+        
+        self.use_model = False
+        self.X_train = []
+        self.X_train_new = []
+        self.y_train = []
+        self.y_train_new = []
+        self.predicted_upper_dict = {}
+        self.preds = [] # paired with targets
+        self.targets = []
+        self.used_preds = []
+        self.used_targets = []
+        self.warned = False
+        self.model_count = 0
+        self.pred_count = 0
+        self.pairs_count = 0
+        self.to_skip = 0
+        super().__init__(logger=logger, **kwargs)
+        
+    def set_predictor(self, predictor_type, alpha, predictor_params):
+        if predictor_type == "lightgbm":
+            self.predictor = LightGBMPredictor(alpha, predictor_params)
+        else:
+            raise ValueError("Invalid predictor type")
+    
+    def try_model_training(self):
+        if (self.model_count == 0 and len(self.X_train_new) >= self.n_warmup_steps) or (self.model_count > 0 and len(self.X_train_new) >= self.batch_size):
+            self.X_train += self.X_train_new
+            self.X_train_new = []
+            self.y_train += self.y_train_new
+            self.y_train_new = []
+            self.predictor.train(self.X_train, self.y_train)
+            self.model_count += 1
+            self.logger.info(f"Model {self.model_count} trained.")
+                    
+    def score_check(self):
+        if self.calc_recent_score() > self.score_threshold:
+            if not self.use_model:
+                self.logger.info(f"Recent score: {self.recent_score:.3f}. Model output will be applied to the policy.")
+            self.use_model = True
+        else:
+            if self.use_model:
+                self.logger.info(f"Recent score: {self.recent_score:.3f}. Model output won't be applied to the policy.")
+            self.use_model = False
+            
+    def calc_recent_score(self) -> float:
+        preds = self.preds[-200:] if len(self.preds) > 200 else self.preds
+        targets = self.targets[-200:] if len(self.targets) > 200 else self.targets
+        self.recent_score = self.prediction_score(targets, preds)
+        return self.recent_score
+        
+    def prediction_score(self, target, predicted_upper):
+        q_baseline = np.quantile(self.y_train, self.alpha)
+        baseline_pred = np.full_like(target, q_baseline, dtype=float)
+
+        pl_model = mean_pinball_loss(target, predicted_upper, alpha=self.alpha)
+        pl_base  = mean_pinball_loss(target, baseline_pred, alpha=self.alpha)
+
+        return 1 - pl_model / pl_base
+
+    def observe(self, child: Node, objective_values: list[float], reward: float, is_filtered: bool):
+        """Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing."""
+        if isinstance(child, SurrogateNode):
+            return
+        if self.to_skip > 0:
+            self.to_skip -= 1
+            return
+        if is_filtered:
+            return
+        x = self.get_feature_vector(child)
+        if x is None:
+            if not self.warned and self.logger is not None:
+                self.logger.warning("Feature vector is not defined in the Node class that is currently used. Override 'get_feature_vector' or try different policy class.")
+            self.warned = True
+            return
+        
+        self.X_train_new.append(x)
+        self.y_train_new.append(reward)
+        
+        key = child.key()
+        if key in self.predicted_upper_dict:
+            _, pred = self.predicted_upper_dict[key]
+            self.preds.append(pred)
+            self.targets.append(reward)
+            self.used_preds.append(pred)
+            self.used_targets.append(reward)
+        elif self.model_count > 0: # self.use_model == False
+            x = self.get_feature_vector(child)
+            pred = self.predictor.predict_upper(x)
+            self.pred_count += 1
+            self.preds.append(pred)
+            self.targets.append(reward)
+        else:
+            return
+        self.pairs_count += 1
+        if self.pairs_count % self.score_calculation_interval == 0:
+            self.score_check()
+            
+    def on_inherit(self, generator):
+        rep = generator.root
+        if rep.children:
+            self.to_skip = len(rep.children)
+            rep = rep.sample_child()
+        node_class = rep.__class__
+
+        for key in generator.generated_keys():
+            try:
+                node = node_class.node_from_key(key)
+                x = self.get_feature_vector(node)
+                self.X_train_new.append(x)
+                self.y_train_new.append(generator.record[key]["reward"])
+            except Exception as e:
+                self.logger.warning(f"Generation results conversion for PUCT predictor was failed. Generation results before this message won't be used for the training of the predictor. Error details: {e}")
+                return
+        self.logger.info(f"Inherited generated results are converted to the training data for the PUCT model.")
+                
+    def analyze(self):
+        self.logger.info(f"Number of prediction: {self.pred_count}")
+        if len(self.used_targets) > 0:
+            self.logger.info(f"Prediction score (when used): {self.prediction_score(self.used_targets, self.used_preds):.3f}")
+        if len(self.targets) > 0:    
+            self.logger.info(f"Prediction score (total): {self.prediction_score(self.targets, self.preds):.3f}")
+            
+    # override
+    def _unvisited_node_fallback(self, node):
+        self.try_model_training()
+        key = node.key()
+        if key in self.predicted_upper_dict:
+            _, prev_pred = self.predicted_upper_dict[key]
+            return prev_pred
+        elif not self.use_model:
+            return super()._unvisited_node_fallback(node)
+        else: # self.use_model == True
+            x = self.get_feature_vector(node)
+            predicted_upper_reward = self.predictor.predict_upper(x)
+            self.pred_count += 1
+            self.predicted_upper_dict[key] = (self.model_count, predicted_upper_reward)
+            return predicted_upper_reward + self.get_exploration_term(node)
+        
+    # override here to apply for other node classes
+    def get_feature_vector(self, node: Node) -> np.ndarray:
+        if isinstance(node, MolStringNode):
+            mol = node.mol(use_cache=False)
+            if self.fp_size <= 0:
+                features = self.get_rdkit_features(mol)
+            else:
+                features = np.concatenate([self.get_rdkit_features(mol), self.calc_fingerprint(mol)])
+            return features
+        else:
+            return None
+
+    @staticmethod
+    def get_rdkit_features(mol) -> np.ndarray:
+        return np.array([desc_fn(mol) for _, desc_fn in Descriptors.descList], dtype=float)
+        
+    def calc_fingerprint(self, mol: Mol) -> np.ndarray:
+        if self.mfgen is None:
+            self.mfgen = rdFingerprintGenerator.GetMorganGenerator(radius=self.fp_radius, fpSize=self.fp_size)
+        fp = self.mfgen.GetFingerprint(mol)
+        arr = np.zeros((self.fp_size,), dtype=np.int8)
+        DataStructs.ConvertToNumpyArray(fp, arr)
+        return arr
+        
+class UpperPredictor(ABC):
+    def __init__(self, alpha=0.9, predictor_params: dict=None):
+        pass
+        
+    @abstractmethod
+    def train(self, X_train, y_train):
+        pass
+    
+    @abstractmethod
+    def predict_upper(self, x: np.ndarray) -> float:
+        pass
+    
+class LightGBMPredictor(UpperPredictor):
+    def __init__(self, alpha=0.9, predictor_params: dict=None):
+        self.params = predictor_params or dict(learning_rate=0.05, num_leaves=15, max_depth=6)
+        self.params.setdefault("seed", 0)
+        self.params.setdefault("verbose", -1)
+        self.params["objective"] = "quantile"
+        self.params["alpha"] = alpha
+            
+    def train(self, X_train, y_train):
+        import lightgbm as lgb # lazy import: will be cached
+        X = np.vstack(X_train).astype(np.float32)
+        train_ds = lgb.Dataset(X, label=y_train)
+        self.model = lgb.train(self.params, train_ds, num_boost_round=200)
+    
+    def predict_upper(self, x: np.ndarray) -> float:
+        X = np.asarray(x, dtype=np.float32).reshape(1, -1)
+        pred = self.model.predict(X)
+        return float(pred[0])

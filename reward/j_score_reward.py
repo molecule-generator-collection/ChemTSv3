@@ -1,8 +1,8 @@
 import os
 import numpy as np
 from rdkit.Chem import Descriptors
-from reward import MolReward
-from utils.third_party import sascorer
+from chemtsv3.reward import MolReward
+from chemtsv3.utils.third_party import sascorer
 
 """
 Ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/reward/Jscore_reward.py

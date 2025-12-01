@@ -6,7 +6,7 @@
 # sys.modules["rdkit.six"] = six_module 
 
 from tdc import Oracle
-from reward import SMILESReward
+from chemtsv3.reward import SMILESReward
 
 """
 mol-opt setting ref: https://github.com/wenhao-gao/mol_opt/blob/2da631be85af8d10a2bb43f2de76a03171166190/main/moldqn/environments/synth_env.py#L512
