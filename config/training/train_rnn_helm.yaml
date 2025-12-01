@@ -1,4 +1,4 @@
-output_dir: "sandbox/training_result/rnn_model"
+output_dir: "sandbox/training_results/rnn_model"
 model_type: RNN
 lang_class: HELM
 lang_args:

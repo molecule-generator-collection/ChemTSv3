@@ -30,7 +30,7 @@ def resolve_output_dir(output_dir: str | Path | None) -> str:
         path.mkdir(parents=True, exist_ok=True)
         return str(path)
     else:
-        base = Path.cwd() / "generation_result"
+        base = Path.cwd() / "generation_results"
         base.mkdir(exist_ok=True)
         return make_subdirectory(base)
 

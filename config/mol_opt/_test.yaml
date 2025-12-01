@@ -1,4 +1,4 @@
-output_dir: generation_result/mol_opt
+output_dir: generation_results/mol_opt
 time_limit: 36000 # seconds
 max_generations: 10000
 # debug: true

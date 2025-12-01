@@ -1,4 +1,4 @@
-output_dir: generation_result
+output_dir: generation_results
 silent: true
 time_limit: 1000 # Seconds
 max_generations: 400

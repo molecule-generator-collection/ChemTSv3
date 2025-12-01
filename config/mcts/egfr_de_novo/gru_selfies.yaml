@@ -2,7 +2,7 @@ time_limit: 1200 # Seconds
 max_generations: 3000
 # seed: 0 # Set seed
 
-output_dir: generation_result
+output_dir: generation_results
 device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
 
 debug: false # Set to true to enable debug logging

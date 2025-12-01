@@ -1,4 +1,4 @@
-output_dir: generation_result
+output_dir: generation_results
 time_limit: 36000
 max_generations: 200000
 # debug: true

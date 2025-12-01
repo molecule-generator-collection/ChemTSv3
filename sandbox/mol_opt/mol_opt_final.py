@@ -23,7 +23,7 @@ def test_chain(oracle_name: str, seed: int, yaml_path_1: str, yaml_path_2: str) 
     conf_1["reward_class"] = "TDCReward"
     conf_1["reward_args"] = {}
     conf_1["reward_args"]["objective"] = oracle_name
-    conf_1["output_dir"] = "generation_result" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
+    conf_1["output_dir"] = "generation_results" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
     generator_1 = generator_from_conf(conf_1)
     generator_1.generate(max_generations=conf_1.get("max_generations"), time_limit=conf_1.get("time_limit"))
 
@@ -44,7 +44,7 @@ def test_single(oracle_name: str, seed: int, yaml_path: str) -> float:
     conf["reward_class"] = "TDCReward"
     conf["reward_args"] = {}
     conf["reward_args"]["objective"] = oracle_name
-    conf["output_dir"] = "generation_result" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
+    conf["output_dir"] = "generation_results" + os.sep + "seed_" + str(seed) + os.sep + oracle_name
     generator = generator_from_conf(conf)
     generator.generate(max_generations=conf.get("max_generations"), time_limit=conf.get("time_limit"))
     

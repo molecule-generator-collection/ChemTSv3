@@ -2,8 +2,8 @@
 .vscode
 .DS_Store
 result/
-training_result/
-generation_result/
+training_results/
+generation_results/
 personal/
 optuna/
 oracle/

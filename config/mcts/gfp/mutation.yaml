@@ -1,4 +1,4 @@
-output_dir: generation_result
+output_dir: generation_results
 # time_limit: 10
 max_generations: 3840 # 256*15
 node_class: FASTAStringNode

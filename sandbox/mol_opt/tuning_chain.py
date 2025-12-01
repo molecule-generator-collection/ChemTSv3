@@ -48,7 +48,7 @@ def objective(trial):
             conf_1["reward_class"] = "TDCReward"
             conf_1["reward_args"] = {}
             conf_1["reward_args"]["objective"] = oracle_name
-            conf_1["output_dir"] = "generation_result" + os.sep + "trial_" + str(trial.number) + os.sep + oracle_name
+            conf_1["output_dir"] = "generation_results" + os.sep + "trial_" + str(trial.number) + os.sep + oracle_name
             
             generator_1 = generator_from_conf(conf_1)
             generator_1.logger.info("reward="+oracle_name)
