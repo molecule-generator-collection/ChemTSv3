@@ -11,6 +11,5 @@ __pycache__/
 *.py[cod]
 optimizer.pt
 output_goal_directed.json
-.pypirc
 uv.lock
 dist
