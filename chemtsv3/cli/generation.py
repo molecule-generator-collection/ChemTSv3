@@ -1,6 +1,6 @@
-# Example (RNN): python sandbox/generation.py -c config/mcts/example.yaml
-# Example (Chain): python sandbox/generation.py -c config/mcts/example_chain_1.yaml
-# Example (Load): python sandbox/generation.py -l sandbox/generation_results/~~~/checkpoint --max_generations 100
+# Example (RNN): chemtsv3 -c config/mcts/example.yaml
+# Example (Chain): chemtsv3 -c config/mcts/example_chain_1.yaml
+# Example (Load): chemtsv3 -l generation_results/~~~ --max_generations 100
 
 # Path setup / Imports
 import faulthandler

@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 import copy
 from datetime import datetime
 import logging
+from logging.handlers import MemoryHandler
 import math
 import os
+from pathlib import Path
 import pickle
 import queue
 import time
@@ -133,7 +135,7 @@ class Generator(ABC):
         return False
 
     def _make_name(self):
-        return datetime.now().strftime("%m-%d_%H-%M") + "_" + self.__class__.__name__
+        return datetime.now().strftime("%m-%d_%H-%M")
     
     def name(self):
         return self._name
@@ -481,23 +483,22 @@ class Generator(ABC):
     
     def save(self, is_interval=True):
         for ha in self.logger.handlers:
-            if isinstance(ha, logging.FileHandler):
-                log_dir = os.path.dirname(ha.baseFilename)  
-                log_file_without_ext = os.path.splitext(os.path.basename(ha.baseFilename))[0]
-                self._log_dir = log_dir
-                self._log_file = log_file_without_ext
+            handler = ha
+            if isinstance(ha, MemoryHandler) and ha.target is not None:
+                handler = ha.target
+
+            if isinstance(handler, logging.FileHandler):
                 self._file_level = ha.level
-            elif isinstance(ha, logging.StreamHandler):
+            elif isinstance(handler, logging.StreamHandler):
                 self._console_level = ha.level
             else:
                 self._csv_level = ha.level
         if is_interval and self.save_interval is not None:
             self.next_save += self.save_interval
             self.last_saved = self.n_generated_nodes()
-        save_dir = os.path.join(self.output_dir(), "checkpoint")
-        os.makedirs(save_dir, exist_ok=True)
+        save_dir = self.output_dir()
         if self.yaml_copy is not None:
-            path = os.path.join(save_dir, "config.yaml")
+            path = os.path.join(save_dir, "config_checkpoint.yaml")
             with open(path, "w") as f:
                 yaml.dump(self.yaml_copy, f, sort_keys=False)
         with open(os.path.join(save_dir, "checkpoint.gtr"), mode="wb") as fo:
@@ -506,13 +507,14 @@ class Generator(ABC):
 
     def load_file(file: str, transition: Transition=None) -> Self:
         file = resolve_path(file)
+        dir = Path(file).parent
         with open(file, "rb") as f:
             generator = pickle.load(f)
-        try:
-            generator.logger.warning(f"Logs will be written to: {generator._log_dir} instead of newly created one.")
-            generator.logger = make_logger(output_dir=generator._log_dir, name=generator._log_file, console_level=generator._console_level, file_level=generator._file_level, csv_level=generator._csv_level)
-        except: # saved outside of yaml etc.
-            pass
+
+        generator.logger.warning(f"Logs will be written to: {dir} instead of newly created one.")
+        generator.logger = make_logger(output_dir=dir, name=generator.name(), console_level=generator._console_level, file_level=generator._file_level, csv_level=generator._csv_level)
+        generator._output_dir = str(dir)
+        
         if transition is None and not hasattr(generator, "transition"):
             raise ValueError("Transition is not specified in load_file(), nor saved in the checkpoint.")
         elif transition is not None and not hasattr(generator, "transition"):
@@ -524,6 +526,6 @@ class Generator(ABC):
     def load_dir(dir: str) -> Self:
         from chemtsv3.utils import conf_from_yaml, generator_from_conf
         dir = resolve_path(dir)
-        conf = conf_from_yaml(os.path.join(dir, "config.yaml"))
+        conf = conf_from_yaml(os.path.join(dir, "config_checkpoint.yaml"))
         transition = generator_from_conf(conf).transition
         return Generator.load_file(os.path.join(dir, "checkpoint.gtr"), transition)

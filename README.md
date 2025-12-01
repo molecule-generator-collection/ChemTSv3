@@ -131,11 +131,11 @@ In some cases (for example, when setting up environments on a control node), it 
 See `config/mcts/example.yaml` for an example YAML configuration.
 ```bash
 # Simple generation
-python sandbox/generation.py -c config/mcts/example.yaml
+chemtsv3 -c config/mcts/example.yaml
 # Chain generation
-python sandbox/generation.py -c config/mcts/example_chain_1.yaml
+chemtsv3 -c config/mcts/example_chain_1.yaml
 # Load a checkpoint and continue the generation
-python sandbox/generation.py -l sandbox/generation_results/~~~/checkpoint --max_generations 100 --time_limit 60
+chemtsv3 -l generation_results/~~~ --max_generations 100 --time_limit 60
 ```
 
 ## Notebooks
