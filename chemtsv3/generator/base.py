@@ -508,8 +508,11 @@ class Generator(ABC):
         file = resolve_path(file)
         with open(file, "rb") as f:
             generator = pickle.load(f)
-        generator.logger.warning(f"Logs will be written to: {generator._log_dir} instead of newly created one.")
-        generator.logger = make_logger(output_dir=generator._log_dir, name=generator._log_file, console_level=generator._console_level, file_level=generator._file_level, csv_level=generator._csv_level)
+        try:
+            generator.logger.warning(f"Logs will be written to: {generator._log_dir} instead of newly created one.")
+            generator.logger = make_logger(output_dir=generator._log_dir, name=generator._log_file, console_level=generator._console_level, file_level=generator._file_level, csv_level=generator._csv_level)
+        except: # saved outside of yaml etc.
+            pass
         if transition is None and not hasattr(generator, "transition"):
             raise ValueError("Transition is not specified in load_file(), nor saved in the checkpoint.")
         elif transition is not None and not hasattr(generator, "transition"):
