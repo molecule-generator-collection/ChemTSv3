@@ -211,10 +211,10 @@ class RNNTransition(AutoRegressiveTransition):
         
         # make dataset and build vocabs
         if test_dataset_path is None:
-            ds = load_dataset("text", data_files={"train": dataset_path})
+            ds = load_dataset("text", data_files={"train": str(dataset_path)})
             ds = ds["train"].train_test_split(test_size=test_size)
         else:
-            ds = load_dataset("text", data_files={"train": dataset_path, "test": test_dataset_path})
+            ds = load_dataset("text", data_files={"train": str(dataset_path), "test": str(test_dataset_path)})
         if issubclass(lang.__class__, DynamicLanguage):
             lang.build_vocab(ds)
 
@@ -275,7 +275,7 @@ class RNNTransition(AutoRegressiveTransition):
         return model, best_state_dict
     
     @staticmethod
-    def train_rnn_from_conf(conf: dict) -> tuple[Self, dict, Language]:
+    def train_rnn_from_conf(conf: dict, base_dir: str=None) -> tuple[Self, dict, Language]:
         """
         Train RNN from conf. Currently only supports DynamicLanguage.
         
@@ -290,7 +290,8 @@ class RNNTransition(AutoRegressiveTransition):
         conf_clone = copy.deepcopy(conf)
         
         # set language from conf
-        lang_class = class_from_package("language", conf_clone.pop("lang_class"))
+        base_dir = base_dir if base_dir is not None else os.getcwd()
+        lang_class = class_from_package(base_dir, "language", conf_clone.pop("lang_class"))
         lang = lang_class(**conf_clone.pop("lang_args", {}))
 
         # set path from conf

@@ -1,15 +1,10 @@
-#Example: python sandbox/model_training.py -c config/training/train_rnn_smiles.yaml
+#Example: chemtsv3-train -c config/training/train_rnn_smiles.yaml
 
 # Path setup / Imports
 import argparse
 import faulthandler
-import sys
-import yaml
 import os
-
-repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
-if repo_root not in sys.path:
-    sys.path.insert(0, repo_root)
+import yaml
     
 from chemtsv3.transition import GPT2Transition, RNNTransition
 from chemtsv3.utils import save_yaml
@@ -27,9 +22,9 @@ def main():
     args = parser.parse_args()
     
     yaml_path = args.yaml_path
-    with open(os.path.join(repo_root, yaml_path)) as f:
+    with open(yaml_path) as f:
         conf = yaml.safe_load(f)
-    output_dir = os.path.join(repo_root, conf.get("output_dir"))
+    output_dir = os.path.join(os.getcwd(), conf.get("output_dir"))
     
     model_type = conf.get("model_type")
     if model_type is None:

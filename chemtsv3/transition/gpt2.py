@@ -110,6 +110,7 @@ class GPT2Transition(AutoRegressiveTransition):
         # additional_length: if block size is not defined, block size = max number of tokens in one sentence in the dataset + additional length
 
         # make dataset and build vocabs
+        dataset_path = str(dataset_path) # For Path object
         ds = load_dataset("text", data_files={"train": dataset_path})
         ds = ds["train"].train_test_split(test_size=test_size)
         if issubclass(lang.__class__, DynamicLanguage):
@@ -192,7 +193,7 @@ class GPT2Transition(AutoRegressiveTransition):
         return model, trainer
     
     @staticmethod
-    def train_gpt2_from_conf(conf: dict) -> tuple[GPT2LMHeadModel, Trainer, Language]:
+    def train_gpt2_from_conf(conf: dict, base_dir: str=None) -> tuple[GPT2LMHeadModel, Trainer, Language]:
         """
         Train GPT2 from conf. Currently only supports DynamicLanguage.
         
@@ -207,7 +208,8 @@ class GPT2Transition(AutoRegressiveTransition):
         conf_clone = copy.deepcopy(conf)
         
         output_dir = resolve_path(conf_clone.get("output_dir"))
-        lang_class = class_from_package("language", conf_clone.get("lang_class"))
+        base_dir = base_dir if base_dir is not None else os.getcwd()
+        lang_class = class_from_package(base_dir, "language", conf_clone.get("lang_class"))
         lang = lang_class(**conf_clone.get("lang_args", {}))
         dataset_path = resolve_path(conf_clone.get("dataset_path"))
 
