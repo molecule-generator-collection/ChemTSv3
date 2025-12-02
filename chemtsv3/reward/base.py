@@ -11,17 +11,20 @@ class Reward(ABC):
     is_single_objective = False
 
     @abstractmethod
-    def objective_functions(self) -> List[Callable[[Node], float]]:
+    def objective_functions(self) -> list[Callable[[Node], float]]:
         """Return objective functions of the node; each function returns an objective value."""
         pass
 
     @abstractmethod
-    def reward_from_objective_values(self, objective_values: List[float]) -> float:
+    def reward_from_objective_values(self, objective_values: list[float]) -> float:
         """Compute the final reward based on the objective values calculated by objective_functions()."""
         pass
 
     def objective_values(self, node: Node):
         return [f(node) for f in self.objective_functions()]
+    
+    def objective_names(self) -> list[str]:
+        return [f.__name__ for f in self.objective_functions()]
     
     def objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
         objective_values = self.objective_values(node)
@@ -43,23 +46,23 @@ class SingleReward(Reward):
         pass
     
     # implement
-    def objective_functions(self) -> List[Callable[[Node], float]]:
+    def objective_functions(self) -> list[Callable[[Node], float]]:
         def r(node):
             return self.reward(node)
         return [r]
     
     # implement
-    def reward_from_objective_values(self, objective_values: List[float]) -> float:
+    def reward_from_objective_values(self, objective_values: list[float]) -> float:
         return objective_values[0]
 
 class MolReward(Reward):
     @abstractmethod
-    def mol_objective_functions(self) -> List[Callable[[Mol], float]]:
+    def mol_objective_functions(self) -> list[Callable[[Mol], float]]:
         """Return objective functions of the molecule; each function returns an objective value."""
         pass
 
     @abstractmethod
-    def reward_from_objective_values(self, objective_values: List[float]) -> float:
+    def reward_from_objective_values(self, objective_values: list[float]) -> float:
         """Compute the final reward based on the objective values calculated by objective_functions()."""
         pass
 
@@ -71,7 +74,7 @@ class MolReward(Reward):
         return wrapper
 
     #override
-    def objective_functions(self) -> List[Callable[[MolNode], float]]:
+    def objective_functions(self) -> list[Callable[[MolNode], float]]:
         return [MolReward.wrap_with_mol(f) for f in self.mol_objective_functions()]
     
 class SingleMolReward(SingleReward):
@@ -85,11 +88,11 @@ class SingleMolReward(SingleReward):
     
 class SMILESReward(Reward):
     @abstractmethod
-    def smiles_objective_functions(self) -> List[Callable[[str], float]]:
+    def smiles_objective_functions(self) -> list[Callable[[str], float]]:
         pass
 
     @abstractmethod
-    def reward_from_objective_values(self, objective_values: List[float]) -> float:
+    def reward_from_objective_values(self, objective_values: list[float]) -> float:
         pass
 
     @staticmethod
@@ -100,5 +103,5 @@ class SMILESReward(Reward):
         return wrapper
 
     #override
-    def objective_functions(self) -> List[Callable[[MolNode], float]]:
+    def objective_functions(self) -> list[Callable[[MolNode], float]]:
         return [SMILESReward.wrap_with_smiles(f) for f in self.smiles_objective_functions()]

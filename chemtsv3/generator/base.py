@@ -273,7 +273,7 @@ class Generator(ABC):
             y_axis = reward_name
             y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
         else:
-            objective_names = [f.__name__ for f in self.reward.objective_functions()]
+            objective_names = self.reward.objective_names()
             if not y_axis in objective_names:
                 self.logger.warning("Couldn't find objective name " + y_axis + ": uses reward instead.")
                 y_axis = "reward"
@@ -287,14 +287,14 @@ class Generator(ABC):
     def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False, reward_top_ps: list[float]=None):
         ylims = ylims or {}
         if not self.reward.is_single_objective:
-            objective_names = [f.__name__ for f in self.reward.objective_functions()]
+            objective_names = self.reward.objective_names()
             for o in objective_names:
                 self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_curve=False, max_line=False, xlim=xlim, ylim=ylims.get(o, None), x_grid_interval=x_grid_interval, linewidth=linewidth, save_only=save_only)
         self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=reward_top_ps)
 
     def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=1.0, save_only: bool=False):
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
-        objective_names = [f.__name__ for f in self.reward.objective_functions()]
+        objective_names = self.reward.objective_names()
         for ya in y_axes:
             label = ya
             objective_idx = objective_names.index(ya)
@@ -406,12 +406,12 @@ class Generator(ABC):
         if len(self.unique_keys) == 0:
             cols = ["order", "time", "key", "reward"]
             if not self.reward.is_single_objective:
-                cols += [f.__name__ for f in self.reward.objective_functions()]
+                cols += self.reward.objective_names()
             return pd.DataFrame(columns=cols)
 
         columns = ["order", "time", "key", "reward"]
         if not self.reward.is_single_objective:
-            columns += [f.__name__ for f in self.reward.objective_functions()]
+            columns += self.reward.objective_names()
 
         rows = []
         for key in self.unique_keys:
@@ -428,8 +428,7 @@ class Generator(ABC):
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
         if not self.reward.is_single_objective:
-            for fn in self.reward.objective_functions():
-                name = fn.__name__
+            for name in self.reward.objective_names():
                 if name in df.columns:
                     df[name] = pd.to_numeric(df[name], errors="coerce")
 
