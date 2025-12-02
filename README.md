@@ -206,9 +206,9 @@ For other options and further details, please refer to each class’s `__init__(
 |-|`device`|-|Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For `RNNTransition`, using the CPU tends to be faster.|
 |-|`debug`|False|If True, debug logging are enabled.|
 |-|`silent`|False|If True, console logging are disabled.|
-|-|`save​_on​_completion`|False|If True, saves a checkpoint upon completion of the generation.|
 |-|`next_yaml_path`|False|If a path to the YAML config for the next generator is set, the generated molecules will be passed for chain generation.|
 |-|`n_keys_to_pass`|3|Number of top-k generated molecules (keys) to be used as root nodes for the next generator.|
+|`MCTS`|`save​_on​_completion`|False|If True, saves a checkpoint upon completion of the generation.|
 |`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be > 1 unless the evaluations are undeterministic (e.g. involve rollouts).|
 |`MCTS`|`n_tries`|1|The number of attempts to obtain an unfiltered node in a single evaluation. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
 |`MCTS`|`allow​_eval​_overlaps`|False|Whether to allow overlap nodes when sampling eval candidates (recommended: False)|
