@@ -7,7 +7,7 @@ from chemtsv3.utils import resolve_path
 class KnownListFilter(Filter):
     def __init__(self, list_paths: list[str]):
         """
-        Excludes molecules that are contained in the key column of the input CSV file(s), and overrides their reward with the corresponding value from the reward column. (CSV files from generation results can be used directly.)
+        Excludes molecules that are contained in the key column of the input CSV file(s), and overrides their reward with the corresponding value from the reward column (unless applied for the transition). (CSV files from generation results can be used directly.)
         """
         self.known_nodes = {} # key: reward
         if list_paths is not None:
