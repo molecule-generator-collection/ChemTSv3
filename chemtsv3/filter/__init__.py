@@ -1,5 +1,6 @@
 from .base import Filter, MolFilter, ValueFilter, MolValueFilter
 from .aromatic_ring_filter import AromaticRingFilter
+from .atom_count_filter import AtomCountFilter
 from .attachment_points_filter import AttachmentPointsFilter
 from .catalog_filter import CatalogFilter
 from .charge_filter import ChargeFilter
@@ -7,8 +8,8 @@ from .connectivity_filter import ConnectivityFilter
 from .hba_filter import HBAFilter
 from .hbd_filter import HBDFilter
 from .heavy_atom_count_filter import HeavyAtomCountFilter
+from .known_list_filter import KnownListFilter
 from .log_p_filter import LogPFilter
-from .atom_count_filter import AtomCountFilter
 from .pains_filter import PainsFilter
 from .radical_filter import RadicalFilter
 from .ring_bond_filter import RingBondFilter
