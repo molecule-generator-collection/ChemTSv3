@@ -4,6 +4,7 @@
 result/
 training_results/
 generation_results/
+generation_result/
 personal/
 optuna/
 oracle/
