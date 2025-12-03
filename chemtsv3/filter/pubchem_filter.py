@@ -4,7 +4,7 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from chemtsv3.filter import MolFilter
-from data.pubchem_filter import metadata
+from chemtsv3.data.pubchem_filter import metadata
 
 # ported from ChemTSv2: https://github.com/molecule-generator-collection/ChemTSv2/blob/master/filter/pubchem_filter.py
 
