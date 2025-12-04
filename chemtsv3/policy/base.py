@@ -82,7 +82,7 @@ class ScoreBasedPolicy(TemplatePolicy):
             try:
                 y = self.score(c)
             except Exception as e:
-                self.logger.debug(f"Evaluation failed: {e}")
+                self.logger.debug(f"Score calculation in policy was failed: {e}")
                 y = float("-inf")
             if not math.isfinite(y):
                 y = float("-inf")
