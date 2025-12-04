@@ -26,8 +26,7 @@ A unified tree search framework for molecular generation.
 ```bash
 uv venv --python 3.11.11
 source .venv/bin/activate
-uv pip install numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 torch==2.5.1 --torch-backend=auto
-uv pip install chemtsv3
+uv pip install chemtsv3 numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 torch==2.5.1 --torch-backend=auto
 ```
 
 To activate the virtual environment, run the following command from the repository root (this process can also be automated through VS Code settings):
@@ -59,8 +58,7 @@ deactivate
 ```bash
 uv venv --python 3.11.11
 .venv\Scripts\activate
-uv pip install numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 torch==2.5.1 --torch-backend=auto
-uv pip install chemtsv3
+uv pip install chemtsv3 numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 ipykernel==6.30.0 transformers==4.43.4 torch==2.5.1 --torch-backend=auto
 ```
 
 To activate the virtual environment, run the following command from the repository root (this process can also be automated through VS Code settings):
@@ -91,8 +89,7 @@ deactivate
 ```bash
 uv venv --python 3.11.11
 source .venv/bin/activate
-uv pip install pytdc==1.1.14 numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 selfies==2.2.0 ipykernel==6.30.0 transformers==4.43.4 setuptools==78.1.1 lightgbm==4.6.0 openai==2.6.0 torch==2.5.1 --torch-backend=auto
-uv pip install chemtsv3
+uv pip install chemtsv3 pytdc==1.1.14 numpy==1.26.4 pandas==2.3.3 matplotlib==3.10.7 rdkit==2023.09.6 selfies==2.2.0 ipykernel==6.30.0 transformers==4.43.4 setuptools==78.1.1 lightgbm==4.6.0 openai==2.6.0 torch==2.5.1 --torch-backend=auto
 ```
 To activate the virtual environment, run the following command from the repository root (this process can also be automated through VS Code settings):
 ```bash
