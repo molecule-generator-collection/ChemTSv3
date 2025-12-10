@@ -23,7 +23,7 @@ policy_args:
   n_warmup_steps: 500
   batch_size: 500
   score_calculation_interval: 25
-  score_calculation_window: 100
+  # score_calculation_window: 200 # was set to 100, but wasn't properly reflected (cuurent default value 200 was used instead)
   fp_radius: 2
   fp_size: 2048
   c: 0.25
