@@ -6,7 +6,7 @@ from chemtsv3.policy import ScoreBasedPolicy
 from chemtsv3.utils import PointCurve
 
 class UCT(ScoreBasedPolicy):
-    def __init__(self, c: Callable[[float], float] | list[tuple[float, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0, logger: logging.Logger=None):
+    def __init__(self, c: Callable[[int], float] | list[tuple[int, float]] | float=0.3, best_rate: float=0.0, max_prior: float=None, pw_c: float=None, pw_alpha: float=None, pw_beta: float=0, epsilon: float=0, logger: logging.Logger=None):
         """
         Args:
             c: The weight of the exploration term. Higher values place more emphasis on exploration over exploitation.
