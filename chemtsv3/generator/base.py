@@ -13,6 +13,7 @@ from typing import Self
 import yaml
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from chemtsv3.filter import Filter
 from chemtsv3.node import Node
 from chemtsv3.reward import Reward, LogPReward
@@ -439,7 +440,7 @@ class Generator(ABC):
             
         return df
         
-    def inherit(self, predecessor: Self):
+    def inherit_generator(self, predecessor: Self):
         self._output_dir = predecessor._output_dir
         self.logger = predecessor.logger
         self.record = predecessor.record
@@ -452,6 +453,64 @@ class Generator(ABC):
         self.transition.on_inherit(self)
         for filter in self.filters:
             filter.on_inherit(self)
+            
+    def inherit_record(self, csv_path: str | pd.DataFrame):
+        required_cols = self._required_cols()
+        optional_time_cols = self._optional_cols()
+
+        df = self._load_table(csv_path)
+        missing_required = required_cols - set(df.columns)
+        if missing_required:
+            raise ValueError(f"Missing required columns: {sorted(missing_required)}")
+
+        df = df.copy()
+
+        # if order / time is missing, set them to -1
+        if not optional_time_cols.issubset(df.columns):
+            df["order"] = -1
+            df["time"] = -1
+        else:
+            df["order"] = pd.to_numeric(df["order"], errors="coerce").fillna(-1).astype(int)
+            df["time"] = pd.to_numeric(df["time"], errors="coerce").fillna(-1)
+
+        df["reward"] = pd.to_numeric(df["reward"], errors="raise")
+        df["key"] = df["key"].astype(str)
+
+        obj_cols = [c for c in df.columns if c not in self._non_obj_cols()]
+
+        for _, row in df.iterrows():
+            key = row["key"]
+            objective_values = [row[c] for c in obj_cols]
+            self.record[key] = {
+                "objective_values": objective_values,
+                "reward": float(row["reward"]),
+                "generation_order": int(row["order"]),
+                "time": float(row["time"]),
+            }
+            self.best_reward = max(self.best_reward, float(row["reward"]))
+            self.unique_keys.append(key)
+
+        last_time = float(df["time"].iloc[-1])
+        self.passed_time += last_time if last_time >= 0 else 0.0
+        
+        self.transition.on_inherit(self)
+        for filter in self.filters:
+            filter.on_inherit(self)
+        
+    def _non_obj_cols(self):
+        return {"order", "time", "key", "reward"}
+    
+    def _required_cols(self):
+        return {"key", "reward"}
+    
+    def _optional_cols(self):
+        return {"order", "time"}
+            
+    def _load_table(self, src: str | pd.DataFrame) -> pd.DataFrame:
+        if isinstance(src, pd.DataFrame):
+            return src
+        path = Path(src)
+        return pd.read_csv(path)
         
     def log_verbose_info(self):
         log_memory_usage(self.logger)

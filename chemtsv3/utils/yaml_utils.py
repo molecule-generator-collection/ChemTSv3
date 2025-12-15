@@ -8,6 +8,7 @@ import shutil
 import subprocess
 from typing import Any
 import yaml
+import pandas as pd
 
 from chemtsv3.generator import Generator
 from chemtsv3.language import Language
@@ -30,6 +31,10 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     save_yaml(conf, output_dir=output_dir)
     generator_args = conf_clone.get("generator_args") or {}
     set_seed(seed=conf_clone.get("seed"), logger=logger)
+    
+    # prev_csv_path
+    if "prev_csv_path" in conf_clone and not os.path.isabs(conf_clone["prev_csv_path"]):
+        conf_clone["prev_csv_path"] = os.path.join(base_dir, conf_clone["prev_csv_path"])
 
     # set node class (Node.lang will be set later)
     node_class = class_from_package(base_dir, "node", conf_clone.get("node_class"))
@@ -80,11 +85,29 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     transition = transition_class(**transition_args)
     
     # set root nodes
-    if n_top_keys_to_pass:        
-        top_k = predecessor.top_k(k=n_top_keys_to_pass)
-        top_keys = [key for key, _ in top_k]
-        top_values = [value for _, value in top_k]
-        conf_clone["root"] = top_keys
+    if n_top_keys_to_pass:
+        if predecessor is not None:        
+            top_k = predecessor.top_k(k=n_top_keys_to_pass)
+            top_keys = [key for key, _ in top_k]
+            top_values = [value for _, value in top_k]
+            conf_clone["root"] = top_keys
+            logger.info("The following keys were passed: " + ", ".join(top_keys))
+            # if "root" in conf_clone:
+            #     logger.warning("Both 'n_top_keys_to_pass' and 'root' were specified, and 'root' was overridden.")
+        else:
+            logger.warning("'n_top_keys_to_pass' was specified, but the previous generator ('predecessor') was not specified, and 'n_top_keys_to_pass' was ignored.")
+            
+    if "n_top_keys_to_receive" in conf_clone:
+        if "prev_csv_path" in conf_clone:
+            top_k = top_k_from_csv(conf_clone["prev_csv_path"], conf_clone["n_top_keys_to_receive"])
+            top_keys = [key for key, _ in top_k]
+            top_values = [value for _, value in top_k]
+            conf_clone["root"] = top_keys
+            logger.info("The following keys were passed: " + ", ".join(top_keys))
+            # if "root" in conf_clone:
+            #     logger.warning("Both 'n_top_keys_to_pass' and 'root' were specified, and 'root' was overridden.")
+        else:
+            logger.warning("'n_top_keys_to_receive' was specified, but 'prev_csv_path' was not specified, and 'n_top_keys_to_receive' was ignored.")
     
     if type(conf_clone.get("root")) == list:
         root = SurrogateNode()
@@ -127,7 +150,9 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     generator._set_yaml_copy(conf)
     
     if predecessor:
-        generator.inherit(predecessor)
+        generator.inherit_generator(predecessor)
+    if "prev_csv_path" in conf_clone:
+        generator.inherit_record(conf_clone["prev_csv_path"])
     
     return generator
 
@@ -233,3 +258,18 @@ def save_yaml(conf: dict, output_dir: str, name: str="config.yaml", overwrite: b
         yaml.dump(conf, f, sort_keys=False)
 
     return path
+
+def top_k_from_csv(csv_path: str, k: int=1,) -> list[tuple[str, float]]:
+    df = pd.read_csv(csv_path)
+
+    required_cols = {"key", "reward"}
+    missing = required_cols - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns in csv: {sorted(missing)}")
+
+    df = df.reset_index(drop=True)
+    df["_order"] = df.index # tiebreaker
+
+    df_sorted = df.sort_values(by=["reward", "_order"], ascending=[False, True],)
+    
+    return list(df_sorted.head(k)[["key", "reward"]].itertuples(index=False, name=None))
