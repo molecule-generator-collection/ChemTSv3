@@ -11,17 +11,27 @@ class Reward(ABC):
     is_single_objective = False
 
     @abstractmethod
-    def objective_functions(self) -> list[Callable[[Node], float]]:
-        """Return objective functions of the node; each function returns an objective value."""
+    def objective_functions(self) -> list[Callable[[Node], float | tuple[float] | list[float]]]:
+        """
+        Return objective functions of the node; each function returns an objective value.
+        If any of objective function returns tuple[float] of list[float], objective_names() needs to be overridden.
+        """
         pass
 
     @abstractmethod
     def reward_from_objective_values(self, objective_values: list[float]) -> float:
         """Compute the final reward based on the objective values calculated by objective_functions()."""
         pass
-
-    def objective_values(self, node: Node):
-        return [f(node) for f in self.objective_functions()]
+    
+    def objective_values(self, node: Node) -> list[float]:
+        values = []
+        for f in self.objective_functions():
+            v = f(node)
+            if isinstance(v, (tuple, list)):
+                values.extend(v)
+            else:
+                values.append(v)
+        return values
     
     def objective_names(self) -> list[str]:
         return [f.__name__ for f in self.objective_functions()]
