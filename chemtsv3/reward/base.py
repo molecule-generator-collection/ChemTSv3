@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Callable
+import numpy as np
 from rdkit.Chem import Mol
 from chemtsv3.node import Node, MolNode
 from chemtsv3.utils import camel2snake
@@ -14,7 +15,7 @@ class Reward(ABC):
     def objective_functions(self) -> list[Callable[[Node], float | tuple[float] | list[float]]]:
         """
         Return objective functions of the node; each function returns an objective value.
-        If any of objective function returns tuple[float] of list[float], objective_names() needs to be overridden.
+        If any of objective function returns tuple[float], list[float] or 1d ndarray, objective_names() needs to be overridden.
         """
         pass
 
@@ -29,6 +30,10 @@ class Reward(ABC):
             v = f(node)
             if isinstance(v, (tuple, list)):
                 values.extend(v)
+            elif isinstance(v, np.ndarray):
+                if v.ndim != 1:
+                    raise ValueError(f"{f.__name__} returned ndarray with ndim={v.ndim}, but only 1D arrays are supported.")
+                values.extend(v.tolist())
             else:
                 values.append(v)
         return values
