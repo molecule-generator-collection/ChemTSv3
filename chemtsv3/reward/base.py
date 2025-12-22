@@ -145,6 +145,7 @@ class BatchReward(Reward, ABC):
         """
         raise NotImplementedError
     
+    # abstractmethod
     def objective_names(self):
         raise NotImplementedError
     
