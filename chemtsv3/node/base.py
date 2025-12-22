@@ -22,6 +22,7 @@ class Node(ABC):
         self.n = 0 # visit count
         self.sum_r = 0.0 # sum of rewards
         self.best_r = self.initial_best_r
+        self.virtual_loss_count = 0
         self.reward = None # used only if has_reward() = True
         self._is_terminal = False # set this to True in generator if transition_with_probs returned an empty list
         self._cache = None # use self.cache and self.clear_cache() (dict)
@@ -52,7 +53,7 @@ class Node(ABC):
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage. Can be overridden for marginal efficiency."""
 
-        needed = ["parent", "depth", "children", "last_prob", "last_action", "n", "sum_r", "best_r", "reward", "_is_terminal"]
+        needed = ["parent", "depth", "children", "last_prob", "last_action", "n", "sum_r", "best_r", "reward", "_is_terminal", "virtual_loss_count"]
         for key in list(self.__dict__.keys()):
             if key not in needed:
                 self.__dict__[key] = None

@@ -1,4 +1,4 @@
-from .base import Reward, SingleReward, MolReward, SingleMolReward, SMILESReward
+from .base import Reward, SingleReward, MolReward, SingleMolReward, SMILESReward, BatchReward
 from .log_p_reward import LogPReward
 from .similarity_reward import SimilarityReward
 

@@ -15,7 +15,7 @@ class MCTS(Generator):
                  cut_failed_child: bool=False, reward_cutoff: float=None, reward_cutoff_warmups: int=None, 
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=True, discard_unneeded_states: bool=None,
-                 max_tree_depth=None, use_dummy_reward: bool=False,
+                 max_tree_depth: int=None, virtual_loss: float=0.0, use_dummy_reward: bool=False,
                  name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
         """
         Args:
@@ -30,12 +30,12 @@ class MCTS(Generator):
             reward_cutoff_warmups: If specified, reward_cutoff will be inactive until {reward_cutoff_warmups} generations.
             avoid_duplicates: If True, duplicate nodes won't be added to the search tree. Should be True if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to False to reduce memory usage.
             
-            failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {n_eval_width * n_eval_iters * n_tries} evals are filtered from the node.
+            failed_parent_reward: (Set to -1 for v2 replication) Backpropagate this value when {n_eval_width * n_eval_iters * n_tries} evals are filtered from the node. Unused for batch reward calculation.
             cut_terminal: (Set to False for v2 replication) If True, terminal nodes are pruned from the search tree and will not be visited more than once.
             terminal_reward: (Set to -1 for v2 replication) If a float value is set, that value is backpropagated when a leaf node reaches a terminal state. If set to "ignore", no value is backpropagated.
             
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
-            discard_unneeded_states: If True, discards variables of nodes that will no longer be used after expansion.
+            discard_unneeded_states: If True, discards variables of nodes that will no longer be used after expansion. Unused for batch reward calculation. Caches are handled independently.
             
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
@@ -62,6 +62,7 @@ class MCTS(Generator):
 
         self.root = root
         self.max_tree_depth = max_tree_depth
+        self.virtual_loss = virtual_loss
         self.policy = policy
         self.n_eval_width = n_eval_width
         self.allow_eval_overlaps = allow_eval_overlaps
@@ -80,18 +81,22 @@ class MCTS(Generator):
             self.node_keys.add(self.root.key())
             for c in self.root.children:
                 self.node_keys.add(c.key())
-        if discard_unneeded_states is not None:
-            self.discard_unneeded_states = discard_unneeded_states
-        else:
-            self.discard_unneeded_states = False if cut_failed_child else True
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
         
-        self.reward_queue = queue.Queue()
+        self._reward_queue = queue.Queue()
+        self._pending_batch = [] # for batch reward
         self.current_parent = None
         self.parent_unfiltered_flag = False
 
         super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, name=name, output_dir=output_dir, logger=logger, logging_interval=logging_interval, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval, save_on_completion=save_on_completion, include_transition_to_save=include_transition_to_save)
+        
+        if self.reward.is_batch_reward():
+            self.discard_unneeded_states = False
+        elif discard_unneeded_states is not None:
+            self.discard_unneeded_states = discard_unneeded_states
+        else:
+            self.discard_unneeded_states = False if cut_failed_child else True
         self.root.n = 1
         
     def _selection(self) -> Node:
@@ -143,20 +148,20 @@ class MCTS(Generator):
             node = node.parent
             
     def _generate_impl(self):
-        if self.reward_queue.empty():
-            if self.failed_parent_reward != "ignore" and not self.parent_unfiltered_flag:
+        if self._reward_queue.empty():
+            if not self.reward.is_batch_reward() and self.failed_parent_reward != "ignore" and not self.parent_unfiltered_flag:
                 self._backpropagate(self.current_parent, self.failed_parent_reward, False)
             self._fill_queue()
         else:
             self._work_on_queue()
-            
+                
     def _fill_queue(self):
         node = self._selection()
-        
+
         if not node.children and node.n != 0:
             if not self._expand(node):
                 node.mark_as_terminal(cut=self.cut_terminal, logger=self.logger)
-                
+
         if node.is_terminal():
             if self.terminal_reward != "ignore":
                 self._backpropagate(node, self.terminal_reward, False)
@@ -168,31 +173,115 @@ class MCTS(Generator):
             children = [self.policy.select_child(node)]
         else:
             children = self.policy.sample_candidates(node, max_size=self.n_eval_width, replace=self.allow_eval_overlaps)
-        
+
         self.parent_unfiltered_flag = False
         self.current_parent = node
         for child in children:
-            self.reward_queue.put((child, self.n_eval_iters, self.n_tries, False)) # node for evaluation, remaining iters, remaining tries, already got unfiltered generation or not
-    
+            if self.reward.is_batch_reward():
+                self._apply_virtual_loss(child)
+                self._reward_queue.put((child, self.n_eval_iters, self.n_tries, False))
+            else:
+                self._reward_queue.put((child, self.n_eval_iters, self.n_tries, False))
+            
     def _work_on_queue(self):
-        child, iters, tries, unfiltered_flag = self.reward_queue.get()
-        objective_values, reward = self._eval(child)
-        
-        if type(objective_values[0]) != str: # not filtered
-            unfiltered_flag = True
-            self.parent_unfiltered_flag = True
-            self._backpropagate(child, reward, self.use_dummy_reward)
-        else: # filtered
-            if tries > 1:
-                self.reward_queue.put((child, iters, tries-1, unfiltered_flag))
-                return
-            elif self.filter_reward[int(objective_values[0])] != "ignore":
-                self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
+        child, iters, tries, unfiltered_flag = self._reward_queue.get()
+
+        if not self.reward.is_batch_reward():
+            objective_values, reward = self._eval(child)
+            
+            if type(objective_values[0]) != str: # not filtered
+                unfiltered_flag = True
+                self.parent_unfiltered_flag = True
+                self._backpropagate(child, reward, self.use_dummy_reward)
+            else: # filtered
+                if tries > 1:
+                    self._reward_queue.put((child, iters, tries-1, unfiltered_flag))
+                    return
+                elif self.filter_reward[int(objective_values[0])] != "ignore":
+                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
+                    
+            if iters > 1:
+                self._reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
+            elif self.cut_failed_child and not unfiltered_flag:
+                child.leave(logger=self.logger)
+        else: # batch reward
+            self._work_on_queue_batch(child, iters, tries, unfiltered_flag)
+            
+    def _work_on_queue_batch(self, child: Node, iters: int, tries: int, unfiltered_flag: bool):
+        if child.has_reward():
+            target = child
+            is_direct = True
+        else:
+            target = self.transition.rollout(child)
+            is_direct = False
+            
+        pre = self._pre_reward_checks(target)
+
+        if not (type(pre[0]) is bool and pre[0] is True): # no reward calculation
+            objective_values, reward = pre
+            self._revert_virtual_loss(child)
+
+            if type(objective_values[0]) != str:
+                unfiltered_flag = True
+                self._backpropagate(child, reward, self.use_dummy_reward)
+            else:
+                if tries > 1:
+                    self._reward_queue.put((child, iters, tries-1, unfiltered_flag))
+                    return
+                elif self.filter_reward[int(objective_values[0])] != "ignore":
+                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
+
+            if iters > 1:
+                self._apply_virtual_loss(child)
+                self._reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
+            elif self.cut_failed_child and not unfiltered_flag:
+                child.leave(logger=self.logger)
+        else: # reward calculation needed
+            key = pre[1]
+            self._pending_batch.append((child, iters, tries, unfiltered_flag, target, is_direct, key))
+            if len(self._pending_batch) >= self.reward.n_batch():
+                self._flush_pending_batch()
                 
-        if iters > 1:
-            self.reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
-        elif self.cut_failed_child and not unfiltered_flag:
-            child.leave(logger=self.logger)
+    def _flush_pending_batch(self):
+        items = self._pending_batch[:self.reward.n_batch()]
+        self._pending_batch = self._pending_batch[self.reward.n_batch():]
+        targets = [t for (_, _, _, _, t, _, _) in items]
+        batch_out = self.reward.objective_values_and_rewards(targets)
+
+        for (child, iters, tries, unfiltered_flag, target, is_direct, key), (objective_values, reward) in zip(items, batch_out):
+            self._post_reward_side_effects(target, key, objective_values, reward)
+            self._revert_virtual_loss(child)
+            if is_direct and self.reward_cutoff is not None and reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
+                self.reward_cutoff_count += 1
+                child.leave(logger=self.logger)
+            
+            unfiltered_flag = True
+            self._backpropagate(child, reward, self.use_dummy_reward)
+
+            if iters > 1:
+                self._apply_virtual_loss(child)
+                self._reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
+            
+    def _apply_virtual_loss(self, node: Node):
+        cur = node
+        while cur is not None:
+            cur.virtual_loss_count += 1
+            cur.n += 1
+            cur.sum_r += self.virtual_loss
+            # cur.best_r = max(cur.best_r, self.virtual_loss)
+            cur = cur.parent
+
+    def _revert_virtual_loss(self, node: Node):
+        cur = node
+        while cur is not None:
+            if cur.virtual_loss_count <= 0:
+                cur = cur.parent
+                continue
+
+            cur.virtual_loss_count -= 1
+            cur.n -= 1
+            cur.sum_r -= self.virtual_loss
+            cur = cur.parent
 
     # override
     def display_top_k_molecules(self, str2mol_func=None, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):

@@ -11,18 +11,18 @@ RDLogger.DisableLog('rdApp.*')
 class Reward(ABC):
     is_single_objective = False
 
-    @abstractmethod
+    # abstractmethod
     def objective_functions(self) -> list[Callable[[Node], float | tuple[float] | list[float]]]:
         """
         Return objective functions of the node; each function returns an objective value.
         If any of objective function returns tuple[float], list[float] or 1d ndarray, objective_names() needs to be overridden.
         """
-        pass
+        raise NotImplementedError # not @abstractmethod for BatchReward implementation
 
-    @abstractmethod
+    # abstractmethod
     def reward_from_objective_values(self, objective_values: list[float]) -> float:
         """Compute the final reward based on the objective values calculated by objective_functions()."""
-        pass
+        raise NotImplementedError
     
     def objective_values(self, node: Node) -> list[float]:
         values = []
@@ -45,6 +45,15 @@ class Reward(ABC):
         objective_values = self.objective_values(node)
         reward = self.reward_from_objective_values(objective_values)
         return objective_values, reward
+    
+    def objective_values_and_rewards(self, nodes: list[Node]) -> list[tuple[list[float], float]]:
+        return [self.objective_values_and_reward(n) for n in nodes]
+    
+    def n_batch(self) -> int:
+        return 1
+    
+    def is_batch_reward(self) -> int:
+        return self.n_batch() > 1
     
     def name(self):
         """(Optional) Override this method to change reward's name displayed on plots."""
@@ -120,3 +129,24 @@ class SMILESReward(Reward):
     #override
     def objective_functions(self) -> list[Callable[[MolNode], float]]:
         return [SMILESReward.wrap_with_smiles(f) for f in self.smiles_objective_functions()]
+    
+class BatchReward(Reward, ABC):
+    # abstractmethod
+    def n_batch(self) -> int:
+        """
+        Return the number of nodes to simultaneously calculate the reward.
+        """
+        raise NotImplementedError
+
+    # abstractmethod
+    def objective_values_and_rewards(self, nodes: list[Node]) -> list[tuple[list[float], float]]:
+        """
+        Return [(objective_values, reward), ...] aligned with input nodes.
+        """
+        raise NotImplementedError
+    
+    def objective_names(self):
+        raise NotImplementedError
+    
+    def objective_values_and_reward(self, node: Node):
+        return self.objective_values_and_rewards([node])[0]

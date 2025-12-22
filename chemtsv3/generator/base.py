@@ -147,7 +147,7 @@ class Generator(ABC):
     def _write_csv_header(self):
         header = ["order", "time", "key", "reward"]
         if not self.reward.is_single_objective:
-            header += [f.__name__ for f in self.reward.objective_functions()]
+            header += self.reward.objective_names()
         self.logger.info(header)
 
     def _log_unique_node(self, key, objective_values, reward):
@@ -211,8 +211,8 @@ class Generator(ABC):
                 top_k = max(1, math.floor(len(rewards) * top_p))
                 rewards = rewards[:top_k]
         return np.average(rewards)
-
-    def _get_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
+    
+    def _pre_reward_checks(self, node: Node) -> tuple[bool | str] | tuple[list[float], float]: # If reward calculation is needed, return (True, key)
         self.grab_count += 1
         key = node.key()
         if key in self.record:
@@ -238,20 +238,30 @@ class Generator(ABC):
                     
                 node.clear_cache()
                 return [str(i)], self.filter_reward[i]
+        
+        return True, key
+
+    def _get_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
+        pre_reward_checks_result = self._pre_reward_checks(node)
+        if type(pre_reward_checks_result[0]) is bool and pre_reward_checks_result[0] == True:
+            key = pre_reward_checks_result[1]
+        else:
+            return pre_reward_checks_result
             
         objective_values, reward = self.reward.objective_values_and_reward(node)
-        
+        self._post_reward_side_effects(node, key, objective_values, reward)
+        return objective_values, reward
+    
+    def _post_reward_side_effects(self, node: Node, key: str, objective_values: list[float], reward: float):
         self._log_unique_node(key, objective_values, reward)
-        
         node.reward = reward
+
         self.transition.observe(node=node, objective_values=objective_values, reward=reward, is_filtered=False)
-        for filter in self.filters:
-            filter.observe(node=node, objective_values=objective_values, reward=reward, is_filtered=False)
+        for f in self.filters:
+            f.observe(node=node, objective_values=objective_values, reward=reward, is_filtered=False)
 
         self.on_generation(node, objective_values=objective_values, reward=reward)
-        
         node.clear_cache()
-        return objective_values, reward
     
     def on_generation(self, node: Node, objective_values: list[float], reward: float):
         pass
@@ -400,9 +410,7 @@ class Generator(ABC):
         try:
             import pandas as pd
         except ImportError as e:
-            raise ImportError(
-                "pandas not found."
-            ) from e
+            raise ImportError("pandas not found.") from e
 
         if len(self.unique_keys) == 0:
             cols = ["order", "time", "key", "reward"]
@@ -520,20 +528,20 @@ class Generator(ABC):
         if "transition" in state and not self.include_transition_to_save:
             del state["transition"]
         # make queue picklable (for MCTS)
-        rq = state.get("reward_queue", None)
+        rq = state.get("_reward_queue", None)
         if isinstance(rq, queue.Queue):
             with rq.mutex:
-                state["reward_queue"] = list(rq.queue)
+                state["_reward_queue"] = list(rq.queue)
         return state
     
     def __setstate__(self, state):
         # rebuild queue (for MCTS)
-        saved_queue = state.get("reward_queue", None)
+        saved_queue = state.get("_reward_queue", None)
         if isinstance(saved_queue, list):
             restored_queue = queue.Queue()
             for item in saved_queue:
                 restored_queue.put(item)
-            state["reward_queue"] = restored_queue
+            state["_reward_queue"] = restored_queue
         self.__dict__.update(state)
     
     def _set_yaml_copy(self, conf: dict):
