@@ -85,7 +85,7 @@ class SMIRKSTransition(TemplateTransition):
         if self.limit is not None:
             self.weighted_smirks = self.weighted_shuffle(self.weighted_smirks)
         try:
-            initial_mol = node.mol(use_cache=False)
+            initial_mol = node.mol(save_cache=False)
             if self.kekulize:
                 Chem.Kekulize(initial_mol, clearAromaticFlags=True)
             if self.with_Hs:

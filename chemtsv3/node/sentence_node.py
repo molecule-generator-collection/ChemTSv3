@@ -53,7 +53,7 @@ class MolSentenceNode(SentenceNode, MolNode):
     def key(self):
         if not self.use_canonical_smiles_as_key:
             return super().key()
-        mol = self.mol(use_cache=False)
+        mol = self.mol(save_cache=False)
         if not mol_validity_check(mol):
             return super().key()
         else:
@@ -63,11 +63,11 @@ class MolSentenceNode(SentenceNode, MolNode):
                 return "invalid mol"
         
     # override
-    def smiles(self, use_cache=False) -> str:
+    def smiles(self, save_cache=False) -> str:
         if isinstance(self.lang, SMILES):
             return self.lang.tensor2sentence(self.id_tensor)
         else:
-            return super().smiles(use_cache=use_cache)
+            return super().smiles(save_cache=save_cache)
         
     # override
     def discard_unneeded_states(self):

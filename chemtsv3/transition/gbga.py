@@ -170,7 +170,7 @@ class GBGATransition(TemplateTransition):
     # implement
     def _next_nodes_impl(self, node: CanonicalSMILESStringNode) -> list[CanonicalSMILESStringNode]:
         try:
-            mol = node.mol(use_cache=False)
+            mol = node.mol(save_cache=False)
         
             Chem.Kekulize(mol, clearAromaticFlags=True)
             raw_result = [] # action, SMILES, raw_prob

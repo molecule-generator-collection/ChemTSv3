@@ -93,7 +93,7 @@ class MolReward(Reward):
     @staticmethod
     def wrap_with_mol(f):
         def wrapper(node: Node):
-            return f(node.mol(use_cache=True))
+            return f(node.mol(save_cache=True))
         wrapper.__name__ = f.__name__ # copy function names
         return wrapper
 
@@ -108,7 +108,7 @@ class SingleMolReward(SingleReward):
     
     # implement
     def reward(self, node: Node) -> float:
-        return self.mol_reward(node.mol(use_cache=True))
+        return self.mol_reward(node.mol(save_cache=True))
     
 class SMILESReward(Reward):
     @abstractmethod
@@ -122,7 +122,7 @@ class SMILESReward(Reward):
     @staticmethod
     def wrap_with_smiles(f):
         def wrapper(node: Node):
-            return f(node.smiles(use_cache=True))
+            return f(node.smiles(save_cache=True))
         wrapper.__name__ = f.__name__ # copy function names
         return wrapper
 

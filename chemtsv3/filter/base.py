@@ -36,7 +36,7 @@ class MolFilter(Filter):
     
     # implement
     def check(self, node: MolNode) -> bool | float:
-        return self.mol_check(node.mol(use_cache=True))
+        return self.mol_check(node.mol(save_cache=True))
 
 class ValueFilter(Filter):
     """Filter that excludes nodes based on a single numerical value."""
@@ -93,8 +93,8 @@ class MolValueFilter(ValueFilter, MolFilter):
     
     # implement
     def check(self, node: MolNode):
-        return self.mol_check(node.mol(use_cache=True))
+        return self.mol_check(node.mol(save_cache=True))
     
     # implement for consistency (not actually needed)
     def value(self, node: MolNode) -> bool:
-        return self.mol_value(node.mol(use_cache=True))
+        return self.mol_value(node.mol(save_cache=True))

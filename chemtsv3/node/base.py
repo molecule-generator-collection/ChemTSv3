@@ -160,19 +160,19 @@ class MolNode(Node):
     def _mol_impl(self) -> Mol:
         pass
     
-    def mol(self, use_cache=False) -> Mol:
+    def mol(self, save_cache=False) -> Mol:
         if "mol" in self.cache:
             return self.cache["mol"]
-        if not use_cache:
+        if not save_cache:
             return self._mol_impl()
         else:
             mol = self._mol_impl()
             self.cache["mol"] = mol
             return mol
         
-    def smiles(self, use_cache=False) -> str:
+    def smiles(self, save_cache=False) -> str:
         """Should be overridden if the node has an explicit SMILES as a variable."""
-        return Chem.MolToSmiles(self.mol(use_cache=use_cache))
+        return Chem.MolToSmiles(self.mol(save_cache=save_cache))
     
     # override
     # def hash(self):
