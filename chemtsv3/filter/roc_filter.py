@@ -12,9 +12,9 @@ class ROCFilter(MolFilter):
                 Specifies the strictness of the filtering rules in three levels (1-3).
                 A higher level applies stricter constraints and excludes more structures.
                 
-                1 (Low): Structures that should be excluded (chemically unstable or unrealistic structures).
-                2 (Medium): Structures that are preferably avoided during lead optimization, but may be kept during molecular generation.
-                3 (High): Structures that should generally be retained (no need to filter them during virtual screening). 
+                1 (Low): Excludes only structures that should clearly be removed (e.g., chemically unstable or unrealistic structures).
+                2 (Medium): Excludes structures that are preferably avoided during lead optimization, but may still be allowed during early-stage molecular generation.
+                3 (High): Retains only structures that are generally acceptable and suitable for virtual screening.
         """
     
         if filtering_level not in [1, 2, 3]:

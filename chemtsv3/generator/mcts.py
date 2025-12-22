@@ -34,6 +34,8 @@ class MCTS(Generator):
             cut_terminal: (Set to False for v2 replication) If True, terminal nodes are pruned from the search tree and will not be visited more than once.
             terminal_reward: (Set to -1 for v2 replication) If a float value is set, that value is backpropagated when a leaf node reaches a terminal state. If set to "ignore", no value is backpropagated.
             
+            virtual_loss: If the reward is a subclass of BatchReward (or any reward class whose n_batch() > 1), this value is temporarily used in place of the actual reward until n_batch() nodes are pooled for reward calculation.
+            
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             discard_unneeded_states: If True, discards variables of nodes that will no longer be used after expansion. Unused for batch reward calculation. Caches are handled independently.
             
