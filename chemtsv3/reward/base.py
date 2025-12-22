@@ -17,7 +17,7 @@ class Reward(ABC):
         Return objective functions of the node; each function returns an objective value.
         If any of objective function returns tuple[float], list[float] or 1d ndarray, objective_names() needs to be overridden.
         """
-        raise NotImplementedError # not @abstractmethod for BatchReward implementation
+        raise NotImplementedError
 
     # abstractmethod
     def reward_from_objective_values(self, objective_values: list[float]) -> float:
