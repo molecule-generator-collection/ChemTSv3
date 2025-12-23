@@ -1,0 +1,78 @@
+time_limit: 1200 # Seconds
+max_generations: 1000
+# seed: 0 # Set seed
+
+### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to node_class_variables.###
+output_dir: generation_results
+device: cpu # Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For RNNTransition, using the CPU tends to be faster even in GPU environments.
+
+### Logging Options ###
+debug: false # Set to true to enable debug logging
+silent: false # Set to true to disable console logging
+
+### Node Setting ###
+node_class: MolSentenceNode
+node_class_variables:
+  use_canonical_smiles_as_key: true # Whether to convert generated molecules to canonical SMILES when generating keys. If False, the same molecule may be counted multiple times.
+
+### Root Node Specification - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
+# root: "N"   # Start from the specified root
+# root: ["Nc", "NC"]  # Start from multiple roots
+
+### Transition ###
+transition_class: RNNTransition
+transition_args:
+  top_p: 0.995
+  model_dir: model/smiles/drugs_zinc/gru  # GRU model
+  # model_dir: model/smiles/drugs_zinc/lstm # LSTM model
+  # model_dir: model/smiles/drugs_zinc/tf25_ported  # Ported model from ChemTSv2
+## For developers: lang file in the model directory will be automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
+
+### Reward ###
+reward_class: ExampleReward
+reward_args:
+  a: 0.5
+
+### Filters ###
+filters:
+  - filter_class: ValidityFilter # Checks whether the molecule is valid. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
+  - filter_class: RadicalFilter
+  # - filter_class: LogPFilter
+  #   max: 5
+  # - filter_class: MaxRingSizeFilter
+  #   max: 6
+
+  # KnownListFilter can be used to skip reward calculations of known molecules; this feedbacks the corresponding values in "reward" column (unless applied for the transition.)
+  # - filter_class: KnownListFilter
+  #   list_paths: 
+  #   - "path_to_generation_results_1.csv"
+  #   - "path_to_generation_results_2.csv"
+
+### Policy ###
+policy_class: UCT
+# policy_class: PUCT  # Shares the same arguments with UCT
+policy_args:
+  c: 0.1
+  best_rate: 0.5
+
+### Generator ###
+generator_class: MCTS
+generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
+  n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might be more sample efficient.
+  n_eval_iters: 1
+  n_tries: 1
+  filter_reward: 0  # Applies the same fallback reward value to all filter steps
+  # filter_reward: [0, 0.1] # Specifies different fallback reward values to each filter step
+  avoid_duplicates: false # If set to true, duplicate nodes won't be added to the search tree. Should be true (default value) if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to false to slightly reduce memory usage.
+  info_interval: 100  # Interval to log the average reward
+  # save_interval: 500  # Interval to save the progress
+  save_on_completion: true # If true, saves the checkpoint when completing the generation.
+
+### Plot Setting ###
+plot_args:
+  moving_average_window: 0.05
+  reward_top_ps: [0.5, 0.1]
+
+### Chain Setting ###
+# n_keys_to_pass: 10 # (Chain) Number of generated keys to pass to the next generator
+# next_yaml_path: config/mcts/chain_example_2.yaml # (Chain) Path to the config of the next generator
