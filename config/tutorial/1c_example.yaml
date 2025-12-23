@@ -1,0 +1,38 @@
+output_dir: generation_results
+time_limit: 1000
+max_generations: 1000
+node_class: CanonicalSMILESStringNode
+# root: C
+root: c1ccccc1
+
+reward_class: LogPReward
+
+transition_class: ExampleTransition
+transition_args:
+  smirks_rules:
+    - "[*;!H0:1]>>[*:1]-C" # append -C
+    - "[*;!H0:1]>>[*:1]-Br" # append -Br
+    - "[*;!H0;!H1:1]>>[*:1]=O" # append =O
+    - "[C:1]>>[N:1]" # change C to N
+    - "[*:1]@[*:2]>>([*:1].[*:2])" # delete cyclic bond
+  filters: # apply filters on transition
+    - filter_class: ValidityFilter
+    - filter_class: RadicalFilter
+
+policy_class: UCT
+policy_args:
+  c: 0.05
+  best_rate: 0.9
+
+generator_class: MCTS
+generator_args:
+  n_eval_iters: 1
+  n_tries: 1
+  filter_reward: -1
+  avoid_duplicates: true
+  info_interval: 100
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
+
+filters:
