@@ -1,4 +1,6 @@
+import threading
 import time
+import queue
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from chemtsv3.generator import MCTS
@@ -27,8 +29,8 @@ class RewardDispatcher(ABC):
         self.reward = reward # can be dummy
 
     @abstractmethod
-    def submit(self, task: RewardTask):
-        """Submit a task to the dispatcher (becomes inflight)."""
+    def submit(self, task: RewardTask) -> bool:
+        """Submit a task to the dispatcher (becomes inflight). Returns False if inflight is full."""
         raise NotImplementedError
 
     @abstractmethod
@@ -44,43 +46,72 @@ class RewardDispatcher(ABC):
     def inflight(self) -> int:
         raise NotImplementedError
 
-class DummySequentialRewardDispatcher(RewardDispatcher):
-    def __init__(self, reward: Reward, max_inflight: int=1, ):
-        self._pending: list[RewardTask] = []
-        self._inflight = 0
-        self._max_inflight = max_inflight
+class DummyRewardDispatcher(RewardDispatcher):
+    def __init__(self, reward: Reward, max_inflight: int=1, delay_sec: float=0.2):
         super().__init__(reward=reward)
-
-    def set_max_inflight(self, n: int) -> None:
-        if n <= 0:
+        if max_inflight <= 0:
             raise ValueError("max_inflight must be >= 1")
-        self._max_inflight = n
+        if delay_sec < 0:
+            raise ValueError("delay_sec must be >= 0")
 
-    def submit(self, task: RewardTask) -> None:
-        if self._inflight >= self._max_inflight:
-            raise RuntimeError("Dispatcher inflight is full.")
-        self._pending.append(task)
-        self._inflight += 1
+        self._max_inflight = max_inflight
+        self._delay_sec = delay_sec
 
-    def pop_ready(self, max_items: int = 2**31 - 1) -> list[RewardResult]:
+        self._pending = queue.Queue() # RewardTask
+        self._ready = queue.Queue() # RewardResult
+
+        self._lock = threading.Lock()
+        self._inflight = 0
+        self._closed = False
+
+        self._worker = threading.Thread(target=self._loop, name="DummyRewardWorker", daemon=True)
+        self._worker.start()
+
+    def close(self) -> None:
+        self._closed = True
+
+    def submit(self, task: RewardTask) -> bool:
+        with self._lock:
+            if self._inflight >= self._max_inflight or self._closed:
+                return False
+            self._inflight += 1
+        self._pending.put(task)
+        return True
+
+    def pop_ready(self, max_items: int=2**31-1) -> list[RewardResult]:
         out: list[RewardResult] = []
-        k = min(max_items, len(self._pending))
-        for _ in range(k):
-            task = self._pending.pop(0)
-            res = self._compute_one_reward(task)
-            out.append(res)
-            self._inflight -= 1
+        for _ in range(max_items):
+            try:
+                out.append(self._ready.get_nowait())
+            except queue.Empty:
+                break
         return out
-    
-    def _compute_one_reward(self, task):
-        objective_values, reward = self.reward.objective_values_and_reward(task.target)
-        return RewardResult(task=task, objective_values=objective_values, reward=reward)
 
     def max_inflight(self) -> int:
         return self._max_inflight
 
     def inflight(self) -> int:
-        return self._inflight
+        with self._lock:
+            return self._inflight
+
+    def _loop(self) -> None:
+        while not self._closed:
+            try:
+                task = self._pending.get(timeout=0.05)
+            except queue.Empty:
+                continue
+
+            try:
+                if self._delay_sec > 0:
+                    time.sleep(self._delay_sec)
+
+                objective_values, reward_val = self.reward.objective_values_and_reward(task.target)
+                self._ready.put(RewardResult(task=task, objective_values=objective_values, reward=reward_val))
+            except Exception as e:
+                pass
+            finally:
+                with self._lock:
+                    self._inflight -= 1
 
 class AsyncParallelMCTS(MCTS):
     """
@@ -95,13 +126,12 @@ class AsyncParallelMCTS(MCTS):
 
         self.assign_dispatcher(dispatcher_type, max_inflight, self.reward)
         self.dispatcher_poll_interval_sec = dispatcher_poll_interval # seconds
-        self._submitted_count = 0 # TODO: replace with inflight()?
         
     # override this for custom dispatcher
     # TODO: make this YAML-compatible rather than forcing override
     def assign_dispatcher(self, dispatcher_type: str, max_inflight: int, reward: Reward):
         if dispatcher_type == "dummy":
-            self.reward_dispatcher = DummySequentialRewardDispatcher(reward=reward, max_inflight=max_inflight)
+            self.reward_dispatcher = DummyRewardDispatcher(reward=reward, max_inflight=max_inflight)
 
     def _generate_impl(self):
         self._drain_ready_results() # harvest all calculated results
@@ -150,8 +180,9 @@ class AsyncParallelMCTS(MCTS):
             key = pre[1]
             self._apply_virtual_loss(child)
             task = RewardTask(child=child, iters_left=iters, tries_left=tries, unfiltered_flag=unfiltered_flag, target=target, is_direct=is_direct, key=key)
-            self.reward_dispatcher.submit(task)
-            self._submitted_count += 1
+            submitted = self.reward_dispatcher.submit(task)
+            if submitted:
+                self._apply_virtual_loss(child)
 
     def _drain_ready_results(self):
         results = self.reward_dispatcher.pop_ready()
