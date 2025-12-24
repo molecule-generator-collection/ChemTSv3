@@ -47,7 +47,7 @@ class RewardDispatcher(ABC):
         raise NotImplementedError
 
 class DummyRewardDispatcher(RewardDispatcher):
-    def __init__(self, reward: Reward, max_inflight: int=1, delay_sec: float=0.2):
+    def __init__(self, reward: Reward, max_inflight: int=1, delay_sec: float=2):
         super().__init__(reward=reward)
         if max_inflight <= 0:
             raise ValueError("max_inflight must be >= 1")
@@ -102,8 +102,7 @@ class DummyRewardDispatcher(RewardDispatcher):
                 continue
 
             try:
-                if self._delay_sec > 0:
-                    time.sleep(self._delay_sec)
+                time.sleep(self._delay_sec)
 
                 objective_values, reward_val = self.reward.objective_values_and_reward(task.target)
                 self._ready.put(RewardResult(task=task, objective_values=objective_values, reward=reward_val))
