@@ -179,11 +179,10 @@ class MCTS(Generator):
         self.parent_unfiltered_flag = False
         self.current_parent = node
         for child in children:
-            if self.reward.is_batch_reward():
-                self._apply_virtual_loss(child)
-                self._reward_queue.put((child, self.n_eval_iters, self.n_tries, False))
-            else:
-                self._reward_queue.put((child, self.n_eval_iters, self.n_tries, False))
+            self._put_reward_task(child)
+                
+    def _put_reward_task(self, child): # for override
+        self._reward_queue.put((child, self.n_eval_iters, self.n_tries, False))
             
     def _work_on_queue(self):
         child, iters, tries, unfiltered_flag = self._reward_queue.get()
@@ -221,7 +220,7 @@ class MCTS(Generator):
 
         if not (type(pre[0]) is bool and pre[0] is True): # no reward calculation
             objective_values, reward = pre
-            self._revert_virtual_loss(child)
+            self.policy.observe(child=child, objective_values=objective_values, reward=reward, is_filtered=(type(objective_values[0])==str))
 
             if type(objective_values[0]) != str:
                 unfiltered_flag = True
@@ -234,12 +233,12 @@ class MCTS(Generator):
                     self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
 
             if iters > 1:
-                self._apply_virtual_loss(child)
                 self._reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
             elif self.cut_failed_child and not unfiltered_flag:
                 child.leave(logger=self.logger)
         else: # reward calculation needed
             key = pre[1]
+            self._apply_virtual_loss(child)
             self._pending_batch.append((child, iters, tries, unfiltered_flag, target, is_direct, key))
             if len(self._pending_batch) >= self.reward.n_batch():
                 self._flush_pending_batch()
@@ -256,12 +255,12 @@ class MCTS(Generator):
             if is_direct and self.reward_cutoff is not None and reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
                 self.reward_cutoff_count += 1
                 child.leave(logger=self.logger)
+            self.policy.observe(child=child, objective_values=objective_values, reward=reward, is_filtered=False)
             
             unfiltered_flag = True
             self._backpropagate(child, reward, self.use_dummy_reward)
 
             if iters > 1:
-                self._apply_virtual_loss(child)
                 self._reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
             
     def _apply_virtual_loss(self, node: Node):
