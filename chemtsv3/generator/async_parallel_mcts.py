@@ -24,6 +24,8 @@ class RewardResult:
     reward: float
 
 class RewardDispatcher(ABC):
+    is_batch_reward_compatible = False
+    
     """Abstract dispatcher that accepts reward tasks and yields completed results."""
     def __init__(self, reward: Reward):
         self.reward = reward # can be dummy
@@ -117,29 +119,29 @@ class AsyncParallelMCTS(MCTS):
     (WIP) MCTS variant that offloads reward calculation to RewardDispatcher.
     Disabled: failed_parent_reward
     """
-    def __init__(self, *args, dispatcher_type: str, max_inflight: int, dispatcher_poll_interval: float=0.05, **kwargs):
+    def __init__(self, *args, dispatcher_type: str, max_inflight: int, check_interval: float=0.05, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.reward.is_batch_reward():
+        if not self.dispatcher.is_batch_reward_compatible and self.reward.is_batch_reward():
             raise ValueError("AsyncParallelMCTS requires reward.is_batch_reward() == False")
 
         self.assign_dispatcher(dispatcher_type, max_inflight, self.reward)
-        self.dispatcher_poll_interval_sec = dispatcher_poll_interval # seconds
+        self.check_interval = check_interval # seconds
         
     # override this for custom dispatcher
     # TODO: make this YAML-compatible rather than forcing override
     def assign_dispatcher(self, dispatcher_type: str, max_inflight: int, reward: Reward):
         if dispatcher_type == "dummy":
-            self.reward_dispatcher = DummyRewardDispatcher(reward=reward, max_inflight=max_inflight)
+            self.dispatcher = DummyRewardDispatcher(reward=reward, max_inflight=max_inflight)
 
     def _generate_impl(self):
         self._drain_ready_results() # harvest all calculated results
 
-        if self.reward_dispatcher.inflight() < self.reward_dispatcher.max_inflight():
+        if self.dispatcher.inflight() < self.dispatcher.max_inflight():
             self._fill_queue() # calls _put_reward_task() at last
 
-        if self.reward_dispatcher.inflight() >= self.reward_dispatcher.max_inflight(): # already full
-            time.sleep(self.dispatcher_poll_interval_sec)
+        if self.dispatcher.inflight() >= self.dispatcher.max_inflight(): # already full
+            time.sleep(self.check_interval)
             self._drain_ready_results()
 
     # override
@@ -179,12 +181,12 @@ class AsyncParallelMCTS(MCTS):
             key = pre[1]
             self._apply_virtual_loss(child)
             task = RewardTask(child=child, iters_left=iters, tries_left=tries, unfiltered_flag=unfiltered_flag, target=target, is_direct=is_direct, key=key)
-            submitted = self.reward_dispatcher.submit(task)
+            submitted = self.dispatcher.submit(task)
             if submitted:
                 self._apply_virtual_loss(child)
 
     def _drain_ready_results(self):
-        results = self.reward_dispatcher.pop_ready()
+        results = self.dispatcher.pop_ready()
         if not results:
             return
 
