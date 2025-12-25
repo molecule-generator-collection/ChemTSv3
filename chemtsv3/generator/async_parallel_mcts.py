@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 import queue
@@ -119,13 +120,12 @@ class AsyncParallelMCTS(MCTS):
     (WIP) MCTS variant that offloads reward calculation to RewardDispatcher.
     Disabled: failed_parent_reward
     """
-    def __init__(self, *args, dispatcher_type: str, max_inflight: int, check_interval: float=0.05, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if not self.dispatcher.is_batch_reward_compatible and self.reward.is_batch_reward():
-            raise ValueError("AsyncParallelMCTS requires reward.is_batch_reward() == False with the selected dispatcher.")
+    def __init__(self, *args, dispatcher_type: str, max_inflight: int, check_interval: float=0.05, output_dir: str=None, logger: logging.Logger=None, **kwargs):
+        super().__init__(*args, output_dir=output_dir, logger=logger, **kwargs) # output_dir and logger are explicit for generator_from_conf()
 
         self.assign_dispatcher(dispatcher_type, max_inflight, self.reward)
+        if not self.dispatcher.is_batch_reward_compatible and self.reward.is_batch_reward():
+            raise ValueError("AsyncParallelMCTS requires reward.is_batch_reward() == False with the selected dispatcher.")
         self.check_interval = check_interval # seconds
         
     # override this for custom dispatcher
