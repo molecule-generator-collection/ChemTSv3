@@ -123,7 +123,7 @@ class AsyncParallelMCTS(MCTS):
         super().__init__(*args, **kwargs)
 
         if not self.dispatcher.is_batch_reward_compatible and self.reward.is_batch_reward():
-            raise ValueError("AsyncParallelMCTS requires reward.is_batch_reward() == False")
+            raise ValueError("AsyncParallelMCTS requires reward.is_batch_reward() == False with the selected dispatcher.")
 
         self.assign_dispatcher(dispatcher_type, max_inflight, self.reward)
         self.check_interval = check_interval # seconds
