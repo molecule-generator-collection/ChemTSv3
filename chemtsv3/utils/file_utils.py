@@ -37,27 +37,19 @@ def resolve_output_dir(output_dir: str | Path | None) -> str:
 def default_base_dir() -> Path:
     return Path.cwd().resolve()
 
-def resolve_path(
-    path: str | Path | None, base_dir: Path | None = None, must_exist: bool = False, kind: str | None = None, allow_none: bool = False) -> Path:
+def resolve_path(path: str | Path, base_dir: Path=None, must_exist: bool=False, kind: str=None, allow_none: bool=False) -> Path:
     """
     Resolve a path string to an absolute Path.
 
     Args:
-        path:
-            Path string or Path object. If None:
-            - returns None when allow_none=True
-            - raises ValueError otherwise.
-        base_dir:
-            Base directory used for resolving relative paths.
-            If None, uses default_base_dir().
-        must_exist:
-            If True, raise FileNotFoundError when the resolved path does not exist.
+        path: Path string or Path object. If None, returns None when allow_none=True, and raises ValueError otherwise.
+        base_dir: Base directory used for resolving relative paths.
+        must_exist: If True, raise FileNotFoundError when the resolved path does not exist.
         kind:
             If "file": assert the path points to an existing file when must_exist=True.
             If "dir": assert the path points to an existing directory when must_exist=True.
             If None: no additional check.
-        allow_none:
-            If True and path is None, return None instead of raising.
+        allow_none: If True and path is None, return None instead of raising.
 
     Returns:
         Absolute Path (or None if allow_none=True and path is None).
