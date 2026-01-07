@@ -16,7 +16,7 @@ from chemtsv3.utils import conf_from_yaml, generator_from_conf
 
 oracle_names = ["troglitazone_rediscovery", "sitagliptin_mpo", "fexofenadine_mpo"]
 
-yaml_path_1 = "config/mol_opt/de_novo_rnn.yaml"
+yaml_path_1 = "config/paper/pmo/de_novo_rnn.yaml"
 yaml_path_2 = "config/tuning/mol_opt_gbga_pred.yaml"
 
 def objective(trial):

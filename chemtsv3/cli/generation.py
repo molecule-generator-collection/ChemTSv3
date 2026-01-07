@@ -1,5 +1,5 @@
-# Example (RNN): chemtsv3 -c config/mcts/example.yaml
-# Example (Chain): chemtsv3 -c config/mcts/example_chain_1.yaml
+# Example (RNN): chemtsv3 -c config/examples/example.yaml
+# Example (Chain): chemtsv3 -c config/examples/example_chain_1.yaml
 # Example (Load): chemtsv3 -l generation_results/~~~ --max_generations 100
 
 # Path setup / Imports

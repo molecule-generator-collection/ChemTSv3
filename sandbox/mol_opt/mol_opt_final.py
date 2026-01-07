@@ -56,13 +56,13 @@ def test_single(oracle_name: str, seed: int, yaml_path: str) -> float:
 
 def test_objective(oracle_name: str, seed: int, method: str="chain") -> float:
     if method == "chain":
-        return test_chain(oracle_name, seed, "config/mol_opt/de_novo_rnn.yaml", "config/mol_opt/lead_gbga.yaml")
+        return test_chain(oracle_name, seed, "config/paper/pmo/de_novo_rnn.yaml", "config/paper/pmo/lead_gbga.yaml")
     elif method == "chain_with_pred":
-        return test_chain(oracle_name, seed, "config/mol_opt/de_novo_rnn.yaml", "config/mol_opt/lead_gbga_pred.yaml")
+        return test_chain(oracle_name, seed, "config/paper/pmo/de_novo_rnn.yaml", "config/paper/pmo/lead_gbga_pred.yaml")
     elif method == "no_chain":
-        return test_single(oracle_name, seed, "config/mol_opt/no_chain.yaml")
+        return test_single(oracle_name, seed, "config/paper/pmo/no_chain.yaml")
     elif method == "v2_replication":
-        return test_single(oracle_name, seed, "config/mol_opt/v2_replication.yaml")
+        return test_single(oracle_name, seed, "config/paper/pmo/v2_replication.yaml")
     else:
         raise ValueError("Invalid method name.")
 

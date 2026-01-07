@@ -125,12 +125,12 @@ In some cases (for example, when setting up environments on a control node), it 
 </details>
 
 ## Generation via CLI
-See `config/mcts/example.yaml` for an example YAML configuration.
+See `config/examples/example.yaml` for an example YAML configuration. More examples can be found in `config/examples` directory.
 ```bash
 # Simple generation
-chemtsv3 -c config/mcts/example.yaml
+chemtsv3 -c config/examples/example.yaml
 # Chain generation
-chemtsv3 -c config/mcts/example_chain_1.yaml
+chemtsv3 -c config/examples/example_chain_1.yaml
 # Load a checkpoint and continue the generation
 chemtsv3 -l generation_results/~~~ --max_generations 100 --time_limit 60
 ```
@@ -140,8 +140,6 @@ chemtsv3 -l generation_results/~~~ --max_generations 100 --time_limit 60
 - **Generation via notebook**: `sandbox/generation.ipynb`
 
 ## Options
-See `config/mcts/example.yaml` for an example and advanced options. More examples (settings used in the paper) can be found in `config/mcts/egfr_de_novo/` and `config/mcts/egfr_lead_opt/`.
-
 All options for each component (class) are defined as arguments in the `__init__()` method of the corresponding class.
 
 <details>

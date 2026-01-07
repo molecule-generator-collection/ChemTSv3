@@ -75,4 +75,4 @@ plot_args:
 
 ### Chain Setting ###
 # n_keys_to_pass: 10 # (Chain) Number of generated keys to pass to the next generator
-# next_yaml_path: config/mcts/chain_example_2.yaml # (Chain) Path to the config of the next generator
+# next_yaml_path: config/examples/chain_example_2.yaml # (Chain) Path to the config of the next generator
