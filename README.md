@@ -182,7 +182,7 @@ All options for each component (class) are defined as arguments in the `__init__
 |---|---|---|---|
 |-|`max_generations`|-|Stops generation after producing the specified number of molecules.|
 |-|`time_limit`|-|Stops generation once the time limit (in seconds) is reached.|
-|-|`root`|`""`|Key (string) for the root node (e.g. SMILES of the starting molecule for `SMILESStringNode`). Multiple roots can be specified by list input. If not specified, an empty string `""` will be used as the root node's key.|
+|-|`root`|`""`|Key (string) for the root node (e.g. In `SMILESStringNode`, SMILES of the starting molecule(s)). Multiple roots can be specified by list input. If not specified, an empty string `""` will be used as the root node's key.|
 |`MCTS`|`n_eval_width`|∞|By default (= ∞), evaluates all new leaf nodes after each transition. Setting `n_eval_width = 1` often improves sample efficiency and can be beneficial when reward computation is expensive.|
 |`MCTS`|`filter_reward`|0|Substitutes the reward with this value when nodes are filtered. Use a list to specify different reward values for each filtering step. Set to `"ignore"` to skip reward assignment (in this case, other penalty types for filtered nodes, such as `failed_parent_reward`, needs to be set).|
 |`UCT`, `PUCT`, `PUCTWithPredictor`|`c`|0.3|A larger value prioritizes exploration over exploitation. Recommended range: [0.01, 1]|
@@ -205,7 +205,7 @@ For other options and further details, please refer to each class’s `__init__(
 |-|`silent`|False|If True, console logging are disabled.|
 |-|`next_yaml_path`|False|If a path to the YAML config for the next generator is set, the generated molecules will be passed for chain generation.|
 |-|`n_keys_to_pass`|3|Number of top-k generated molecules (keys) to be used as root nodes for the next generator.|
-|`MCTS`|`save​_on​_completion`|False|If True, saves a checkpoint upon completion of the generation.|
+|`MCTS`|`save​_on​_completion`|False|If True, saves a checkpoint when completing the generation.|
 |`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be > 1 unless the evaluations are undeterministic (e.g. involve rollouts).|
 |`MCTS`|`n_tries`|1|The number of attempts to obtain an unfiltered node in a single evaluation. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
 |`MCTS`|`allow​_eval​_overlaps`|False|Whether to allow overlap nodes when sampling eval candidates (recommended: False)|
