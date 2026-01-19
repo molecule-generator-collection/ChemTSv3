@@ -102,7 +102,11 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     # set generator
     generator_class = class_from_package("generator", conf_clone.get("generator_class", "MCTS"))
     adjust_args(generator_class, generator_args, device, logger, output_dir)
-    generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, **generator_args)
+    #generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, **generator_args)
+    linker_multi_points = conf_clone.get("linker_multi_points", False)
+    ligand_1_list = conf_clone.get("ligand_1", [])
+    ligand_2_list = conf_clone.get("ligand_2", [])
+    generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, **generator_args, linker_multi_points=linker_multi_points, ligand_1_list=ligand_1_list, ligand_2_list=ligand_2_list)
     generator._set_yaml_copy(conf)
     
     if predecessor:
