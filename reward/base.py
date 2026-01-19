@@ -28,6 +28,26 @@ class Reward(ABC):
         reward = self.reward_from_objective_values(objective_values)
         return objective_values, reward
     
+    def linker_objective_values(self, node: Node, link_molecule_list: list[str]):
+        objective_values = []
+        for link_molecule in link_molecule_list:
+            if link_molecule is None:
+                objective_values.append(0)
+            else:
+                objective_values_ = [f(link_molecule) for f in self.linker_objective_functions()]
+                objective_values.extend(objective_values_)
+        return objective_values
+    
+    def linker_objective_values_and_reward(self, node: Node, link_molecule_list: list[str]) -> tuple[list[float], list[float]]:
+        objective_values = self.linker_objective_values(node, link_molecule_list)
+        reward_list = []
+        for v in objective_values:
+            if v == 0:
+                reward_list.append(0)
+            else:
+                reward_list.append(self.reward_from_objective_values([v]))
+        return objective_values, reward_list
+
     def name(self):
         """(Optional) Override this method to change reward's name displayed on plots."""
         return camel2snake(self.__class__.__name__)
@@ -73,6 +93,9 @@ class MolReward(Reward):
     #override
     def objective_functions(self) -> List[Callable[[MolNode], float]]:
         return [MolReward.wrap_with_mol(f) for f in self.mol_objective_functions()]
+    
+    def linker_objective_functions(self) -> List[Callable[[MolNode], float]]:
+        return [f for f in self.mol_objective_functions()]
     
 class SingleMolReward(SingleReward):
     @abstractmethod

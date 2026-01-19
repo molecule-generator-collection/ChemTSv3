@@ -25,4 +25,7 @@ def __getattr__(name):
     if name == "TDCReward":
         from .tdc_reward import TDCReward
         return TDCReward
+    if name == "PROTAC-TS":
+        from .reward_protacts import LinkerpermeabilityReward
+        return LinkerpermeabilityReward
     raise AttributeError(f"module {__name__} has no attribute {name}")
