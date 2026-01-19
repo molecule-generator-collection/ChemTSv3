@@ -7,4 +7,7 @@ class RadicalFilter(MolValueFilter):
         
     # implement
     def mol_value(self, mol: Mol) -> int:
+        return Descriptors.NumRadicalElectrons(mol) 
+
+    def mol_value_linker(self, mol: Mol, _link_mol: Mol) -> int:
         return Descriptors.NumRadicalElectrons(mol)

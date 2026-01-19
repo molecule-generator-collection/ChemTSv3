@@ -1,9 +1,11 @@
 from rdkit import Chem
 from rdkit.Chem import Mol
+
 from filter import MolFilter
+from utils.linker_utils import link_linker
 
 class SubstructureFilter(MolFilter):
-    def __init__(self, smiles: str | list[str]=None, smarts: str | list[str]=None, kekulize: bool=False, preserve: bool=True):
+    def __init__(self, smiles: str | list[str]=None, smarts: str | list[str]=None, kekulize: bool=False, preserve: bool=True, link_linker: bool=False, cores=None):
         """
         Args:
             preserve: If True, pass molecules WITH all of the specified substructures. If False, pass molecules WITHOUT any of the specified substructures.
@@ -32,6 +34,11 @@ class SubstructureFilter(MolFilter):
         
         self.kekulize = kekulize
         self.preserve = preserve
+
+        if link_linker:
+            if cores is None:
+                raise ValueError("When 'link_linker' is True, 'cores' must be specified.")
+            self.cores = cores
         
     def _prep(self, mol):
         if not self.kekulize:
@@ -46,7 +53,16 @@ class SubstructureFilter(MolFilter):
 
     # implement
     def mol_check(self, mol: Mol) -> bool:
+        if hasattr(self, "cores"):
+            mol = link_linker(self.cores, mol)
         m = self._prep(mol)
+        if self.preserve:
+            return all(m.HasSubstructMatch(target) for target in self.targets)
+        else:
+            return not any(m.HasSubstructMatch(target) for target in self.targets)
+
+    def mol_check_linker(self, mol: Mol, link_mol: Mol) -> bool:
+        m = self._prep(link_mol)
         if self.preserve:
             return all(m.HasSubstructMatch(target) for target in self.targets)
         else:

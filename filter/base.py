@@ -25,6 +25,13 @@ class MolFilter(Filter):
     # implement
     def check(self, node: MolNode) -> bool:
         return self.mol_check(node.mol(use_cache=True))
+    
+    @abstractmethod
+    def mol_check_linker(self, mol: Mol, link_mol: Mol) -> bool:
+        """Return False to skip reward calculation for the given molecule."""
+        pass
+    def check_linker(self, node: MolNode, link_molecule_mol_list: list[Mol]) -> bool:
+        return [self.mol_check_linker(node.mol(use_cache=True), link_mol) for link_mol in link_molecule_mol_list]
 
 class ValueFilter(Filter):
     """Filter that excludes nodes based on a single numerical value."""
@@ -68,6 +75,15 @@ class ValueFilter(Filter):
         value = self.value(node)
         return self._check_value(value)
     
+    #@abstractmethod
+    def value_linker(self, node: Node, link_mol: Mol) -> int | float:
+        pass
+
+    def check_linker(self, node: Node, link_molecule_mol_list: list[Mol]) -> bool:
+        value_list = [self.value_linker(node, link_mol) for link_mol in link_molecule_mol_list]
+        check_list = [self._check_value(value) for value in value_list]
+        return check_list
+    
 class MolValueFilter(ValueFilter, MolFilter):
     """Filter that excludes nodes based on a single numerical value of the molecule."""
     @abstractmethod
@@ -82,6 +98,17 @@ class MolValueFilter(ValueFilter, MolFilter):
     # implement
     def check(self, node: MolNode):
         return self.mol_check(node.mol(use_cache=True))
+    
+    @abstractmethod
+    def mol_value_linker(self, mol: Mol, link_mol: Mol) -> int | float:
+        pass
+
+    def mol_check_linker(self, mol: Mol, link_mol: Mol) -> bool:
+        value = self.mol_value_linker(mol, link_mol)
+        return self._check_value(value)
+
+    def check_linker(self, node: Node, link_molecule_mol_list: list[Mol]) -> bool:
+        return [self.mol_check_linker(node.mol(use_cache=True), link_mol) for link_mol in link_molecule_mol_list]
     
     # implement for consistency (not actually needed)
     def value(self, node: MolNode) -> bool:

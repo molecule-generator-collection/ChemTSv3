@@ -8,3 +8,6 @@ class ValidityFilter(MolFilter):
     # implement
     def mol_check(self, mol: Mol) -> bool:
         return mol_validity_check(mol)
+    
+    def mol_check_linker(self, mol: Mol, _link_mol: Mol) -> bool:
+        return mol_validity_check(mol)

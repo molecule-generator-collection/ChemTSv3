@@ -11,9 +11,15 @@ class MaxRingSizeFilter(MolValueFilter):
         max_ring_size = max((len(r) for r in ri.AtomRings()), default=0)
         return max_ring_size
     
+    def mol_value_linker(self, mol: Mol, _link_mol: Mol) -> int:
+        return self.mol_value(mol)
+    
 class MinRingSizeFilter(MolValueFilter):
     # implement
     def mol_value(self, mol: Mol) -> int:
         ri = mol.GetRingInfo()
         min_ring_size = min((len(r) for r in ri.AtomRings()), default=float("inf"))
         return min_ring_size
+    
+    def mol_value_linker(self, mol: Mol, _link_mol: Mol) -> int:
+        return self.mol_value(mol)
