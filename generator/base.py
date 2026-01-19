@@ -15,12 +15,13 @@ from node import Node
 from reward import Reward, LogPReward
 from transition import Transition
 from utils import moving_average, log_memory_usage, make_logger, make_subdirectory, plot_xy
+from utils.linker_utils import link_linker
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=1, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None,  linker_multi_points: bool=False, ligand_1_list: list[str]=None, ligand_2_list: list[str]=None):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
@@ -60,6 +61,10 @@ class Generator(ABC):
         self.last_saved = 0
         self.next_save = save_interval
         self.initial_time, self.time_start = 0, 0 # precaution
+        self.linker_multi_points = linker_multi_points
+        self.ligand_1_list = ligand_1_list or []
+        self.ligand_2_list = ligand_2_list or []
+        self.filtered_count = 0
     
     @abstractmethod
     def _generate_impl(self, *kwargs):
@@ -168,7 +173,49 @@ class Generator(ABC):
             self.analyze()
         if self.verbose_interval is not None and len(self.unique_keys) % self.verbose_interval == 0:
             self.log_verbose_info()
+
+    def _write_csv_header_linker(self):
+        header = ["order", "time", "key", "reward"]
+        if not self.reward.is_single_objective:
+            header += [f.__name__ for f in self.reward.objective_functions()]
+        header += ["ligand_1", "ligand_2", "link_molecule", "filter"]
+        self.logger.info(header)
+
+    def _log_unique_node_linker(self, key, objective_values_list, reward_list, ligand_pairs, link_molecule_list, filter_name_result):
+        for i in range(len(objective_values_list)):
+            key_ = key + f"_{i+1}"
+            self.unique_keys.append(key_)
+            self.record[key_] = {}
+            self.record[key_]["objective_values"] = objective_values_list[i]
+            self.record[key_]["reward"] = reward_list[i]
+            self.record[key_]["time"] = self.passed_time
+            self.record[key_]["generation_order"] = len(self.unique_keys)
+            self.record[key_]["ligand_1"] = ligand_pairs[i][0] if ligand_pairs[i] else None
+            self.record[key_]["ligand_2"] = ligand_pairs[i][1] if ligand_pairs[i] else None
+            self.record[key_]["link_molecule"] = link_molecule_list[i]
+            self.record[key_]["filter"] = filter_name_result[i]
+            if self.reward.is_single_objective:
+                row = [len(self.unique_keys), self.passed_time, key, self.record[key_]["reward"], self.record[key_]["ligand_1"], self.record[key_]["ligand_2"], self.record[key_]["link_molecule"], self.record[key_]["filter"]]
+            else:
+                row = [len(self.unique_keys), self.passed_time, key, self.record[key_]["reward"], self.record[key_]["objective_values"], self.record[key_]["ligand_1"], self.record[key_]["ligand_2"], self.record[key_]["link_molecule"], self.record[key_]["filter"]]
+            self.logger.info(row)
+
+        max_reward = max(reward_list)
+        if self.info_interval <= 1 or max_reward > self.best_reward:
+            if max_reward > self.best_reward:
+                self.best_reward = max_reward
+                prefix = "<Best reward updated> "
+            else:
+                prefix = ""
+            self.logger.info(prefix + str(len(self.unique_keys)) + " - time: " + "{:.2f}".format(self.passed_time) + ", reward: " + "{:.4f}".format(max_reward) + ", node: " + key)
+        else:
+            if len(self.unique_keys)%self.info_interval == 0:
+                average = self.average_reward(self.info_interval)
+                self.logger.info(str(len(self.unique_keys)) + " - time: " + "{:.2f}".format(self.passed_time) + ", average over " + str(self.info_interval) + ": " + "{:.4f}".format(average))
         
+        if self.verbose_interval is not None and len(self.unique_keys) % self.verbose_interval == 0:
+            self.log_verbose_info()
+
     def average_reward(self, window: int | float=None, top_p: float = None):
         """
         Compute the average reward over the most recent `window` entries.
@@ -202,22 +249,75 @@ class Generator(ABC):
             self.logger.debug("Already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
             node.clear_cache()
             return self.record[key]["objective_values"], self.record[key]["reward"]
-        
-        for i, filter in enumerate(self.filters):
-            if not filter.check(node):
-                self.filter_counts[i] += 1
-                self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
-                
-                self.transition.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
-                for filter in self.filters:
-                    filter.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
+        if self.linker_multi_points == True:
+            ligand_1_list = self.ligand_1_list
+            ligand_2_list = self.ligand_2_list
+            link_molecule_smiles_list, link_molecule_mol_list = [], []
+            for ligand_1 in ligand_1_list:
+                for ligand_2 in ligand_2_list:
+                    try:
+                        link_molecule_smi = link_linker([ligand_1, ligand_2], node.smiles(), linker_type="smiles", output_type="smiles")
+                        link_molecule_mol = link_linker([ligand_1, ligand_2], node.smiles(), linker_type="smiles", output_type="mol")
+                        link_molecule_smiles_list.append(link_molecule_smi)
+                        link_molecule_mol_list.append(link_molecule_mol)
+                    except:
+                        self.filtered_count += 1
+                        self.logger.debug("Failed to link: " + key)
+                        self.transition.observe(node=node, objective_values=[str(1000)], reward=0, filtered=True)
+                        node.clear_cache()
+                        return [str(0)], 0
+            ligand_pairs = []
+            for ligand_1 in ligand_1_list:
+                for ligand_2 in ligand_2_list:
+                    ligand_pairs.append((ligand_1, ligand_2))
+            filter_name_list = [f.__class__.__name__ for f in self.filters]
+            filter_result_list = []  
+            for i, filter in enumerate(self.filters):
+                filter_result = filter.check_linker(node, link_molecule_mol_list)
+                filter_result_list.append(filter_result)
+                if not all(filter_result):
+                    self.filtered_count += 1
+                    self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
+                    self.transition.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
+                    for filter in self.filters:
+                        filter.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
+                    node.clear_cache()
+                    return [str(i)], self.filter_reward[i]
+
+            filter_name_result = []
+            for i in range(len(link_molecule_smiles_list)):
+                filter_name_result_ = ""
+                for filter_name, filter_result in zip(filter_name_list, filter_result_list):
+                    if filter_result[i] == False:
+                        filter_name_result_ += filter_name + ", "
+                filter_name_result.append(filter_name_result_)
+            link_molecule_mol_list_2 = []
+            for link_mol, filter_name in zip(link_molecule_mol_list, filter_name_result):
+                if filter_name == "":
+                    link_molecule_mol_list_2.append(link_mol)
+                else:
+                    link_molecule_mol_list_2.append(None)
+            objective_values_list, reward_list = self.reward.linker_objective_values_and_reward(node, link_molecule_mol_list_2)
+            reward = max(reward_list)
+            objective_values = [objective_values_list[reward_list.index(reward)]]
+            self._log_unique_node_linker(key, objective_values_list, reward_list, ligand_pairs, link_molecule_smiles_list, filter_name_result)
                     
-                node.clear_cache()
-                return [str(i)], self.filter_reward[i]
+        else:
+            for i, filter in enumerate(self.filters):
+                if not filter.check(node):
+                    self.filter_counts[i] += 1
+                    self.logger.debug("Filtered by " + filter.__class__.__name__ + ": " + key)
+                    
+                    self.transition.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
+                    for filter in self.filters:
+                        filter.observe(node=node, objective_values=[str(i)], reward=self.filter_reward[i], filtered=True)
+                        
+                    node.clear_cache()
+                    return [str(i)], self.filter_reward[i]
+                
+            objective_values, reward = self.reward.objective_values_and_reward(node)
             
-        objective_values, reward = self.reward.objective_values_and_reward(node)
-        
-        self._log_unique_node(key, objective_values, reward)
+            self._log_unique_node(key, objective_values, reward)
         
         self.transition.observe(node=node, objective_values=objective_values, reward=reward, filtered=False)
         for filter in self.filters:
@@ -232,41 +332,83 @@ class Generator(ABC):
         pass
 
     # visualize results
-    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None):
+    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, linewidth: float=1.0, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None, linker_mode: bool=False):
         if len(self.unique_keys) == 0:
             return
-        self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps)
+        self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps, linker_mode=linker_mode)
         if packed_objectives:
             for po in packed_objectives:
                 self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim, linewidth=linewidth, save_only=save_only)
 
-    def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None):
+    def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None, linker_mode=False):
         top_ps = top_ps or []
-        x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
-
         reward_name = self.reward.name()
-        if y_axis == "reward" or y_axis == reward_name:
-            y_axis = reward_name
-            y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
+        if linker_mode == True:
+            #self.logger.info("Linker mode: True" + str(self.unique_keys))
+            if y_axis == "reward" or y_axis == reward_name:
+                y_axis = reward_name
+                y = []
+                ref_molkey = ""
+                for i, molkey in enumerate(self.unique_keys):
+                    molkey_ = molkey.split("_")[0]
+                    if molkey_ != ref_molkey:
+                        if i != 0:
+                            y.append(max(molkey_value_list))
+                        ref_molkey = molkey_
+                        molkey_value_list = [self.record[molkey]["reward"]]
+                    else:
+                        molkey_value_list.append(self.record[molkey]["reward"])
+                y.append(max(molkey_value_list))
+                x = list(range(1, len(y)+1))
+            else:
+                x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
+                objective_names = [f.__name__ for f in self.reward.objective_functions()]
+                if not y_axis in objective_names:
+                    self.logger.warning("Couldn't find objective name " + y_axis + ": uses reward instead.")
+                    y_axis = "reward"
+                    y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
+                else:
+                    objective_idx = objective_names.index(y_axis)
+                    #self.logger.info("Objective idx: " + str(objective_idx))
+                    y = []
+                    ref_molkey = ""
+                    for i, molkey in enumerate(self.unique_keys):
+                        molkey_ = molkey.split("_")[0]
+                        if molkey_ != ref_molkey:
+                            if i != 0:
+                                y.append(max(molkey_value_list))
+                            ref_molkey = molkey_
+                            molkey_value_list = [self.record[molkey]["objective_values"]]
+                        else:
+                            molkey_value_list.append(self.record[molkey]["objective_values"])
+                    y.append(max(molkey_value_list))
+                    x = list(range(1, len(y)+1))
         else:
-            objective_names = [f.__name__ for f in self.reward.objective_functions()]
-            if not y_axis in objective_names:
-                self.logger.warning("Couldn't find objective name " + y_axis + ": uses reward instead.")
-                y_axis = "reward"
+            x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
+
+            
+            if y_axis == "reward" or y_axis == reward_name:
+                y_axis = reward_name
                 y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
             else:
-                objective_idx = objective_names.index(y_axis)
-                y = [self.record[molkey]["objective_values"][objective_idx] for molkey in self.unique_keys]
+                objective_names = [f.__name__ for f in self.reward.objective_functions()]
+                if not y_axis in objective_names:
+                    self.logger.warning("Couldn't find objective name " + y_axis + ": uses reward instead.")
+                    y_axis = "reward"
+                    y = [self.record[molkey]["reward"] for molkey in self.unique_keys]
+                else:
+                    objective_idx = objective_names.index(y_axis)
+                    y = [self.record[molkey]["objective_values"][objective_idx] for molkey in self.unique_keys]
         
         plot_xy(x, y, x_axis=x_axis, y_axis=y_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=self.output_dir(), title=self.name(), logger=self.logger)
 
-    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False, reward_top_ps: list[float]=None):
+    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, loc: str="lower right", linewidth: float=0.01, save_only: bool=False, reward_top_ps: list[float]=None, linker_mode=False):
         ylims = ylims or {}
         if not self.reward.is_single_objective:
             objective_names = [f.__name__ for f in self.reward.objective_functions()]
             for o in objective_names:
-                self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_curve=False, max_line=False, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only)
-        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), loc=loc, linewidth=linewidth, save_only=save_only, top_ps=reward_top_ps)
+                self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_curve=False, max_line=False, xlim=xlim, ylim=ylims.get(o, None), linewidth=linewidth, save_only=save_only, linker_mode=linker_mode)
+        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), loc=loc, linewidth=linewidth, save_only=save_only, top_ps=reward_top_ps, linker_mode=linker_mode)
 
     def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=1.0, save_only: bool=False):
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]

@@ -15,7 +15,8 @@ class MCTS(Generator):
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=False, discard_unneeded_states: bool=None,
                  max_tree_depth=None, use_dummy_reward: bool=False,
-                 name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None):
+                 name: str=None, output_dir: str=None, logger: logging.Logger=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None,
+                 linker_multi_points: bool=False, ligand_1_list: list[str]=None, ligand_2_list: list[str]=None):
         """
         Args:
             root: The root node. Use SurrogateNode to search from multiple nodes.
@@ -76,7 +77,7 @@ class MCTS(Generator):
             self.discard_unneeded_states = False if cut_failed_child else True
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
-        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval)
+        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, name=name, output_dir=output_dir, logger=logger, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval, linker_multi_points=linker_multi_points, ligand_1_list=ligand_1_list, ligand_2_list=ligand_2_list)
         self.root.n = 1
         
     def _selection(self) -> Node:
