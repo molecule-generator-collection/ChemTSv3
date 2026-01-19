@@ -1,0 +1,104 @@
+time_limit: 720000 # Seconds (default 60)
+max_generations: 10
+# seed: 0 # Set seed
+
+### Common Args - output_dir, device(, logger) are automatically applied to all classes (and node_from_key()) that define arguments with the same names. ###
+output_dir: generation_result
+device: cpu # For RNNTransition, using the CPU tends to be faster even in GPU environments.
+
+### Logging Options ###
+debug: false # Set to true to enable debug logging
+silent: false # Set to true to disable console logging
+
+### Root Node - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
+node_class: MolSentenceNode
+use_canonical_smiles_as_key: true # Whether to convert generated SMILES to the Canonical SMILES (If set to false, the same molecule may be counted multiple times.)
+# root: "N"   # Start from the specified root
+# root: ["Nc", "NC"]  # Specify multiple roots
+
+### Transition ###
+transition_class: RNNTransition
+transition_args:
+  top_p: 0.995
+  model_dir: sandbox/training_result/linker_rnn_model/last
+## For developers: lang file with the same name are automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
+
+### Linker setting ####
+ligand_1: &ligand1 "ClC(C=C1)=CC=C1C(C2=C(N3C4=NN=C3C)SC(C)=C2C)=N[C@H]4CC([*:1])=O"
+ligand_2: &ligand2 "O[C@@H]1C[C@H](N(C1)C([C@H](C(C)(C)C)[*:2])=O)C(NCC2=CC=C(C=C2)C3=C(N=CS3)C)=O"
+
+### Reward ###
+reward_class: PROTAC-TS
+reward_args:  # JScoreReward takes no arguments in its __init__() method.
+    cores:
+        ligand_1: *ligand1
+        ligand_2: *ligand2
+    model_file: "model/model_for_reward/protac_permeability/PROTAC/model_all.pkl"
+    
+### Filters ###
+filters:
+  - filter_class: ValidityFilter # Checks whether the molecule is valid. Since other filters and rewards typically assume validity and do not recheck it, this filter should usually be applied first in molecular generation.
+  - filter_class: RadicalFilter
+  - filter_class: AttachmentPointsFilter
+    allowed: 2
+  - filter_class: BranchFilter
+    max: 1
+  - filter_class: LinkerLengthFilter
+    max: 15
+  - filter_class: LinkerSimilarityFilter
+    min: 0.3
+    linker_file: "data/smiles/protac_linker_fragments.smi"
+    radius: 2
+    fpSize: 2048
+  - filter_class: MaxRingSizeFilter
+    max: 6
+  - filter_class: MinRingSizeFilter
+    min: 4
+  - filter_class: PremodelADFilter
+    min: 0.1
+    csv_file: "data/protac/PROTAC_Caco-2_data.csv"
+    column_name: "Smiles"
+    radius: 2
+    fpSize: 2048
+    cores:
+        ligand_1: *ligand1
+        ligand_2: *ligand2 
+  - filter_class: StructuralAlertFilter
+    cores:
+        ligand_1: *ligand1
+        ligand_2: *ligand2
+  - filter_class: SubstructureFilter
+    preserve: False
+    smarts: ['[C]#[C][!#6;!#1;!#15]', '[!#6;!#1;!#15;!n;!o;!s][CH2][!#6;!#1;!#15;!n;!o;!s]', '[S;!$(S(=O)=O)]~[N]', '[!#6;!#1;!#15;!n;!o;!s;!$(S(=O)=O)][!#6;!#1;!#15;!n;!o;!s;!$(S(=O)=O)][!#6;!#1;!#15;!n;!o;!s;!$(S(=O)=O)]', '[N]=[C]=[C]', '[N]=[C]=[O]', '[N]=[CH]', '[C]=[S]', '[n][!#6;!#1;!#15;!n;!o;!s]']
+    link_linker: True
+    cores:
+        ligand_1: *ligand1
+        ligand_2: *ligand2       
+
+### Policy ###
+policy_class: UCT
+# policy_class: PUCT  # Shares the same arguments with UCT
+policy_args:
+  c: 0.1
+  best_rate: 0.5
+
+### Generator ###
+generator_class: MCTS
+generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
+  n_eval_width: 1 # If the transition is computationally expensive relative to the reward calculation, it is recommended to set this value to inf.
+  n_eval_iters: 1
+  n_tries: 1
+  filter_reward: 0  # Applies the same fallback reward value to all filter steps
+  # filter_reward: [0, 0,1] # Specifies different fallback reward values to each filter step
+
+### Plot Setting ###
+plot_args:
+  moving_average_window: 0.05
+  reward_top_ps: [0.5, 0.1]
+
+### Save Setting ###
+# save_dir: save # (CLI) Name of the directory to save the generator state. If not specified, the generator will not be saved.
+
+### Chain Setting ###
+# n_keys_to_pass: 10 # (Chain) Number of generated keys to pass to the next generator
+# next_yaml_path: config/mcts/chain_example_2.yaml # (Chain) Path to the config of the next generator
