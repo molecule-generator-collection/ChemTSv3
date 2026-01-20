@@ -217,7 +217,7 @@ class Generator(ABC):
         key = node.key()
         if key in self.record:
             self.duplicate_count += 1
-            self.logger.debug("Already in dict: " + key + ", reward: " + str(self.record[key]["reward"]))
+            self.logger.debug(f"Already in dict: {key}, reward: {self.record[key]['reward']}")
             node.clear_cache()
             return self.record[key]["objective_values"], self.record[key]["reward"]
         
@@ -243,7 +243,7 @@ class Generator(ABC):
 
     def _get_objective_values_and_reward(self, node: Node) -> tuple[list[float], float]:
         pre_reward_checks_result = self._pre_reward_checks(node)
-        if type(pre_reward_checks_result[0]) is bool and pre_reward_checks_result[0] == True:
+        if pre_reward_checks_result[0] is True:
             key = pre_reward_checks_result[1]
         else:
             return pre_reward_checks_result

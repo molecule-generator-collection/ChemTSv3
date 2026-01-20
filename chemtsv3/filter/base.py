@@ -22,10 +22,7 @@ class Filter(ABC):
         result = self.check(node)
         if clear_cache:
             node.clear_cache()
-        if type(result) in (float, int) or result == False:
-            return False
-        else:
-            return True
+        return result is True # excludes 1.0
 
 class MolFilter(Filter):
     """Filter for MolNode"""

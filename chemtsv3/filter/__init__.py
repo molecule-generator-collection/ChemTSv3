@@ -1,7 +1,6 @@
 from .base import Filter, MolFilter, ValueFilter, MolValueFilter
 from .aromatic_ring_filter import AromaticRingFilter
 from .atom_count_filter import AtomCountFilter
-from .attachment_points_filter import AttachmentPointsFilter
 from .catalog_filter import CatalogFilter
 from .charge_filter import ChargeFilter
 from .connectivity_filter import ConnectivityFilter

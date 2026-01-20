@@ -47,10 +47,10 @@ class DyRAMOReward(MolReward):
         self.ad = ad
         
         if exclude_approved:
-            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models_wo_approved_v1.json"))
+            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../model/reward/dyramo_lgb_models_wo_approved_v1.json"))
             feature_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/fps_wo_approved_v1.pkl"))
         else:
-            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/lgb_models.json"))
+            lgb_models_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../model/reward/dyramo_lgb_models.json"))
             feature_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/dyramo/fps.pkl"))
             
         with open(lgb_models_path, mode="r") as l, \

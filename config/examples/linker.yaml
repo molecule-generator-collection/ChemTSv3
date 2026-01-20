@@ -1,0 +1,88 @@
+# Requires:
+# - tabpfn==2.1.3 (required for LinkerPermeabilityReward)
+# - scikit-learn==1.5.1 (needs to be upgraded for LinkerPermeabilityReward)
+# - medchem==2.0.5 (required for CommonAlertsFilter)
+# - rdkit==2025.9.3 (needs to be upgraded for CommonAlertsFilter)
+
+time_limit: 1200 # Seconds
+max_generations: 10 # The number of linkers to generate
+# seed: 0 # Set seed
+
+### Common Args ###
+output_dir: generation_results
+device: cpu # GPU will be used for TabPFN model
+
+### Logging Options ###
+debug: true # Set to true to enable debug logging
+silent: false # Set to true to disable console logging
+
+### Node Setting ###
+node_class: MolSentenceNode
+node_class_variables:
+  use_canonical_smiles_as_key: true # Whether to convert generated molecules to canonical SMILES when generating keys. If False, the same molecule may be counted multiple times.
+
+### Root Node Specification - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
+# root: "N"   # Start from the specified root
+# root: ["Nc", "NC"]  # Start from multiple roots
+
+### Transition ###
+transition_class: RNNTransition
+transition_args:
+  top_p: 0.995
+  model_dir: model/smiles/linker/gru
+
+### Reward ###
+# reward_class: LogPReward
+reward_class: LinkerPermeabilityReward
+reward_args:
+    model_path: "model/reward/protac_model_all.pkl"
+
+### Policy ###
+policy_class: UCT
+# policy_class: PUCT  # Shares the same arguments with UCT
+policy_args:
+  c: 0.1
+  best_rate: 0.5
+
+### Generator ###
+generator_class: PROTACTS # Inherits MCTS
+generator_args:
+  n_eval_width: 1
+  n_eval_iters: 1
+  n_tries: 1
+  filter_reward: 0
+  avoid_duplicates: false
+  info_interval: 100  # Interval to log the average reward
+
+  ligands_1: # Multiple ligands can be specified (all combinations will be calculated)
+    - "ClC(C=C1)=CC=C1C(C2=C(N3C4=NN=C3C)SC(C)=C2C)=N[C@H]4CC([*:1])=O"
+  ligands_2:
+    - "O[C@@H]1C[C@H](N(C1)C([C@H](C(C)(C)C)[*:2])=O)C(NCC2=CC=C(C=C2)C3=C(N=CS3)C)=O"
+  aggregation_type: "max" # How to aggregate objective values and rewards of the linked molecules into a single representative value for the generated linker. (If exactly one molecule is specified for both ligands_1 and ligands_2, aggregation is skipped.)
+
+  filters_for_linked_mols: # Filters for linked molecules (ligands attached)
+    - filter_class: CommonAlertsFilter
+    - filter_class: SubstructureFilter
+      preserve: False
+      smarts: ['[C]#[C][!#6;!#1;!#15]', '[!#6;!#1;!#15;!n;!o;!s][CH2][!#6;!#1;!#15;!n;!o;!s]', '[S;!$(S(=O)=O)]~[N]', '[!#6;!#1;!#15;!n;!o;!s;!$(S(=O)=O)][!#6;!#1;!#15;!n;!o;!s;!$(S(=O)=O)][!#6;!#1;!#15;!n;!o;!s;!$(S(=O)=O)]', '[N]=[C]=[C]', '[N]=[C]=[O]', '[N]=[CH]', '[C]=[S]', '[n][!#6;!#1;!#15;!n;!o;!s]']
+
+### Filters for raw linkers###
+filters: 
+  - filter_class: ValidityFilter
+  - filter_class: RadicalFilter
+  - filter_class: AttachmentPointsFilter
+    allowed: 2
+  - filter_class: BranchFilter
+    max: 1
+  - filter_class: LinkerLengthFilter
+    max: 15
+  - filter_class: LinkerSimilarityFilter
+    min: 0.3
+    linkers_path: "data/smiles/protac_linker_fragments.smi"
+    radius: 2
+    fp_size: 2048
+
+### Plot Setting ###
+plot_args:
+  moving_average_window: 0.05
+  reward_top_ps: [0.5, 0.1]

@@ -24,18 +24,21 @@ class Reward(ABC):
         """Compute the final reward based on the objective values calculated by objective_functions()."""
         raise NotImplementedError
     
+    @staticmethod
+    def _append_to_list(values_list: list[float], v, function_name: str):
+        if isinstance(v, (tuple, list)):
+            values_list.extend(v)
+        elif isinstance(v, np.ndarray):
+            if v.ndim != 1:
+                raise ValueError(f"Objective function {function_name} returned ndarray with ndim={v.ndim}, but only 1D arrays are supported.")
+            values_list.extend(v.tolist())
+        else:
+            values_list.append(v)
+
     def objective_values(self, node: Node) -> list[float]:
         values = []
         for f in self.objective_functions():
-            v = f(node)
-            if isinstance(v, (tuple, list)):
-                values.extend(v)
-            elif isinstance(v, np.ndarray):
-                if v.ndim != 1:
-                    raise ValueError(f"{f.__name__} returned ndarray with ndim={v.ndim}, but only 1D arrays are supported.")
-                values.extend(v.tolist())
-            else:
-                values.append(v)
+            self._append_to_list(values, f(node), f.__name__)
         return values
     
     def objective_names(self) -> list[str]:
@@ -97,9 +100,17 @@ class MolReward(Reward):
         wrapper.__name__ = f.__name__ # copy function names
         return wrapper
 
-    #override
+    # override
     def objective_functions(self) -> list[Callable[[MolNode], float]]:
         return [MolReward.wrap_with_mol(f) for f in self.mol_objective_functions()]
+    
+    # for utility
+    def objective_values_and_reward_from_mol(self, mol: Mol) -> tuple[list[float], float]:
+        values = []
+        for f in self.mol_objective_functions():
+            self._append_to_list(values, f(mol), f.__name__)
+        reward = self.reward_from_objective_values(values)
+        return values, reward
     
 class SingleMolReward(SingleReward):
     @abstractmethod

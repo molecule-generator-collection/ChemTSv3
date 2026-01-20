@@ -100,7 +100,7 @@ class TemplateTransition(Transition):
             passed = True
             for i, f in enumerate(self.filters):
                 filter_result = f.check(n)
-                if type(filter_result) in (float, int) or filter_result == False:
+                if filter_result is not True: # excludes 1.0
                     self.filter_counts[i] += 1
                     passed = False
                     n.clear_cache()

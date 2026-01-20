@@ -23,7 +23,7 @@ def conf_from_yaml(yaml_path: str) -> dict[str, Any]:
         conf = yaml.safe_load(f)
     return conf
 
-def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top_keys_to_pass: int=None, base_dir: str = None) -> Generator:
+def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top_keys_to_pass: int=None, base_dir: str=None) -> Generator:
     conf_clone = copy.deepcopy(conf)
     base_dir = Path(base_dir) if base_dir is not None else Path.cwd()
     device, logger, output_dir = prepare_common_args(base_dir, conf_clone, predecessor)
@@ -146,6 +146,13 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
     # set generator
     generator_class = class_from_package(base_dir, "generator", conf_clone.get("generator_class", "MCTS"))
     adjust_args(base_dir, generator_class, generator_args, device, logger, output_dir)
+    
+    if hasattr(generator_class, "args_for_extra_filters"):
+        for arg_name in generator_class.args_for_extra_filters:
+            extra_filter_settings = generator_args.get(arg_name, [])
+            extra_filters = construct_filters(base_dir, extra_filter_settings, device, logger, output_dir)
+            generator_args[arg_name] = extra_filters
+        
     generator = generator_class(root=root, transition=transition, reward=reward, filters=filters, **generator_args)
     generator._set_yaml_copy(conf)
     
