@@ -5,6 +5,7 @@ from chemtsv3.filter import MolValueFilter
 class LinkerLengthFilter(MolValueFilter):
     """
     Filter for linker molecules.
+    The filter excludes linkers whose maximum path length between the attachment points exceeds the user-defined value.
     """
     def __init__(self, allowed=None, disallowed=None, max=None, min=None):
         super().__init__(allowed=allowed, disallowed=disallowed, max=max, min=min)

@@ -7,6 +7,7 @@ from chemtsv3.filter import MolValueFilter
 class LinkerSimilarityFilter(MolValueFilter):
     """
     Filter for linker molecules.
+    The filter excludes linkers whose maximum Tanimoto similarity to the linkers used in training the RNN-based linker generator, calculated using Morgan fingerprints, is below a user-defined value.
     """
     def __init__(self, allowed=None, disallowed=None, max=None, min=None, linkers_path=None, fp_size=None, radius=None):
         super().__init__(allowed=allowed, disallowed=disallowed, max=max, min=min)

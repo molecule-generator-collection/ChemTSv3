@@ -5,6 +5,7 @@ from chemtsv3.filter import MolValueFilter
 class BranchFilter(MolValueFilter):
     """
     Filter for linker molecules.
+    The filter excludes linkers whose shortest path between the two attachment points contains at least the user-defined number of branching atoms, including those in ring structures.
     """
     def __init__(self, allowed=None, disallowed=None, max=None, min=None):
         super().__init__(allowed=allowed, disallowed=disallowed, max=max, min=min)

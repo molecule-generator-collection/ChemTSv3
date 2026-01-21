@@ -6,6 +6,7 @@ from chemtsv3.utils import add_atom_index_in_wildcard
 class LinkerValidationFilter(MolFilter):
     """
     Filter for linker molecules.
+    The filter excludes linkers that result in invalid molecules when attached to both ligands.
     """
     def __init__(self, cores=None):
         self.cores = cores
