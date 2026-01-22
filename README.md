@@ -125,15 +125,16 @@ In some cases (for example, when setting up environments on a control node), it 
 </details>
 
 ## Generation via CLI
-See `config/examples/example.yaml` for an example YAML configuration. More examples can be found in `config/examples` directory. Settings that were used in the paper are available  in `config/paper`.
+See `config/examples/example.yaml` and `config/examples/example_lead.yaml` for an example YAML configuration. 
 ```bash
 # Simple generation
 chemtsv3 -c config/examples/example.yaml
-# Chain generation
+# Auto switch
 chemtsv3 -c config/examples/example_chain_1.yaml
 # Load a checkpoint and continue the generation
 chemtsv3 -l generation_results/~~~ --max_generations 100 --time_limit 60
 ```
+More examples can be found in `config/examples` directory. Settings that were used in the paper are available  in `config/paper`.
 
 ## Notebooks
 - **Tutorials**: `sandbox/tutorial/***.ipynb`
