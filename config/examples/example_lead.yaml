@@ -18,6 +18,10 @@ node_class_variables:
 ### Root Node Specification - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
 root: c1ccc(Nc2ncnc3ccccc23)cc1
 
+### Inherit generation results
+# prev_csv_path: "generation_results/***/***.csv"
+# n_top_keys_to_receive: 4 # (optional) set root nodes from molecules with best rewards instead of specifying via 'root'
+
 ### Transition
 transition_class: SMIRKSTransition
 transition_args:

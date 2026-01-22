@@ -485,6 +485,11 @@ class Generator(ABC):
         df["key"] = df["key"].astype(str)
 
         obj_cols = [c for c in df.columns if c not in self._non_obj_cols()]
+        
+        if len(obj_cols) == 0: # single reward
+            obj_name = self.reward.objective_names()[0]
+            df[obj_name] = df["reward"]
+            obj_cols = [obj_name]
 
         for _, row in df.iterrows():
             key = row["key"]

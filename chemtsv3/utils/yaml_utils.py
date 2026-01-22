@@ -99,15 +99,15 @@ def generator_from_conf(conf: dict[str, Any], predecessor: Generator=None, n_top
             
     if "n_top_keys_to_receive" in conf_clone:
         if "prev_csv_path" in conf_clone:
+            if "root" in conf_clone:
+                logger.warning("Both 'n_top_keys_to_pass' and 'root' were specified, and 'root' will be overridden.")
             top_k = top_k_from_csv(conf_clone["prev_csv_path"], conf_clone["n_top_keys_to_receive"])
             top_keys = [key for key, _ in top_k]
             top_values = [value for _, value in top_k]
             conf_clone["root"] = top_keys
             logger.info("The following keys were passed: " + ", ".join(top_keys))
-            # if "root" in conf_clone:
-            #     logger.warning("Both 'n_top_keys_to_pass' and 'root' were specified, and 'root' was overridden.")
         else:
-            logger.warning("'n_top_keys_to_receive' was specified, but 'prev_csv_path' was not specified, and 'n_top_keys_to_receive' was ignored.")
+            logger.warning("'n_top_keys_to_receive' was specified, but 'prev_csv_path' was not specified. 'n_top_keys_to_receive' was ignored.")
     
     if type(conf_clone.get("root")) == list:
         root = SurrogateNode()
