@@ -125,7 +125,7 @@ In some cases (for example, when setting up environments on a control node), it 
 </details>
 
 ## Generation via CLI
-See `config/examples/example.yaml` for an example YAML configuration. More examples can be found in `config/examples` directory.
+See `config/examples/example.yaml` for an example YAML configuration. More examples can be found in `config/examples` directory. Settings that were used in the paper are available  in `config/paper`.
 ```bash
 # Simple generation
 chemtsv3 -c config/examples/example.yaml
