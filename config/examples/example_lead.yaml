@@ -1,0 +1,54 @@
+max_generations: 20000
+time_limit: 300 # Seconds
+# seed: 0 # Set seed
+
+### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to node_class_variables.###
+output_dir: generation_results
+device: cpu # Torch device specification (e.g., "cpu", "cuda", "cuda:0"). For RNNTransition, using the CPU tends to be faster even in GPU environments.
+
+### Logging Options ###
+debug: false # Set to true to enable debug logging
+silent: false # Set to true to disable console logging
+
+### Node Setting ###
+node_class: CanonicalSMILESStringNode
+node_class_variables:
+  use_canonical_smiles_as_key: true # Whether to convert generated molecules to canonical SMILES when generating keys. If False, the same molecule may be counted multiple times.
+
+### Root Node Specification - If "root" is not specified, an empty string "" will be used as the key of the root node. ###
+root: c1ccc(Nc2ncnc3ccccc23)cc1
+
+### Transition
+transition_class: SMIRKSTransition
+transition_args:
+  smirks_path:  data/smirks/gbga.txt
+  filters:
+  - filter_class: ValidityFilter
+  - filter_class: RadicalFilter
+  - filter_class: HeavyAtomCountFilter
+    max: 50
+
+### Reward ###
+reward_class: SimilarityReward
+reward_args:
+  target_smiles: COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OCCCN1CCOCC1 # goal
+
+### Policy ###
+policy_class: PUCT
+policy_args:
+  c: 0.25
+  best_rate: 0.95
+
+### Generator ###
+generator_class: MCTS
+generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
+  n_eval_iters: 1
+  n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 is recommended for sample efficiency.
+  n_tries: 1
+  avoid_duplicates: true
+  info_interval: 100
+  # save_on_completion: true
+
+plot_args:
+  moving_average_window: 0.05
+  reward_top_ps: [0.5, 0.1]

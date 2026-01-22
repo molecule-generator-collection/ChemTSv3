@@ -41,12 +41,6 @@ filters:
   # - filter_class: MaxRingSizeFilter
   #   max: 6
 
-  # KnownListFilter can be used to skip reward calculations of known molecules; this feedbacks the corresponding values in "reward" column (unless applied for the transition.)
-  # - filter_class: KnownListFilter
-  #   list_paths: 
-  #   - "path_to_generation_results_1.csv"
-  #   - "path_to_generation_results_2.csv"
-
 ### Policy ###
 policy_class: UCT
 # policy_class: PUCT  # Shares the same arguments with UCT
@@ -64,8 +58,7 @@ generator_args: # root, transition, reward, policy and filters are automatically
   # filter_reward: [0, 0.1] # Specifies different fallback reward values to each filter step
   avoid_duplicates: false # If set to true, duplicate nodes won't be added to the search tree. Should be true (default value) if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to false to slightly reduce memory usage.
   info_interval: 100  # Interval to log the average reward
-  # save_interval: 500  # Interval to save the progress
-  save_on_completion: true # If true, saves the checkpoint when completing the generation.
+  # save_on_completion: true # If true, saves the checkpoint when completing the generation.
 
 ### Plot Setting ###
 plot_args:
