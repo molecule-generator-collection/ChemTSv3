@@ -47,7 +47,7 @@ class TemplatePolicy(Policy):
         self.pw_c = pw_c
         self.pw_alpha = pw_alpha
         self.pw_beta = pw_beta
-        self.logger = logger
+        self.logger = logger or logging.getLogger(__name__)
 
     @abstractmethod
     def select_child(self, node: Node) -> Node:
