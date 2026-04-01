@@ -1,4 +1,4 @@
-Detailed model parameters and training settings for autoregressive models can be found in `config.json` and `setting.yaml` of the corresponding directory.
+Detailed model parameters and the training settings for autoregressive models can be found in `config.json` and `setting.yaml` of the corresponding directory.
 
 # SMILES autoregressive models
 ## smiles/drugs_zinc/~
