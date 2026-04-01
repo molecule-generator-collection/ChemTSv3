@@ -3,12 +3,17 @@ model_type: RNN
 lang_class: SMILES
 dataset_path: data/smiles/250k_rndm_zinc_drugs_clean.smi
 
-test_size: 0.1
-batch_size: 512
-lr: 0.001
-num_epochs: 100
-# rnn_type: "LSTM"
+### Training Settings ###
+test_size: 0.1 # Test size
+batch_size: 512 # Batch size
+lr: 0.001 # Learning rate
+num_epochs: 100 # Epoch
+
+### Model type ###
 rnn_type: "GRU"
+# rnn_type: "LSTM"
+
+### Model Parameters ###
 # embed_size: 64
 hidden_size: 256
 num_layers: 2
