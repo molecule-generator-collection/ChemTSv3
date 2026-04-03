@@ -136,7 +136,7 @@ chemtsv3 -l generation_results/~~~ --max_generations 100 --time_limit 60
 ```
 More examples can be found in `config/examples` directory. Settings that were used in the paper are available  in `config/paper`.
 
-## Notebooks
+## Tutorials and notebooks
 - **Tutorials**: `sandbox/tutorial/***.ipynb`
 - **Generation via notebook**: `sandbox/generation.ipynb`
 
