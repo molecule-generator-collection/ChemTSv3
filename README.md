@@ -1,9 +1,14 @@
 ## ChemTSv3
-A unified tree search framework for molecular generation.
+ChemTSv3[^2] is a generalized and refined version of ChemTSv2[^1]. The original implementations are available at https://github.com/molecule-generator-collection/ChemTSv2.
+
+In ChemTSv3,
 - **Node is modular**: Supports any molecular representation (e.g., SMILES, SELFIES, FASTA, or HELM) in either string or tensor format.
 - **Transition is modular**: Allows any molecular transformation strategy, including graph-based editing, sequence generation with RNN or GPT-2, sequence mutation, or LLM-guided modification.
 - **Filter is modular**: Enables flexible constraints such as structural alerts, scaffold preservation, or physicochemical property filters.
 - **Reward is modular**: Anything can be optimized, including QSAR predictions or simulation results, for both single- and multi-objective tasks.
+
+[^1]: Ishida, S. and Aasawat, T. and Sumita, M. and Katouda, M. and Yoshizawa, T. and Yoshizoe, K. and Tsuda, K. and Terayama, K. (2023). ChemTSv2: Functional molecular design using de novo molecule generator. <i>WIREs Computational Molecular Science</i> https://wires.onlinelibrary.wiley.com/doi/10.1002/wcms.1680
+[^2]: Fujii, S. and Murakami, Y. and Yoshizawa, T. and Ishida, S. and Cho, N. and Ohta, M. and Honma, T. and Yoshizoe, K. and Sumita, M. and Tsuda, K. and Terayama, K. (2025). ChemTSv3: Generalizing Molecular Design via Flexible Search Space Control. <i>ChemRxiv</i> https://chemrxiv.org/doi/abs/10.26434/chemrxiv-2025-kdvrt
 
 ## Setup
 
@@ -275,3 +280,19 @@ Filters can also be specified using `filters` argument of transitions that inher
 - **RNN (GRU) training** (example): `chemtsv3-train -c config/training/train_rnn_smiles.yaml`
 - **Transformer (GPT-2) training** (example): `chemtsv3-train -c config/training/train_gpt2.yaml`
 Change `dataset_path` in YAML to train on an arbitrary dataset (1 sentence per line).
+
+## How to cite
+```text
+@article{
+doi:10.26434/chemrxiv-2025-kdvrt,
+author = {Satoru Fujii  and Yuki Murakami  and Tatsuya Yoshizawa  and Shoichi Ishida  and Nobuo Cho  and Masateru Ohta  and Teruki Honma  and Kazuki Yoshizoe  and Masato Sumita  and Koji Tsuda  and Kei Terayama },
+title = {ChemTSv3: Generalizing Molecular Design via Flexible Search Space Control},
+journal = {ChemRxiv},
+volume = {2025},
+number = {1228},
+pages = {},
+year = {2025},
+doi = {10.26434/chemrxiv-2025-kdvrt},
+URL = {https://chemrxiv.org/doi/abs/10.26434/chemrxiv-2025-kdvrt},
+eprint = {https://chemrxiv.org/doi/pdf/10.26434/chemrxiv-2025-kdvrt}}
+```
