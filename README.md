@@ -1,5 +1,5 @@
 ## ChemTSv3
-ChemTSv3[^2] is a exnteded and improved version of ChemTSv2[^1]. The original implementations are available at https://github.com/molecule-generator-collection/ChemTSv2.
+ChemTSv3[^2] is a extended and improved version of ChemTSv2[^1]. The original implementations are available at https://github.com/molecule-generator-collection/ChemTSv2.
 
 In ChemTSv3,
 - **Node is modular**: Supports any molecular representation (e.g., SMILES, SELFIES, FASTA, or HELM) in either string or tensor format.
