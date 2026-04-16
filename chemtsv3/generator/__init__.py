@@ -11,7 +11,7 @@ def __getattr__(name):
     if name == "MPIRewardDispatcher":
         from .async_parallel_mcts import MPIRewardDispatcher
         return MPIRewardDispatcher
-    if name == "AsyncParallelMCTS":
+    if name == "worker_loop":
         from .async_parallel_mcts import worker_loop
         return worker_loop
     raise AttributeError(f"module {__name__} has no attribute {name}")
