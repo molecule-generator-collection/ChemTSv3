@@ -33,6 +33,15 @@ class StringNode(Node):
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage."""
         self.string = None
+        
+    def pack(self) -> Any:
+        return {"string": self.string}
+
+    @classmethod
+    def unpack(cls, payload: Any) -> Self:
+        if "string" not in payload:
+            raise ValueError("payload must contain 'string'.")
+        return cls(string=payload["string"])
 
 class MolStringNode(StringNode, MolNode):
     use_canonical_smiles_as_key: bool = False

@@ -280,3 +280,25 @@ def top_k_from_csv(csv_path: str, k: int=1,) -> list[tuple[str, float]]:
     df_sorted = df.sort_values(by=["reward", "_order"], ascending=[False, True],)
     
     return list(df_sorted.head(k)[["key", "reward"]].itertuples(index=False, name=None))
+
+def reward_from_conf(conf: dict[str, Any], predecessor: Generator=None, base_dir: str=None, save_config: bool=False):
+    conf_clone = copy.deepcopy(conf)
+    base_dir = Path(base_dir) if base_dir is not None else Path.cwd()
+
+    device, logger, output_dir = prepare_common_args(base_dir, conf_clone, predecessor)
+
+    if save_config:
+        save_yaml(conf, output_dir=output_dir)
+
+    # Reuse predecessor reward if reward_class is not specified
+    if "reward_class" not in conf_clone:
+        if predecessor is not None:
+            return predecessor.reward
+        raise ValueError("'reward_class' is not specified and predecessor is None.")
+
+    reward_class = class_from_package(base_dir, "reward", conf_clone["reward_class"])
+    reward_args = conf_clone.get("reward_args") or {}
+    adjust_args(base_dir, reward_class, reward_args, device, logger, output_dir)
+
+    reward = reward_class(**reward_args)
+    return reward

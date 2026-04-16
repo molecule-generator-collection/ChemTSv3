@@ -14,6 +14,9 @@ def __getattr__(name):
     if name == "generator_from_conf":
         from .yaml_utils import generator_from_conf
         return generator_from_conf
+    if name == "reward_from_conf":
+        from .yaml_utils import reward_from_conf
+        return reward_from_conf
     if name == "save_yaml":
         from .yaml_utils import save_yaml
         return save_yaml

@@ -131,6 +131,21 @@ class Node(ABC):
     def show_children(self):
         for child in sorted(self.children, key=lambda c: c.last_prob, reverse=True):
             print(f"{child.last_prob:.3f}, {str(child.key())}")
+            
+    def pack(self) -> Any:
+        """
+        Return a lightweight, serializable representation of this node for MPI.
+        Not needed for non-MPI generations.
+        """
+        raise NotImplementedError(f"{self.__class__.__name__} must implement pack() for MPIRewardDispatcher etc.")
+
+    @classmethod
+    def unpack(cls, payload: Any) -> Self:
+        """
+        Reconstruct a node instance from the serialized representation returned by pack().
+        Not needed for non-MPI generations.
+        """
+        raise NotImplementedError(f"{cls.__name__} must implement unpack() for MPIRewardDispatcher etc.")
         
     def __str__(self) -> str:
         return self.key()

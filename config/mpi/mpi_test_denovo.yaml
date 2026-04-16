@@ -3,7 +3,7 @@
 ########################
 
 time_limit: 1200 # Seconds
-max_generations: 100
+max_generations: 1000
 # seed: 0 # Set seed
 
 ### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to node_class_variables.###
@@ -27,14 +27,10 @@ node_class_variables:
 transition_class: RNNTransition
 transition_args:
   top_p: 0.995
-  model_dir: model/smiles/drugs_zinc/gru  # GRU model
-  # model_dir: model/smiles/drugs_zinc/lstm # LSTM model
-  # model_dir: model/smiles/drugs_zinc/tf25_ported  # Ported model from ChemTSv2
-## For developers: lang file in the model directory will be automatically loaded and included in the arguments. All arguments of any class whose names end with "_dir" or "_path" will automatically incorporate the repo_root specified in conf_from_yaml(), unless an absolute path is provided. ##
+  model_dir: model/smiles/drugs_zinc/gru # GRU model
 
 ### Reward ###
-reward_class: JScoreReward
-# reward_args:  # JScoreReward takes no arguments in its __init__() method.
+reward_class: JScoreReward # Lightweight reward for testing
 
 ### Filters ###
 filters:
@@ -50,13 +46,13 @@ policy_args:
 ### Generator ###
 generator_class: AsyncParallelMCTS
 generator_args:
-  dispatcher_type: dummy
-  max_inflight: 10
+  dispatcher_type: mpi
   n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might be more sample efficient.
   n_eval_iters: 1
   n_tries: 1
   filter_reward: 0
   avoid_duplicates: false
+  logging_interval: 10
   info_interval: 100  # Interval to log the average reward
 
 ### Plot Setting ###

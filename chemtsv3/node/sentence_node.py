@@ -36,6 +36,21 @@ class SentenceNode(Node):
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage."""
         self.id_tensor = None
+        
+    def pack(self) -> Any:
+        return {"id_list": self.id_list()} # other states would be unneeded for reward calculation (please override this if it is not the case)
+
+    @classmethod
+    def unpack(cls, payload: Any) -> Self:
+        if cls.lang is None:
+            raise ValueError(f"{cls.__name__}.lang must be set before unpack().")
+
+        id_list = payload["id_list"]
+        id_tensor = torch.tensor([id_list], dtype=torch.long, device=cls.device)
+
+        node = cls(id_tensor=id_tensor)
+
+        return node
 
 class MolSentenceNode(SentenceNode, MolNode):
     use_canonical_smiles_as_key: bool = False

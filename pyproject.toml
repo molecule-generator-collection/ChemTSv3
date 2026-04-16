@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chemtsv3"
-version = "1.0.0"
+version = "1.1.0"
 description = "ChemTSv3: "
 authors = [
     "Satoru Fujii <fujii.sat.rk@yokohama-cu.ac.jp>"
@@ -17,6 +17,7 @@ python = ">=3.11"
 
 [tool.poetry.scripts]
 chemtsv3 = "chemtsv3.cli.generation:main"
+chemtsv3-mpi = "chemtsv3.cli.generation_mpi:main"
 chemtsv3-train = "chemtsv3.cli.model_training:main"
 
 [build-system]
