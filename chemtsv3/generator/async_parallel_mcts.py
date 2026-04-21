@@ -1,5 +1,6 @@
 import importlib
 import logging
+import os
 import threading
 import time
 from typing import Any
@@ -28,6 +29,8 @@ class RewardResult:
     task: RewardTask
     objective_values: list
     reward: float
+    worker_rank: int = None
+    worker_local_index: int = None
 
 class RewardDispatcher(ABC):
     is_batch_reward_compatible = False
@@ -129,6 +132,7 @@ class _InflightTaskState:
     """Rank-0 only local state for matching worker results back to original tasks."""
     task: "RewardTask"
     worker_rank: int
+    worker_local_index: int
 
 class MPIRewardDispatcher(RewardDispatcher):
     is_batch_reward_compatible = False
@@ -152,6 +156,7 @@ class MPIRewardDispatcher(RewardDispatcher):
         self._idle_workers = set(range(1, self.size))
         self._inflight_tasks: dict[int, _InflightTaskState] = {}
         self._next_task_id = 0
+        self._worker_task_counts = {rank: 0 for rank in range(1, self.size)}
 
         self._max_inflight = self.size - 1 if max_inflight is None else max_inflight
         if self._max_inflight < 1:
@@ -173,6 +178,8 @@ class MPIRewardDispatcher(RewardDispatcher):
         worker_rank = self._idle_workers.pop()
         task_id = self._next_task_id
         self._next_task_id += 1
+        worker_local_index = self._worker_task_counts[worker_rank]
+        self._worker_task_counts[worker_rank] += 1
 
         node = task.target
         if not hasattr(node, "pack"):
@@ -186,7 +193,7 @@ class MPIRewardDispatcher(RewardDispatcher):
         }
 
         self.comm.send(payload, dest=worker_rank, tag=TAG_TASK)
-        self._inflight_tasks[task_id] = _InflightTaskState(task=task, worker_rank=worker_rank)
+        self._inflight_tasks[task_id] = _InflightTaskState(task=task, worker_rank=worker_rank, worker_local_index=worker_local_index)
         return True
 
     def pop_ready(self, max_items: int = 2**31 - 1) -> list["RewardResult"]:
@@ -239,9 +246,24 @@ class MPIRewardDispatcher(RewardDispatcher):
             task = inflight.task
 
             if payload["status"] == "ok":
-                self._ready.put(RewardResult(task=task, objective_values=payload["objective_values"],reward=payload["reward"]))
+                self._ready.put(
+                    RewardResult(
+                        task=task, 
+                        objective_values=payload["objective_values"], 
+                        reward=payload["reward"],
+                        worker_rank=inflight.worker_rank, 
+                        worker_local_index=inflight.worker_local_index
+                    )
+                )
             else:
-                self._ready.put(RewardResult(task=task, objective_values=[payload.get("error_code", "mpi_reward_error")], reward=0.0))
+                self._ready.put(RewardResult(
+                        task=task,
+                        objective_values=[payload.get("error_code", "mpi_reward_error")],
+                        reward=0.0,
+                        worker_rank=inflight.worker_rank,
+                        worker_local_index=inflight.worker_local_index
+                    )
+                )
 
 
 def reconstruct_node(node_module_name: str, node_class_name: str, node_payload: Any):
@@ -317,6 +339,11 @@ class AsyncParallelMCTS(MCTS):
             if not self.dispatcher.is_batch_reward_compatible and self.reward.is_batch_reward():
                 raise ValueError("AsyncParallelMCTS requires reward.is_batch_reward() == False with the selected dispatcher.")
         self.check_interval = check_interval # seconds
+        self._pending_generation_meta = {}
+        self._generation_trace_path = os.path.join(self.output_dir(), "results_with_local_ids.tsv")
+        if not os.path.exists(self._generation_trace_path):
+            with open(self._generation_trace_path, "w") as f:
+                f.write("generation_id\tworker_rank\tworker_local_index\tkey\treward\tobjective_values\n")
         
     # override this for custom dispatcher
     # TODO: make this YAML-compatible rather than forcing override
@@ -389,6 +416,7 @@ class AsyncParallelMCTS(MCTS):
         for res in results:
             task = res.task
             child = task.child
+            self._pending_generation_meta[task.target.key()] = (res.worker_rank, res.worker_local_index)
 
             self._post_reward_side_effects(task.target, task.key, res.objective_values, res.reward)
             self._revert_virtual_loss(child)
@@ -404,3 +432,17 @@ class AsyncParallelMCTS(MCTS):
 
             if task.iters_left > 1:
                 self._schedule_one(child, task.iters_left - 1, self.n_tries, task.unfiltered_flag)
+                
+    # record results with local ids
+    def on_generation(self, node: Node, objective_values: list[float], reward: float):
+        key = node.key()
+        meta = self._pending_generation_meta.pop(key, None)
+        if meta is None:
+            return
+
+        worker_rank, worker_local_index = meta
+        generation_id = self.record[key]["generation_order"] - 1
+            
+        obj_str = ",".join(map(str, objective_values))
+        with open(self._generation_trace_path, "a") as f:
+            f.write(f"{generation_id}\tworker_{worker_rank}\t{worker_local_index}\t{key}\t{reward}\t{obj_str}\n")
