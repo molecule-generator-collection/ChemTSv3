@@ -416,9 +416,10 @@ class AsyncParallelMCTS(MCTS):
         for res in results:
             task = res.task
             child = task.child
-            self._pending_generation_meta[task.target.key()] = (res.worker_rank, res.worker_local_index)
+            self._pending_generation_meta[task.key] = (res.worker_rank, res.worker_local_index)
 
             self._post_reward_side_effects(task.target, task.key, res.objective_values, res.reward)
+            self._record_results_with_local_ids(task.key, res.objective_values, res.reward)
             self._revert_virtual_loss(child)
 
             if task.is_direct and self.reward_cutoff is not None and res.reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
@@ -434,8 +435,7 @@ class AsyncParallelMCTS(MCTS):
                 self._schedule_one(child, task.iters_left - 1, self.n_tries, task.unfiltered_flag)
                 
     # record results with local ids
-    def on_generation(self, node: Node, objective_values: list[float], reward: float):
-        key = node.key()
+    def _record_results_with_local_ids(self, key: str, objective_values: list[float], reward: float):
         meta = self._pending_generation_meta.pop(key, None)
         if meta is None:
             return
