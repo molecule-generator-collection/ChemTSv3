@@ -13,7 +13,7 @@ silent: false # Set to true to disable console logging
 node_class: CanonicalSMILESStringNode
 root: c1ccccc1
 
-reward_class: LogPReward
+reward_class: LogPReward # Lightweight reward for testing
 
 transition_class: GBGATransition
 transition_args:
@@ -26,8 +26,6 @@ transition_args:
     # It is recommended to restrict the molecular size (via atom counts or molecular weight etc.) when using transitions like SMIRKSTransition or GBGATransition to prevent excessive growth of the search tree.
     - filter_class: HeavyAtomCountFilter
       max: 50
-
-reward_class: JScoreReward # Lightweight reward for testing
 
 ### Policy ###
 policy_class: PUCT
