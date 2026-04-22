@@ -138,6 +138,8 @@ chemtsv3 -c config/examples/example.yaml
 chemtsv3 -c config/examples/example_chain_1.yaml
 # Load a checkpoint and continue the generation
 chemtsv3 -l generation_results/~~~ --max_generations 100 --time_limit 60
+# Parallel generation using MPI (requires mpi4py)
+mpirun -np 4 chemtsv3-mpi -c config/mpi/mpi_example.yaml
 ```
 More examples can be found in `config/examples` directory. Settings that were used in the paper are available  in `config/paper`.
 
