@@ -148,7 +148,7 @@ class SMIRKSTransition(TemplateTransition):
     def observe(self, node, objective_values: list[float], reward: float, is_filtered: bool):
         if self.record_actions is True:
             action = node.last_action
-            if node.parent.reward is None:
+            if node.parent is None or node.parent.reward is None:
                 return
             dif = reward - node.parent.reward
 
