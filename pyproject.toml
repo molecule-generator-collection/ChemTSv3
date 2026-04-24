@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chemtsv3"
-version = "1.1.0"
+version = "1.1.1"
 description = "ChemTSv3: "
 authors = [
     "Satoru Fujii <fujii.sat.rk@yokohama-cu.ac.jp>"

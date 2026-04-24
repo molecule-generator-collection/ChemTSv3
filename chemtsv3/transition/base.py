@@ -233,7 +233,7 @@ class LLMTransition(BlackBoxTransition):
     # implement
     def observe(self, node: StringNode, objective_values: list[float], reward: float, is_filtered: bool):
         action = node.last_action
-        if node.parent.reward is None:
+        if node.parent is None or node.parent.reward is None:
             return
         dif = reward - node.parent.reward
         if not is_filtered:
