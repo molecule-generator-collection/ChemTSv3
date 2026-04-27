@@ -332,6 +332,12 @@ class AsyncParallelMCTS(MCTS):
     Disabled: failed_parent_reward
     """
     def __init__(self, *args, max_inflight: int, dispatcher_type: str=None, check_interval: float=0.05, output_dir: str=None, logger: logging.Logger=None, **kwargs):
+        kwargs.setdefault("discard_unneeded_states", False)
+        if kwargs.get("discard_unneeded_states") and logger is not None:
+            logger.warning(
+                "AsyncParallelMCTS is running with discard_unneeded_states=True. "
+                "This may be incompatible with classes that need node state after reward evaluation."
+            )
         super().__init__(*args, output_dir=output_dir, logger=logger, **kwargs) # output_dir and logger are explicit for generator_from_conf()
 
         self.assign_dispatcher(dispatcher_type, max_inflight, self.reward)
