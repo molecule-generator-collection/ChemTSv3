@@ -402,7 +402,6 @@ class AsyncParallelMCTS(MCTS):
                 child.leave(logger=self.logger)
         else: # reward calculation needed
             key = pre[1]
-            self._apply_virtual_loss(child)
             task = RewardTask(child=child, iters_left=iters, tries_left=tries, unfiltered_flag=unfiltered_flag, target=target, is_direct=is_direct, key=key)
             submitted = self.dispatcher.submit(task)
             if submitted:
