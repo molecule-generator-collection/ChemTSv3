@@ -1,13 +1,13 @@
 output_dir: generation_results
 time_limit: 9600
 max_generations: 3000
-debug: true
+debug: true # Recommended for checking model outputs
 
-node_class: CanonicalSMILESStringNode
+node_class: CanonicalSMILESStringNode # It is recommended to use SMILESStringNode for LLM-based transitons now
 node_class_variables:
-  use_canonical_smiles_as_key: true
+  use_canonical_smiles_as_key: true # Unused for CanonicalSMILESStringNode
 
-root: c1ccc(Nc2ncnc3ccccc23)cc1
+root: c1ccc(Nc2ncnc3ccccc23)cc1 # 4-anilino-quinazoline
 
 transition_class: ChatGPTTransition
 transition_args:

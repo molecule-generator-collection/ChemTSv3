@@ -1,3 +1,5 @@
+# Omitted (this model might not work well with this setting)
+
 output_dir: generation_results
 time_limit: 9600
 max_generations: 3000
@@ -7,7 +9,7 @@ node_class: SELFIESStringNode
 node_class_variables:
   use_canonical_smiles_as_key: true
 
-root: "[C][=C][C][=C][Branch1][S][N][C][=N][C][=N][C][=C][C][=C][C][=C][Ring1][#Branch2][Ring1][=Branch1][C][=C][Ring1][P]"
+root: "[C][=C][C][=C][Branch1][S][N][C][=N][C][=N][C][=C][C][=C][C][=C][Ring1][#Branch2][Ring1][=Branch1][C][=C][Ring1][P]" # 4-anilino-quinazoline
 
 transition_class: BioT5Transition
 transition_args:

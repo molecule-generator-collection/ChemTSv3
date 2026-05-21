@@ -6,7 +6,7 @@ node_class: CanonicalSMILESStringNode
 node_class_variables:
   use_canonical_smiles_as_key: true
 
-root: c1ccc(Nc2ncnc3ccccc23)cc1
+root: c1ccc(Nc2ncnc3ccccc23)cc1 # 4-anilino-quinazoline
 
 reward_class: DyRAMOReward
 reward_args:
