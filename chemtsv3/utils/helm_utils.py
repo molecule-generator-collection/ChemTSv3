@@ -23,6 +23,7 @@ class MonomerLibrary():
             *args: File path(s). If the same token is defined multiple times, prioritize the last definition. ex. /data/helm/library/chembl_35_monomer_library.xml
         """
         for s in args:
+            s = str(s)
             if s.endswith("xml"):
                 self._load_xml(s)
             else:
