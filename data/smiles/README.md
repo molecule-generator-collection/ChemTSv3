@@ -1,7 +1,11 @@
 ## 250k_rndm_zinc_drugs_clean.smi
 This dataset is extracted from ZINC database and contains 249,456 molecules.  
 
-Retrieved from: https://github.com/tsudalab/ChemTS/blob/master/data/250k_rndm_zinc_drugs_clean.smi  
+Retrieved from: https://github.com/tsudalab/ChemTS/blob/master/data/250k_rndm_zinc_drugs_clean.smi
+
+ZINC (original source): Irwin, Sterling, Mysinger, Bolstad and Coleman, J. Chem. Inf. Model. 2012 DOI: 10.1021/ci3001277.
+
+Lisence: https://wiki.docking.org/index.php?title=UCSF_ZINC_License
 
 Tokens:
 ```
@@ -16,6 +20,10 @@ This dataset is extracted from ZINC database and contains 153,253 molecules.
 
 Retrieved from: https://github.com/tsudalab/FL_ChemTS/blob/main/data/250k_rndm_zinc_drugs_clean_std_woSsP%2B-.smi
 
+ZINC (original source): Irwin, Sterling, Mysinger, Bolstad and Coleman, J. Chem. Inf. Model. 2012 DOI: 10.1021/ci3001277.
+
+Lisence: https://wiki.docking.org/index.php?title=UCSF_ZINC_License
+
 Tokens:
 ```
 \n, #, &, (, ), -, /, 1, 2, 3, 4, 5, 6, 7, =, Br, C, Cl, F, I, N, O, [C@@H], [C@@], 
@@ -27,6 +35,10 @@ This dataset is extracted from PubChemQC database and contains 9,880 molecules.
 
 Retrieved from: https://github.com/tsudalab/NMR-TS/blob/master/train_RNN/2019PubChemQC_can_nocharge.smi
 
+Original Source: https://nakatamaho.riken.jp/pubchemqc.riken.jp/b3lyp_pm6_datasets.html
+
+Lisence: Creative Commons Attribution 4.0 International (CC BY 4.0)
+
 Tokens:
 ```
 \n, #, &, (, ), -, 1, 2, 3, 4, =, C, N, O, c, n, o
@@ -37,6 +49,8 @@ This dataset is extracted from ChEMBL database and curated by an expert medicina
 It contains 224,153 molecules.
 
 Retrieved from: https://github.com/molecule-generator-collection/ChemTSv2/tree/master/data
+
+License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
 
 Tokens:
 ```
