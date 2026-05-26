@@ -5,7 +5,7 @@ Retrieved from: https://github.com/tsudalab/ChemTS/blob/master/data/250k_rndm_zi
 
 ZINC (original source): Irwin, Sterling, Mysinger, Bolstad and Coleman, J. Chem. Inf. Model. 2012 DOI: 10.1021/ci3001277.
 
-Lisence: https://wiki.docking.org/index.php?title=UCSF_ZINC_License
+Licence: https://wiki.docking.org/index.php?title=UCSF_ZINC_License
 
 Tokens:
 ```
@@ -22,7 +22,7 @@ Retrieved from: https://github.com/tsudalab/FL_ChemTS/blob/main/data/250k_rndm_z
 
 ZINC (original source): Irwin, Sterling, Mysinger, Bolstad and Coleman, J. Chem. Inf. Model. 2012 DOI: 10.1021/ci3001277.
 
-Lisence: https://wiki.docking.org/index.php?title=UCSF_ZINC_License
+Licence: https://wiki.docking.org/index.php?title=UCSF_ZINC_License
 
 Tokens:
 ```
@@ -37,7 +37,7 @@ Retrieved from: https://github.com/tsudalab/NMR-TS/blob/master/train_RNN/2019Pub
 
 Original Source: https://nakatamaho.riken.jp/pubchemqc.riken.jp/b3lyp_pm6_datasets.html
 
-Lisence: Creative Commons Attribution 4.0 International (CC BY 4.0)
+Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
 
 Tokens:
 ```
