@@ -49,6 +49,14 @@ class HELM(DynamicMolLanguage):
 
         return token_ids_without_period
     
+    @staticmethod
+    def complete_postfix(sentence: str) -> str:
+        sentence = sentence.rstrip("$")
+        n_missing = 4 - sentence.count("$")
+        if n_missing < 0:
+            return sentence
+        return sentence + ("$" * n_missing)
+    
     # override
     def ids2sentence(self, ids: list[int]):
         if ids[0] == self.bos_id():
@@ -68,7 +76,7 @@ class HELM(DynamicMolLanguage):
             s = "".join(self.id2token(i) for i in new_ids)
         else:
             s = "".join(self.id2token(i) for i in ids)
-        s += "$$$$"
+        s = HELM.complete_postfix(s)
         return s
 
     @staticmethod
