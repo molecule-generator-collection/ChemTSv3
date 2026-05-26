@@ -7,6 +7,7 @@ lang_args:
   - "data/helm/library/chembl_35_monomer_library.xml"
   - "data/helm/library/HELMCoreLibrary.json"
   - "data/helm/library/monomerLib2.0.json"
+  - "data/helm/library/CycPeptMPDB_Monomer_All.xml"
 dataset_path: data/helm/chembl34_protein_helm_only.helm
 
 test_size: 0.1
