@@ -14,8 +14,7 @@ device: cpu
 transition_class: RNNTransition
 transition_args:
   # model_dir: model/smiles/drugs_zinc/tf25_ported
-  # model_dir: model/smiles/drugs_zinc/gru
-  model_dir: model/smiles/drugs_zinc/lstm
+  model_dir: model/smiles/drugs_zinc/gru
   # model_dir: model/helm/chembl_peptide/gru
   # top_p: 0.995
 
