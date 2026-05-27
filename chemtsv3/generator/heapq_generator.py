@@ -5,6 +5,13 @@ from chemtsv3.transition import Transition
 
 class HeapQueueGenerator(Generator):
     def __init__(self, root: Node, transition: Transition, max_length=None, **kwargs):
+        """
+        Args:
+            root: The root node from which generation starts.
+            transition: Transition used to expand nodes and perform rollouts.
+            max_length: Maximum rollout length. If omitted, transition.max_length() is used.
+            **kwargs: Additional arguments passed to Generator.
+        """
         self.root = root
         self.max_length = max_length or transition.max_length()
         self.q = []
