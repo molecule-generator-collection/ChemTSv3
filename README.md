@@ -148,7 +148,7 @@ More examples can be found in `config/examples` directory. Settings that were us
 - **Generation via notebook**: `sandbox/generation.ipynb`
 
 ## Options
-All options for each component (class) are defined as arguments in the `__init__()` method of the corresponding class.
+All options for each component (class) are defined as arguments in the `__init__()` method of the corresponding class. For detailed documentation of each class, see [`chemtsv3/generator/README.md`](chemtsv3/generator/README.md), [`chemtsv3/transition/README.md`](chemtsv3/transition/README.md), and [`chemtsv3/policy/README.md`](chemtsv3/policy/README.md).
 
 <details>
   <summary><b>Nodes and Transitions</b></summary><br>
