@@ -247,6 +247,7 @@ For other options and further details, please refer to each class’s `__init__(
 
 **Topological**
 - `SubstructureFilter`: Excludes molecules that **do not** contain the specified (list of) substructure(s) by `smiles` or `smarts` arguments. If `preserve` is set to False, excludes molecules that **do** contain the specified (list of) substructure(s) instead. By specifying appropriate SMARTS patterns, it is possible to control where substitutions or structural modifications (i.e., adding a substituent or arm) are allowed to occur.
+- `MurckoScaffoldFilter`: Excludes molecules whose Murcko scaffold does not contain the Murcko scaffold of the reference `smiles`. If `generic` is set to True, atom and bond types are generalized before comparison. (Default: `generic=True`)
 - `AromaticRingFilter`: Excludes molecules whose number of aromatic rings falls outside the range [`min`, `max`]. (Default: [1, ∞))
 - `HeavyAtomCountFilter`: Excludes molecules whose number of heavy atoms falls outside the range [`min`, `max`]. (Default: [0, 45])
 - `MaxRingSizeFilter`: Excludes molecules whose largest ring size falls outside the range [`min`, `max`]. (Default: [0, 6])

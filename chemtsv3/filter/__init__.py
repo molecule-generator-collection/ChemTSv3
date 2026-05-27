@@ -9,6 +9,7 @@ from .hbd_filter import HBDFilter
 from .heavy_atom_count_filter import HeavyAtomCountFilter
 from .known_list_filter import KnownListFilter
 from .log_p_filter import LogPFilter
+from .murcko_scaffold_filter import MurckoScaffoldFilter
 from .pains_filter import PainsFilter
 from .radical_filter import RadicalFilter
 from .ring_bond_filter import RingBondFilter
