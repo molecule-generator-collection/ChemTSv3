@@ -30,6 +30,13 @@ Abstract base class for transitions.
 |---|---:|---|
 | `logger` | `None` | Logger used by the transition. Automatically set during YAML-based generation. |
 
+| Method | Description |
+|---|---|
+| `next_nodes(node: Node)` | Return the list of the child nodes. If the node is terminal, an empty list `[]` should be returned. |
+| `rollout(initial_node: Node)` | (Optional) Sample an offspring node that satisfies `has_reward() = True`. By default, this method repeatedly calls `next_nodes()`. |
+| `observe(node: Node, objective_values: list[float], reward: float, is_filtered: bool)` | (Optional) Transitions can update their internal state when observing the reward of the node. By default, this method does nothing. |
+| `analyze()` | (Optional) This method is called within Generation.analyze(). Does nothing by default. |
+
 ## AutoRegressiveTransition (abstract)
 
 Base class for autoregressive transitions.
@@ -91,6 +98,10 @@ Base transition that applies transition-level filters, normalizes child probabil
 | `filters` | `None` | Filters applied to generated child nodes inside the transition. |
 | `top_p` | `None` | Optional top-p threshold for pruning generated children by cumulative transition probability. Must be in `(0, 1]` when specified. |
 | `logger` | `None` | Logger used by the transition. Automatically set during YAML-based generation. |
+
+| Method | Description |
+|---|---|
+| `_next_nodes_impl(node)` | Implement this method instead of `next_nodes()`. |
 
 ## GBGATransition
 
