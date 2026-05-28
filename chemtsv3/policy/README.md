@@ -20,6 +20,13 @@ UpperPredictor
 
 Abstract base class for MCTS policies. Choose a child node by `select_child` method.
 
+| Method | Description |
+|---|---|
+| `select_child(node: Node) -> Node` | Select one child of the given node. Must not be called if `node.children` is empty. |
+| `observe(child: Node, objective_values: list[float], reward: float, is_filtered: bool)` | (Optional) Policies can update their internal state when observing the evaluation value of the node. By default, this method does nothing. |
+| `analyze()` | (Optional) This method is called within MCTS.analyze(). Does nothing by default. |
+| `candidates(node: Node) -> list[Node]` | (Optional) Return available child candidates. Returns all children by default. |
+
 ## TemplatePolicy (abstract)
 
 Base policy with optional progressive widening.
@@ -42,6 +49,10 @@ Policy that selects the node with the highest value of `score` method. Supports 
 | `pw_beta` | `0` | Progressive widening offset. |
 | `epsilon` | `0` | Probability of randomly selecting a child node while descending the search tree. |
 | `logger` | `None` | Logger used by the policy. Automatically set during YAML-based generation. |
+
+| Method | Description |
+|---|---|
+| `score(node: Node) -> float` | Return the selection score of the given child node. |
 
 ## UCT
 
