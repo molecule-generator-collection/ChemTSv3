@@ -5,6 +5,7 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 from rdkit.Chem import inchi
 from rdkit.Chem import Draw, rdDepictor, rdFingerprintGenerator
+from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.DataStructs.cDataStructs import TanimotoSimilarity
 from IPython.display import display
 
@@ -100,7 +101,11 @@ def draw_mols(df: pd.DataFrame, legends: list[str], mols_per_row=5, size=(200, 2
                 legend += f"{val}: {row[val]:}\n"
         mols.append(mol)
         legend_strings.append(legend)
-    display(Draw.MolsToGridImage(mols, molsPerRow=mols_per_row, subImgSize=size, legends=legend_strings, maxMols=max_mols, useSVG=True))
+    draw_options = rdMolDraw2D.MolDrawOptions()
+    draw_options.legendFontSize = 240
+    if hasattr(draw_options, "legendFraction"):
+        draw_options.legendFraction = 0.5
+    display(Draw.MolsToGridImage(mols[:max_mols], molsPerRow=mols_per_row, subImgSize=size, legends=legend_strings[:max_mols], useSVG=True, drawOptions=draw_options))
     
 def append_similarity_to_df(df: pd.DataFrame, goal_smiles: str, radius=2, fp_size=2048, name: str="similarity"):
     mfgen = rdFingerprintGenerator.GetMorganGenerator(radius=radius, fpSize=fp_size)
