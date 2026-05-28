@@ -34,7 +34,7 @@ Abstract base class for transitions.
 |---|---|
 | `next_nodes(node: Node)` | Return the list of the child nodes. If the node is terminal, an empty list `[]` should be returned. |
 | `rollout(initial_node: Node)` | (Optional) Sample an offspring node that satisfies `has_reward() = True`. By default, this method repeatedly calls `next_nodes()`. |
-| `observe(node: Node, objective_values: list[float], reward: float, is_filtered: bool)` | (Optional) Transitions can update their internal state when observing the reward of the node. By default, this method does nothing. |
+| `observe(node: Node, objective_values: list[float], reward: float, is_filtered: bool)` | (Optional) Transitions can update their internal state when observing the reward of the node. Does nothing by default. |
 | `analyze()` | (Optional) This method is called within Generation.analyze(). Does nothing by default. |
 
 ## AutoRegressiveTransition (abstract)
