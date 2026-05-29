@@ -59,6 +59,9 @@ generator_args: # root, transition, reward, policy and filters are automatically
   avoid_duplicates: false # If set to true, duplicate nodes won't be added to the search tree. Should be true (default value) if the transition forms a cyclic graph. Unneeded if the tree structure of the transition graph is guranteed, and can be set to false to slightly reduce memory usage.
   info_interval: 100  # Interval to log the average reward
   # save_on_completion: true # If true, saves the checkpoint when completing the generation.
+  # precalculated_csv_paths: # Paths of result csv files of the previous runs with the same reward can be specified here so that their reward and objective values are reused instead of recalculated. Later files take priority when keys overlap.
+  #   - generation_results/***/***.csv
+  #   - generation_results/***/***.csv
 
 ### Plot Setting ###
 plot_args:

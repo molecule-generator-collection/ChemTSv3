@@ -16,6 +16,7 @@ class MCTS(Generator):
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=True, discard_unneeded_states: bool=None,
                  max_tree_depth: int=None, virtual_loss: float=0.0, use_dummy_reward: bool=False,
+                 precalculated_csv_paths: list[str]=None,
                  name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
         """
         Args:
@@ -38,6 +39,7 @@ class MCTS(Generator):
             
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             discard_unneeded_states: If True, discards variables of nodes that will no longer be used after expansion. Unused for batch reward calculation. Caches are handled independently.
+            precalculated_csv_paths: Paths of result csv files of the previous runs with the same reward can be specified here so that their reward and objective values are reused instead of recalculated. Later files take priority when keys overlap.
             
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
@@ -91,7 +93,7 @@ class MCTS(Generator):
         self.current_parent = None
         self.parent_unfiltered_flag = False
 
-        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, name=name, output_dir=output_dir, logger=logger, logging_interval=logging_interval, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval, save_on_completion=save_on_completion, include_transition_to_save=include_transition_to_save)
+        super().__init__(transition=transition, reward=reward, filters=filters, filter_reward=filter_reward, precalculated_csv_paths=precalculated_csv_paths, name=name, output_dir=output_dir, logger=logger, logging_interval=logging_interval, info_interval=info_interval, verbose_interval=verbose_interval, analyze_interval=analyze_interval, save_interval=save_interval, save_on_completion=save_on_completion, include_transition_to_save=include_transition_to_save)
         
         if self.reward.is_batch_reward():
             self.discard_unneeded_states = False

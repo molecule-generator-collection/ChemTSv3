@@ -22,6 +22,7 @@ Base generator class. Override `_generate_impl` and, when necessary, `__init__` 
 | `reward` | `LogPReward()` | Reward instance used to evaluate nodes. |
 | `filters` | `None` | Filters applied before reward calculation. |
 | `filter_reward` | `0` | Substitute reward value used when nodes are filtered. Set to `"ignore"` to skip reward assignment. Use a list to specify different rewards for each filter step. |
+| `precalculated_csv_paths` | `None` | Paths of result CSV files of the previous runs with the same reward can be specified here so that their reward and objective values are reused instead of recalculated. Later files take priority when keys overlap. |
 | `name` | `None` | Generator name. If omitted, a timestamp-based name is generated. |
 | `output_dir` | `None` | Directory where generation results and logs are saved. |
 | `logger` | `None` | Logger instance used to record generation results. |
@@ -60,6 +61,7 @@ Performs Monte Carlo tree search to maximize the reward.
 | `max_tree_depth` | `None` | Maximum tree depth to expand. |
 | `virtual_loss` | `0.0` | For `BatchReward` or rewards whose `n_batch() > 1`, this value is temporarily used until enough nodes are pooled for reward calculation. |
 | `use_dummy_reward` | `False` | If True, backpropagated value is fixed to 0 while rewards and objective values are still calculated. |
+| `precalculated_csv_paths` | `None` | Paths of result CSV files of the previous runs with the same reward can be specified here so that their reward and objective values are reused instead of recalculated. Later files take priority when keys overlap. |
 | `name` | `None` | Generator name. If omitted, a timestamp-based name is generated. |
 | `output_dir` | `None` | Directory where generation results and logs are saved. |
 | `logger` | `None` | Logger instance used to record generation results. Automatically set during YAML-based generation. |
@@ -84,7 +86,7 @@ MCTS variant for asynchronous parallel reward calculation.
 | `check_interval` | `0.05` | Sleep interval in seconds while waiting for in-flight reward tasks. |
 | `**kwargs` | `{}` | Additional arguments passed to `MCTS`. `discard_unneeded_states` defaults to False to avoid potential conflicts with other classes. |
 
-Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled.
+Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `precalculated_csv_paths`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled.
 
 ## HeapQueueGenerator
 
@@ -95,7 +97,7 @@ Generator that evaluates children and keeps candidates in a reward-prioritized h
 | `root` | required | Root node from which generation starts. |
 | `transition` | required | Transition used to expand nodes and perform rollouts. |
 | `max_length` | `None` | Maximum rollout length. If omitted, `transition.max_length()` is used. |
-| `**kwargs` | `{}` | Additional arguments passed to `Generator`: `reward`, `filters`, `filter_reward`, `name`, `output_dir`, `logger`, `logging_interval`, `info_interval`, `analyze_interval`, `verbose_interval`, `save_interval`, `save_on_completion`, and `include_transition_to_save`. |
+| `**kwargs` | `{}` | Additional arguments passed to `Generator`: `reward`, `filters`, `filter_reward`, `precalculated_csv_paths`, `name`, `output_dir`, `logger`, `logging_interval`, `info_interval`, `analyze_interval`, `verbose_interval`, `save_interval`, `save_on_completion`, and `include_transition_to_save`. |
 
 ## RandomGenerator
 
@@ -106,4 +108,4 @@ Generator that repeatedly samples a rollout from the root node.
 | `root` | required | Root node from which generation starts. |
 | `transition` | required | Transition used to perform rollouts. |
 | `max_length` | `None` | Maximum rollout length. If omitted, `transition.max_length()` is used. |
-| `**kwargs` | `{}` | Additional arguments passed to `Generator`: `reward`, `filters`, `filter_reward`, `name`, `output_dir`, `logger`, `logging_interval`, `info_interval`, `analyze_interval`, `verbose_interval`, `save_interval`, `save_on_completion`, and `include_transition_to_save`. |
+| `**kwargs` | `{}` | Additional arguments passed to `Generator`: `reward`, `filters`, `filter_reward`, `precalculated_csv_paths`, `name`, `output_dir`, `logger`, `logging_interval`, `info_interval`, `analyze_interval`, `verbose_interval`, `save_interval`, `save_on_completion`, and `include_transition_to_save`. |

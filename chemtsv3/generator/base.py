@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import copy
+import csv
 from datetime import datetime
 import logging
 from logging.handlers import MemoryHandler
@@ -22,10 +23,11 @@ from chemtsv3.utils import moving_average, log_memory_usage, make_logger, flush_
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
-    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
+    def __init__(self, transition: Transition, reward: Reward=LogPReward(), filters: list[Filter]=None, filter_reward: float | str | list=0, precalculated_csv_paths: list[str]=None, name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
         """
         Args:
             filter_reward: Substitute reward value used when nodes are filtered. Set to "ignore" to skip reward assignment. Use a list to specify different rewards for each filter step.
+            precalculated_csv_paths: Paths of result csv files of the previous runs with the same reward can be specified here so that their reward and objective values are reused instead of recalculated. Later files take priority when keys overlap.
             
             output_dir: Directory where the generation results and logs will be saved.
             logger: Logger instance used to record generation results.
@@ -56,6 +58,8 @@ class Generator(ABC):
         self.grab_count = 0
         self.duplicate_count = 0
         self.logger = logger or make_logger(output_dir=self.output_dir(), name=self.name())
+        self.precalculated_values: dict[str, dict] = {}
+        self._load_precalculated_values(precalculated_csv_paths)
         self.yaml_copy = None
         if logging_interval is None:
             # if is_running_under_slurm():
@@ -221,6 +225,11 @@ class Generator(ABC):
             self.logger.debug(f"Already in dict: {key}, reward: {self.record[key]['reward']}")
             node.clear_cache()
             return self.record[key]["objective_values"], self.record[key]["reward"]
+        if key in self.precalculated_values:
+            objective_values, reward = self._precalculated_objective_values_and_reward(key)
+            self.logger.debug(f"Found precalculated reward: {key}, reward: {reward}")
+            self._post_reward_side_effects(node, key, objective_values, reward)
+            return objective_values, reward
         
         for i, filter in enumerate(self.filters):
             filter_result = filter.check(node)
@@ -516,15 +525,83 @@ class Generator(ABC):
     
     def _required_cols(self):
         return {"key", "reward"}
-    
+
     def _optional_cols(self):
         return {"order", "time"}
-            
+
     def _load_table(self, src: str | pd.DataFrame) -> pd.DataFrame:
         if isinstance(src, pd.DataFrame):
             return src
         path = Path(src)
         return pd.read_csv(path)
+
+    def _load_precalculated_values(self, csv_paths: list[str] | str | Path | None):
+        if not csv_paths:
+            return
+        if isinstance(csv_paths, (str, Path)):
+            csv_paths = [csv_paths]
+
+        total = 0
+        for csv_path in csv_paths:
+            path = resolve_path(csv_path)
+            n_loaded = self._register_precalculated_csv(path)
+            total += n_loaded
+            self.logger.info(f"Loaded {n_loaded} precalculated rewards from {path}.")
+        self.logger.info(f"Loaded {total} precalculated rewards in total.")
+
+    def _register_precalculated_csv(self, csv_path: str | Path) -> int:
+        try:
+            with open(csv_path, newline="", encoding="utf-8-sig") as f:
+                reader = csv.reader(f)
+                try:
+                    header = next(reader)
+                except StopIteration:
+                    return 0
+
+                if "key" not in header or "reward" not in header:
+                    raise ValueError(f"CSV must contain 'key' and 'reward' columns: {header}")
+                key_idx = header.index("key")
+                reward_idx = header.index("reward")
+
+                n_loaded = 0
+                for row in reader:
+                    if not row or all(cell == "" for cell in row):
+                        continue
+                    if len(row) <= max(key_idx, reward_idx):
+                        raise ValueError(f"Row is missing key or reward columns in {csv_path}: {row}")
+
+                    key = row[key_idx]
+                    try:
+                        reward = float(row[reward_idx])
+                    except ValueError as e:
+                        raise ValueError(f"Invalid reward value for key={key}: {row[reward_idx]}") from e
+
+                    self.precalculated_values[key] = {
+                        "reward": reward,
+                        "objective_values": row[reward_idx + 1:],
+                    }
+                    n_loaded += 1
+                return n_loaded
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Precalculated CSV file not found: {csv_path}")
+
+    def _precalculated_objective_values_and_reward(self, key: str) -> tuple[list[float], float]:
+        rec = self.precalculated_values[key]
+        reward = rec["reward"]
+        raw_objective_values = rec["objective_values"]
+
+        if not raw_objective_values and self.reward.is_single_objective:
+            return [reward], reward
+        if not raw_objective_values:
+            raise ValueError(f"Precalculated objective values for key={key} are missing.")
+
+        objective_values = []
+        for raw in raw_objective_values:
+            try:
+                objective_values.append(float(raw))
+            except ValueError as e:
+                raise ValueError(f"Invalid objective value for key={key}: {raw}") from e
+        return objective_values, reward
         
     def log_verbose_info(self):
         log_memory_usage(self.logger)

@@ -211,6 +211,7 @@ For other options and further details, please refer to each class’s `__init__(
 |-|`silent`|False|If True, console logging are disabled.|
 |-|`next_yaml_path`|False|If a path to the YAML config for the next generator is set, the generated molecules will be passed for chain generation.|
 |-|`n_keys_to_pass`|3|Number of top-k generated molecules (keys) to be used as root nodes for the next generator.|
+|`MCTS`|`precalculated_csv_paths`|`None`|Paths of result CSV files of the previous runs with the same reward can be specified here so that their reward and objective values are reused instead of recalculated. Later files take priority when keys overlap.|
 |`MCTS`|`save​_on​_completion`|False|If True, saves a checkpoint when completing the generation.|
 |`MCTS`|`n_eval_iters`|1|The number of child node evaluations. This value should not be > 1 unless the evaluations are undeterministic (e.g. involve rollouts).|
 |`MCTS`|`n_tries`|1|The number of attempts to obtain an unfiltered node in a single evaluation. This value should not be >1 unless the evaluations are undeterministic (e.g. involve rollouts).|
@@ -271,9 +272,6 @@ For other options and further details, please refer to each class’s `__init__(
 - `LogPFilter`: Excludes molecules whose LogP value falls outside the range [`min`, `max`]. (Default: (-∞, 5])
 - `TPSAFilter`: Excludes molecules whose topological polar surface area (TPSA) falls outside the range [`min`, `max`]. (Default: [0, 140])
 - `WeightFilter`: Excludes molecules whose molecular weight falls outside the range [`min`, `max`]. (Default: [0, 500])
-
-**Misc**
-- `KnownListFilter`: Excludes molecules that are contained in the key column of the input CSV file(s), and overrides their reward with the corresponding value from the reward column (unless applied for the transition). (CSV files from generation results can be used directly.)
 
 Filters can also be specified using `filters` argument of transitions that inherit from `TemplateTransition` (e.g. `GBGATransition`, `SMIRKSTransition`, `ChatGPTTransition`) to directly exclude molecules from child nodes.
 

@@ -42,12 +42,6 @@ filters:
   # - filter_class: MaxRingSizeFilter
   #   max: 6
 
-  # KnownListFilter can be used to skip reward calculations of known molecules; this feedbacks the corresponding values in "reward" column (unless applied for the transition.)
-  # - filter_class: KnownListFilter
-  #   list_paths: 
-  #   - "path_to_generation_results_1.csv"
-  #   - "path_to_generation_results_2.csv"
-
 ### Policy ###
 policy_class: UCT
 # policy_class: PUCT  # Shares the same arguments with UCT
