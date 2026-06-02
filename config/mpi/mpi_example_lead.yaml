@@ -36,7 +36,7 @@ policy_args:
 ### Generator ###
 generator_class: AsyncParallelMCTS
 generator_args:
-  dispatcher_type: mpi
+  reward_dispatcher_type: mpi
   n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might be more sample efficient.
   n_eval_iters: 1
   n_tries: 1

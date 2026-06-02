@@ -8,7 +8,10 @@ import queue
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from mpi4py import MPI
+try:
+    from mpi4py import MPI
+except ModuleNotFoundError:
+    MPI = None
 
 from chemtsv3.generator import MCTS
 from chemtsv3.node import Node
@@ -134,11 +137,141 @@ class _InflightTaskState:
     worker_rank: int
     worker_local_index: int
 
+@dataclass
+class PoolResult:
+    """Rank-0 only result wrapper returned from MPIWorkerPool."""
+    task: Any
+    payload: dict
+    worker_rank: int
+    worker_local_index: int
+
+@dataclass
+class _PoolInflightTaskState:
+    kind: str
+    task: Any
+    worker_rank: int
+    worker_local_index: int
+
+def pack_node_for_mpi(node: Node) -> dict:
+    if not hasattr(node, "pack"):
+        raise TypeError(f"{node.__class__.__name__} must implement pack() for MPI dispatchers.")
+
+    return {
+        "node_module_name": node.__class__.__module__,
+        "node_class_name": node.__class__.__name__,
+        "node_payload": node.pack(),
+    }
+
+class MPIWorkerPool:
+    """Shared MPI worker pool for dynamically dispatching reward and transition tasks."""
+    def __init__(self, comm=None, max_inflight=None):
+        if MPI is None:
+            raise ModuleNotFoundError("mpi4py is required to use MPIWorkerPool.")
+
+        self.comm = comm or MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
+
+        if self.rank != 0:
+            raise ValueError("MPIWorkerPool must be instantiated on rank 0.")
+        if self.size < 2:
+            raise ValueError("MPIWorkerPool requires at least 2 MPI ranks.")
+
+        self._closed = False
+        self._idle_workers = set(range(1, self.size))
+        self._inflight_tasks: dict[int, _PoolInflightTaskState] = {}
+        self._next_task_id = 0
+        self._worker_task_counts = {rank: 0 for rank in range(1, self.size)}
+        self._ready_by_kind: dict[str, queue.Queue] = {}
+
+        self._max_inflight = self.size - 1 if max_inflight is None else max_inflight
+        if self._max_inflight < 1:
+            raise ValueError("max_inflight must be >= 1")
+        self._max_inflight = min(self._max_inflight, self.size - 1)
+
+    def submit(self, kind: str, payload: dict, task: Any) -> bool:
+        if self._closed:
+            return False
+
+        self._poll_results()
+
+        if len(self._inflight_tasks) >= self._max_inflight:
+            return False
+        if not self._idle_workers:
+            return False
+
+        worker_rank = self._idle_workers.pop()
+        task_id = self._next_task_id
+        self._next_task_id += 1
+        worker_local_index = self._worker_task_counts[worker_rank]
+        self._worker_task_counts[worker_rank] += 1
+
+        payload = dict(payload)
+        payload["kind"] = kind
+        payload["task_id"] = task_id
+
+        self.comm.send(payload, dest=worker_rank, tag=TAG_TASK)
+        self._inflight_tasks[task_id] = _PoolInflightTaskState(kind=kind, task=task, worker_rank=worker_rank, worker_local_index=worker_local_index)
+        return True
+
+    def pop_ready(self, kind: str, max_items: int=2**31-1) -> list[PoolResult]:
+        self._poll_results()
+        q = self._ready_by_kind.setdefault(kind, queue.Queue())
+
+        out = []
+        for _ in range(max_items):
+            try:
+                out.append(q.get_nowait())
+            except queue.Empty:
+                break
+        return out
+
+    def max_inflight(self) -> int:
+        return self._max_inflight
+
+    def inflight(self) -> int:
+        self._poll_results()
+        return len(self._inflight_tasks)
+
+    def close(self) -> None:
+        if self._closed:
+            return
+
+        self._poll_results()
+        for worker_rank in range(1, self.size):
+            self.comm.send(None, dest=worker_rank, tag=TAG_STOP)
+
+        self._closed = True
+
+    def _poll_results(self) -> None:
+        status = MPI.Status()
+
+        while self.comm.Iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT, status=status):
+            src = status.Get_source()
+            payload = self.comm.recv(source=src, tag=TAG_RESULT)
+            task_id = payload["task_id"]
+            inflight = self._inflight_tasks.pop(task_id, None)
+
+            if inflight is None:
+                self._idle_workers.add(src)
+                continue
+
+            self._idle_workers.add(src)
+            q = self._ready_by_kind.setdefault(inflight.kind, queue.Queue())
+            q.put(PoolResult(task=inflight.task, payload=payload, worker_rank=inflight.worker_rank, worker_local_index=inflight.worker_local_index))
+
 class MPIRewardDispatcher(RewardDispatcher):
     is_batch_reward_compatible = False
 
-    def __init__(self, reward, comm=None, max_inflight=None):
+    def __init__(self, reward, comm=None, max_inflight=None, pool: MPIWorkerPool=None):
         super().__init__(reward=reward)
+        if MPI is None:
+            raise ModuleNotFoundError("mpi4py is required to use MPIRewardDispatcher.")
+
+        self.pool = pool
+        if self.pool is not None:
+            self._ready = queue.Queue()
+            return
 
         self.comm = comm or MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
@@ -164,6 +297,10 @@ class MPIRewardDispatcher(RewardDispatcher):
         self._max_inflight = min(self._max_inflight, self.size - 1)
 
     def submit(self, task: "RewardTask") -> bool:
+        if self.pool is not None:
+            payload = pack_node_for_mpi(task.target)
+            return self.pool.submit("reward", payload, task)
+
         if self._closed:
             return False
 
@@ -181,22 +318,17 @@ class MPIRewardDispatcher(RewardDispatcher):
         worker_local_index = self._worker_task_counts[worker_rank]
         self._worker_task_counts[worker_rank] += 1
 
-        node = task.target
-        if not hasattr(node, "pack"):
-            raise TypeError(f"{node.__class__.__name__} must implement pack() for MPIRewardDispatcher.")
-
-        payload = {
-            "task_id": task_id,
-            "node_module_name": node.__class__.__module__,
-            "node_class_name": node.__class__.__name__,
-            "node_payload": node.pack(),
-        }
+        payload = pack_node_for_mpi(task.target)
+        payload["task_id"] = task_id
 
         self.comm.send(payload, dest=worker_rank, tag=TAG_TASK)
         self._inflight_tasks[task_id] = _InflightTaskState(task=task, worker_rank=worker_rank, worker_local_index=worker_local_index)
         return True
 
     def pop_ready(self, max_items: int = 2**31 - 1) -> list["RewardResult"]:
+        if self.pool is not None:
+            return self._pop_ready_from_pool(max_items=max_items)
+
         self._poll_results()
 
         out = []
@@ -208,13 +340,21 @@ class MPIRewardDispatcher(RewardDispatcher):
         return out
 
     def max_inflight(self) -> int:
+        if self.pool is not None:
+            return self.pool.max_inflight()
         return self._max_inflight
 
     def inflight(self) -> int:
+        if self.pool is not None:
+            return self.pool.inflight()
         self._poll_results()
         return len(self._inflight_tasks)
 
     def close(self) -> None:
+        if self.pool is not None:
+            self.pool.close()
+            return
+
         """Tell all workers to stop. Called after generation finishes on rank 0."""
         if self._closed:
             return
@@ -266,6 +406,33 @@ class MPIRewardDispatcher(RewardDispatcher):
                 )
 
 
+    def _pop_ready_from_pool(self, max_items: int=2**31-1) -> list["RewardResult"]:
+        out = []
+        for res in self.pool.pop_ready("reward", max_items=max_items):
+            task = res.task
+            payload = res.payload
+            if payload["status"] == "ok":
+                out.append(
+                    RewardResult(
+                        task=task,
+                        objective_values=payload["objective_values"],
+                        reward=payload["reward"],
+                        worker_rank=res.worker_rank,
+                        worker_local_index=res.worker_local_index,
+                    )
+                )
+            else:
+                out.append(
+                    RewardResult(
+                        task=task,
+                        objective_values=[payload.get("error_code", "mpi_reward_error")],
+                        reward=0.0,
+                        worker_rank=res.worker_rank,
+                        worker_local_index=res.worker_local_index,
+                    )
+                )
+        return out
+
 def reconstruct_node(node_module_name: str, node_class_name: str, node_payload: Any):
     module = importlib.import_module(node_module_name)
     cls = getattr(module, node_class_name)
@@ -275,7 +442,10 @@ def reconstruct_node(node_module_name: str, node_class_name: str, node_payload: 
 
     return cls.unpack(node_payload)
 
-def worker_loop(reward, comm=None, logger=None) -> None:
+def worker_loop(reward, transition=None, comm=None, logger=None) -> None:
+    if MPI is None:
+        raise ModuleNotFoundError("mpi4py is required to use worker_loop.")
+
     comm = comm or MPI.COMM_WORLD
     rank = comm.Get_rank()
 
@@ -295,6 +465,7 @@ def worker_loop(reward, comm=None, logger=None) -> None:
             continue
 
         task_id = payload["task_id"]
+        kind = payload.get("kind", "reward")
 
         try:
             node = reconstruct_node(
@@ -302,26 +473,45 @@ def worker_loop(reward, comm=None, logger=None) -> None:
                 payload["node_class_name"],
                 payload["node_payload"],
             )
-            objective_values, reward_value = reward.objective_values_and_reward(node)
-            result = {
-                "task_id": task_id,
-                "status": "ok",
-                "objective_values": objective_values,
-                "reward": reward_value,
-            }
+            if kind == "reward":
+                objective_values, reward_value = reward.objective_values_and_reward(node)
+                result = {
+                    "task_id": task_id,
+                    "status": "ok",
+                    "objective_values": objective_values,
+                    "reward": reward_value,
+                }
+            elif kind == "transition_expand":
+                if transition is None:
+                    raise ValueError("transition is required for transition_expand tasks.")
+                result = {
+                    "task_id": task_id,
+                    "status": "ok",
+                    "nodes": [pack_node_for_mpi(n) for n in transition.next_nodes(node)],
+                }
+            elif kind == "transition_rollout":
+                if transition is None:
+                    raise ValueError("transition is required for transition_rollout tasks.")
+                result = {
+                    "task_id": task_id,
+                    "status": "ok",
+                    "node": pack_node_for_mpi(transition.rollout(node)),
+                }
+            else:
+                raise ValueError(f"Unknown MPI worker task kind: {kind}")
         except Exception as e:
             if logger is not None:
-                logger.exception("Reward evaluation failed on worker rank %d", rank)
+                logger.exception("MPI worker task failed on worker rank %d", rank)
             else:
                 import traceback
-                print(f"[worker {rank}] reward evaluation failed: {e!r}", flush=True)
+                print(f"[worker {rank}] MPI worker task failed: {e!r}", flush=True)
                 traceback.print_exc()
 
             result = {
                 "task_id": task_id,
                 "status": "error",
                 "error": repr(e),
-                "error_code": "mpi_reward_error",
+                "error_code": f"mpi_{kind}_error",
             }
 
         comm.send(result, dest=0, tag=TAG_RESULT)
@@ -331,7 +521,7 @@ class AsyncParallelMCTS(MCTS):
     MCTS variant that offloads reward calculation to RewardDispatcher.
     Disabled: failed_parent_reward
     """
-    def __init__(self, *args, max_inflight: int, dispatcher_type: str=None, check_interval: float=0.05, output_dir: str=None, logger: logging.Logger=None, **kwargs):
+    def __init__(self, *args, max_inflight: int, reward_dispatcher_type: str=None, check_interval: float=0.05, output_dir: str=None, logger: logging.Logger=None, **kwargs):
         kwargs.setdefault("discard_unneeded_states", False)
         if kwargs.get("discard_unneeded_states") and logger is not None:
             logger.warning(
@@ -340,28 +530,28 @@ class AsyncParallelMCTS(MCTS):
             )
         super().__init__(*args, output_dir=output_dir, logger=logger, **kwargs) # output_dir and logger are explicit for generator_from_conf()
 
-        self.assign_dispatcher(dispatcher_type, max_inflight, self.reward)
+        self.assign_dispatcher(reward_dispatcher_type, max_inflight, self.reward)
         if self.dispatcher is not None:
             if not self.dispatcher.is_batch_reward_compatible and self.reward.is_batch_reward():
                 raise ValueError("AsyncParallelMCTS requires reward.is_batch_reward() == False with the selected dispatcher.")
         self.check_interval = check_interval # seconds
         self._pending_generation_meta = {}
         self._generation_trace_path = os.path.join(self.output_dir(), "results_with_local_ids.tsv")
-        if not os.path.exists(self._generation_trace_path):
+        if self.dispatcher is not None and not os.path.exists(self._generation_trace_path):
             with open(self._generation_trace_path, "w") as f:
                 f.write("generation_id\tworker_rank\tworker_local_index\tkey\treward\tobjective_values\n")
         
     # override this for custom dispatcher
     # TODO: make this YAML-compatible rather than forcing override
-    def assign_dispatcher(self, dispatcher_type: str, max_inflight: int, reward):
-        if dispatcher_type == "dummy":
+    def assign_dispatcher(self, reward_dispatcher_type: str, max_inflight: int, reward):
+        if reward_dispatcher_type == "dummy":
             self.dispatcher = DummyRewardDispatcher(reward=reward, max_inflight=max_inflight)
-        elif dispatcher_type == "mpi":
+        elif reward_dispatcher_type == "mpi":
             self.dispatcher = MPIRewardDispatcher(reward=reward, max_inflight=max_inflight)
-        elif dispatcher_type is None:
+        elif reward_dispatcher_type is None:
             self.dispatcher = None
         else:
-            raise ValueError(f"Unknown dispatcher_type: {dispatcher_type}")
+            raise ValueError(f"Unknown reward_dispatcher_type: {reward_dispatcher_type}")
 
     def _generate_impl(self):
         self._drain_ready_results() # harvest all calculated results
@@ -441,6 +631,9 @@ class AsyncParallelMCTS(MCTS):
                 
     # record results with local ids
     def _record_results_with_local_ids(self, key: str, objective_values: list[float], reward: float):
+        if self.dispatcher is None:
+            return
+
         meta = self._pending_generation_meta.pop(key, None)
         if meta is None:
             return

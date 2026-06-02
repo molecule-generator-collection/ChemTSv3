@@ -8,6 +8,7 @@ Generator classes control the generation / optimization loop.
 Generator
 ├── MCTS
 │   └── AsyncParallelMCTS
+│       └── DoubleAsyncParallelMCTS
 ├── HeapQueueGenerator
 └── RandomGenerator
 ```
@@ -82,11 +83,26 @@ MCTS variant for asynchronous parallel reward calculation.
 | `*args` | required | Positional arguments passed to `MCTS`. |
 | `virtual_loss` | `0.0` | This value is temporarily used as reward value until the actual reward calculation is completed. |
 | `max_inflight` | required | Maximum number of reward tasks that may be in flight. Automatically set to the number of available workers in `chemtsv3-mpi`. |
-| `dispatcher_type` | `None` | Reward dispatcher type. Supported values are `"dummy"` and `"mpi"`. Automatically set to `"mpi"` in `chemtsv3-mpi`. |
+| `reward_dispatcher_type` | `None` | Reward dispatcher type. Supported values are `"dummy"` and `"mpi"`. Automatically set to `"mpi"` in `chemtsv3-mpi`. |
 | `check_interval` | `0.05` | Sleep interval in seconds while waiting for in-flight reward tasks. |
 | `**kwargs` | `{}` | Additional arguments passed to `MCTS`. `discard_unneeded_states` defaults to False to avoid potential conflicts with other classes. |
 
 Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `precalculated_csv_paths`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled.
+
+## DoubleAsyncParallelMCTS
+
+AsyncParallelMCTS variant that also parallelizes transition expansion and rollout.
+
+| Parameter | Default | Description |
+|---|---:|---|
+| `inflight_type` | `"separate"` | In-flight task management mode. `"separate"` uses independent reward and transition limits. `"mpi"` uses MPIWorkerPool-based shared workers. |
+| `max_reward_inflight` | required for `"separate"` | Maximum number of reward tasks that may be in flight. Specify together with `max_transition_inflight`. Automatically set by `chemtsv3-mpi` when `reward_dispatcher_type` is `"mpi"` and omitted. |
+| `reward_dispatcher_type` | `None` | Reward dispatcher type. Supported values are `"dummy"`, `"mpi"`, and `"disable"`. For transition-only parallel search, set `reward_dispatcher_type` to `"disable"`. |
+| `transition_dispatcher_type` | `"thread"` for `"separate"`, `"mpi"` for `"mpi"` | Transition dispatcher type. Supports `"thread"` and `"mpi"`. |
+| `max_transition_inflight` | required for `"separate"` | Maximum number of transition tasks that may be in flight. Specify together with `max_reward_inflight`. Automatically set by `chemtsv3-mpi` when `transition_dispatcher_type` is `"mpi"` and omitted. |
+| `max_mpi_inflight` | required for `"mpi"` | Maximum number of MPIWorkerPool tasks that may be in flight. Automatically set by `chemtsv3-mpi` when omitted. |
+| `transition_loss` | `0.0` | This value is temporarily backpropagated while a transition task is in flight. |
+| `**kwargs` | `{}` | Additional arguments passed to `AsyncParallelMCTS`. |
 
 ## HeapQueueGenerator
 

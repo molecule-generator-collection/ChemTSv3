@@ -23,6 +23,8 @@ class Node(ABC):
         self.sum_r = 0.0 # sum of rewards
         self.best_r = self.initial_best_r
         self.virtual_loss_count = 0
+        self.transition_loss_count = 0
+        self.frozen = False
         self.reward = None # used only if has_reward() = True
         self._is_terminal = False # set this to True in generator if transition_with_probs returned an empty list
         self._cache = None # use self.cache and self.clear_cache() (dict)
@@ -53,7 +55,7 @@ class Node(ABC):
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage. Can be overridden for marginal efficiency."""
 
-        needed = ["parent", "depth", "children", "last_prob", "last_action", "n", "sum_r", "best_r", "reward", "_is_terminal", "virtual_loss_count"]
+        needed = ["parent", "depth", "children", "last_prob", "last_action", "n", "sum_r", "best_r", "reward", "_is_terminal", "virtual_loss_count", "transition_loss_count", "frozen"]
         for key in list(self.__dict__.keys()):
             if key not in needed:
                 self.__dict__[key] = None
@@ -122,11 +124,26 @@ class Node(ABC):
         
     def leave(self, recursive=True, logger: logging.Logger=None):
         if self.parent is not None and self in self.parent.children:
-            self.parent.children.remove(self)
-            if recursive and not self.parent.children:
+            parent = self.parent
+            parent.children.remove(self)
+            if recursive and not parent.children:
                 # if logger is not None:
-                #     logger.debug(f"Exhausted every terminal under: {self.parent.key()}") # Set discard_unneeded_children to False when commenting out
-                self.parent.leave(recursive=True, logger=logger)
+                #     logger.debug(f"Exhausted every terminal under: {parent.key()}") # Set discard_unneeded_children to False when commenting out
+                parent.leave(recursive=True, logger=logger)
+            elif recursive and all(child.frozen for child in parent.children):
+                parent.freeze(recursive=True)
+
+    def freeze(self, recursive: bool=True):
+        self.frozen = True
+        parent = self.parent
+        if recursive and parent is not None and parent.children and all(child.frozen for child in parent.children):
+            parent.freeze(recursive=True)
+
+    def unfreeze(self, recursive: bool=True):
+        self.frozen = False
+        parent = self.parent
+        if recursive and parent is not None:
+            parent.unfreeze(recursive=True)
         
     def show_children(self):
         for child in sorted(self.children, key=lambda c: c.last_prob, reverse=True):

@@ -17,7 +17,7 @@ class Policy(ABC):
     
     def candidates(self, node: Node) -> list[Node]:
         """Return available child candidates. Override this for progressive widening etc."""
-        return node.children
+        return [child for child in node.children if not child.frozen]
     
     def sample_candidates(self, node: Node, max_size: int=1, replace: bool=False) -> list[Node]:
         cands = self.candidates(node)
@@ -56,7 +56,8 @@ class TemplatePolicy(Policy):
     
     def candidates(self, node: Node) -> list[Node]:
         """Return reduced child candidates with progressive widening."""
-        children = sorted(node.children, key=lambda c: (c.last_prob or 0.0), reverse=True) # deterministic
+        children = super().candidates(node)
+        children = sorted(children, key=lambda c: (c.last_prob or 0.0), reverse=True) # deterministic
         k = max(1, int(self.pw_c * (node.n ** self.pw_alpha) + self.pw_beta)) if self.pw_c is not None else len(children)
         return children[:min(k, len(children))]
 

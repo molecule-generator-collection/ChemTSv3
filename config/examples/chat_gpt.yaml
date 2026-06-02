@@ -36,6 +36,24 @@ generator_args:
   cut_failed_child: true
   info_interval: 1
 
+# Use the generator below instead of the one above (MCTS) to parallelize transition
+# generator_class: DoubleAsyncParallelMCTS
+# generator_args:
+#   inflight_type: separate
+#   transition_dispatcher_type: thread
+#   max_transition_inflight: 4 # Maximum number of transition threads
+#   transition_loss: 0 # Temporary reward value backpropagated while a transition job is in flight, then reverted when the transition ends.
+#   max_reward_inflight: 1
+#   reward_dispatcher_type: disable # No reward parallelization
+
+#   n_eval_width: .inf
+#   n_eval_iters: 1
+#   filter_reward: 0
+#   cut_terminal: true
+#   avoid_duplicates: true
+#   cut_failed_child: true
+#   info_interval: 1
+
 plot_args:
   reward_top_ps: [0.5, 0.1]
 
