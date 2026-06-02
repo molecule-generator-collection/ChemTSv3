@@ -42,12 +42,17 @@ policy_args:
 ### Generator ###
 generator_class: DoubleAsyncParallelMCTS
 generator_args:
-  # Parallelize both reward calculation and transition with chemtsv3-mpi.
-  # chemtsv3-mpi automatically sets max inflight to the number of worker ranks when omitted.
+  ## Parallelize both reward calculation and transition with chemtsv3-mpi.
   inflight_type: mpi
   reward_dispatcher_type: mpi
   transition_dispatcher_type: mpi
+  ## Comment out the 3 lines above and uncomment the 4 lines below to use threaded transition parallelization with MPI reward parallelization.
+  # inflight_type: separate
+  # reward_dispatcher_type: mpi
+  # transition_dispatcher_type: thread
+  # max_transition_inflight: 4 # Maximum number of transition threads
 
+  transition_loss: 0 # Temporary reward value backpropagated while a transition job is in flight, then reverted when the transition ends.
   n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might be more sample efficient.
   n_eval_iters: 1
   n_tries: 1
