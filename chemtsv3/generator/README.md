@@ -101,8 +101,10 @@ AsyncParallelMCTS variant that also parallelizes transition expansion and rollou
 | `transition_dispatcher_type` | `"thread"` for `"separate"`, `"mpi"` for `"mpi"` | Transition dispatcher type. Supports `"thread"` and `"mpi"`. |
 | `max_transition_inflight` | required for `"separate"` | Maximum number of transition tasks that may be in flight. Specify together with `max_reward_inflight`. Automatically set by `chemtsv3-mpi` when `transition_dispatcher_type` is `"mpi"` and omitted. |
 | `max_mpi_inflight` | required for `"mpi"` | Maximum number of MPIWorkerPool tasks that may be in flight. Automatically set by `chemtsv3-mpi` when omitted. |
-| `transition_loss` | `0.0` | This value is temporarily backpropagated while a transition task is in flight. |
-| `**kwargs` | `{}` | Additional arguments passed to `AsyncParallelMCTS`. |
+| `transition_loss` | `0.0` | Temporary reward value backpropagated while a transition job is in flight, then reverted when the transition ends. |
+| `**kwargs` | `{}` | Additional arguments passed to `MCTS`. `discard_unneeded_states` defaults to False to avoid potential conflicts with async reward/transition jobs. |
+
+Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `precalculated_csv_paths`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled.
 
 ## HeapQueueGenerator
 
