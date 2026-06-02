@@ -95,12 +95,12 @@ AsyncParallelMCTS variant that also parallelizes transition expansion and rollou
 
 | Parameter | Default | Description |
 |---|---:|---|
-| `inflight_type` | `"separate"` | In-flight task management mode. `"separate"` uses independent reward and transition limits. `"mpi"` uses MPIWorkerPool-based shared workers. |
-| `max_reward_inflight` | required for `"separate"` | Maximum number of reward tasks that may be in flight. Specify together with `max_transition_inflight`. Automatically set by `chemtsv3-mpi` when `reward_dispatcher_type` is `"mpi"` and omitted. |
+| `inflight_type` | `"separate"` | `"separate"` uses independent reward / transition worker limits. `"mpi"` uses shared MPI workers. |
 | `reward_dispatcher_type` | `None` | Reward dispatcher type. Supported values are `"dummy"`, `"mpi"`, and `"disable"`. For transition-only parallel search, set `reward_dispatcher_type` to `"disable"`. |
+| `max_reward_inflight` | required for `"separate"` | (Used in `"separate"`) Maximum number of reward tasks that may be in flight. Automatically set by `chemtsv3-mpi` if `reward_dispatcher_type` is `"mpi"`. |
 | `transition_dispatcher_type` | `"thread"` for `"separate"`, `"mpi"` for `"mpi"` | Transition dispatcher type. Supports `"thread"` and `"mpi"`. |
-| `max_transition_inflight` | required for `"separate"` | Maximum number of transition tasks that may be in flight. Specify together with `max_reward_inflight`. Automatically set by `chemtsv3-mpi` when `transition_dispatcher_type` is `"mpi"` and omitted. |
-| `max_mpi_inflight` | required for `"mpi"` | Maximum number of MPIWorkerPool tasks that may be in flight. Automatically set by `chemtsv3-mpi` when omitted. |
+| `max_transition_inflight` | required for `"separate"` | (Used in `"separate"`) Maximum number of transition tasks that may be in flight. Specify this explicitly when using threaded transition parallelization. |
+| `max_mpi_inflight` | required for `"mpi"` | (Used in `"mpi"`) Maximum number of MPI tasks that may be in flight. Automatically set by `chemtsv3-mpi` when omitted. |
 | `transition_loss` | `0.0` | Temporary reward value backpropagated while a transition job is in flight, then reverted when the transition ends. |
 | `**kwargs` | `{}` | Additional arguments passed to `MCTS`. `discard_unneeded_states` defaults to False to avoid potential conflicts with async reward/transition jobs. |
 
