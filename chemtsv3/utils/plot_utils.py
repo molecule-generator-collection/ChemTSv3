@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MultipleLocator
 import pandas as pd
+import warnings
 from chemtsv3.utils import moving_average
 
 def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None):
@@ -72,15 +73,23 @@ def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, 
         plt.savefig(output_dir + title + "_" + y_axis + "_by_" + x_axis + ".png")
     plt.close() if save_only else plt.show()
     
-def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None):
+def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None, x_axis_type: str="order"):
     df = pd.read_csv(csv_path)
 
-    if "order" not in df.columns:
-        raise ValueError("No 'order' column in csv")
+    if x_axis_type not in ("order", "time"):
+        message = f"Unsupported x_axis_type='{x_axis_type}'. Falling back to 'order'."
+        if logger is not None:
+            logger.warning(message)
+        else:
+            warnings.warn(message)
+        x_axis_type = "order"
+
+    if x_axis_type not in df.columns:
+        raise ValueError(f"No '{x_axis_type}' column in csv")
     if target not in df.columns:
         raise ValueError(f"No '{target}' column in csv.")
 
-    x = df["order"].tolist()
+    x = df[x_axis_type].tolist()
     y = df[target].tolist()
 
-    plot_xy(x, y, x_axis="order", y_axis=target, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=output_dir, title=title, logger=logger)
+    plot_xy(x, y, x_axis=x_axis_type, y_axis=target, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=output_dir, title=title, logger=logger)
