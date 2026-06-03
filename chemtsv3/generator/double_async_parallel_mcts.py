@@ -55,12 +55,15 @@ class TransitionDispatcher(ABC):
         raise NotImplementedError
 
 class ThreadedTransitionDispatcher(TransitionDispatcher):
-    def __init__(self, transition: Transition, max_inflight: int=1):
+    def __init__(self, transition: Transition, max_inflight: int=1, delay_sec: float=0):
         super().__init__(transition=transition)
         if max_inflight <= 0:
             raise ValueError("max_inflight must be >= 1")
+        if delay_sec < 0:
+            raise ValueError("delay_sec must be >= 0")
 
         self._max_inflight = max_inflight
+        self._delay_sec = delay_sec
         self._pending = queue.Queue()
         self._ready = queue.Queue()
         self._lock = threading.Lock()
@@ -108,6 +111,9 @@ class ThreadedTransitionDispatcher(TransitionDispatcher):
                 continue
 
             try:
+                if self._delay_sec > 0:
+                    time.sleep(self._delay_sec)
+
                 if task.kind == "expand":
                     self._ready.put(TransitionResult(task=task, nexts=self.transition.next_nodes(task.node)))
                 elif task.kind == "rollout":
@@ -119,6 +125,10 @@ class ThreadedTransitionDispatcher(TransitionDispatcher):
             finally:
                 with self._lock:
                     self._inflight -= 1
+
+class DummyTransitionDispatcher(ThreadedTransitionDispatcher):
+    def __init__(self, transition: Transition, max_inflight: int=1, delay_sec: float=2):
+        super().__init__(transition=transition, max_inflight=max_inflight, delay_sec=delay_sec)
 
 class MPITransitionDispatcher(TransitionDispatcher):
     def __init__(self, transition: Transition, pool: MPIWorkerPool):
@@ -222,6 +232,8 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
     def assign_transition_dispatcher(self, transition_dispatcher_type: str, max_transition_inflight: int, transition: Transition):
         if transition_dispatcher_type == "thread":
             self.transition_dispatcher = ThreadedTransitionDispatcher(transition=transition, max_inflight=max_transition_inflight)
+        elif transition_dispatcher_type == "dummy":
+            self.transition_dispatcher = DummyTransitionDispatcher(transition=transition, max_inflight=max_transition_inflight)
         elif transition_dispatcher_type == "mpi":
             if self.mpi_worker_pool is None:
                 raise ValueError("transition_dispatcher_type='mpi' requires inflight_type='mpi'.")

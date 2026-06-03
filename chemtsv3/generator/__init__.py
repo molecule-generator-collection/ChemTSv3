@@ -14,12 +14,24 @@ def __getattr__(name):
     if name == "MPIRewardDispatcher":
         from .async_parallel_mcts import MPIRewardDispatcher
         return MPIRewardDispatcher
+    if name == "ThreadedRewardDispatcher":
+        from .async_parallel_mcts import ThreadedRewardDispatcher
+        return ThreadedRewardDispatcher
+    if name == "DummyRewardDispatcher":
+        from .async_parallel_mcts import DummyRewardDispatcher
+        return DummyRewardDispatcher
     if name == "MPIWorkerPool":
         from .async_parallel_mcts import MPIWorkerPool
         return MPIWorkerPool
     if name == "MPITransitionDispatcher":
         from .double_async_parallel_mcts import MPITransitionDispatcher
         return MPITransitionDispatcher
+    if name == "ThreadedTransitionDispatcher":
+        from .double_async_parallel_mcts import ThreadedTransitionDispatcher
+        return ThreadedTransitionDispatcher
+    if name == "DummyTransitionDispatcher":
+        from .double_async_parallel_mcts import DummyTransitionDispatcher
+        return DummyTransitionDispatcher
     if name == "worker_loop":
         from .async_parallel_mcts import worker_loop
         return worker_loop

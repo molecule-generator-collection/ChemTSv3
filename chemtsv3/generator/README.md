@@ -83,7 +83,7 @@ MCTS variant for asynchronous parallel reward calculation.
 | `*args` | required | Positional arguments passed to `MCTS`. |
 | `virtual_loss` | `0.0` | This value is temporarily used as reward value until the actual reward calculation is completed. |
 | `max_inflight` | required | Maximum number of reward tasks that may be in flight. Automatically set to the number of available workers in `chemtsv3-mpi`. |
-| `reward_dispatcher_type` | `None` | Reward dispatcher type. Supported values are `"dummy"` and `"mpi"`. Automatically set to `"mpi"` in `chemtsv3-mpi`. |
+| `reward_dispatcher_type` | `None` | Reward dispatcher type. Supports `"thread"`, `"dummy"`, and `"mpi"`. Automatically set to `"mpi"` in `chemtsv3-mpi`. |
 | `check_interval` | `0.05` | Sleep interval in seconds while waiting for in-flight reward tasks. |
 | `**kwargs` | `{}` | Additional arguments passed to `MCTS`. `discard_unneeded_states` defaults to False to avoid potential conflicts with other classes. |
 
@@ -96,9 +96,9 @@ AsyncParallelMCTS variant that also parallelizes transition expansion and rollou
 | Parameter | Default | Description |
 |---|---:|---|
 | `inflight_type` | `"separate"` | `"separate"` uses independent reward / transition worker limits. `"mpi"` uses shared MPI workers. |
-| `reward_dispatcher_type` | `None` | Reward dispatcher type. Supported values are `"dummy"`, `"mpi"`, and `"disable"`. For transition-only parallel search, set `reward_dispatcher_type` to `"disable"`. |
+| `reward_dispatcher_type` | `None` | Reward dispatcher type. Supports `"thread"`, `"dummy"`, `"mpi"`, and `"disable"`. For transition-only parallel search, set `reward_dispatcher_type` to `"disable"`. |
 | `max_reward_inflight` | required for `"separate"` | (Used in `"separate"`) Maximum number of reward tasks that may be in flight. Automatically set by `chemtsv3-mpi` if `reward_dispatcher_type` is `"mpi"`. |
-| `transition_dispatcher_type` | `"thread"` for `"separate"`, `"mpi"` for `"mpi"` | Transition dispatcher type. Supports `"thread"` and `"mpi"`. |
+| `transition_dispatcher_type` | `"thread"` for `"separate"`, `"mpi"` for `"mpi"` | Transition dispatcher type. Supports `"thread"`, `"dummy"`, and `"mpi"`. |
 | `max_transition_inflight` | required for `"separate"` | (Used in `"separate"`) Maximum number of transition tasks that may be in flight. Specify this explicitly when using threaded transition parallelization. |
 | `max_mpi_inflight` | required for `"mpi"` | (Used in `"mpi"`) Maximum number of MPI tasks that may be in flight. Automatically set by `chemtsv3-mpi` when omitted. |
 | `transition_loss` | `0.0` | Temporary reward value backpropagated while a transition job is in flight, then reverted when the transition ends. |

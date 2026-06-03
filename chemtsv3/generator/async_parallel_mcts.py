@@ -60,8 +60,8 @@ class RewardDispatcher(ABC):
     def inflight(self) -> int:
         raise NotImplementedError
 
-class DummyRewardDispatcher(RewardDispatcher):
-    def __init__(self, reward: Reward, max_inflight: int=1, delay_sec: float=2):
+class ThreadedRewardDispatcher(RewardDispatcher):
+    def __init__(self, reward: Reward, max_inflight: int=1, delay_sec: float=0):
         super().__init__(reward=reward)
         if max_inflight <= 0:
             raise ValueError("max_inflight must be >= 1")
@@ -78,8 +78,11 @@ class DummyRewardDispatcher(RewardDispatcher):
         self._inflight = 0
         self._closed = False
 
-        self._worker = threading.Thread(target=self._loop, name="DummyRewardWorker", daemon=True)
-        self._worker.start()
+        self._workers = []
+        for i in range(max_inflight):
+            worker = threading.Thread(target=self._loop, name=f"RewardWorker-{i}", daemon=True)
+            worker.start()
+            self._workers.append(worker)
 
     def close(self) -> None:
         self._closed = True
@@ -116,7 +119,8 @@ class DummyRewardDispatcher(RewardDispatcher):
                 continue
 
             try:
-                time.sleep(self._delay_sec)
+                if self._delay_sec > 0:
+                    time.sleep(self._delay_sec)
 
                 objective_values, reward_val = self.reward.objective_values_and_reward(task.target)
                 self._ready.put(RewardResult(task=task, objective_values=objective_values, reward=reward_val))
@@ -125,6 +129,10 @@ class DummyRewardDispatcher(RewardDispatcher):
             finally:
                 with self._lock:
                     self._inflight -= 1
+
+class DummyRewardDispatcher(ThreadedRewardDispatcher):
+    def __init__(self, reward: Reward, max_inflight: int=1, delay_sec: float=2):
+        super().__init__(reward=reward, max_inflight=max_inflight, delay_sec=delay_sec)
 
 TAG_TASK = 1
 TAG_RESULT = 2
@@ -544,7 +552,9 @@ class AsyncParallelMCTS(MCTS):
     # override this for custom dispatcher
     # TODO: make this YAML-compatible rather than forcing override
     def assign_dispatcher(self, reward_dispatcher_type: str, max_inflight: int, reward):
-        if reward_dispatcher_type == "dummy":
+        if reward_dispatcher_type == "thread":
+            self.dispatcher = ThreadedRewardDispatcher(reward=reward, max_inflight=max_inflight)
+        elif reward_dispatcher_type == "dummy":
             self.dispatcher = DummyRewardDispatcher(reward=reward, max_inflight=max_inflight)
         elif reward_dispatcher_type == "mpi":
             self.dispatcher = MPIRewardDispatcher(reward=reward, max_inflight=max_inflight)
