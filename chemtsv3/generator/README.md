@@ -108,7 +108,7 @@ Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `f
 
 ## HeapQueueGenerator
 
-Generator that evaluates children and keeps candidates in a reward-prioritized heap queue.
+Generator that iteratively evaluates newly generated child candidates, stores them in a reward-prioritized heap queue, and apply transition to the highest-reward candidate at each step.
 
 | Parameter | Default | Description |
 |---|---:|---|
