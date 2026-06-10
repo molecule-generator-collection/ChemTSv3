@@ -349,7 +349,7 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
             if self.max_tree_depth is not None and node.depth > self.max_tree_depth:
                 node.mark_as_terminal(cut=self.cut_terminal, logger=self.logger)
                 if self.terminal_reward != "ignore":
-                    self._backpropagate(node, self.terminal_reward, False)
+                    self._backpropagate(node, self.terminal_reward, False, [str(self.terminal_reward)])
                 return True
             return self._put_expand_task(node)
 
@@ -373,7 +373,7 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
     def _schedule_evaluations_from_node(self, node: Node) -> bool:
         if node.is_terminal():
             if self.terminal_reward != "ignore":
-                self._backpropagate(node, self.terminal_reward, False)
+                self._backpropagate(node, self.terminal_reward, False, [str(self.terminal_reward)])
             return True
 
         if not node.children:
@@ -440,7 +440,7 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
 
             if type(objective_values[0]) != str:
                 unfiltered_flag = True
-                self._backpropagate(child, reward, self.use_dummy_reward)
+                self._backpropagate(child, reward, self.use_dummy_reward, objective_values)
             else:
                 if tries > 1:
                     submitted = self._schedule_one(child, iters, tries-1, unfiltered_flag)
@@ -448,7 +448,7 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
                         self._defer_eval(child, iters, tries-1, unfiltered_flag)
                     return submitted
                 elif self.filter_reward[int(objective_values[0])] != "ignore":
-                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
+                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False, [str(self.filter_reward[int(objective_values[0])])])
 
             if iters > 1:
                 submitted = self._schedule_one(child, iters-1, self.n_tries, unfiltered_flag)
@@ -472,6 +472,7 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
 
     def _run_reward_synchronously(self, child: Node, iters: int, tries: int, unfiltered_flag: bool, target: Node, is_direct: bool, key: str) -> bool:
         objective_values, reward = self.reward.objective_values_and_reward(target)
+        reward = self._adjust_reward_if_needed(objective_values, reward)
         self._post_reward_side_effects(target, key, objective_values, reward)
         task = RewardTask(child=child, iters_left=iters, tries_left=tries, unfiltered_flag=unfiltered_flag, target=target, is_direct=is_direct, key=key)
         self._finish_reward_task(task, objective_values, reward)
@@ -526,11 +527,12 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
             task = res.task
             child = task.child
             self._pending_generation_meta[task.key] = (res.worker_rank, res.worker_local_index)
+            reward = self._adjust_reward_if_needed(res.objective_values, res.reward)
 
-            self._post_reward_side_effects(task.target, task.key, res.objective_values, res.reward)
-            self._record_results_with_local_ids(task.key, res.objective_values, res.reward)
+            self._post_reward_side_effects(task.target, task.key, res.objective_values, reward)
+            self._record_results_with_local_ids(task.key, res.objective_values, reward)
             self._revert_virtual_loss(child)
-            self._finish_reward_task(task, res.objective_values, res.reward)
+            self._finish_reward_task(task, res.objective_values, reward)
 
     def _finish_reward_task(self, task: RewardTask, objective_values: list, reward: float):
         child = task.child
@@ -542,7 +544,7 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
         self.policy.observe(child=child, objective_values=objective_values, reward=reward, is_filtered=False)
 
         task.unfiltered_flag = True
-        self._backpropagate(child, reward, self.use_dummy_reward)
+        self._backpropagate(child, reward, self.use_dummy_reward, objective_values)
 
         if task.iters_left > 1:
             submitted = self._schedule_one(child, task.iters_left - 1, self.n_tries, task.unfiltered_flag)

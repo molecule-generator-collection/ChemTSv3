@@ -594,13 +594,13 @@ class AsyncParallelMCTS(MCTS):
 
             if type(objective_values[0]) != str:
                 unfiltered_flag = True
-                self._backpropagate(child, reward, self.use_dummy_reward)
+                self._backpropagate(child, reward, self.use_dummy_reward, objective_values)
             else:
                 if tries > 1:
                     self._schedule_one(child, iters, tries-1, unfiltered_flag)
                     return
                 elif self.filter_reward[int(objective_values[0])] != "ignore":
-                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
+                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False, [str(self.filter_reward[int(objective_values[0])])])
 
             if iters > 1:
                 self._schedule_one(child, iters-1, self.n_tries, unfiltered_flag)
@@ -622,19 +622,20 @@ class AsyncParallelMCTS(MCTS):
             task = res.task
             child = task.child
             self._pending_generation_meta[task.key] = (res.worker_rank, res.worker_local_index)
+            reward = self._adjust_reward_if_needed(res.objective_values, res.reward)
 
-            self._post_reward_side_effects(task.target, task.key, res.objective_values, res.reward)
-            self._record_results_with_local_ids(task.key, res.objective_values, res.reward)
+            self._post_reward_side_effects(task.target, task.key, res.objective_values, reward)
+            self._record_results_with_local_ids(task.key, res.objective_values, reward)
             self._revert_virtual_loss(child)
 
-            if task.is_direct and self.reward_cutoff is not None and res.reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
+            if task.is_direct and self.reward_cutoff is not None and reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
                 self.reward_cutoff_count += 1
                 child.leave(logger=self.logger)
 
-            self.policy.observe(child=child, objective_values=res.objective_values, reward=res.reward, is_filtered=False)
+            self.policy.observe(child=child, objective_values=res.objective_values, reward=reward, is_filtered=False)
 
             task.unfiltered_flag = True
-            self._backpropagate(child, res.reward, self.use_dummy_reward)
+            self._backpropagate(child, reward, self.use_dummy_reward, res.objective_values)
 
             if task.iters_left > 1:
                 self._schedule_one(child, task.iters_left - 1, self.n_tries, task.unfiltered_flag)

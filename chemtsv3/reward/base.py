@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Callable
+from typing import Callable
 import numpy as np
 from rdkit.Chem import Mol
 from chemtsv3.node import Node, MolNode
@@ -162,3 +162,11 @@ class BatchReward(Reward, ABC):
     
     def objective_values_and_reward(self, node: Node):
         return self.objective_values_and_rewards([node])[0]
+    
+class AdaptiveReward(Reward, ABC):
+    @abstractmethod
+    def check_rebackpropagation(self, generator) -> bool:
+        """
+        Return whether to recalculate reward_from_objective_values() (and change variables to prepare recalculation)
+        """
+        raise NotImplementedError

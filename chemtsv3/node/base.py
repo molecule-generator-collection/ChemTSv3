@@ -27,6 +27,7 @@ class Node(ABC):
         self.frozen = False
         self.reward = None # used only if has_reward() = True
         self._is_terminal = False # set this to True in generator if transition_with_probs returned an empty list
+        self._rebackpropagation_memory = None # used for AdaptiveReward: saves objective_values in starting nodes of backpropagation
         self._cache = None # use self.cache and self.clear_cache() (dict)
     
     @abstractmethod
@@ -55,7 +56,7 @@ class Node(ABC):
     def discard_unneeded_states(self):
         """Clear states no longer needed after transition to reduce memory usage. Can be overridden for marginal efficiency."""
 
-        needed = ["parent", "depth", "children", "last_prob", "last_action", "n", "sum_r", "best_r", "reward", "_is_terminal", "virtual_loss_count", "transition_loss_count", "frozen"]
+        needed = ["parent", "depth", "children", "last_prob", "last_action", "n", "sum_r", "best_r", "reward", "_is_terminal", "virtual_loss_count", "transition_loss_count", "frozen", "_rebackpropagation_memory"]
         for key in list(self.__dict__.keys()):
             if key not in needed:
                 self.__dict__[key] = None

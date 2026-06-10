@@ -1,11 +1,14 @@
 import queue
 import logging
+from logging.handlers import MemoryHandler
+import os
 from chemtsv3.filter import Filter
 from chemtsv3.generator import Generator
 from chemtsv3.node import Node
 from chemtsv3.policy import Policy, UCT
-from chemtsv3.reward import Reward, LogPReward
+from chemtsv3.reward import Reward, AdaptiveReward, LogPReward
 from chemtsv3.transition import Transition
+from chemtsv3.utils import CSVHandler, ListFilter
 
 class MCTS(Generator):
     """Perform MCTS to maximize the reward."""
@@ -103,6 +106,18 @@ class MCTS(Generator):
             self.discard_unneeded_states = False if cut_failed_child else True
         self.root.n = 1
         
+        # AdaptiveReward
+        if isinstance(self.reward, AdaptiveReward):
+            if self.use_dummy_reward:
+                raise ValueError("AdaptiveReward is incompatible with use_dummy_reward=True.")
+            self._is_rebackpropagation_enabled = True
+            self._rebackpropagation_stage = 1
+            self._generation_count_in_last_rebackpropagation = 0
+            self._is_rebackpropagating = False
+            self._set_csv_stage(self._rebackpropagation_stage, remove_empty_previous=True)
+        else:
+            self._is_rebackpropagation_enabled = False
+        
     def _selection(self) -> Node:
         node = self.root
         if not self.root.children and (self.root.n > 1 or self.root.is_terminal()):
@@ -146,15 +161,21 @@ class MCTS(Generator):
             expanded = True
         return expanded
 
-    def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool):
+    def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool, objective_values: list[float]=None):
+        if self._is_rebackpropagation_enabled and node is not None and objective_values is not None: # For AdaptiveReward
+            node._rebackpropagation_memory = objective_values
+            
         while node:
             node.observe(0 if use_dummy_reward else value)
             node = node.parent
             
+        if self._should_check_rebackpropagation_after_backpropagation(objective_values): # For AdaptiveReward
+            self._conditional_rebackpropagate()
+            
     def _generate_impl(self):
         if self._reward_queue.empty():
             if not self.reward.is_batch_reward() and self.failed_parent_reward != "ignore" and not self.parent_unfiltered_flag:
-                self._backpropagate(self.current_parent, self.failed_parent_reward, False)
+                self._backpropagate(self.current_parent, self.failed_parent_reward, False, [str(self.failed_parent_reward)])
             self._fill_queue()
         else:
             self._work_on_queue()
@@ -168,7 +189,7 @@ class MCTS(Generator):
 
         if node.is_terminal():
             if self.terminal_reward != "ignore":
-                self._backpropagate(node, self.terminal_reward, False)
+                self._backpropagate(node, self.terminal_reward, False, [str(self.terminal_reward)])
             return
 
         if not node.children:
@@ -195,13 +216,13 @@ class MCTS(Generator):
             if type(objective_values[0]) != str: # not filtered
                 unfiltered_flag = True
                 self.parent_unfiltered_flag = True
-                self._backpropagate(child, reward, self.use_dummy_reward)
+                self._backpropagate(child, reward, self.use_dummy_reward, objective_values)
             else: # filtered
                 if tries > 1:
                     self._reward_queue.put((child, iters, tries-1, unfiltered_flag))
                     return
                 elif self.filter_reward[int(objective_values[0])] != "ignore":
-                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
+                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False, [str(self.filter_reward[int(objective_values[0])])])
                     
             if iters > 1:
                 self._reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
@@ -226,13 +247,13 @@ class MCTS(Generator):
 
             if type(objective_values[0]) != str:
                 unfiltered_flag = True
-                self._backpropagate(child, reward, self.use_dummy_reward)
+                self._backpropagate(child, reward, self.use_dummy_reward, objective_values)
             else:
                 if tries > 1:
                     self._reward_queue.put((child, iters, tries-1, unfiltered_flag))
                     return
                 elif self.filter_reward[int(objective_values[0])] != "ignore":
-                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False)
+                    self._backpropagate(child, self.filter_reward[int(objective_values[0])], False, [str(self.filter_reward[int(objective_values[0])])])
 
             if iters > 1:
                 self._reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
@@ -252,6 +273,7 @@ class MCTS(Generator):
         batch_out = self.reward.objective_values_and_rewards(targets)
 
         for (child, iters, tries, unfiltered_flag, target, is_direct, key), (objective_values, reward) in zip(items, batch_out):
+            reward = self._adjust_reward_if_needed(objective_values, reward)
             self._post_reward_side_effects(target, key, objective_values, reward)
             self._revert_virtual_loss(child)
             if is_direct and self.reward_cutoff is not None and reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
@@ -260,7 +282,7 @@ class MCTS(Generator):
             self.policy.observe(child=child, objective_values=objective_values, reward=reward, is_filtered=False)
             
             unfiltered_flag = True
-            self._backpropagate(child, reward, self.use_dummy_reward)
+            self._backpropagate(child, reward, self.use_dummy_reward, objective_values)
 
             if iters > 1:
                 self._reward_queue.put((child, iters-1, self.n_tries, unfiltered_flag))
@@ -285,6 +307,130 @@ class MCTS(Generator):
             cur.n -= 1
             cur.sum_r -= self.virtual_loss
             cur = cur.parent
+
+    def _should_check_rebackpropagation_after_backpropagation(self, objective_values: list[float]=None):
+        return (
+            self._is_rebackpropagation_enabled
+            and not self._is_rebackpropagating
+            and objective_values is not None
+            and not isinstance(objective_values[0], str)
+        )
+
+    def _conditional_rebackpropagate(self):
+        if not self._is_rebackpropagation_enabled:
+            return False
+
+        current_generation = self.n_generated_nodes()
+        if current_generation == self._generation_count_in_last_rebackpropagation:
+            return False
+        self._generation_count_in_last_rebackpropagation = current_generation
+
+        if self.reward.check_rebackpropagation(self):
+            self._rebackpropagate()
+            return True
+        return False
+            
+    def _rebackpropagate(self):
+        self.logger.info("Recalculating rewards and rebuilding backpropagation statistics.")
+        self._is_rebackpropagating = True
+        try:
+            for node in self._iter_tree_nodes():
+                self._reset_backpropagation_stats(node)
+
+            for node in self._iter_tree_nodes():
+                objective_values = node._rebackpropagation_memory
+                if objective_values is None:
+                    continue
+                reward = self._recalculate_reward_from_objective_values(objective_values)
+                if node.reward is not None:
+                    node.reward = reward
+                self._backpropagate(node, reward, False, objective_values)
+
+            self._refresh_record_rewards()
+            self._rebackpropagation_stage += 1
+            self._set_csv_stage(self._rebackpropagation_stage)
+            self._rewrite_current_stage_csv()
+            self.logger.info(f"Rebackpropagation completed. Results will be logged to stage {self._rebackpropagation_stage}.")
+        finally:
+            self._is_rebackpropagating = False
+
+    def _iter_tree_nodes(self):
+        stack = [self.root]
+        while stack:
+            node = stack.pop()
+            yield node
+            stack.extend(reversed(node.children))
+
+    def _reset_backpropagation_stats(self, node: Node):
+        transition_loss = getattr(self, "transition_loss", 0.0)
+        node.n = node.virtual_loss_count + node.transition_loss_count
+        node.sum_r = self.virtual_loss * node.virtual_loss_count + transition_loss * node.transition_loss_count
+        node.best_r = node.initial_best_r
+
+    def _recalculate_reward_from_objective_values(self, objective_values: list[float]) -> float:
+        if isinstance(objective_values[0], str):
+            return float(objective_values[0])
+        return self.reward.reward_from_objective_values(objective_values)
+
+    def _adjust_reward_if_needed(self, objective_values: list[float], reward: float) -> float:
+        if self._is_rebackpropagation_enabled and not isinstance(objective_values[0], str):
+            return self._recalculate_reward_from_objective_values(objective_values)
+        return reward
+
+    def _refresh_record_rewards(self):
+        self.best_reward = -float("inf")
+        self.worst_reward = float("inf")
+        for key in self.unique_keys:
+            rec = self.record[key]
+            reward = self._recalculate_reward_from_objective_values(rec["objective_values"])
+            rec["reward"] = reward
+            self.best_reward = max(self.best_reward, reward)
+            self.worst_reward = min(self.worst_reward, reward)
+
+    def _set_csv_stage(self, stage: int, remove_empty_previous: bool=False):
+        path = os.path.join(self.output_dir(), f"{self.name()}_stage_{stage}.csv")
+        replaced = False
+        for i, handler in enumerate(list(self.logger.handlers)):
+            target = handler.target if isinstance(handler, MemoryHandler) else handler
+            if not isinstance(target, CSVHandler):
+                continue
+
+            old_path = target.baseFilename
+            handler.flush()
+            handler.close()
+
+            csv_handler = CSVHandler(path)
+            if isinstance(handler, MemoryHandler):
+                new_handler = MemoryHandler(capacity=handler.capacity, target=csv_handler, flushLevel=handler.flushLevel)
+            else:
+                new_handler = csv_handler
+            new_handler.setLevel(handler.level)
+            for f in handler.filters:
+                new_handler.addFilter(f)
+            self.logger.handlers[i] = new_handler
+            replaced = True
+
+            if remove_empty_previous and old_path != path and os.path.exists(old_path) and os.path.getsize(old_path) == 0:
+                os.remove(old_path)
+
+        if not replaced:
+            csv_handler = CSVHandler(path)
+            csv_handler.setLevel(logging.INFO)
+            csv_handler.addFilter(ListFilter())
+            self.logger.addHandler(csv_handler)
+
+    def _rewrite_current_stage_csv(self):
+        self._write_csv_header()
+        for key in self.unique_keys:
+            rec = self.record[key]
+            row = [rec["generation_order"], rec["time"], key, rec["reward"]]
+            if not self.reward.is_single_objective:
+                row.extend(rec["objective_values"])
+            self.logger.info(row)
+        for handler in self.logger.handlers:
+            target = handler.target if isinstance(handler, MemoryHandler) else handler
+            if isinstance(target, CSVHandler):
+                handler.flush()
 
     # override
     def display_top_k_molecules(self, str2mol_func=None, k: int=15, mols_per_row=5, legends: list[str]=["order","reward"], target: str="reward", size=(200, 200)):
