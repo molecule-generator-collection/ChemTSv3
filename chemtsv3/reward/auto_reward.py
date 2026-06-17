@@ -21,7 +21,7 @@ class AutoReward(AdaptiveReward, ABC):
         update_interval: int=50, warmup_steps: int=10,
         threshold_pass_rate_start: float=0.05,
         threshold_pass_rate_end: float=0.30,
-        max_threshold_weight_boost: float=4.0,
+        max_threshold_weight_multiplier: float=5.0,
         eps: float=1e-12, min_std: float=1e-12, min_anchor_gap_std: float=1e-6, 
         initial_reward: float=0.5,
     ):
@@ -41,7 +41,7 @@ class AutoReward(AdaptiveReward, ABC):
             warmup_steps: Number of generated nodes before the first statistics update and rebackpropagation.
             threshold_pass_rate_start: Pass rate where threshold enforcement starts to become active.
             threshold_pass_rate_end: Pass rate where threshold enforcement becomes fully active.
-            max_threshold_weight_boost: Maximum additional multiplicative weight boost for objectives whose threshold is not yet often satisfied. If set to 1.0, the maximum effective weight is 2x.
+            max_threshold_weight_multiplier: Maximum effective weight multiplier for objectives whose threshold is not yet often satisfied. If set to 1.0, threshold-based weight scaling is disabled.
             eps: Small value used to avoid log(0) in the geometric mean.
             min_std: Minimum standard deviation used for numerical stability.
             min_anchor_gap_std: Minimum distance between the mean and sigmoid anchors, measured in units of the current standard deviation.
@@ -62,7 +62,7 @@ class AutoReward(AdaptiveReward, ABC):
         self.update_interval = update_interval
         self.threshold_pass_rate_start = threshold_pass_rate_start
         self.threshold_pass_rate_end = threshold_pass_rate_end
-        self.max_threshold_weight_boost = max_threshold_weight_boost
+        self.max_threshold_weight_multiplier = max_threshold_weight_multiplier
 
         self.min_std = min_std
         self.min_anchor_gap_std = min_anchor_gap_std
@@ -212,7 +212,7 @@ class AutoReward(AdaptiveReward, ABC):
         inner_weights = self._base_weights.copy()
         if np.any(has_threshold):
             boost = np.ones(n_objectives, dtype=float)
-            boost[has_threshold] += (self.max_threshold_weight_boost * (1.0 - pass_rates[has_threshold]) * (1.0 - threshold_alphas[has_threshold]))
+            boost[has_threshold] += ((self.max_threshold_weight_multiplier - 1.0) * (1.0 - pass_rates[has_threshold]) * (1.0 - threshold_alphas[has_threshold]))
             inner_weights = inner_weights * boost
 
         self._means = means
@@ -246,8 +246,8 @@ class AutoReward(AdaptiveReward, ABC):
             raise ValueError("update_interval must be positive.")
         if not (0.0 <= self.threshold_pass_rate_start < self.threshold_pass_rate_end <= 1.0):
             raise ValueError("Require 0 <= threshold_pass_rate_start < threshold_pass_rate_end <= 1.")
-        if self.max_threshold_weight_boost < 0.0:
-            raise ValueError("max_threshold_weight_boost must be non-negative.")
+        if self.max_threshold_weight_multiplier < 1.0:
+            raise ValueError("max_threshold_weight_multiplier must be at least 1.0.")
         if self.min_std <= 0.0:
             raise ValueError("min_std must be positive.")
         if self.min_anchor_gap_std <= 0.0:
