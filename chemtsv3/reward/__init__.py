@@ -1,6 +1,7 @@
 from .base import Reward, SingleReward, MolReward, SingleMolReward, SMILESReward, BatchReward, AdaptiveReward
 from .log_p_reward import LogPReward
 from .similarity_reward import SimilarityReward
+from .auto_reward import AutoReward
 
 # lazy import
 def __getattr__(name):
