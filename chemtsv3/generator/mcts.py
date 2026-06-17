@@ -402,6 +402,8 @@ class MCTS(Generator):
             old_path = target.baseFilename
             handler.flush()
             handler.close()
+            if isinstance(handler, MemoryHandler):
+                target.close()
 
             csv_handler = CSVHandler(path)
             if isinstance(handler, MemoryHandler):
