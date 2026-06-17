@@ -62,6 +62,7 @@ Performs Monte Carlo tree search to maximize the reward.
 | `max_tree_depth` | `None` | Maximum tree depth to expand. |
 | `virtual_loss` | `0.0` | For `BatchReward` or rewards whose `n_batch() > 1`, this value is temporarily used until enough nodes are pooled for reward calculation. |
 | `use_dummy_reward` | `False` | If True, backpropagated value is fixed to 0 while rewards and objective values are still calculated. |
+| `retain_previous_stage_results` | `False` | For `AdaptiveReward`, keeps previous stage CSV files in `previous_stages/` when True. When False, only the latest stage CSV remains. |
 | `precalculated_csv_paths` | `None` | Paths of result CSV files of the previous runs with the same reward can be specified here so that their reward and objective values are reused instead of recalculated. Later files take priority when keys overlap. |
 | `name` | `None` | Generator name. If omitted, a timestamp-based name is generated. |
 | `output_dir` | `None` | Directory where generation results and logs are saved. |
@@ -87,7 +88,7 @@ MCTS variant for asynchronous parallel reward calculation.
 | `check_interval` | `0.05` | Sleep interval in seconds while waiting for in-flight reward tasks. |
 | `**kwargs` | `{}` | Additional arguments passed to `MCTS`. `discard_unneeded_states` defaults to False to avoid potential conflicts with other classes. |
 
-Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `precalculated_csv_paths`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled.
+Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `retain_previous_stage_results`, `precalculated_csv_paths`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled.
 
 ## DoubleAsyncParallelMCTS
 
@@ -104,7 +105,7 @@ AsyncParallelMCTS variant that also parallelizes transition expansion and rollou
 | `transition_loss` | `0.0` | Temporary reward value backpropagated while a transition job is in flight, then reverted when the transition ends. |
 | `**kwargs` | `{}` | Additional arguments passed to `MCTS`. `discard_unneeded_states` defaults to False to avoid potential conflicts with async reward/transition jobs. |
 
-Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `precalculated_csv_paths`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled.
+Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `retain_previous_stage_results`, `precalculated_csv_paths`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled.
 
 ## HeapQueueGenerator
 

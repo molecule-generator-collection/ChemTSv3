@@ -2,6 +2,7 @@ import queue
 import logging
 from logging.handlers import MemoryHandler
 import os
+import shutil
 from chemtsv3.filter import Filter
 from chemtsv3.generator import Generator
 from chemtsv3.node import Node
@@ -19,6 +20,7 @@ class MCTS(Generator):
                  terminal_reward: float | str="ignore", cut_terminal: bool=True, 
                  avoid_duplicates: bool=True, discard_unneeded_states: bool=None,
                  max_tree_depth: int=None, virtual_loss: float=0.0, use_dummy_reward: bool=False,
+                 retain_previous_stage_results: bool=False,
                  precalculated_csv_paths: list[str]=None,
                  name: str=None, output_dir: str=None, logger: logging.Logger=None, logging_interval: int=None, info_interval: int=100, analyze_interval: int=10000, verbose_interval: int=None, save_interval: int=None, save_on_completion: bool=False, include_transition_to_save: bool=False):
         """
@@ -42,6 +44,7 @@ class MCTS(Generator):
             
             use_dummy_reward: If True, backpropagate value is fixed to 0. (still calculates rewards and objective values)
             discard_unneeded_states: If True, discards variables of nodes that will no longer be used after expansion. Unused for batch reward calculation. Caches are handled independently.
+            retain_previous_stage_results: If True, AdaptiveReward CSV files for previous stages are moved to a previous_stages/ subdirectory. If False, only the latest stage CSV is retained.
             precalculated_csv_paths: Paths of result csv files of the previous runs with the same reward can be specified here so that their reward and objective values are reused instead of recalculated. Later files take priority when keys overlap.
             
             output_dir: Directory where the generation results and logs will be saved.
@@ -90,6 +93,7 @@ class MCTS(Generator):
                 self.node_keys.add(c.key())
         self.use_dummy_reward = use_dummy_reward
         self.failed_parent_reward = failed_parent_reward
+        self.retain_previous_stage_results = retain_previous_stage_results
         
         self._reward_queue = queue.Queue()
         self._pending_batch = [] # for batch reward
@@ -331,7 +335,7 @@ class MCTS(Generator):
         return False
             
     def _rebackpropagate(self):
-        self.logger.info("Recalculating rewards and rebuilding backpropagation statistics.")
+        self.logger.debug("Recalculating rewards and rebuilding backpropagation statistics.")
         self._is_rebackpropagating = True
         try:
             for node in self._iter_tree_nodes():
@@ -350,7 +354,7 @@ class MCTS(Generator):
             self._rebackpropagation_stage += 1
             self._set_csv_stage(self._rebackpropagation_stage)
             self._rewrite_current_stage_csv()
-            self.logger.info(f"Rebackpropagation completed. Results will be logged to stage {self._rebackpropagation_stage}.")
+            self.logger.debug(f"Rebackpropagation completed. Results will be logged to stage {self._rebackpropagation_stage}.")
         finally:
             self._is_rebackpropagating = False
 
@@ -410,14 +414,28 @@ class MCTS(Generator):
             self.logger.handlers[i] = new_handler
             replaced = True
 
-            if remove_empty_previous and old_path != path and os.path.exists(old_path) and os.path.getsize(old_path) == 0:
-                os.remove(old_path)
+            self._archive_or_remove_previous_stage_csv(old_path, path, remove_empty_previous)
 
         if not replaced:
             csv_handler = CSVHandler(path)
             csv_handler.setLevel(logging.INFO)
             csv_handler.addFilter(ListFilter())
             self.logger.addHandler(csv_handler)
+
+    def _archive_or_remove_previous_stage_csv(self, old_path: str, new_path: str, remove_empty_previous: bool):
+        if old_path == new_path or not os.path.exists(old_path):
+            return
+        if remove_empty_previous and os.path.getsize(old_path) == 0:
+            os.remove(old_path)
+            return
+        if not os.path.basename(old_path).startswith(f"{self.name()}_stage_"):
+            return
+        if self.retain_previous_stage_results:
+            previous_dir = os.path.join(self.output_dir(), "previous_stages")
+            os.makedirs(previous_dir, exist_ok=True)
+            shutil.move(old_path, os.path.join(previous_dir, os.path.basename(old_path)))
+        else:
+            os.remove(old_path)
 
     def _rewrite_current_stage_csv(self):
         self._write_csv_header()

@@ -21,7 +21,7 @@ class AutoReward(AdaptiveReward, ABC):
         update_interval: int=50, warmup_steps: int=10,
         threshold_pass_rate_start: float=0.05,
         threshold_pass_rate_end: float=0.30,
-        max_threshold_weight_boost: float=1.0,
+        max_threshold_weight_boost: float=4.0,
         eps: float=1e-12, min_std: float=1e-12, min_anchor_gap_std: float=1e-6, 
         initial_reward: float=0.5,
     ):
@@ -293,7 +293,7 @@ class AutoReward(AdaptiveReward, ABC):
     @staticmethod
     def _optional_float_array(values: list[float | None], n: int, name: str) -> np.ndarray:
         """
-        Convert an optional sequence to a float array with NaN for missing values.
+        Convert an optional sequence to a float array.
         """
         if values is None:
             return np.full(n, np.nan, dtype=float)
