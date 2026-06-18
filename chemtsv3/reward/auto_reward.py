@@ -4,7 +4,7 @@ from chemtsv3.reward import AdaptiveReward
 
 class AutoReward(AdaptiveReward, ABC):
     """
-    Adaptive reward based on automatically normalized objective values: This class converts each objective value into a desirability score in [0, 1] using a direction-aware piecewise sigmoid and aggregates the scores by a weighted geometric mean.
+    Adaptive reward based on automatically normalized objective values: This class converts each objective value into a desirability score in [0, 1] using a direction-aware piecewise sigmoid and aggregates the scores by a weighted geometric mean by default.
 
     Only objective_functions() needs to be implemented. (mol_objective_functions() if used together with MolReward as `class MyReward(AutoReward, MolReward)`.)
     """
@@ -12,6 +12,7 @@ class AutoReward(AdaptiveReward, ABC):
     def __init__(
         self,
         weights: list[float]=None,
+        aggregation_type: str="geometric",
         minimize: list[bool] | bool=None, # default false
         saturation_values: list[float | None]=None,
         threshold_values: list[float | None]=None,
@@ -27,7 +28,8 @@ class AutoReward(AdaptiveReward, ABC):
     ):
         """
         Args:
-            weights: User-specified objective weights. If None, all objectives are weighted equally.
+            weights: User-specified objective weights. If None, all objectives are weighted equally. Objectives with weight 0 are ignored during aggregation.
+            aggregation_type: How to aggregate normalized objective scores. Must be one of "geometric", "arithmetic", or "harmonic".
             minimize: Whether each objective should be minimized. A scalar bool is broadcast to all objectives. Internally, minimized objectives are multiplied by -1.
             saturation_values: Values that are already sufficiently good.
             threshold_values: Values that should eventually be satisfied.
@@ -48,6 +50,7 @@ class AutoReward(AdaptiveReward, ABC):
             initial_reward: Reward returned before the first statistics update.
         """
         self.weights = weights
+        self.aggregation_type = aggregation_type
         self.minimize = minimize
         self.saturation_values = saturation_values
         self.threshold_values = threshold_values
@@ -104,7 +107,7 @@ class AutoReward(AdaptiveReward, ABC):
 
     def reward_from_objective_values(self, objective_values: list[float]) -> float:
         """
-        Compute the weighted geometric mean of normalized objective scores.
+        Compute the weighted mean of normalized objective scores.
         """
         if self._means is None:
             return float(self.initial_reward)
@@ -129,13 +132,29 @@ class AutoReward(AdaptiveReward, ABC):
         scores = self._sigmoid(z)
         scores = np.clip(scores, self.eps, 1.0)
 
-        inner_weights = np.asarray(self._inner_weights, dtype=float)
-        weight_sum = float(np.sum(inner_weights))
+        reward = self._aggregate_scores(scores, self._inner_weights)
+        return float(reward)
+
+    def _aggregate_scores(self, scores: np.ndarray, weights: np.ndarray) -> float:
+        """
+        Aggregate normalized scores. Zero-weight objectives are ignored.
+        """
+        positive_weight_mask = weights > 0.0
+        active_scores = scores[positive_weight_mask]
+        active_weights = weights[positive_weight_mask]
+
+        weight_sum = float(np.sum(active_weights))
         if weight_sum <= 0.0:
             raise ValueError("The sum of inner weights must be positive.")
 
-        reward = np.exp(np.sum(inner_weights * np.log(scores)) / weight_sum)
-        return float(reward)
+        if self.aggregation_type == "geometric":
+            return float(np.exp(np.sum(active_weights * np.log(active_scores)) / weight_sum))
+        if self.aggregation_type == "arithmetic":
+            return float(np.sum(active_weights * active_scores) / weight_sum)
+        if self.aggregation_type == "harmonic":
+            return float(weight_sum / np.sum(active_weights / active_scores))
+
+        raise ValueError(f"Invalid aggregation_type: {self.aggregation_type}")
 
     def _update_statistics(self, generator) -> bool:
         """
@@ -151,18 +170,21 @@ class AutoReward(AdaptiveReward, ABC):
         if missing_columns:
             raise ValueError(f"Missing objective columns in generator.df(): {missing_columns}")
 
+        n_objectives = len(objective_names)
+        self._ensure_arrays(n_objectives)
+        active_objective_mask = self._base_weights > 0.0
+        active_objective_names = [name for name, active in zip(objective_names, active_objective_mask) if active]
+
         numeric_df = df[objective_names].apply(lambda col: np.array([self._to_float_or_nan(v) for v in col], dtype=float)) # should be unneeded for default generators
-        numeric_df = numeric_df.replace([np.inf, -np.inf], np.nan).dropna(axis=0, how="any")
+        numeric_df = numeric_df.replace([np.inf, -np.inf], np.nan).dropna(axis=0, how="any", subset=active_objective_names)
 
         if len(numeric_df) == 0:
             return False
 
         values = numeric_df.to_numpy(dtype=float)
-        n_objectives = values.shape[1]
-
-        self._ensure_arrays(n_objectives)
 
         y = values * self._signs
+        y[:, ~active_objective_mask] = 0.0
 
         means = np.mean(y, axis=0)
         stds = np.maximum(np.std(y, axis=0), self.min_std)
@@ -175,6 +197,8 @@ class AutoReward(AdaptiveReward, ABC):
 
         has_saturation = ~np.isnan(saturation_y)
         has_threshold = ~np.isnan(threshold_y)
+        has_saturation = has_saturation & active_objective_mask
+        has_threshold = has_threshold & active_objective_mask
 
         upper_default = means + self.default_upper_std * stds
         lower_default = means - self.default_lower_std * stds
@@ -236,6 +260,8 @@ class AutoReward(AdaptiveReward, ABC):
             raise ValueError("sigmoid targets must be within (0, 1).")
         if not (self.sigmoid_lower_target < self.sigmoid_mean_target < self.sigmoid_upper_target):
             raise ValueError("Require sigmoid_lower_target < sigmoid_mean_target < sigmoid_upper_target.")
+        if self.aggregation_type not in {"geometric", "arithmetic", "harmonic"}:
+            raise ValueError('aggregation_type must be one of "geometric", "arithmetic", or "harmonic".')
         if self.default_upper_std <= 0.0:
             raise ValueError("default_upper_std must be positive.")
         if self.default_lower_std <= 0.0:
