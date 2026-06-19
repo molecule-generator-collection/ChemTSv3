@@ -160,7 +160,7 @@ All options for each component (class) are defined as arguments in the `__init__
 |`MolSentenceNode`|`GPT2Transition`|For de novo generation. Uses the Transformer (GPT-2) model specified by `model_dir`.|
 |`CanonicalSMILESStringNode`|`GBGATransition`|For lead optimization. Uses [GB-GA mutation rules](https://pubs.rsc.org/en/content/articlelanding/2019/sc/c8sc05372c).|
 |`CanonicalSMILESStringNode`|`SMIRKSTransition`|For lead optimization. Uses the specified SMIRKS rules (e.g. MMP-based ones).|
-|`SMILESStringNode`|`ChatGPTTransition`|For lead optimization. Uses the specified prompt(s) as input to the GPT model specified by `model` (e.g., `"gpt-4o-mini"`). Requires an OpenAI API key.|
+|`SMILESStringNode`|`ChatGPTTransition`|For lead optimization. Uses the specified prompt(s) as input to the GPT model specified by `model` (e.g., `"gpt-5.4-mini"`). Set `use_web_search: true` to enable the API web search tool. Requires an OpenAI API key.|
 
 **For research purposes (did not perform well in our testing):**
 |Node class|Transition class|Description|

@@ -202,6 +202,7 @@ LLM transition backed by the OpenAI Responses API.
 | `model` | `"gpt-4o-mini"` | OpenAI model name. |
 | `api_key` | `None` | OpenAI API key. Specify either `api_key` or `api_key_path`. |
 | `api_key_path` | `None` | Path to a text file containing the OpenAI API key. Specify either `api_key` or `api_key_path`. |
+| `use_web_search` | `False` | If `True`, enables the API web search tool for each request. |
 | `n_samples` | `1` | Number of samples per prompt call. |
 | `filters` | `None` | Filters applied to generated child nodes inside the transition. |
 | `logger` | `None` | Logger used by the transition. Automatically set during YAML-based generation. |
