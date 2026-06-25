@@ -4,7 +4,7 @@ from chemtsv3.reward import AdaptiveReward
 
 class AutoReward(AdaptiveReward, ABC):
     """
-    Adaptive reward based on automatically normalized objective values: This class converts each objective value into a desirability score in [0, 1] using a direction-aware piecewise sigmoid and aggregates the scores by a weighted geometric mean by default.
+    Adaptive reward based on automatically normalized objective values: This class converts each objective value into a desirability score in [0, 1] using direction-aware sigmoid and aggregates the scores by a weighted geometric mean by default.
 
     Only objective_functions() needs to be implemented. (mol_objective_functions() if used together with MolReward as `class MyReward(AutoReward, MolReward)`.)
     """
@@ -14,58 +14,52 @@ class AutoReward(AdaptiveReward, ABC):
         weights: list[float]=None,
         aggregation_type: str="geometric",
         minimize: list[bool] | bool=None, # default false
-        saturation_values: list[float | None]=None,
-        threshold_values: list[float | None]=None,
-        sigmoid_saturation_target: float=0.9, default_saturation_std: float=3.0,
-        sigmoid_threshold_target: float=0.1, default_threshold_std: float=3.0,
+        desired_values: list[float | None]=None,
+        high_target: float=0.8, default_desired_std: float=3.0,
+        low_target: float=0.1, low_target_std: float=3.0,
         sigmoid_mean_target: float=0.5,
         update_interval: int=50, warmup_steps: int=10,
-        threshold_pass_rate_start: float=0.05,
-        threshold_pass_rate_end: float=0.30,
-        max_threshold_weight_multiplier: float=5.0,
-        eps: float=1e-12, min_std: float=1e-12, min_anchor_gap_std: float=1e-6, 
-        initial_reward: float=0.5,
+        pass_rate_start: float=0.05, pass_rate_end: float=0.30, max_weight_multiplier: float=5.0,
+        min_anchor_gap_std: float=1,
+        eps: float=1e-12, min_std: float=1e-12, initial_reward: float=0.5,
     ):
         """
         Args:
             weights: User-specified objective weights. If None, all objectives are weighted equally. Objectives with weight 0 are ignored during aggregation.
             aggregation_type: How to aggregate normalized objective scores. Must be one of "geometric", "arithmetic", or "harmonic".
             minimize: Whether each objective should be minimized. A scalar bool is broadcast to all objectives. Internally, minimized objectives are multiplied by -1.
-            saturation_values: Values that are already sufficiently good.
-            threshold_values: Values that should eventually be satisfied.
-            
-            sigmoid_saturation_target: Desirability score at saturation_values or the default upper anchor.
-            default_saturation_std: Number of standard deviations above the mean used as the default saturation anchor when saturation_values is None.
-            sigmoid_threshold_target: Desirability score at threshold_values or the default lower anchor.
-            default_threshold_std: Number of standard deviations below the mean used as the default lower anchor when threshold_values is None.
-            sigmoid_mean_target: Desirability score at the current generation mean.
+            desired_values: Values that should eventually be satisfied. None uses a temporary upper anchor based on the current mean and std.
+            high_target: Desirability score at desired_values or the temporary upper anchor.
+            default_desired_std: Number of standard deviations above the mean used as the temporary upper anchor when desired_values is None.
+            low_target: Desirability score at the lower anchor.
+            low_target_std: Number of standard deviations below the mean used as the lower anchor.
+            sigmoid_mean_target: Desirability score at the sigmoid center.
             update_interval: Number of generated nodes between subsequent statistics updates and rebackpropagations.
             warmup_steps: Number of generated nodes before the first statistics update and rebackpropagation.
-            threshold_pass_rate_start: Pass rate where threshold enforcement starts to become active.
-            threshold_pass_rate_end: Pass rate where threshold enforcement becomes fully active.
-            max_threshold_weight_multiplier: Maximum effective weight multiplier for objectives whose threshold is not yet often satisfied. If set to 1.0, threshold-based weight scaling is disabled.
+            pass_rate_start: Pass rate where desired-value weight boosting starts to relax.
+            pass_rate_end: Pass rate where desired-value weight boosting is fully relaxed.
+            max_weight_multiplier: Maximum effective weight multiplier for objectives whose desired value is not yet often satisfied. If set to 1.0, pass-rate-based weight scaling is disabled.
             eps: Small value used to avoid log(0) in the geometric mean.
             min_std: Minimum standard deviation used for numerical stability.
-            min_anchor_gap_std: Minimum distance between the mean and sigmoid anchors, measured in units of the current standard deviation.
+            min_anchor_gap_std: Minimum distance between the sigmoid center and upper anchor, measured in units of the current standard deviation.
             initial_reward: Reward returned before the first statistics update.
         """
         self.weights = weights
         self.aggregation_type = aggregation_type
         self.minimize = minimize
-        self.saturation_values = saturation_values
-        self.threshold_values = threshold_values
+        self.desired_values = desired_values
 
-        self.sigmoid_upper_target = sigmoid_saturation_target
-        self.default_upper_std = default_saturation_std
-        self.sigmoid_lower_target = sigmoid_threshold_target
-        self.default_lower_std = default_threshold_std
+        self.sigmoid_upper_target = high_target
+        self.default_desired_std = default_desired_std
+        self.sigmoid_lower_target = low_target
+        self.low_target_std = low_target_std
         self.sigmoid_mean_target = sigmoid_mean_target
 
         self.warmup_steps = warmup_steps
         self.update_interval = update_interval
-        self.threshold_pass_rate_start = threshold_pass_rate_start
-        self.threshold_pass_rate_end = threshold_pass_rate_end
-        self.max_threshold_weight_multiplier = max_threshold_weight_multiplier
+        self.pass_rate_start = pass_rate_start
+        self.pass_rate_end = pass_rate_end
+        self.max_weight_multiplier = max_weight_multiplier
 
         self.min_std = min_std
         self.min_anchor_gap_std = min_anchor_gap_std
@@ -76,12 +70,13 @@ class AutoReward(AdaptiveReward, ABC):
         self._stds: np.ndarray = None
         self._signs: np.ndarray = None
         self._inner_weights: np.ndarray = None
-        self._effective_saturation_values: np.ndarray = None
-        self._effective_threshold_values: np.ndarray = None
+        self._effective_desired_values: np.ndarray = None
+        self._has_explicit_desired: np.ndarray = None
         self._pass_rates: np.ndarray = None
-        self._threshold_alphas: np.ndarray = None
+        self._pass_rate_alphas: np.ndarray = None
         self._tau_upper: np.ndarray = None
         self._tau_lower: np.ndarray = None
+        self._sigmoid_centers: np.ndarray = None
         self._last_update_generation = 0
 
         self._validate_scalar_hyperparameters()
@@ -121,13 +116,11 @@ class AutoReward(AdaptiveReward, ABC):
         y = values * self._signs
         z = np.empty_like(y, dtype=float)
 
-        upper_mask = y >= self._means
+        upper_mask = y >= self._sigmoid_centers
         lower_mask = ~upper_mask
-
         logit_mean = self._logit(self.sigmoid_mean_target)
-
-        z[upper_mask] = logit_mean + (y[upper_mask] - self._means[upper_mask]) / self._tau_upper[upper_mask]
-        z[lower_mask] = logit_mean + (y[lower_mask] - self._means[lower_mask]) / self._tau_lower[lower_mask]
+        z[upper_mask] = logit_mean + (y[upper_mask] - self._sigmoid_centers[upper_mask]) / self._tau_upper[upper_mask]
+        z[lower_mask] = logit_mean + (y[lower_mask] - self._sigmoid_centers[lower_mask]) / self._tau_lower[lower_mask]
 
         scores = self._sigmoid(z)
         scores = np.clip(scores, self.eps, 1.0)
@@ -189,64 +182,55 @@ class AutoReward(AdaptiveReward, ABC):
         means = np.mean(y, axis=0)
         stds = np.maximum(np.std(y, axis=0), self.min_std)
 
-        saturation_values = self._optional_float_array(self.saturation_values, n_objectives, name="saturation_values")
-        threshold_values = self._optional_float_array(self.threshold_values, n_objectives, name="threshold_values")
+        desired_values = self._optional_float_array(self.desired_values, n_objectives, name="desired_values")
+        desired_y = desired_values * self._signs
+        has_explicit_desired = ~np.isnan(desired_y)
+        has_explicit_desired = has_explicit_desired & active_objective_mask
 
-        saturation_y = saturation_values * self._signs
-        threshold_y = threshold_values * self._signs
+        upper_default = means + self.default_desired_std * stds
 
-        has_saturation = ~np.isnan(saturation_y)
-        has_threshold = ~np.isnan(threshold_y)
-        has_saturation = has_saturation & active_objective_mask
-        has_threshold = has_threshold & active_objective_mask
-
-        upper_default = means + self.default_upper_std * stds
-        lower_default = means - self.default_lower_std * stds
-
-        effective_upper = np.where(has_saturation, saturation_y, upper_default)
+        effective_upper = np.where(has_explicit_desired, desired_y, upper_default)
 
         pass_rates = np.ones(n_objectives, dtype=float)
-        if np.any(has_threshold):
-            pass_rates[has_threshold] = np.mean(y[:, has_threshold] >= threshold_y[has_threshold], axis=0)
+        if np.any(has_explicit_desired):
+            pass_rates[has_explicit_desired] = np.mean(y[:, has_explicit_desired] >= desired_y[has_explicit_desired], axis=0)
 
-        threshold_alphas = np.ones(n_objectives, dtype=float)
-        if np.any(has_threshold):
-            raw_alpha = ((pass_rates[has_threshold] - self.threshold_pass_rate_start) / (self.threshold_pass_rate_end - self.threshold_pass_rate_start))
-            threshold_alphas[has_threshold] = self._smoothstep(raw_alpha)
+        pass_rate_alphas = np.ones(n_objectives, dtype=float)
+        if np.any(has_explicit_desired):
+            raw_alpha = ((pass_rates[has_explicit_desired] - self.pass_rate_start) / (self.pass_rate_end - self.pass_rate_start))
+            pass_rate_alphas[has_explicit_desired] = self._smoothstep(raw_alpha)
 
-        effective_lower = lower_default.copy()
-        if np.any(has_threshold):
-            effective_lower[has_threshold] = ((1.0 - threshold_alphas[has_threshold]) * lower_default[has_threshold] + threshold_alphas[has_threshold] * threshold_y[has_threshold])
-
-        # If user anchors are incompatible with the current distribution, keep the transformation numerically valid by minimally separating anchors.
+        # Keep the sigmoid center below the upper anchor
         min_gap = self.min_anchor_gap_std * stds
-        effective_upper = np.maximum(effective_upper, means + min_gap)
-        effective_lower = np.minimum(effective_lower, means - min_gap)
+        sigmoid_centers = means.copy()
+        sigmoid_centers = np.minimum(sigmoid_centers, effective_upper - min_gap)
+        effective_lower = sigmoid_centers - self.low_target_std * stds
 
         logit_lower = self._logit(self.sigmoid_lower_target)
         logit_mean = self._logit(self.sigmoid_mean_target)
         logit_upper = self._logit(self.sigmoid_upper_target)
 
-        tau_upper = (effective_upper - means) / (logit_upper - logit_mean)
-        tau_lower = (effective_lower - means) / (logit_lower - logit_mean)
+        tau_upper = (effective_upper - sigmoid_centers) / (logit_upper - logit_mean)
+        tau_lower = (effective_lower - sigmoid_centers) / (logit_lower - logit_mean)
 
         tau_upper = np.maximum(tau_upper, self.min_std)
         tau_lower = np.maximum(tau_lower, self.min_std)
 
         inner_weights = self._base_weights.copy()
-        if np.any(has_threshold):
+        if np.any(has_explicit_desired):
             boost = np.ones(n_objectives, dtype=float)
-            boost[has_threshold] += ((self.max_threshold_weight_multiplier - 1.0) * (1.0 - pass_rates[has_threshold]) * (1.0 - threshold_alphas[has_threshold]))
+            boost[has_explicit_desired] += ((self.max_weight_multiplier - 1.0) * (1.0 - pass_rates[has_explicit_desired]) * (1.0 - pass_rate_alphas[has_explicit_desired]))
             inner_weights = inner_weights * boost
 
         self._means = means
         self._stds = stds
-        self._effective_saturation_values = effective_upper
-        self._effective_threshold_values = effective_lower
+        self._effective_desired_values = effective_upper
+        self._has_explicit_desired = has_explicit_desired
         self._pass_rates = pass_rates
-        self._threshold_alphas = threshold_alphas
+        self._pass_rate_alphas = pass_rate_alphas
         self._tau_upper = tau_upper
         self._tau_lower = tau_lower
+        self._sigmoid_centers = sigmoid_centers
         self._inner_weights = inner_weights
 
         return True
@@ -262,18 +246,18 @@ class AutoReward(AdaptiveReward, ABC):
             raise ValueError("Require sigmoid_lower_target < sigmoid_mean_target < sigmoid_upper_target.")
         if self.aggregation_type not in {"geometric", "arithmetic", "harmonic"}:
             raise ValueError('aggregation_type must be one of "geometric", "arithmetic", or "harmonic".')
-        if self.default_upper_std <= 0.0:
-            raise ValueError("default_upper_std must be positive.")
-        if self.default_lower_std <= 0.0:
-            raise ValueError("default_lower_std must be positive.")
+        if self.default_desired_std <= 0.0:
+            raise ValueError("default_desired_std must be positive.")
+        if self.low_target_std <= 0.0:
+            raise ValueError("low_target_std must be positive.")
         if self.warmup_steps < 0:
             raise ValueError("warmup_steps must be non-negative.")
         if self.update_interval <= 0:
             raise ValueError("update_interval must be positive.")
-        if not (0.0 <= self.threshold_pass_rate_start < self.threshold_pass_rate_end <= 1.0):
-            raise ValueError("Require 0 <= threshold_pass_rate_start < threshold_pass_rate_end <= 1.")
-        if self.max_threshold_weight_multiplier < 1.0:
-            raise ValueError("max_threshold_weight_multiplier must be at least 1.0.")
+        if not (0.0 <= self.pass_rate_start < self.pass_rate_end <= 1.0):
+            raise ValueError("Require 0 <= pass_rate_start < pass_rate_end <= 1.")
+        if self.max_weight_multiplier < 1.0:
+            raise ValueError("max_weight_multiplier must be at least 1.0.")
         if self.min_std <= 0.0:
             raise ValueError("min_std must be positive.")
         if self.min_anchor_gap_std <= 0.0:
