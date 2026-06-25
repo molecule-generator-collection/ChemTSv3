@@ -15,12 +15,13 @@ class AutoReward(AdaptiveReward, ABC):
         aggregation_type: str="geometric",
         minimize: list[bool] | bool=None, # default false
         desired_values: list[float | None]=None,
+        saturation_values: list[float | None]=None,
         high_target: float=0.8, default_desired_std: float=3.0,
         low_target: float=0.1, low_target_std: float=3.0,
         sigmoid_mean_target: float=0.5,
         update_interval: int=50, warmup_steps: int=10,
         pass_rate_start: float=0.05, pass_rate_end: float=0.30, max_weight_multiplier: float=5.0,
-        min_anchor_gap_std: float=1,
+        min_anchor_gap_std: float=1.0,
         eps: float=1e-12, min_std: float=1e-12, initial_reward: float=0.5,
     ):
         """
@@ -29,6 +30,7 @@ class AutoReward(AdaptiveReward, ABC):
             aggregation_type: How to aggregate normalized objective scores. Must be one of "geometric", "arithmetic", or "harmonic".
             minimize: Whether each objective should be minimized. A scalar bool is broadcast to all objectives. Internally, minimized objectives are multiplied by -1.
             desired_values: Values that should eventually be satisfied. None uses a temporary upper anchor based on the current mean and std.
+            saturation_values: Values beyond which objectives are treated as saturated. Higher values are clipped for maximization objectives, and lower values are clipped for minimization objectives.
             high_target: Desirability score at desired_values or the temporary upper anchor.
             default_desired_std: Number of standard deviations above the mean used as the temporary upper anchor when desired_values is None.
             low_target: Desirability score at the lower anchor.
@@ -48,6 +50,7 @@ class AutoReward(AdaptiveReward, ABC):
         self.aggregation_type = aggregation_type
         self.minimize = minimize
         self.desired_values = desired_values
+        self.saturation_values = saturation_values
 
         self.sigmoid_upper_target = high_target
         self.default_desired_std = default_desired_std
@@ -71,6 +74,7 @@ class AutoReward(AdaptiveReward, ABC):
         self._signs: np.ndarray = None
         self._inner_weights: np.ndarray = None
         self._effective_desired_values: np.ndarray = None
+        self._saturation_values: np.ndarray = None
         self._has_explicit_desired: np.ndarray = None
         self._pass_rates: np.ndarray = None
         self._pass_rate_alphas: np.ndarray = None
@@ -114,6 +118,7 @@ class AutoReward(AdaptiveReward, ABC):
             raise ValueError(f"Expected {len(self._means)} objective values, but got {len(values)}.")
 
         y = values * self._signs
+        y = self._apply_saturation(y)
         z = np.empty_like(y, dtype=float)
 
         upper_mask = y >= self._sigmoid_centers
@@ -177,6 +182,7 @@ class AutoReward(AdaptiveReward, ABC):
         values = numeric_df.to_numpy(dtype=float)
 
         y = values * self._signs
+        y = self._apply_saturation(y)
         y[:, ~active_objective_mask] = 0.0
 
         means = np.mean(y, axis=0)
@@ -282,6 +288,18 @@ class AutoReward(AdaptiveReward, ABC):
 
         minimize = self._bool_array(self.minimize, n_objectives, default=False, name="minimize")
         self._signs = np.where(minimize, -1.0, 1.0)
+        saturation_values = self._optional_float_array(self.saturation_values, n_objectives, name="saturation_values")
+        self._saturation_values = saturation_values * self._signs
+
+    def _apply_saturation(self, y: np.ndarray) -> np.ndarray:
+        if self._saturation_values is None:
+            return y
+
+        has_saturation = ~np.isnan(self._saturation_values)
+        if not np.any(has_saturation):
+            return y
+
+        return np.where(has_saturation, np.minimum(y, self._saturation_values), y)
 
     @staticmethod
     def _float_array(values: list[float], n: int, default: float, name: str) -> np.ndarray:
