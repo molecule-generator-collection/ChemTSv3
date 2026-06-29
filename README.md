@@ -280,7 +280,10 @@ Filters can also be specified using `filters` argument of transitions that inher
 ## Model training
 - **RNN (GRU) training** (example): `chemtsv3-train -c config/training/train_rnn_smiles.yaml`
 - **Transformer (GPT-2) training** (example): `chemtsv3-train -c config/training/train_gpt2.yaml`
+
 Change `dataset_path` in YAML to train on an arbitrary dataset (1 sentence per line).
+
+GPT-2 training also requires `accelerate` package. Installation example: `uv pip install accelerate==1.14.0`
 
 ## How to cite
 ```text
