@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from chemtsv3.language import Language, DynamicLanguage
 from chemtsv3.node import SentenceNode
 from chemtsv3.transition import AutoRegressiveTransition
-from chemtsv3.utils import apply_top_p, apply_sharpness, resolve_path
+from chemtsv3.utils import apply_top_p, apply_sharpness, resolve_path, load_texts, map_text_splits, train_test_split
 
 class RNNLanguageModel(nn.Module):
     """
@@ -201,24 +201,25 @@ class RNNTransition(AutoRegressiveTransition):
             Self: last model
             dict: best state dict
         """
-        from datasets import load_dataset
         import torch
         import torch.nn.functional as F
         from torch.utils.data import DataLoader
         from tqdm import tqdm
         device="cuda:0" if torch.cuda.is_available() else "cpu"
         print("Is CUDA available: " + str(torch.cuda.is_available()))
-        
+
         # make dataset and build vocabs
         if test_dataset_path is None:
-            ds = load_dataset("text", data_files={"train": str(dataset_path)})
-            ds = ds["train"].train_test_split(test_size=test_size)
+            ds = train_test_split(load_texts(dataset_path), test_size=test_size)
         else:
-            ds = load_dataset("text", data_files={"train": str(dataset_path), "test": str(test_dataset_path)})
+            ds = {
+                "train": load_texts(dataset_path),
+                "test": load_texts(test_dataset_path),
+            }
         if issubclass(lang.__class__, DynamicLanguage):
             lang.build_vocab(ds)
 
-        ds_tokenized = ds.map(lambda x: {"ids": lang.sentence2ids(x["text"])}, remove_columns=["text"])
+        ds_tokenized = map_text_splits(ds, lambda text: {"ids": lang.sentence2ids(text)})
         train_dataset = ds_tokenized["train"]
         test_dataset  = ds_tokenized["test"]
         pad_id = lang.pad_id()

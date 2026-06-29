@@ -1,3 +1,4 @@
+from .data_utils import load_texts, train_test_split, map_text_splits
 from .file_utils import class_from_package, camel2snake, add_sep, make_subdirectory, find_lang_file, setup_local_workdir, is_running_under_slurm, is_tmp_path, resolve_output_dir, resolve_path, RobustUnpickler, pickle_robust_load
 from .helm_utils import MonomerLibrary, HELMConverter
 from .linker_utils import add_atom_index_in_wildcard, calc_morgan_count, link_linker

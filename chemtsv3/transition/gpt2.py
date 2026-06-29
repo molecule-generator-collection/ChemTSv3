@@ -7,7 +7,7 @@ from transformers import GPT2LMHeadModel, Trainer, TrainingArguments
 from chemtsv3.language import Language, DynamicLanguage
 from chemtsv3.node import SentenceNode
 from chemtsv3.transition import AutoRegressiveTransition
-from chemtsv3.utils import apply_top_p, resolve_path
+from chemtsv3.utils import apply_top_p, resolve_path, load_texts, map_text_splits, train_test_split
 
 class GPT2Transition(AutoRegressiveTransition):
     def __init__(self, lang: Language, model=None, model_dir: str=None, device: str=None, logger: logging.Logger=None, temperature: float=1.0, top_p: float=0.995, top_k: int=0, repetition_penalty: float=1.0):
@@ -100,27 +100,20 @@ class GPT2Transition(AutoRegressiveTransition):
             GPT2LMHeadModel: model
             Trainer: trainer
         """
-        from datasets import load_dataset
         from transformers import DataCollatorForLanguageModeling
         from tokenizers import Tokenizer, models, pre_tokenizers, decoders
         from tokenizers.processors import TemplateProcessing
         from transformers import PreTrainedTokenizerFast
         from transformers import GPT2Config
-        from transformers import DataCollatorForLanguageModeling
         # additional_length: if block size is not defined, block size = max number of tokens in one sentence in the dataset + additional length
 
         # make dataset and build vocabs
         dataset_path = str(dataset_path) # For Path object
-        ds = load_dataset("text", data_files={"train": dataset_path})
-        ds = ds["train"].train_test_split(test_size=test_size)
+        ds = train_test_split(load_texts(dataset_path), test_size=test_size)
         if issubclass(lang.__class__, DynamicLanguage):
             lang.build_vocab(ds)
 
-        ds_tokenized = ds.map(
-            lambda x: {"input_ids": lang.sentence2ids(x["text"])},
-            remove_columns=["text"], # remove text column
-            batched=False
-        )
+        ds_tokenized = map_text_splits(ds, lambda text: {"input_ids": lang.sentence2ids(text)})
 
         # set max length from dataset
         if (block_size == None):

@@ -122,12 +122,13 @@ class DynamicLanguage(Language):
             ids = ids[:-1]
         return "".join(self.id2token(i) for i in ids)
 
-    def build_vocab(self, splits: dict[str, list[dict]], key="text"):
+    def build_vocab(self, splits: dict[str, list[str | dict]], key="text"):
         """splits: can be dataset (ds)"""
         counter = Counter()
         for _, examples in splits.items():
             for ex in examples:
-                tokens = self.sentence2tokens(ex[key])
+                sentence = ex[key] if isinstance(ex, dict) else ex
+                tokens = self.sentence2tokens(sentence)
                 counter.update(tokens)
         self._vocab = sorted(counter.keys())
         self._vocab.append(self.pad_token())
