@@ -277,7 +277,7 @@ class Generator(ABC):
         pass
 
     # visualize results
-    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, linewidth: float=DEFAULT_LINEWIDTH, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None, include_cross_plot: bool=False, cross_plot_target: list[str]=None, cross_plot_label_dict: dict[str, str]=None, cross_plot_filename: str="correlation_matrix.png", cross_plot_columns: list[str]=None):
+    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, linewidth: float=DEFAULT_LINEWIDTH, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None, include_cross_plot: bool=False, cross_plot_target: list[str]=None, cross_plot_label_dict: dict[str, str]=None, cross_plot_filename: str="cross_plot.png", cross_plot_columns: list[str]=None):
         if len(self.unique_keys) == 0:
             return
         self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps)
@@ -289,7 +289,7 @@ class Generator(ABC):
                 cross_plot_target = cross_plot_columns
             self._plot_cross_plot(target=cross_plot_target, label_dict=cross_plot_label_dict, filename=cross_plot_filename, save_only=save_only)
 
-    def _plot_cross_plot(self, target: list[str]=None, label_dict: dict[str, str]=None, filename: str="correlation_matrix.png", save_only: bool=False):
+    def _plot_cross_plot(self, target: list[str]=None, label_dict: dict[str, str]=None, filename: str="cross_plot.png", save_only: bool=False):
         if target is None:
             target = ["reward"]
             if not self.reward.is_single_objective:

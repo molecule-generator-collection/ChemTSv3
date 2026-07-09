@@ -64,32 +64,13 @@ def corr_heatmap(x, y, cmap: str="coolwarm", **kwargs):
         fontsize=24,
     )
 
-def plot_cross_plot(
-    data: str | pd.DataFrame,
-    target: list[str]=None,
-    columns: list[str]=None,
-    label_dict: dict[str, str]=None,
-    output_path: str=None,
-    output_dir: str=None,
-    filename: str="correlation_matrix.png",
-    bins: int=25,
-    scatter_size: int | float=20,
-    cmap: str="coolwarm",
-    save_only: bool=True,
-    logger=None,
-):
-    """
-    Plot a cross plot with lower scatter plots, diagonal histograms, and upper
-    correlation coefficients. This function intentionally uses only matplotlib.
-    """
+def plot_cross_plot(data: str | pd.DataFrame, target: list[str]=None, columns: list[str]=None, label_dict: dict[str, str]=None, output_path: str=None,output_dir: str=None, filename: str="cross_plot.png", bins: int=25, scatter_size: float=20, cmap: str="coolwarm", save_only: bool=True, logger=None):
     if isinstance(data, pd.DataFrame):
         df = data.copy()
     else:
         df = pd.read_csv(data)
 
-    if target is None:
-        target = columns
-
+    target = target if target is not None else columns
     if target is None:
         ignored_columns = {"order", "time", "key", "generation_order"}
         target = []
