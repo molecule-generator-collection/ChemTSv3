@@ -64,7 +64,7 @@ def corr_heatmap(x, y, cmap: str="coolwarm", **kwargs):
         fontsize=24,
     )
 
-def plot_cross_plot(data: str | pd.DataFrame, target: list[str]=None, columns: list[str]=None, label_dict: dict[str, str]=None, output_path: str=None,output_dir: str=None, filename: str="cross_plot.png", bins: int=25, scatter_size: float=20, cmap: str="coolwarm", save_only: bool=True, logger=None):
+def plot_cross_plot(data: str | pd.DataFrame, target: list[str]=None, columns: list[str]=None, label_dict: dict[str, str]=None, output_path: str=None, output_dir: str=None, filename: str="cross_plot.png", bins: int=25, scatter_size: float=20, cmap: str="coolwarm", save_only: bool=True, logger=None):
     if isinstance(data, pd.DataFrame):
         df = data.copy()
     else:
