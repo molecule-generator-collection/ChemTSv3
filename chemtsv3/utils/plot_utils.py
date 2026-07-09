@@ -6,74 +6,97 @@ import pandas as pd
 import warnings
 from chemtsv3.utils import moving_average
 
-def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None):
+PLOT_STYLE = {
+    "figure.figsize": (9, 6),
+    "axes.titlesize": 28,
+    "axes.labelsize": 28,
+    "xtick.labelsize": 28,
+    "ytick.labelsize": 28,
+    "legend.fontsize": 21,
+    "grid.alpha": 0.8,
+    "figure.dpi": 120,
+    "savefig.dpi": 200,
+}
+
+DEFAULT_LINEWIDTH = 2.0
+
+AXIS_LABELS = {
+    "generation_order": "order",
+}
+
+def axis_label(name: str) -> str:
+    return AXIS_LABELS.get(name, name)
+
+def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None):
     top_ps = top_ps or []
     
-    if x_axis is None:
-        x_axis = "x"
-    if y_axis is None:
-        y_axis = "y"
-    if title is None:
-        title = ""
+    with plt.rc_context(PLOT_STYLE):
+        if x_axis is None:
+            x_axis = "x"
+        if y_axis is None:
+            y_axis = "y"
+        if title is None:
+            title = ""
 
-    plt.clf()
-    if scatter:
-        plt.scatter(x, y, s=500/len(x), alpha=0.2)
-    plt.title(title)
-    
-    plt.xlabel(x_axis)
-    if xlim is not None:
-        plt.xlim(xlim)
-    else:
-        plt.xlim(0,x[-1])
-
-    plt.ylabel(y_axis)
-    if ylim is not None:
-        plt.ylim(ylim)
-    
-    if x_grid_interval is not None and x_grid_interval > 0:
-        ax = plt.gca()
-        ax.xaxis.set_major_locator(MultipleLocator(base=x_grid_interval))
-        ax.grid(axis="x", which="major")
+        fig, ax = plt.subplots(constrained_layout=True)
+        if scatter:
+            ax.scatter(x, y, s=500/len(x), alpha=0.2)
         
-    if y_grid_interval is not None and y_grid_interval > 0:
-        ax = plt.gca()
-        ax.yaxis.set_major_locator(MultipleLocator(base=y_grid_interval))
-        ax.grid(axis="y", which="major")
-    else:
-        plt.grid(axis="y")
-         
-    if moving_average_window is not None:
-        label = f"moving average ({moving_average_window})"
-        y_ma = moving_average(y, moving_average_window)
-        plt.plot(x, y_ma, label=label, linewidth=linewidth)
-        if top_ps is not None:
-            for p in top_ps:
-                if 0 < p < 1:
-                    y_ma_top = moving_average(y, moving_average_window, top_p=p)
-                    label_top = f"top-{int(p*100)}% moving average"
-                    plt.plot(x, y_ma_top, label=label_top, linewidth=linewidth)
-                else:
-                    if logger is not None:
-                        logger.warning(f"Ignored top_p={p} in top_ps (must be in (0,1))")
+        ax.set_xlabel(axis_label(x_axis))
+        if xlim is not None:
+            ax.set_xlim(xlim)
+        else:
+            ax.set_xlim(0,x[-1])
+
+        ax.set_ylabel(axis_label(y_axis))
+        if ylim is not None:
+            ax.set_ylim(ylim)
+        
+        if x_grid_interval is not None and x_grid_interval > 0:
+            ax.xaxis.set_major_locator(MultipleLocator(base=x_grid_interval))
+            ax.grid(axis="x", which="major")
+            
+        if y_grid_interval is not None and y_grid_interval > 0:
+            ax.yaxis.set_major_locator(MultipleLocator(base=y_grid_interval))
+            ax.grid(axis="y", which="major")
+        else:
+            ax.grid(axis="y")
+            
+        if moving_average_window is not None:
+            label = f"moving average ({moving_average_window})"
+            y_ma = moving_average(y, moving_average_window)
+            ax.plot(x, y_ma, label=label, linewidth=linewidth)
+            if top_ps is not None:
+                for p in top_ps:
+                    if 0 < p < 1:
+                        y_ma_top = moving_average(y, moving_average_window, top_p=p)
+                        label_top = f"top-{int(p*100)}% moving average"
+                        ax.plot(x, y_ma_top, label=label_top, linewidth=linewidth)
                     else:
-                        print(f"Ignored top_p={p} in top_ps (must be in (0,1))")
+                        if logger is not None:
+                            logger.warning(f"Ignored top_p={p} in top_ps (must be in (0,1))")
+                        else:
+                            print(f"Ignored top_p={p} in top_ps (must be in (0,1))")
 
-    if max_curve:
-        y_max_curve = np.maximum.accumulate(y)
-        plt.plot(x, y_max_curve, label='max', linestyle='--', linewidth=linewidth)
+        if max_curve:
+            y_max_curve = np.maximum.accumulate(y)
+            ax.plot(x, y_max_curve, label='max', linestyle='--', linewidth=linewidth)
 
-    if max_line:
-        max(y)
-        y_max = np.max(y)
-        plt.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}', linewidth=linewidth)
-    
-    plt.legend(loc=loc)
-    if output_dir is not None:
-        plt.savefig(output_dir + title + "_" + y_axis + "_by_" + x_axis + ".png")
-    plt.close() if save_only else plt.show()
-    
-def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=1.0, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None, x_axis_type: str="order"):
+        if max_line:
+            max(y)
+            y_max = np.max(y)
+            ax.axhline(y=y_max, color='red', linestyle='--', label=f'y={y_max:.5f}', linewidth=linewidth)
+        
+        ax.legend(loc=loc)
+        if output_dir is not None:
+            fig.savefig(
+                output_dir + title + "_" + y_axis + "_by_" + x_axis + ".png",
+                bbox_inches="tight",
+                pad_inches=0.15,
+            )
+        plt.close(fig) if save_only else plt.show()
+
+def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None, x_axis_type: str="order"):
     df = pd.read_csv(csv_path)
 
     if x_axis_type not in ("order", "time"):
