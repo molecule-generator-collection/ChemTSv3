@@ -5,6 +5,7 @@ import logging
 from logging.handlers import MemoryHandler
 import os
 import psutil
+import warnings
 
 class CSVHandler(logging.Handler):
     def __init__(self, filename):
@@ -28,6 +29,12 @@ class ListFilter(logging.Filter):
 class NotListFilter(logging.Filter):
     def filter(self, record):
         return not isinstance(record.msg, list)
+
+def warn_with_logger(message: str, logger=None):
+    if logger is not None:
+        logger.warning(message)
+    else:
+        warnings.warn(message)
     
 def make_logger(output_dir: str, name: str=None, console_level=logging.INFO, file_level=logging.INFO, csv_level=logging.INFO, delay=True) -> logging.Logger:
     if name is None:

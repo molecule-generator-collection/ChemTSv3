@@ -67,6 +67,8 @@ generator_args: # root, transition, reward, policy and filters are automatically
 plot_args:
   moving_average_window: 0.05
   reward_top_ps: [0.5, 0.1]
+  include_cross_plot: true
+  # cross_plot_target: ["reward", "log_p", "sa_score"] # If omitted, reward and all objectives are plotted.
 
 ### Chain Setting ###
 # n_keys_to_pass: 10 # (Chain) Number of generated keys to pass to the next generator

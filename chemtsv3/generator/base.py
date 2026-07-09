@@ -19,7 +19,7 @@ from chemtsv3.filter import Filter
 from chemtsv3.node import Node
 from chemtsv3.reward import Reward, LogPReward
 from chemtsv3.transition import Transition
-from chemtsv3.utils import moving_average, log_memory_usage, make_logger, flush_delayed_logger, is_running_under_slurm, is_tmp_path, resolve_output_dir, resolve_path, plot_xy, PLOT_STYLE, DEFAULT_LINEWIDTH, axis_label
+from chemtsv3.utils import moving_average, log_memory_usage, make_logger, flush_delayed_logger, is_running_under_slurm, is_tmp_path, resolve_output_dir, resolve_path, plot_xy, plot_cross_plot, PLOT_STYLE, DEFAULT_LINEWIDTH, axis_label
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
@@ -277,13 +277,24 @@ class Generator(ABC):
         pass
 
     # visualize results
-    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, linewidth: float=DEFAULT_LINEWIDTH, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None):
+    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, linewidth: float=DEFAULT_LINEWIDTH, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None, include_cross_plot: bool=False, cross_plot_target: list[str]=None, cross_plot_label_dict: dict[str, str]=None, cross_plot_filename: str="correlation_matrix.png", cross_plot_columns: list[str]=None):
         if len(self.unique_keys) == 0:
             return
         self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps)
         if packed_objectives:
             for po in packed_objectives:
                 self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim, linewidth=linewidth, save_only=save_only)
+        if include_cross_plot:
+            if cross_plot_target is None:
+                cross_plot_target = cross_plot_columns
+            self._plot_cross_plot(target=cross_plot_target, label_dict=cross_plot_label_dict, filename=cross_plot_filename, save_only=save_only)
+
+    def _plot_cross_plot(self, target: list[str]=None, label_dict: dict[str, str]=None, filename: str="correlation_matrix.png", save_only: bool=False):
+        if target is None:
+            target = ["reward"]
+            if not self.reward.is_single_objective:
+                target += self.reward.objective_names()
+        plot_cross_plot(self.df(), target=target, label_dict=label_dict, output_dir=self.output_dir(), filename=filename, save_only=save_only, logger=self.logger)
 
     def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None):
         top_ps = top_ps or []
