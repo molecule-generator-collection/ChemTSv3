@@ -19,7 +19,7 @@ from chemtsv3.filter import Filter
 from chemtsv3.node import Node
 from chemtsv3.reward import Reward, LogPReward
 from chemtsv3.transition import Transition
-from chemtsv3.utils import moving_average, log_memory_usage, make_logger, flush_delayed_logger, is_running_under_slurm, is_tmp_path, resolve_output_dir, resolve_path, plot_xy, plot_cross_plot, PLOT_STYLE, DEFAULT_LINEWIDTH, axis_label
+from chemtsv3.utils import moving_average, log_memory_usage, make_logger, flush_delayed_logger, is_running_under_slurm, is_tmp_path, resolve_output_dir, resolve_path, plot_xy, plot_cross_plot, PLOT_STYLE, DEFAULT_LINEWIDTH, axis_label, make_plot_figure
 
 class Generator(ABC):
     """Base generator class. Override _generate_impl (and __init__) to implement."""
@@ -328,7 +328,7 @@ class Generator(ABC):
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
         objective_names = self.reward.objective_names()
         with plt.rc_context(PLOT_STYLE):
-            fig, ax = plt.subplots(constrained_layout=True)
+            fig, ax = make_plot_figure()
             for ya in y_axes:
                 label = ya
                 objective_idx = objective_names.index(ya)
@@ -337,12 +337,8 @@ class Generator(ABC):
                 ax.plot(x, y_ma, label=label, linewidth=linewidth)
             ax.grid(axis="y")
             ax.set_xlabel(axis_label(x_axis))
-            ax.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0))
-            fig.savefig(
-                self.output_dir() + self.name() + "_by_" + x_axis + ".png",
-                bbox_inches="tight",
-                pad_inches=0.15,
-            )
+            ax.legend(loc='upper left')
+            fig.savefig(self.output_dir() + self.name() + "_by_" + x_axis + ".png")
             plt.close(fig) if save_only else plt.show()
 
     def analyze(self):

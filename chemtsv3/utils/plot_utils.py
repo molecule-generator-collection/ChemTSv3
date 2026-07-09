@@ -21,6 +21,7 @@ PLOT_STYLE = {
 }
 
 DEFAULT_LINEWIDTH = 2.0
+PLOT_AXES_RECT = (0.18, 0.18, 0.74, 0.76)
 
 AXIS_LABELS = {
     "generation_order": "order",
@@ -28,6 +29,11 @@ AXIS_LABELS = {
 
 def axis_label(name: str) -> str:
     return AXIS_LABELS.get(name, name)
+
+def make_plot_figure():
+    fig = plt.figure(figsize=PLOT_STYLE["figure.figsize"])
+    ax = fig.add_axes(PLOT_AXES_RECT)
+    return fig, ax
 
 def _corrcoef(x, y):
     x = pd.to_numeric(pd.Series(x), errors="coerce")
@@ -201,7 +207,7 @@ def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, 
         if title is None:
             title = ""
 
-        fig, ax = plt.subplots(constrained_layout=True)
+        fig, ax = make_plot_figure()
         if scatter:
             ax.scatter(x, y, s=500/len(x), alpha=0.2)
         
@@ -252,11 +258,7 @@ def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, 
         
         ax.legend(loc=loc)
         if output_dir is not None:
-            fig.savefig(
-                output_dir + title + "_" + y_axis + "_by_" + x_axis + ".png",
-                bbox_inches="tight",
-                pad_inches=0.15,
-            )
+            fig.savefig(output_dir + title + "_" + y_axis + "_by_" + x_axis + ".png")
         plt.close(fig) if save_only else plt.show()
 
 def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None, x_axis_type: str="order"):
