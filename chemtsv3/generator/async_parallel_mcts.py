@@ -544,6 +544,8 @@ class AsyncParallelMCTS(MCTS):
                 raise ValueError("AsyncParallelMCTS requires reward.is_batch_reward() == False with the selected dispatcher.")
         self.check_interval = check_interval # seconds
         self._pending_generation_meta = {}
+        self._waiting_for_exhausted_inflight = False
+        self._search_tree_exhausted = False
         self._generation_trace_path = os.path.join(self.output_dir(), "results_with_local_ids.tsv")
         if self.dispatcher is not None and not os.path.exists(self._generation_trace_path):
             with open(self._generation_trace_path, "w") as f:
@@ -566,8 +568,39 @@ class AsyncParallelMCTS(MCTS):
     def _generate_impl(self):
         self._drain_ready_results() # harvest all calculated results
 
+        if self._search_tree_exhausted:
+            if self.dispatcher.inflight() > 0:
+                if not self._waiting_for_exhausted_inflight:
+                    self.logger.info(
+                        "Search tree exhausted. Waiting for %d inflight reward task(s) to finish.",
+                        self.dispatcher.inflight(),
+                    )
+                    self._waiting_for_exhausted_inflight = True
+                time.sleep(self.check_interval)
+                self._drain_ready_results()
+                return
+
+            raise SystemExit
+
         if self.dispatcher.inflight() < self.dispatcher.max_inflight():
-            self._fill_queue() # calls _put_reward_task() at last
+            try:
+                self._fill_queue() # calls _put_reward_task() at last
+            except SystemExit:
+                self._search_tree_exhausted = True
+                self._drain_ready_results()
+                if self.dispatcher.inflight() <= 0:
+                    raise
+
+                if not self._waiting_for_exhausted_inflight:
+                    self.logger.info(
+                        "Search tree exhausted. Waiting for %d inflight reward task(s) to finish.",
+                        self.dispatcher.inflight(),
+                    )
+                    self._waiting_for_exhausted_inflight = True
+                time.sleep(self.check_interval)
+                self._drain_ready_results()
+                return
+        self._waiting_for_exhausted_inflight = False
 
         if self.dispatcher.inflight() >= self.dispatcher.max_inflight(): # already full
             time.sleep(self.check_interval)
