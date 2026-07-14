@@ -4,6 +4,7 @@ import numpy as np
 import os
 from matplotlib.ticker import MultipleLocator
 import pandas as pd
+import textwrap
 import warnings
 from chemtsv3.utils import moving_average
 from chemtsv3.utils.logging_utils import warn_with_logger
@@ -64,6 +65,11 @@ def corr_heatmap(x, y, cmap: str="coolwarm", **kwargs):
         fontsize=24,
     )
 
+def _cross_plot_axis_label(label: str) -> str:
+    if len(label) <= 14:
+        return label
+    return textwrap.fill(label.replace("_", "_ "), width=14, break_long_words=False).replace("_ ", "_")
+
 def plot_cross_plot(data: str | pd.DataFrame, target: list[str]=None, columns: list[str]=None, label_dict: dict[str, str]=None, output_path: str=None, output_dir: str=None, filename: str="cross_plot.png", bins: int=25, scatter_size: float=20, cmap: str="coolwarm", save_only: bool=True, logger=None):
     if isinstance(data, pd.DataFrame):
         df = data.copy()
@@ -114,7 +120,7 @@ def plot_cross_plot(data: str | pd.DataFrame, target: list[str]=None, columns: l
     with plt.rc_context({"figure.dpi": 120, "savefig.dpi": 200}):
         n_cols = len(df_plot.columns)
         fig_size = max(2.4 * n_cols, 6)
-        fig, axes = plt.subplots(n_cols, n_cols, figsize=(fig_size + 1.2, fig_size), squeeze=False)
+        fig, axes = plt.subplots(n_cols, n_cols, figsize=(fig_size + 1.2, fig_size), squeeze=False, layout="constrained")
         cmap_obj = plt.get_cmap(cmap)
         norm = plt.Normalize(-1, 1)
 
@@ -156,11 +162,12 @@ def plot_cross_plot(data: str | pd.DataFrame, target: list[str]=None, columns: l
                     )
 
                 if i == n_cols - 1:
-                    ax.set_xlabel(x_col, fontsize=16)
+                    ax.set_xlabel(_cross_plot_axis_label(x_col), fontsize=16, va="center", labelpad=30)
                 else:
                     ax.tick_params(axis="x", labelbottom=False)
                 if j == 0:
-                    ax.set_ylabel(y_col, fontsize=16)
+                    ax.set_ylabel(_cross_plot_axis_label(y_col), fontsize=16, ha="center", va="center", labelpad=30)
+                    ax.yaxis.set_label_coords(-0.45, 0.5)
                 else:
                     ax.tick_params(axis="y", labelleft=False)
                 ax.set_box_aspect(1)
