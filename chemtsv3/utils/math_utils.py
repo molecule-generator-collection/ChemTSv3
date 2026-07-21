@@ -58,14 +58,19 @@ def append_pareto_optimality_to_df(df: pd.DataFrame, objectives: list[str], maxi
         # If pymoo is not available
         if F.shape[1] == 2:
             # O(NlogN) skyline for 2 objectives.
-            order = np.argsort(-F[:, 0], kind="mergesort")
-            best2 = -np.inf
+            order = np.lexsort((F[:, 1], F[:, 0]))
+            best2 = np.inf
+            best1 = None
             mask = np.zeros(F.shape[0], dtype=bool)
             for idx in order:
+                v1 = F[idx, 0]
                 v2 = F[idx, 1]
-                if v2 > best2:
+                if v2 < best2:
                     mask[idx] = True
                     best2 = v2
+                    best1 = v1
+                elif v2 == best2 and v1 == best1:
+                    mask[idx] = True
         else: 
             # O(MN^2) for more than 3 objectives: pymoo was 20x faster with 200000 keys
             n = F.shape[0]
