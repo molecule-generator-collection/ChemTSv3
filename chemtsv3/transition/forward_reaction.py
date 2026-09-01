@@ -9,14 +9,13 @@ from chemtsv3.transition import TemplateTransition
 class ForwardReactionTransition(TemplateTransition):
     """Generate products using two-reactant reaction rules and a building-block library."""
 
-    def __init__(self, reaction_templates_path: str, building_blocks_path: str, max_children: int=25, max_expansion_tries: int=250, max_depth: int=4, check_reversibility: bool=False, record_actions: bool=True, filters: list[Filter]=None, top_p=None, logger=None):
+    def __init__(self, reaction_templates_path: str, building_blocks_path: str, max_children: int=25, max_expansion_tries: int=250, check_reversibility: bool=False, record_actions: bool=True, filters: list[Filter]=None, top_p=None, logger=None):
         """
         Args:
             reaction_templates_path: Path to a file containing one two-reactant reaction SMARTS/SMIRKS per line. Empty lines and text after ``##`` are ignored.
             building_blocks_path: Path to a SMILES file. The first whitespace-separated field of each line is used.
             max_children: Maximum number of unique child nodes generated during expansion.
             max_expansion_tries: Maximum number of sampled reaction/building-block pairs tried during expansion.
-            max_depth: Maximum number of forward reactions from the root. Set to None to disable the limit.
             check_reversibility: If True, keep a product only when the reverse template recovers the two input reactants.
             record_actions: If True, the reaction, current-molecule role, and selected building block are recorded in child nodes.
         """
@@ -24,12 +23,8 @@ class ForwardReactionTransition(TemplateTransition):
             raise ValueError("max_children must be greater than 0.")
         if max_expansion_tries <= 0:
             raise ValueError("max_expansion_tries must be greater than 0.")
-        if max_depth is not None and max_depth < 0:
-            raise ValueError("max_depth must be greater than or equal to 0.")
-
         self.max_children = max_children
         self.max_expansion_tries = max_expansion_tries
-        self.max_depth = max_depth
         self.check_reversibility = check_reversibility
         self.record_actions = record_actions
         self.load_reaction_templates(reaction_templates_path)
@@ -136,8 +131,6 @@ class ForwardReactionTransition(TemplateTransition):
     # implement
     def _next_nodes_impl(self, node: CanonicalSMILESStringNode, for_rollout: bool=False) -> list[CanonicalSMILESStringNode]:
         try:
-            if self.max_depth is not None and node.depth >= self.max_depth:
-                return []
             mol = node.mol(save_cache=False)
             reaction_choices = []
             for reaction_index, (_, reaction, _) in enumerate(self.reaction_templates):

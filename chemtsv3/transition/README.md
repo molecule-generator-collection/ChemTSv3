@@ -166,7 +166,6 @@ Transition that generates products using two-reactant reaction rules and a build
 | `building_blocks_path` | required | Path to a SMILES file. The first whitespace-separated field of each nonempty line is used. Lines beginning with `#` are ignored. |
 | `max_children` | `25` | Maximum number of unique child nodes generated during expansion. Rollout expansion stops after one child. |
 | `max_expansion_tries` | `250` | Maximum number of sampled reaction/building-block pairs tried during one expansion. Each pair is tried at most once. |
-| `max_depth` | `4` | Maximum number of forward reactions from the root. Set to `None` to disable the limit. |
 | `check_reversibility` | `False` | Keep a product only if applying the reverse template can recover the two input reactants. |
 | `record_actions` | `True` | Record the reaction template, current-molecule reactant position, and selected building block as the child action. |
 | `filters` | `None` | Filters applied to generated child nodes inside the transition. |

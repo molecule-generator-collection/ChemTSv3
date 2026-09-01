@@ -10,7 +10,6 @@ transition_args:
   building_blocks_path: data/reactions/rgfn/building_blocks.smi
   max_children: 25
   max_expansion_tries: 250
-  max_depth: 4
   check_reversibility: false
   filters:
   - filter_class: ValidityFilter
