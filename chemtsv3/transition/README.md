@@ -13,8 +13,9 @@ Transition
 └── TemplateTransition
     ├── GBGATransition
     ├── GBGMTransition
+    ├── SMIRKSTransition
+    ├── ForwardReactionTransition
     ├── RNNBasedMutation
-    ├──SMIRKSTransition
     └── BlackBoxTransition
        └── LLMTransition
            ├── BioT5Transition
@@ -154,6 +155,23 @@ Transition that applies weighted SMIRKS reactions to canonical SMILES nodes.
 | `logger` | `None` | Logger used by the transition. Automatically set during YAML-based generation. |
 | `record_actions` | `True` | If True, used SMIRKS patterns are recorded as actions in child nodes. |
 | `output_dir` | `None` | Directory where SMIRKS statistics are saved. |
+
+## ForwardReactionTransition
+
+Transition that generates products using two-reactant reaction rules and a building-block library. For each attempt it samples an applicable reaction (including which reactant position is occupied by the current molecule), then a compatible building block, and finally one valid product.
+
+| Parameter | Default | Description |
+|---|---:|---|
+| `reaction_templates_path` | required | Path to a file containing one two-reactant, one-product reaction SMARTS/SMIRKS per line. Empty lines and text after `##` are ignored. |
+| `building_blocks_path` | required | Path to a SMILES file. The first whitespace-separated field of each nonempty line is used. Lines beginning with `#` are ignored. |
+| `max_children` | `25` | Maximum number of unique child nodes generated during expansion. Rollout expansion stops after one child. |
+| `max_expansion_tries` | `250` | Maximum number of sampled reaction/building-block pairs tried during one expansion. Each pair is tried at most once. |
+| `max_depth` | `4` | Maximum number of forward reactions from the root. Set to `None` to disable the limit. |
+| `check_reversibility` | `False` | Keep a product only if applying the reverse template can recover the two input reactants. |
+| `record_actions` | `True` | Record the reaction template, current-molecule reactant position, and selected building block as the child action. |
+| `filters` | `None` | Filters applied to generated child nodes inside the transition. |
+| `top_p` | `None` | Optional top-p threshold for pruning generated children by cumulative transition probability. Must be in `(0, 1]` when specified. |
+| `logger` | `None` | Logger used by the transition. Automatically set during YAML-based generation. |
 
 ## RNNBasedMutation
 

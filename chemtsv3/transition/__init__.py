@@ -4,6 +4,7 @@ from .gbga import GBGATransition
 from .gbgm import GBGMTransition
 from .rnn import RNNLanguageModel, RNNTransition
 from .smirks import SMIRKSTransition
+from .forward_reaction import ForwardReactionTransition
 
 # lazy import
 def __getattr__(name):

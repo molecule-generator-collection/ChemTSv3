@@ -1,0 +1,36 @@
+output_dir: generation_results
+time_limit: 3600
+max_generations: 3000
+node_class: CanonicalSMILESStringNode
+root: "Nc1ccccc1"
+
+transition_class: ForwardReactionTransition
+transition_args:
+  reaction_templates_path: data/reactions/rgfn/reactions.smirks
+  building_blocks_path: data/reactions/rgfn/building_blocks.smi
+  max_children: 25
+  max_expansion_tries: 250
+  max_depth: 4
+  check_reversibility: false
+  filters:
+  - filter_class: ValidityFilter
+  - filter_class: RadicalFilter
+  - filter_class: RingBondFilter
+
+reward_class: JScoreReward
+
+policy_class: UCT
+policy_args:
+  c: 0.1
+  best_rate: 0.95
+
+generator_class: MCTS
+generator_args:
+  n_eval_iters: 1
+  n_tries: 1
+  filter_reward: ignore
+  avoid_duplicates: true
+  info_interval: 200
+
+plot_args:
+  reward_top_ps: [0.5, 0.1]
