@@ -158,16 +158,16 @@ Transition that applies weighted SMIRKS reactions to canonical SMILES nodes.
 
 ## ForwardReactionTransition
 
-Transition that generates products using two-reactant reaction rules and a building-block library. For each attempt it samples an applicable reaction (including which reactant position is occupied by the current molecule), then a compatible building block, and finally one valid product.
+Transition that generates products using unary or binary reaction rules and a building-block library. For each attempt it samples an applicable reaction (including which reactant position is occupied by the current molecule). Binary reactions then sample a compatible building block. Finally, one valid product is sampled.
 
 | Parameter | Default | Description |
 |---|---:|---|
-| `reaction_templates_path` | required | Path to a file containing one two-reactant, one-product reaction SMARTS/SMIRKS per line. Empty lines and text after `##` are ignored. |
+| `reaction_templates_path` | required | Path to a file containing one unary or binary, one-product reaction SMARTS/SMIRKS per line. Empty lines and text after `##` are ignored. Both `reactants>>products` and `reactants>agents>products` forms are accepted. |
 | `building_blocks_path` | required | Path to a SMILES file. The first whitespace-separated field of each nonempty line is used. Lines beginning with `#` are ignored. |
 | `max_children` | `25` | Maximum number of unique child nodes generated during expansion. Rollout expansion stops after one child. |
-| `max_expansion_tries` | `250` | Maximum number of sampled reaction/building-block pairs tried during one expansion. Each pair is tried at most once. |
-| `check_reversibility` | `False` | Keep a product only if applying the reverse template can recover the two input reactants. |
-| `record_actions` | `True` | Record the reaction template, current-molecule reactant position, and selected building block as the child action. |
+| `max_expansion_tries` | `250` | Maximum number of sampled reaction choices tried during one expansion. Each unary reaction or binary reaction/building-block pair is tried at most once. |
+| `check_reversibility` | `False` | Keep a product only if applying the reverse template can recover the input reactant(s). |
+| `record_actions` | `True` | Record the reaction template and current-molecule reactant position as the child action, plus the selected building block for binary reactions. |
 | `filters` | `None` | Filters applied to generated child nodes inside the transition. |
 | `top_p` | `None` | Optional top-p threshold for pruning generated children by cumulative transition probability. Must be in `(0, 1]` when specified. |
 | `logger` | `None` | Logger used by the transition. Automatically set during YAML-based generation. |

@@ -7,17 +7,17 @@ from chemtsv3.transition import TemplateTransition
 
 
 class ForwardReactionTransition(TemplateTransition):
-    """Generate products using two-reactant reaction rules and a building-block library."""
+    """Generate products using one- or two-reactant reaction rules."""
 
     def __init__(self, reaction_templates_path: str, building_blocks_path: str, max_children: int=25, max_expansion_tries: int=250, check_reversibility: bool=False, record_actions: bool=True, filters: list[Filter]=None, top_p=None, logger=None):
         """
         Args:
-            reaction_templates_path: Path to a file containing one two-reactant reaction SMARTS/SMIRKS per line. Empty lines and text after ``##`` are ignored.
+            reaction_templates_path: Path to a file containing one unary or binary reaction SMARTS/SMIRKS per line. Empty lines and text after ``##`` are ignored.
             building_blocks_path: Path to a SMILES file. The first whitespace-separated field of each line is used.
             max_children: Maximum number of unique child nodes generated during expansion.
-            max_expansion_tries: Maximum number of sampled reaction/building-block pairs tried during expansion.
-            check_reversibility: If True, keep a product only when the reverse template recovers the two input reactants.
-            record_actions: If True, the reaction, current-molecule role, and selected building block are recorded in child nodes.
+            max_expansion_tries: Maximum number of sampled reaction choices tried during expansion.
+            check_reversibility: If True, keep a product only when the reverse template recovers the input reactant(s).
+            record_actions: If True, the reaction and current-molecule role are recorded in child nodes, together with the selected building block for binary reactions.
         """
         if max_children <= 0:
             raise ValueError("max_children must be greater than 0.")
@@ -40,9 +40,12 @@ class ForwardReactionTransition(TemplateTransition):
                 if not smirks:
                     continue
                 try:
-                    left, right = smirks.split(">>")
                     reaction = AllChem.ReactionFromSmarts(smirks)
-                    reverse_reaction = AllChem.ReactionFromSmarts(f"{right}>>{left}")
+                    reverse_reaction = AllChem.ChemicalReaction()
+                    for product_template in reaction.GetProducts():
+                        reverse_reaction.AddReactantTemplate(product_template)
+                    for reactant_template in reaction.GetReactants():
+                        reverse_reaction.AddProductTemplate(reactant_template)
                 except Exception as e:
                     raise ValueError(
                         f"Invalid reaction template at line {line_number}: {smirks}"
@@ -51,10 +54,11 @@ class ForwardReactionTransition(TemplateTransition):
                     raise ValueError(
                         f"Invalid reaction template at line {line_number}: {smirks}"
                     )
-                if reaction.GetNumReactantTemplates() != 2:
+                n_reactants = reaction.GetNumReactantTemplates()
+                if n_reactants not in (1, 2):
                     raise ValueError(
-                        "ForwardReactionTransition supports two-reactant templates; "
-                        f"line {line_number} has {reaction.GetNumReactantTemplates()}: {smirks}"
+                        "ForwardReactionTransition supports one- or two-reactant templates; "
+                        f"line {line_number} has {n_reactants}: {smirks}"
                     )
                 if reaction.GetNumProductTemplates() != 1:
                     raise ValueError(
@@ -87,6 +91,10 @@ class ForwardReactionTransition(TemplateTransition):
     def prepare_compatible_building_blocks(self):
         self.compatible_building_blocks = []
         for _, reaction, _ in self.reaction_templates:
+            if reaction.GetNumReactantTemplates() == 1:
+                self.compatible_building_blocks.append([])
+                continue
+
             compatible_for_reaction = []
             for reactant_index in range(2):
                 pattern = reaction.GetReactantTemplate(reactant_index)
@@ -134,6 +142,11 @@ class ForwardReactionTransition(TemplateTransition):
             mol = node.mol(save_cache=False)
             reaction_choices = []
             for reaction_index, (_, reaction, _) in enumerate(self.reaction_templates):
+                if reaction.GetNumReactantTemplates() == 1:
+                    if mol.HasSubstructMatch(reaction.GetReactantTemplate(0)):
+                        reaction_choices.append([reaction_index, 0, [None], 1])
+                    continue
+
                 for current_reactant_index in range(2):
                     partner_reactant_index = 1 - current_reactant_index
                     compatible = self.compatible_building_blocks[reaction_index][partner_reactant_index]
@@ -163,11 +176,15 @@ class ForwardReactionTransition(TemplateTransition):
                     reaction_choices.remove(reaction_choice)
 
                 smirks, reaction, reverse_reaction = self.reaction_templates[reaction_index]
-                partner_smiles, partner_mol = self.building_blocks[partner_index]
-                if current_reactant_index == 0:
-                    reactants = (mol, partner_mol)
+                if partner_index is None:
+                    partner_smiles = None
+                    reactants = (mol,)
                 else:
-                    reactants = (partner_mol, mol)
+                    partner_smiles, partner_mol = self.building_blocks[partner_index]
+                    if current_reactant_index == 0:
+                        reactants = (mol, partner_mol)
+                    else:
+                        reactants = (partner_mol, mol)
                 products = self.run_reaction(reaction, reverse_reaction, reactants)
                 if not products:
                     continue
@@ -178,10 +195,9 @@ class ForwardReactionTransition(TemplateTransition):
                 probability = 1 / n_reaction_choices / n_partners / len(products)
                 action = None
                 if self.record_actions:
-                    action = (
-                        f"{smirks} // current_reactant={current_reactant_index} "
-                        f"// building_block={partner_smiles}"
-                    )
+                    action = f"{smirks} // current_reactant={current_reactant_index}"
+                    if partner_smiles is not None:
+                        action += f" // building_block={partner_smiles}"
                 if smiles in raw_result:
                     raw_result[smiles][1] += probability
                 else:

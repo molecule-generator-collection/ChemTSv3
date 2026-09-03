@@ -6,7 +6,8 @@ root: "Nc1ccccc1"
 
 transition_class: ForwardReactionTransition
 transition_args:
-  reaction_templates_path: data/reactions/rgfn/reactions.smirks
+  reaction_templates_path: data/reactions/synnet/hb.txt
+  # reaction_templates_path: data/reactions/rgfn/reactions.smirks
   building_blocks_path: data/reactions/rgfn/building_blocks.smi
   max_children: 25
   max_expansion_tries: 250
@@ -20,14 +21,14 @@ reward_class: JScoreReward
 
 policy_class: UCT
 policy_args:
-  c: 0.1
+  c: 0.05
   best_rate: 0.95
 
 generator_class: MCTS
 generator_args:
   n_eval_iters: 1
+  n_eval_width: .inf
   n_tries: 1
-  filter_reward: ignore
   avoid_duplicates: true
   info_interval: 200
 
