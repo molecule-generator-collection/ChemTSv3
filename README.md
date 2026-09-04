@@ -23,7 +23,7 @@ In ChemTSv3,
 
 ### Setup steps
 
-1. Clone the repository
+1. Clone the repository (recommended)
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
 3. Restart the shell
 4. Move to the repository root (e.g., cd molgen)
@@ -55,7 +55,7 @@ deactivate
 
 ### Setup steps
 
-1. Clone the repository
+1. Clone the repository (recommended)
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
 3. Restart the shell (and VSCode if used)
 4. Move to the repository root (e.g., cd molgen)
@@ -86,7 +86,7 @@ deactivate
 - `ChatGPTTransition` and `ChatGPTTransitionWithMemory` requires openai api key to use.
 
 ### Setup steps
-1. Clone the repository
+1. Clone the repository (recommended)
 2. Install uv: https://docs.astral.sh/uv/getting-started/installation/
 3. Restart the shell
 4. Move to the repository root (e.g., cd molgen)
