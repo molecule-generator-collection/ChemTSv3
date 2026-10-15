@@ -1,4 +1,5 @@
 
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -184,7 +185,7 @@ def plot_cross_plot(data: str | pd.DataFrame, target: list[str]=None, columns: l
 
     return output_path
 
-def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None):
+def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None, include_partial_window: bool=True, min_periods: int=10):
     top_ps = top_ps or []
     
     with plt.rc_context(PLOT_STYLE):
@@ -221,14 +222,22 @@ def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, 
             
         if moving_average_window is not None:
             label = f"moving average ({moving_average_window})"
-            y_ma = moving_average(y, moving_average_window)
-            ax.plot(x, y_ma, label=label, linewidth=linewidth)
+            y_ma = moving_average(y, moving_average_window, include_partial_window=include_partial_window, min_periods=min_periods)
+            window = moving_average_window
+            if window < 1:
+                window = max(1, math.floor(len(y) * window))
+            window = min(window, len(y))
+            line, = ax.plot(x[window-1:], y_ma[window-1:], label=label, linewidth=linewidth)
+            if include_partial_window and window > min_periods:
+                ax.plot(x[:window], y_ma[:window], color=line.get_color(), linestyle=':', linewidth=linewidth)
             if top_ps is not None:
                 for p in top_ps:
                     if 0 < p < 1:
-                        y_ma_top = moving_average(y, moving_average_window, top_p=p)
+                        y_ma_top = moving_average(y, moving_average_window, top_p=p, include_partial_window=include_partial_window, min_periods=min_periods)
                         label_top = f"top-{int(p*100)}% moving average"
-                        ax.plot(x, y_ma_top, label=label_top, linewidth=linewidth)
+                        line, = ax.plot(x[window-1:], y_ma_top[window-1:], label=label_top, linewidth=linewidth)
+                        if include_partial_window and window > min_periods:
+                            ax.plot(x[:window], y_ma_top[:window], color=line.get_color(), linestyle=':', linewidth=linewidth)
                     else:
                         if logger is not None:
                             logger.warning(f"Ignored top_p={p} in top_ps (must be in (0,1))")
@@ -249,7 +258,7 @@ def plot_xy(x: list[float], y: list[float], x_axis: str=None, y_axis: str=None, 
             fig.savefig(output_dir + title + "_" + y_axis + "_by_" + x_axis + ".png")
         plt.close(fig) if save_only else plt.show()
 
-def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None, x_axis_type: str="order"):
+def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None, output_dir: str=None, title: str=None, logger=None, x_axis_type: str="order", include_partial_window: bool=True, min_periods: int=10):
     df = pd.read_csv(csv_path)
 
     if x_axis_type not in ("order", "time"):
@@ -268,4 +277,4 @@ def plot_csv(csv_path: str, target: str="reward", moving_average_window: int | f
     x = df[x_axis_type].tolist()
     y = df[target].tolist()
 
-    plot_xy(x, y, x_axis=x_axis_type, y_axis=target, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=output_dir, title=title, logger=logger)
+    plot_xy(x, y, x_axis=x_axis_type, y_axis=target, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=output_dir, title=title, logger=logger, include_partial_window=include_partial_window, min_periods=min_periods)

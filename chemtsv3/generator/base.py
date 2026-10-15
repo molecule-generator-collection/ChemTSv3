@@ -277,13 +277,13 @@ class Generator(ABC):
         pass
 
     # visualize results
-    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, linewidth: float=DEFAULT_LINEWIDTH, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None, include_cross_plot: bool=False, cross_plot_target: list[str]=None, cross_plot_label_dict: dict[str, str]=None, cross_plot_filename: str="cross_plot.png", cross_plot_columns: list[str]=None):
+    def plot(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, linewidth: float=DEFAULT_LINEWIDTH, packed_objectives=None, save_only: bool=False, reward_top_ps: list[float]=None, include_cross_plot: bool=False, cross_plot_target: list[str]=None, cross_plot_label_dict: dict[str, str]=None, cross_plot_filename: str="cross_plot.png", cross_plot_columns: list[str]=None, include_partial_window: bool=True, min_periods: int=10):
         if len(self.unique_keys) == 0:
             return
-        self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps)
+        self._plot_objective_values_and_reward(x_axis=x_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylims=ylims, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, linewidth=linewidth, save_only=save_only, reward_top_ps=reward_top_ps, include_partial_window=include_partial_window, min_periods=min_periods)
         if packed_objectives:
             for po in packed_objectives:
-                self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim, linewidth=linewidth, save_only=save_only)
+                self._plot_specified_objective_values(po, x_axis=x_axis, moving_average_window=moving_average_window, xlim=xlim, linewidth=linewidth, save_only=save_only, include_partial_window=include_partial_window, min_periods=min_periods)
         if include_cross_plot:
             if cross_plot_target is None:
                 cross_plot_target = cross_plot_columns
@@ -296,7 +296,7 @@ class Generator(ABC):
                 target += self.reward.objective_names()
         plot_cross_plot(self.df(), target=target, label_dict=label_dict, output_dir=self.output_dir(), filename=filename, save_only=save_only, logger=self.logger)
 
-    def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None):
+    def _plot(self, x_axis: str="generation_order", y_axis: str | list[str]="reward", moving_average_window: int | float=0.01, max_curve=True, max_line=False, scatter=True, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, top_ps: list[float]=None, include_partial_window: bool=True, min_periods: int=10):
         top_ps = top_ps or []
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
 
@@ -314,17 +314,17 @@ class Generator(ABC):
                 objective_idx = objective_names.index(y_axis)
                 y = [self.record[molkey]["objective_values"][objective_idx] for molkey in self.unique_keys]
         
-        plot_xy(x, y, x_axis=x_axis, y_axis=y_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=self.output_dir(), title=self.name(), logger=self.logger)
+        plot_xy(x, y, x_axis=x_axis, y_axis=y_axis, moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, scatter=scatter, xlim=xlim, ylim=ylim, x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=top_ps, output_dir=self.output_dir(), title=self.name(), logger=self.logger, include_partial_window=include_partial_window, min_periods=min_periods)
 
-    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, reward_top_ps: list[float]=None):
+    def _plot_objective_values_and_reward(self, x_axis: str="generation_order", moving_average_window: int | float=0.01, max_curve=True, max_line=False, xlim: tuple[float, float]=None, ylims: dict[str, tuple[float, float]]=None, x_grid_interval: float=None, y_grid_interval: float=None, loc: str="lower right", linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, reward_top_ps: list[float]=None, include_partial_window: bool=True, min_periods: int=10):
         ylims = ylims or {}
         if not self.reward.is_single_objective:
             objective_names = self.reward.objective_names()
             for o in objective_names:
-                self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_curve=False, max_line=False, xlim=xlim, ylim=ylims.get(o, None), x_grid_interval=x_grid_interval, linewidth=linewidth, save_only=save_only)
-        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=reward_top_ps)
+                self._plot(x_axis=x_axis, y_axis=o, moving_average_window=moving_average_window, max_curve=False, max_line=False, xlim=xlim, ylim=ylims.get(o, None), x_grid_interval=x_grid_interval, linewidth=linewidth, save_only=save_only, include_partial_window=include_partial_window, min_periods=min_periods)
+        self._plot(x_axis=x_axis, y_axis="reward", moving_average_window=moving_average_window, max_curve=max_curve, max_line=max_line, xlim=xlim, ylim=ylims.get("reward", None), x_grid_interval=x_grid_interval, y_grid_interval=y_grid_interval, loc=loc, linewidth=linewidth, save_only=save_only, top_ps=reward_top_ps, include_partial_window=include_partial_window, min_periods=min_periods)
 
-    def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False):
+    def _plot_specified_objective_values(self, y_axes: list[str], x_axis: str="generation_order", moving_average_window: int | float=0.01, xlim: tuple[float, float]=None, ylim: tuple[float, float]=None, linewidth: float=DEFAULT_LINEWIDTH, save_only: bool=False, include_partial_window: bool=True, min_periods: int=10):
         x = [self.record[molkey][x_axis] for molkey in self.unique_keys]
         objective_names = self.reward.objective_names()
         with plt.rc_context(PLOT_STYLE):
@@ -333,8 +333,14 @@ class Generator(ABC):
                 label = ya
                 objective_idx = objective_names.index(ya)
                 y = [self.record[molkey]["objective_values"][objective_idx] for molkey in self.unique_keys]
-                y_ma = moving_average(y, moving_average_window)
-                ax.plot(x, y_ma, label=label, linewidth=linewidth)
+                y_ma = moving_average(y, moving_average_window, include_partial_window=include_partial_window, min_periods=min_periods)
+                window = moving_average_window
+                if window < 1:
+                    window = max(1, math.floor(len(y) * window))
+                window = min(window, len(y))
+                line, = ax.plot(x[window-1:], y_ma[window-1:], label=label, linewidth=linewidth)
+                if include_partial_window and window > min_periods:
+                    ax.plot(x[:window], y_ma[:window], color=line.get_color(), linestyle=':', linewidth=linewidth)
             ax.grid(axis="y")
             ax.set_xlabel(axis_label(x_axis))
             ax.legend(loc='upper left')
