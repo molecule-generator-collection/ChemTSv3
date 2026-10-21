@@ -8,7 +8,7 @@ In ChemTSv3,
 - **Reward is modular**: Anything can be optimized, including QSAR predictions or simulation results, for both single- and multi-objective tasks.
 
 [^1]: Ishida, S. and Aasawat, T. and Sumita, M. and Katouda, M. and Yoshizawa, T. and Yoshizoe, K. and Tsuda, K. and Terayama, K. (2023). ChemTSv2: Functional molecular design using de novo molecule generator. <i>WIREs Computational Molecular Science</i> https://wires.onlinelibrary.wiley.com/doi/10.1002/wcms.1680
-[^2]: Fujii, S. and Murakami, Y. and Yoshizawa, T. and Ishida, S. and Cho, N. and Ohta, M. and Honma, T. and Yoshizoe, K. and Sumita, M. and Tsuda, K. and Terayama, K. (2025). ChemTSv3: Generalizing Molecular Design via Flexible Search Space Control. <i>ChemRxiv</i> https://chemrxiv.org/doi/abs/10.26434/chemrxiv-2025-kdvrt
+[^2]: Fujii, S. and Murakami, Y. and Yoshizawa, T. and Ishida, S. and Cho, N. and Ohta, M. and Honma, T. and Yoshizoe, K. and Sumita, M. and Tsuda, K. and Terayama, K. (2026). Generalizing molecular design via flexible search space control. <i>Communications Chemistry</i> https://www.nature.com/articles/s42004-026-02172-7
 
 ## Setup
 
@@ -292,17 +292,13 @@ The source code of ChemTSv3 is licensed under the MIT License.
 The files under `data/` are provided for reproducibility and are not covered by the MIT License. See `data/***/README.md` for the corresponding attribution and license information.
 
 ## How to cite
-```text
-@article{
-doi:10.26434/chemrxiv-2025-kdvrt,
-author = {Satoru Fujii  and Yuki Murakami  and Tatsuya Yoshizawa  and Shoichi Ishida  and Nobuo Cho  and Masateru Ohta  and Teruki Honma  and Kazuki Yoshizoe  and Masato Sumita  and Koji Tsuda  and Kei Terayama },
-title = {ChemTSv3: Generalizing Molecular Design via Flexible Search Space Control},
-journal = {ChemRxiv},
-volume = {2025},
-number = {1228},
-pages = {},
-year = {2025},
-doi = {10.26434/chemrxiv-2025-kdvrt},
-URL = {https://chemrxiv.org/doi/abs/10.26434/chemrxiv-2025-kdvrt},
-eprint = {https://chemrxiv.org/doi/pdf/10.26434/chemrxiv-2025-kdvrt}}
+```bibtex
+@article{doi:10.1038/s42004-026-02172-7,
+author = {Satoru Fujii and Yuki Murakami and Tatsuya Yoshizawa and Shoichi Ishida and Nobuo Cho and Masateru Ohta and Teruki Honma and Kazuki Yoshizoe and Masato Sumita and Koji Tsuda and Kei Terayama},
+title = {Generalizing molecular design via flexible search space control},
+journal = {Communications Chemistry},
+year = {2026},
+doi = {10.1038/s42004-026-02172-7},
+URL = {https://www.nature.com/articles/s42004-026-02172-7}
+}
 ```
