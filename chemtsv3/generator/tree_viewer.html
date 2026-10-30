@@ -67,7 +67,7 @@
 <div class="toolbar">
   <button id="fit">Fit tree</button><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom"></span><button id="zoom-in" aria-label="Zoom in">+</button>
   <label>Depth <input id="depth" type="range" min="0" value="3"><output id="depth-value"></output></label>
-  <button id="show-depth">Show all to depth 3</button><button id="reset">Reset</button>
+  <button id="show-depth">Show up to depth 3</button><button id="reset">Reset</button>
   <label><input id="rollouts" type="checkbox" checked> Show rollouts</label>
 </div>
 <div class="workspace" id="workspace">
@@ -286,7 +286,7 @@
 
   function updateDepthLabel() {
     $('depth-value').value = $('depth').value;
-    $('show-depth').textContent = `Show all to depth ${$('depth').value}`;
+    $('show-depth').textContent = `Show up to depth ${$('depth').value}`;
   }
 
   function hideBranchAction() {
