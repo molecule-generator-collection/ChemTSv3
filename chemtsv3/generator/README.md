@@ -103,6 +103,33 @@ AsyncParallelMCTS variant that also parallelizes transition expansion and rollou
 | `transition_loss` | `0.0` | Temporary reward value backpropagated while a transition job is in flight, then reverted when the transition ends. |
 | `**kwargs` | `{}` | Additional arguments passed to `MCTS`. `discard_unneeded_states` defaults to False to avoid potential conflicts with async reward/transition jobs. Inherited `MCTS` parameters include `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `discard_unneeded_states`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `retain_previous_stage_results`, `precalculated_csv_paths`, `output_dir` and all logging/checkpoint parameters. `failed_parent_reward` is disabled. |
 
+## VisualizedMCTS
+
+MCTS variant with visualization. `generate()` also writes a standalone `tree.html` viewer to the result directory. Expanded and pruned nodes are retained, and `discard_unneeded_states` is fixed to False.
+
+| Parameter | Default | Description |
+|---|---:|---|
+| `*args` | required | Positional arguments passed to `MCTS`. |
+| `**kwargs` | `{}` | Additional arguments passed to `MCTS`, including `root`, `transition`, `reward`, `policy`, `filters`, `filter_reward`, `failed_parent_reward`, `n_eval_width`, `allow_eval_overlaps`, `n_eval_iters`, `n_tries`, `cut_failed_child`, `reward_cutoff`, `reward_cutoff_warmups`, `terminal_reward`, `cut_terminal`, `avoid_duplicates`, `max_tree_depth`, `virtual_loss`, `use_dummy_reward`, `retain_previous_stage_results`, `precalculated_csv_paths`, `output_dir`, `logger`, and all logging/checkpoint parameters. |
+
+## VisualizedAsyncParallelMCTS
+
+AsyncParallelMCTS variant with the same visualization as VisualizedMCTS. `discard_unneeded_states` is fixed to False.
+
+| Parameter | Default | Description |
+|---|---:|---|
+| `*args` | required | Positional arguments passed to `AsyncParallelMCTS`. |
+| `**kwargs` | `{}` | Arguments passed to `AsyncParallelMCTS`, including `max_inflight` (required), `reward_dispatcher_type`, `check_interval`, `virtual_loss`, and inherited `MCTS` parameters. `failed_parent_reward` is disabled. |
+
+## VisualizedDoubleAsyncParallelMCTS
+
+DoubleAsyncParallelMCTS variant with the same visualization as VisualizedMCTS. `discard_unneeded_states` is fixed to False.
+
+| Parameter | Default | Description |
+|---|---:|---|
+| `*args` | required | Positional arguments passed to `DoubleAsyncParallelMCTS`. |
+| `**kwargs` | `{}` | Arguments passed to `DoubleAsyncParallelMCTS`, including `inflight_type`, `reward_dispatcher_type`, `transition_dispatcher_type`, `max_reward_inflight`, `max_transition_inflight`, `max_mpi_inflight`, `transition_loss`, and inherited `AsyncParallelMCTS` / `MCTS` parameters. Worker-limit requirements are the same as `DoubleAsyncParallelMCTS`. `failed_parent_reward` is disabled. |
+
 ## HeapQueueGenerator
 
 Generator that iteratively evaluates newly generated child candidates, stores them in a reward-prioritized heap queue, and apply transition to the highest-reward candidate at each step.

@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChemTSv3 visualizer</title>
+<style>
+  :root { color-scheme: light; font: 14px system-ui, sans-serif; color: #243647; background: #f3f6f8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; height: 100dvh; min-height: 560px; display: flex; flex-direction: column; }
+  header { padding: 18px 24px; display: flex; gap: 18px; align-items: baseline; background: #142d40; color: white; flex-shrink: 0; }
+  h1 { font-size: 20px; margin: 0; font-weight: 650; }
+  #summary { color: #bdd1dd; font-size: 13px; }
+  button, input { font: inherit; }
+  button { border: 1px solid #cbd7df; background: white; color: #243647; padding: 6px 11px; border-radius: 5px; cursor: pointer; }
+  button:hover { background: #edf6f6; }
+  button:disabled { opacity: .4; cursor: default; }
+  button:focus-visible, input:focus-visible, tr:focus-visible, canvas:focus-visible, [role="separator"]:focus-visible { outline: 2px solid #008b82; outline-offset: -2px; }
+  .toolbar { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; padding: 10px 20px; border-bottom: 1px solid #d9e2e8; background: white; flex-shrink: 0; }
+  .toolbar label { display: flex; gap: 6px; align-items: center; }
+  .muted { color: #617786; font-size: 12px; }
+  #zoom { min-width: 46px; text-align: center; font-variant-numeric: tabular-nums; }
+  #depth { width: 120px; }
+  .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 8px var(--details-width, 300px); flex: 0 0 var(--workspace-height, 54vh); min-height: 180px; }
+  .splitter { background: #e1e9ee; touch-action: none; position: relative; flex-shrink: 0; }
+  .splitter::after { content: ''; position: absolute; border-radius: 2px; background: #9aafb9; }
+  .splitter.vertical { cursor: col-resize; }
+  .splitter.vertical::after { width: 2px; height: 32px; left: 3px; top: calc(50% - 16px); }
+  .splitter.horizontal { height: 8px; cursor: row-resize; }
+  .splitter.horizontal::after { height: 2px; width: 32px; top: 3px; left: calc(50% - 16px); }
+  .splitter:hover, .splitter.active, .column-resizer:hover, .column-resizer.active { background: #a9d7cf; }
+  body.resizing { user-select: none; }
+  body.resizing * { cursor: inherit !important; }
+  .tree { min-width: 0; min-height: 0; position: relative; }
+  canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+  canvas.dragging { cursor: grabbing; }
+  .hint { position: absolute; bottom: 10px; left: 16px; background: #ffffffdf; padding: 5px 8px; border-radius: 4px; pointer-events: none; }
+  #branch-action { position: absolute; z-index: 1; font-size: 12px; border-color: #008b82; box-shadow: 0 2px 8px #142d4020; white-space: nowrap; }
+  aside { padding: 18px; overflow: auto; min-width: 0; background: white; }
+  h2 { font-size: 15px; margin: 0 0 12px; }
+  #node-key, #result-key { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px ui-monospace, monospace; background: #f3f6f8; border-radius: 5px; padding: 10px; }
+  #node-image, #result-image { width: 100%; max-height: 160px; object-fit: contain; }
+  [hidden] { display: none !important; }
+  dl { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 6px 10px; font-size: 12px; }
+  dt { color: #617786; }
+  dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; white-space: pre-wrap; }
+  #path { display: flex; gap: 4px; flex-wrap: wrap; margin: 10px 0; }
+  #path button { font-size: 11px; padding: 3px 6px; }
+  #result-detail { margin-top: 20px; border-top: 1px solid #d9e2e8; padding-top: 15px; }
+  .results { background: white; display: flex; flex-direction: column; flex: 1; min-height: 140px; }
+  .results h2 { margin: 0 8px 0 0; }
+  #search { border: 1px solid #cbd7df; padding: 7px 10px; border-radius: 5px; width: 230px; }
+  .spacer { flex: 1; }
+  .table-scroll { overflow: auto; flex: 1; min-height: 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th { position: sticky; top: 0; background: #edf3f6; text-align: left; z-index: 1; }
+  th button { border: 0; background: transparent; width: 100%; border-radius: 0; text-align: left; font-weight: 600; white-space: nowrap; padding: 10px 20px 10px 14px; overflow: hidden; text-overflow: ellipsis; }
+  th.image-column { padding: 10px 14px; }
+  .column-resizer { position: absolute; top: 0; right: 0; bottom: 0; width: 8px; cursor: col-resize; touch-action: none; border-right: 1px solid #cbd7df; }
+  td { padding: 8px 14px; border-bottom: 1px solid #e6edf1; font-variant-numeric: tabular-nums; max-width: 420px; overflow-wrap: anywhere; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: #f0f8f8; }
+  tbody tr.related { background: #eff8f6; }
+  tbody tr.selected { background: #d7eee8; box-shadow: inset 3px 0 #008b82; }
+  td img { width: 130px; max-width: 100%; height: 80px; object-fit: contain; display: block; }
+  #empty { text-align: center; padding: 30px; }
+  @media (max-width: 740px) { .workspace { --details-width: 220px; } aside { padding: 12px; } header { flex-wrap: wrap; gap: 6px; } }
+</style>
+<header><h1>ChemTSv3 visualizer</h1><span id="summary"></span></header>
+<div class="toolbar">
+  <button id="fit">Fit tree</button><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom"></span><button id="zoom-in" aria-label="Zoom in">+</button>
+  <label>Depth <input id="depth" type="range" min="0" value="3"><output id="depth-value"></output></label>
+  <button id="show-depth">Show all to depth 3</button><button id="reset">Reset</button>
+  <label><input id="pruned" type="checkbox" checked> Show pruned</label>
+  <label><input id="rollouts" type="checkbox" checked> Show rollouts</label>
+</div>
+<div class="workspace" id="workspace">
+  <div class="tree"><canvas id="tree" tabindex="0" aria-label="Search tree. Use arrow keys to navigate nodes."></canvas><button id="branch-action" hidden></button><span class="hint muted">Drag to pan / Scroll to Zoom / Click to inspect</span></div>
+  <div id="details-resizer" class="splitter vertical" role="separator" aria-label="Details panel width" aria-orientation="vertical" aria-controls="details" tabindex="0" title="Drag to resize details · double-click to reset"></div>
+  <aside id="details">
+    <h2 id="node-title">Selected node</h2><img id="node-image" alt="Selected molecule" hidden><div id="node-key"></div>
+    <div id="path" aria-label="Path from root"></div>
+    <button id="parent">Move to parent</button> <button id="fold">Fold branch</button>
+    <dl id="stats"></dl>
+    <div id="result-detail" hidden><h2>Selected result</h2><p id="result-source" class="muted"></p><img id="result-image" alt="Generated molecule" hidden><div id="result-key"></div></div>
+  </aside>
+</div>
+<div id="results-resizer" class="splitter horizontal" role="separator" aria-label="Results panel height" aria-orientation="horizontal" aria-controls="workspace results" tabindex="0" title="Drag to resize results · double-click to reset"></div>
+<section class="results" id="results">
+  <div class="toolbar"><h2>Generation results</h2><input id="search" type="search" placeholder="Filter results…" aria-label="Filter results"><span id="row-count" class="muted"></span><span class="spacer"></span><button id="previous">Previous</button><span id="page" class="muted"></span><button id="next">Next</button></div>
+  <div class="table-scroll"><table id="result-table"><colgroup id="column-widths"></colgroup><thead><tr id="columns"></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="muted" hidden>No matching results.</div></div>
+</section>
+<script id="tree-data" type="application/json">/*__TREE_DATA__*/</script>
+<script>
+(async () => {
+  'use strict';
+  async function unpack(value) {
+    const binary = atob(value.data), bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return new Response(stream);
+  }
+  const payload = JSON.parse(document.getElementById('tree-data').textContent);
+  const data = payload.encoding === 'gzip' ? await (await unpack(payload)).json() : payload;
+  const $ = id => document.getElementById(id);
+  const nodes = data.nodes;
+  const treeNodeCount = nodes.length;
+  data.rows.forEach((row, rowIndex) => {
+    if (!row.is_rollout || row.node_id === null || !nodes[row.node_id]) return;
+    row.rollout_id = nodes.length;
+    nodes.push({
+      id: nodes.length, parent: row.node_id, key: row.values[2], state: row.state ?? row.values[2],
+      type: row.type || 'Rollout', depth: nodes[row.node_id].depth+1, n_children: 0,
+      reward: row.values[3], last_action: 'rollout', action_label: 'rollout',
+      image: row.image, rollout: true, rollout_from: `#${row.node_id}`, row_index: rowIndex, pruned: false,
+    });
+  });
+  const canvas = $('tree'), ctx = canvas.getContext('2d');
+  const children = nodes.map(() => []), depths = nodes.map(() => 0);
+  for (const node of nodes) {
+    if (node.parent !== null) {
+      children[node.parent].push(node.id);
+      depths[node.id] = depths[node.parent] + 1;
+    }
+  }
+  for (const node of nodes) node.n_children ??= children[node.id].filter(child => !nodes[child].rollout).length;
+  const maxDepth = depths.reduce((a, b) => Math.max(a, b), 0);
+  $('depth').max = maxDepth;
+  $('depth').value = Math.min(3, maxDepth);
+  $('summary').textContent = `${data.name} · ${treeNodeCount.toLocaleString()} nodes · ${(nodes.length-treeNodeCount).toLocaleString()} rollouts · ${data.rows.length.toLocaleString()} results`;
+  document.title = `${data.name} — ChemTSv3 visualizer`;
+  let selected = 0, selectedRow = null, visible = [], positions = new Map(), path = new Set();
+  let scale = 1, offsetX = 0, offsetY = 0, width = 1, height = 1;
+  let page = 0, sortColumn = 0, sortDirection = 1, filtered = [];
+  let drawPending = false;
+  let columnWidths = null;
+  const expanded = new Set([0]), imageCache = new Map(), imageSources = new Map(), pageSize = 100;
+  let hiddenCounts = new Map(), hoverAction = null;
+  const hasImages = data.rows.some(row => row.image !== null);
+  const text = value => typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value ?? '');
+  const short = (value, size = 23) => { const s = text(value).replace(/\s+/g, ' '); return s.length > size ? s.slice(0, size - 1) + '…' : s; };
+  const boxHeight = node => node.image === null ? 58 : 108;
+  const displayState = node => node.state ?? node.key;
+  const eligibleChildren = id => children[id].filter(child => ($('pruned').checked || !nodes[child].pruned) && ($('rollouts').checked || !nodes[child].rollout));
+
+  function bindResizer(handle, axis, begin, move, reset) {
+    let resizing = null;
+    const coordinate = event => axis === 'x' ? event.clientX : event.clientY;
+    const finish = () => {
+      resizing = null; handle.classList.remove('active');
+      document.body.classList.remove('resizing'); document.body.style.cursor = '';
+    };
+    handle.onpointerdown = event => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      handle.focus({preventScroll: true});
+      resizing = {pointerId: event.pointerId, coordinate: coordinate(event), value: begin()};
+      handle.setPointerCapture(event.pointerId); handle.classList.add('active');
+      document.body.classList.add('resizing'); document.body.style.cursor = axis === 'x' ? 'col-resize' : 'row-resize';
+    };
+    handle.onpointermove = event => {
+      if (resizing && event.pointerId === resizing.pointerId) move(resizing.value, coordinate(event)-resizing.coordinate);
+    };
+    handle.onpointerup = handle.onpointercancel = event => {
+      if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
+      finish();
+    };
+    handle.onlostpointercapture = finish;
+    handle.ondblclick = reset;
+    handle.onkeydown = event => {
+      const direction = axis === 'x' ? {ArrowLeft: -1, ArrowRight: 1} : {ArrowUp: -1, ArrowDown: 1};
+      if (direction[event.key]) { event.preventDefault(); move(begin(), direction[event.key]*(event.shiftKey ? 50 : 20)); }
+      if (event.key === 'Home') { event.preventDefault(); reset(); }
+    };
+  }
+
+  function resizeValue(handle, min, max, value, description) {
+    handle.setAttribute('aria-valuemin', Math.round(min)); handle.setAttribute('aria-valuemax', Math.round(max));
+    handle.setAttribute('aria-valuenow', Math.round(value)); handle.setAttribute('aria-valuetext', description);
+  }
+
+  function setDetailsWidth(value) {
+    const max = Math.max(120, $('workspace').clientWidth-128), min = Math.min(180, max);
+    value = Math.max(min, Math.min(max, value));
+    $('workspace').style.setProperty('--details-width', `${value}px`);
+    resizeValue($('details-resizer'), min, max, value, `Details width ${Math.round(value)} pixels`);
+  }
+
+  function setTreeHeight(value) {
+    const available = document.body.clientHeight-$('workspace').offsetTop-$('results-resizer').offsetHeight;
+    const max = Math.max(180, available-140);
+    value = Math.max(180, Math.min(max, value));
+    $('workspace').style.setProperty('--workspace-height', `${value}px`);
+    resizeValue($('results-resizer'), 180, max, value, `Tree height ${Math.round(value)} pixels; results height ${Math.round(available-value)} pixels`);
+  }
+
+  function applyColumnWidths() {
+    const table = $('result-table');
+    table.style.tableLayout = columnWidths ? 'fixed' : '';
+    table.style.width = columnWidths ? `${columnWidths.reduce((sum, value) => sum+value, 0)}px` : '';
+    Array.from($('column-widths').children).forEach((col, index) => { col.style.width = columnWidths ? `${columnWidths[index]}px` : ''; });
+    if (columnWidths) Array.from($('columns').children).forEach((th, index) => {
+      resizeValue(th.querySelector('.column-resizer'), 60, 4000, columnWidths[index], `${Math.round(columnWidths[index])} pixels`);
+    });
+  }
+
+  function appendColumn(th, label) {
+    const index = $('columns').children.length, handle = document.createElement('span');
+    handle.className = 'column-resizer'; handle.tabIndex = 0; handle.setAttribute('role', 'separator');
+    handle.setAttribute('aria-label', `Resize ${label} column`); handle.setAttribute('aria-orientation', 'vertical');
+    handle.title = 'Drag to resize column · double-click to reset column widths';
+    th.append(handle); $('columns').append(th); $('column-widths').append(document.createElement('col'));
+    bindResizer(handle, 'x', () => {
+      columnWidths = Array.from($('columns').children).map(column => column.getBoundingClientRect().width);
+      return columnWidths[index];
+    }, (start, delta) => {
+      columnWidths[index] = Math.max(60, Math.min(4000, start+delta)); applyColumnWidths();
+    }, () => { columnWidths = null; applyColumnWidths(); });
+  }
+
+  function layout() {
+    hideBranchAction();
+    const stack = [0], visibleChildren = new Map();
+    visible = []; hiddenCounts = new Map();
+    while (stack.length) {
+      const id = stack.pop();
+      visible.push(id);
+      const eligible = eligibleChildren(id), next = expanded.has(id) ? eligible : [];
+      hiddenCounts.set(id, eligible.length-next.length);
+      visibleChildren.set(id, next);
+      for (let i = next.length - 1; i >= 0; i--) stack.push(next[i]);
+    }
+    positions = new Map();
+    let leaf = 0;
+    for (const id of visible) {
+      if (!visibleChildren.get(id).length) positions.set(id, {x: leaf++ * 184, y: depths[id] * 152});
+    }
+    for (let i = visible.length - 1; i >= 0; i--) {
+      const id = visible[i], next = visibleChildren.get(id);
+      if (next.length) positions.set(id, {x: (positions.get(next[0]).x + positions.get(next[next.length - 1]).x) / 2, y: depths[id] * 152});
+    }
+    canvas.setAttribute('aria-label', `Search tree: ${visible.length} visible nodes. Use arrow keys to navigate nodes.`);
+    updateBranchControls();
+    draw();
+  }
+
+  function updateBranchControls() {
+    $('fold').disabled = !eligibleChildren(selected).length;
+    $('fold').textContent = expanded.has(selected) ? 'Fold branch' : 'Expand';
+  }
+
+  function expandNode(id) {
+    const before = positions.get(id);
+    expanded.add(id); layout();
+    const after = positions.get(id);
+    if (before && after) {
+      offsetX += (before.x-after.x)*scale;
+      const bottom = eligibleChildren(id).reduce((max, child) => {
+        const p = positions.get(child);
+        return Math.max(max, p.y+boxHeight(nodes[child])+(hiddenCounts.get(child) ? 42 : 0));
+      }, -Infinity);
+      offsetY -= Math.max(0, bottom*scale+offsetY-height+24);
+    }
+    draw();
+  }
+
+  function showDepth() {
+    const limit = Number($('depth').value);
+    for (const node of nodes) if (depths[node.id] < limit) expanded.add(node.id);
+    layout(); fit();
+  }
+
+  function resetTree() {
+    expanded.clear(); expanded.add(0);
+    $('depth').value = Math.min(3, maxDepth); updateDepthLabel();
+    $('pruned').checked = true;
+    $('rollouts').checked = true;
+    select(0); fit();
+  }
+
+  function updateVisibility() {
+    layout();
+    if (!positions.has(selected)) {
+      let id = nodes[selected].parent;
+      while (id !== null && !positions.has(id)) id = nodes[id].parent;
+      select(id ?? 0, selectedRow, true);
+    } else fit();
+  }
+
+  function updateDepthLabel() {
+    $('depth-value').value = $('depth').value;
+    $('show-depth').textContent = `Show all to depth ${$('depth').value}`;
+  }
+
+  function hideBranchAction() {
+    hoverAction = null; $('branch-action').hidden = true;
+  }
+
+  function showBranchAction(event) {
+    const action = branchHit(event), button = $('branch-action');
+    if (!action) { hideBranchAction(); return; }
+    hoverAction = action;
+    button.textContent = action.kind === 'expand' ? 'Expand' : 'Move to parent';
+    button.setAttribute('aria-label', `${button.textContent} node #${action.id}`);
+    button.hidden = false;
+    const rect = canvas.getBoundingClientRect();
+    button.style.left = `${Math.max(4, Math.min(width-button.offsetWidth-4, event.clientX-rect.left-button.offsetWidth/2))}px`;
+    button.style.top = `${Math.max(4, Math.min(height-button.offsetHeight-4, event.clientY-rect.top-button.offsetHeight/2))}px`;
+  }
+
+  function getImage(id) {
+    if (!imageCache.has(id)) {
+      const img = new Image();
+      img.onload = () => {
+        if (!drawPending) {
+          drawPending = true;
+          requestAnimationFrame(() => { drawPending = false; draw(); });
+        }
+      };
+      imageSource(id).then(src => { img.src = src; }).catch(console.error);
+      imageCache.set(id, img);
+    }
+    return imageCache.get(id);
+  }
+
+  function imageSource(id) {
+    if (!imageSources.has(id)) {
+      const image = data.images[id];
+      imageSources.set(id, typeof image === 'string' ? Promise.resolve(image) :
+        unpack(image).then(response => response.blob()).then(blob => URL.createObjectURL(new Blob([blob], {type: image.type}))));
+    }
+    return imageSources.get(id);
+  }
+
+  function edge(id, highlighted) {
+    const node = nodes[id], to = positions.get(id), from = positions.get(node.parent);
+    if (!from) return;
+    const x1 = from.x, y1 = from.y + boxHeight(nodes[node.parent]), x2 = to.x, y2 = to.y;
+    if ((Math.max(x1, x2) + 80) * scale + offsetX < 0 || (Math.min(x1, x2) - 80) * scale + offsetX > width || y2 * scale + offsetY < 0 || y1 * scale + offsetY > height) return;
+    ctx.strokeStyle = highlighted ? '#008b82' : node.rollout ? '#b68b51' : '#c1cfd9';
+    ctx.lineWidth = (highlighted ? 2.5 : 1) / Math.max(scale, .2);
+    ctx.setLineDash(node.rollout ? [2, 4] : node.pruned ? [5, 4] : []);
+    ctx.lineCap = node.rollout ? 'round' : 'butt';
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.bezierCurveTo(x1, (y1+y2)/2, x2, (y1+y2)/2, x2, y2); ctx.stroke();
+    ctx.setLineDash([]); ctx.lineCap = 'butt';
+    const action = node.action_label ?? node.last_action;
+    if (action !== null && action !== undefined && scale > .25) {
+      const label = short(action, 25), x = (x1+x2)/2, y = (y1+y2)/2;
+      ctx.font = `${10/Math.min(1, scale)}px system-ui`;
+      const w = ctx.measureText(label).width + 10/scale;
+      ctx.fillStyle = '#f3f6f8'; ctx.fillRect(x-w/2, y-7/scale, w, 14/scale);
+      ctx.fillStyle = highlighted ? '#00766e' : '#526d80'; ctx.textAlign = 'center'; ctx.fillText(label, x, y+3/scale);
+    }
+  }
+
+  function hiddenBranches(id) {
+    if (!hiddenCounts.get(id)) return;
+    const node = nodes[id], p = positions.get(id), y = p.y+boxHeight(node);
+    ctx.strokeStyle = node.pruned ? '#9aafb9' : '#748f9f';
+    ctx.lineWidth = 1/Math.max(scale, .3); ctx.setLineDash([]);
+    for (const dx of [-24, -8, 8, 24]) {
+      ctx.beginPath(); ctx.moveTo(p.x+dx/4, y+3); ctx.lineTo(p.x+dx, y+22); ctx.stroke();
+    }
+    ctx.fillStyle = '#617786'; ctx.textAlign = 'center'; ctx.font = '16px system-ui';
+    ctx.fillText('…', p.x, y+39);
+  }
+
+  function draw() {
+    const ratio = window.devicePixelRatio || 1;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0); ctx.clearRect(0, 0, width, height);
+    ctx.translate(offsetX, offsetY); ctx.scale(scale, scale);
+    for (const id of visible) if (!path.has(id)) edge(id, false);
+    for (const id of visible) if (path.has(id)) edge(id, true);
+    for (const id of visible) {
+      const node = nodes[id], p = positions.get(id), h = boxHeight(node);
+      if ((p.x+80)*scale+offsetX < 0 || (p.x-80)*scale+offsetX > width || (p.y+h+42)*scale+offsetY < 0 || p.y*scale+offsetY > height) continue;
+      ctx.fillStyle = id === selected ? '#d8f0eb' : '#ffffff';
+      ctx.strokeStyle = path.has(id) ? '#008b82' : node.rollout ? '#b68b51' : '#bdced8';
+      ctx.lineWidth = (id === selected ? 2.5 : 1) / Math.max(scale, .2);
+      ctx.setLineDash(node.pruned ? [5, 4] : []);
+      ctx.beginPath(); ctx.roundRect(p.x-80, p.y, 160, h, 7); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+      hiddenBranches(id);
+      if (scale < .16 && id !== selected) continue;
+      ctx.textAlign = 'center';
+      if (node.image !== null) {
+        const img = getImage(node.image);
+        if (img.complete && img.naturalWidth) ctx.drawImage(img, p.x-72, p.y+5, 144, 80);
+      } else {
+        ctx.font = '12px ui-monospace, monospace'; ctx.fillStyle = '#243647';
+        ctx.fillText(short(displayState(node) || '(root)', 20), p.x, p.y+24);
+      }
+      ctx.font = '10px system-ui'; ctx.fillStyle = '#617786';
+      const reward = typeof node.reward === 'number' ? Number(node.reward.toPrecision(5)) : node.reward;
+      const label = `#${id}${node.rollout ? ' rollout' : ' n: ' + node.n}${node.reward !== null && node.reward !== undefined ? ' reward: ' + text(reward) : ''}`;
+      ctx.fillText(label, p.x, p.y+h-11, 148);
+    }
+    $('zoom').textContent = `${(scale*100).toFixed(scale < .1 ? 1 : 0)}%`;
+  }
+
+  function fit() {
+    hideBranchAction();
+    if (!visible.length) return;
+    let minX = Infinity, maxX = -Infinity, maxY = 0;
+    for (const id of visible) { const p = positions.get(id); minX = Math.min(minX, p.x-90); maxX = Math.max(maxX, p.x+90); maxY = Math.max(maxY, p.y+boxHeight(nodes[id])+(hiddenCounts.get(id) ? 42 : 0)); }
+    scale = Math.min(1.2, (width-40)/(maxX-minX), (height-50)/(maxY+10));
+    offsetX = (width-(maxX-minX)*scale)/2-minX*scale; offsetY = 20; draw();
+  }
+
+  function zoom(factor, x = width/2, y = height/2) {
+    hideBranchAction();
+    const next = Math.max(.00001, Math.min(6, scale*factor));
+    offsetX = x-(x-offsetX)*next/scale; offsetY = y-(y-offsetY)*next/scale; scale = next; draw();
+  }
+
+  function showImage(element, id) {
+    element.hidden = id === null || id === undefined;
+    element.dataset.imageId = String(id);
+    element.removeAttribute('src');
+    if (!element.hidden) imageSource(id).then(src => {
+      if (element.dataset.imageId === String(id)) element.src = src;
+    }).catch(error => { if (element.dataset.imageId === String(id)) element.hidden = true; console.error(error); });
+  }
+
+  function select(id, rowIndex = null, center = false) {
+    if (nodes[id].rollout) { $('rollouts').checked = true; rowIndex ??= nodes[id].row_index; }
+    selected = id; selectedRow = rowIndex; path = new Set();
+    let cur = id;
+    while (cur !== null) { path.add(cur); if (nodes[cur].pruned) $('pruned').checked = true; if (cur !== id) expanded.add(cur); cur = nodes[cur].parent; }
+    layout();
+    if (center) {
+      scale = Math.max(.7, scale);
+      const p = positions.get(id); offsetX = width/2-p.x*scale; offsetY = height/2-(p.y+boxHeight(nodes[id])/2)*scale;
+    }
+    const node = nodes[id];
+    $('node-title').textContent = `${node.rollout ? 'Rollout' : 'Node'} #${id}`;
+    $('node-key').textContent = displayState(node) || '(empty key)'; showImage($('node-image'), node.image);
+    $('stats').replaceChildren();
+    const fields = node.rollout ? ['type', 'depth', 'n_children', 'rollout_from', 'reward'] : ['type', 'depth', 'n', 'n_children', 'sum_r', 'best_r', 'reward', 'last_action', 'last_prob', 'terminal', 'frozen', 'pruned'];
+    for (const field of fields) {
+      const dt = document.createElement('dt'), dd = document.createElement('dd'), value = node[field];
+      dt.textContent = field; dd.title = text(value);
+      dd.textContent = typeof value === 'number' && !Number.isInteger(value) ? value.toPrecision(8) : text(value);
+      $('stats').append(dt, dd);
+    }
+    $('path').replaceChildren();
+    for (const ancestor of Array.from(path).reverse()) {
+      const button = document.createElement('button'); button.textContent = `#${ancestor}`; button.title = displayState(nodes[ancestor]); button.onclick = () => select(ancestor, null, true); $('path').append(button);
+    }
+    $('parent').disabled = node.parent === null;
+    $('result-detail').hidden = rowIndex === null;
+    if (rowIndex !== null) {
+      const row = data.rows[rowIndex]; $('result-key').textContent = text(row.state ?? row.values[2]); showImage($('result-image'), row.image);
+      $('result-source').textContent = `Result #${row.values[0]} → ${row.is_rollout ? 'rollout from' : 'direct evaluation of'} node #${row.node_id}`;
+    }
+    renderRows(); draw();
+  }
+
+  function toggleFold(id) {
+    if (!eligibleChildren(id).length) return;
+    if (expanded.has(id)) {
+      const before = positions.get(id);
+      expanded.delete(id); layout();
+      const after = positions.get(id);
+      if (before && after) offsetX += (before.x-after.x)*scale;
+      draw();
+    } else expandNode(id);
+  }
+
+  function buildColumns() {
+    $('columns').replaceChildren(); $('column-widths').replaceChildren();
+    data.columns.forEach((column, index) => {
+      const th = document.createElement('th'), button = document.createElement('button');
+      th.setAttribute('aria-sort', index === sortColumn ? (sortDirection === 1 ? 'ascending' : 'descending') : 'none');
+      button.textContent = `${column} ${index === sortColumn ? (sortDirection === 1 ? '↑' : '↓') : '↕'}`;
+      button.onclick = () => { sortDirection = index === sortColumn ? -sortDirection : 1; sortColumn = index; page = 0; updateResults(); };
+      th.append(button); appendColumn(th, column);
+      if (index === 2 && hasImages) { const imageTh = document.createElement('th'); imageTh.className = 'image-column'; imageTh.textContent = 'Molecule'; appendColumn(imageTh, 'Molecule'); }
+    });
+    applyColumnWidths();
+  }
+
+  function updateResults() {
+    const query = $('search').value.toLowerCase();
+    filtered = data.rows.map((row, index) => index).filter(index => !query || data.rows[index].values.some(value => text(value).toLowerCase().includes(query)));
+    filtered.sort((a, b) => {
+      const x = data.rows[a].values[sortColumn], y = data.rows[b].values[sortColumn];
+      const cmp = typeof x === 'number' && typeof y === 'number' ? x-y : text(x).localeCompare(text(y), undefined, {numeric: true});
+      return cmp*sortDirection || a-b;
+    });
+    buildColumns(); renderRows();
+  }
+
+  function renderRows() {
+    const pages = Math.max(1, Math.ceil(filtered.length/pageSize)); page = Math.min(page, pages-1);
+    $('rows').replaceChildren();
+    for (const index of filtered.slice(page*pageSize, (page+1)*pageSize)) {
+      const row = data.rows[index], tr = document.createElement('tr'); tr.tabIndex = 0;
+      tr.className = index === selectedRow ? 'selected' : row.node_id === selected || row.rollout_id === selected ? 'related' : '';
+      const choose = () => { if (row.node_id !== null) select(row.node_id, index, true); };
+      tr.onclick = choose; tr.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(); } };
+      row.values.forEach((value, column) => {
+        const td = document.createElement('td'); td.textContent = text(value); tr.append(td);
+        if (column === 2 && hasImages) { const imageTd = document.createElement('td'); if (row.image !== null) { const img = document.createElement('img'); img.alt = text(row.values[2]); img.loading = 'lazy'; showImage(img, row.image); imageTd.append(img); } tr.append(imageTd); }
+      });
+      $('rows').append(tr);
+    }
+    $('empty').hidden = filtered.length !== 0; $('row-count').textContent = `${filtered.length.toLocaleString()} / ${data.rows.length.toLocaleString()} rows`;
+    $('page').textContent = `${page+1} / ${pages}`; $('previous').disabled = page === 0; $('next').disabled = page+1 >= pages;
+    Array.from($('columns').children).forEach(th => {
+      const size = th.getBoundingClientRect().width;
+      resizeValue(th.querySelector('.column-resizer'), 60, 4000, size, `${Math.round(size)} pixels`);
+    });
+  }
+
+  function hit(event) {
+    const rect = canvas.getBoundingClientRect(), x = (event.clientX-rect.left-offsetX)/scale, y = (event.clientY-rect.top-offsetY)/scale;
+    return visible.findLast(id => { const p = positions.get(id); return Math.abs(x-p.x) <= 80 && y >= p.y && y <= p.y+boxHeight(nodes[id]); });
+  }
+
+  function branchHit(event) {
+    if (hit(event) !== undefined) return null;
+    const rect = canvas.getBoundingClientRect(), x = (event.clientX-rect.left-offsetX)/scale, y = (event.clientY-rect.top-offsetY)/scale;
+    for (const id of visible) {
+      const p = positions.get(id), bottom = p.y+boxHeight(nodes[id]);
+      if (hiddenCounts.get(id) && Math.abs(x-p.x) <= Math.max(32, 12/scale) && y >= bottom && y <= bottom+48) return {kind: 'expand', id};
+    }
+    const tolerance = 10/scale;
+    let closest = tolerance*tolerance, action = null;
+    for (const id of visible) {
+      const to = positions.get(id), parent = nodes[id].parent, from = positions.get(parent);
+      if (!from) continue;
+      const y1 = from.y+boxHeight(nodes[parent]), y2 = to.y, mid = (y1+y2)/2;
+      if (y < y1-tolerance || y > y2+tolerance || x < Math.min(from.x, to.x)-tolerance || x > Math.max(from.x, to.x)+tolerance) continue;
+      let px = from.x, py = y1;
+      for (let step = 1; step <= 12; step++) {
+        const t = step/12, u = 1-t;
+        const qx = from.x*(u*u*u+3*u*u*t)+to.x*(3*u*t*t+t*t*t);
+        const qy = y1*u*u*u+3*mid*u*t+y2*t*t*t;
+        const dx = qx-px, dy = qy-py;
+        const fraction = Math.max(0, Math.min(1, ((x-px)*dx+(y-py)*dy)/(dx*dx+dy*dy || 1)));
+        const distance = (x-px-fraction*dx)**2+(y-py-fraction*dy)**2;
+        if (distance < closest) { closest = distance; action = {kind: 'parent', id: parent}; }
+        px = qx; py = qy;
+      }
+    }
+    return action;
+  }
+
+  let drag = null;
+  canvas.onpointerdown = event => { hideBranchAction(); drag = {x: event.clientX, y: event.clientY, ox: offsetX, oy: offsetY, moved: false}; canvas.setPointerCapture(event.pointerId); canvas.classList.add('dragging'); };
+  canvas.onpointermove = event => { if (!drag) { showBranchAction(event); return; } const dx = event.clientX-drag.x, dy = event.clientY-drag.y; drag.moved ||= Math.abs(dx)+Math.abs(dy) > 4; if (drag.moved) { offsetX = drag.ox+dx; offsetY = drag.oy+dy; draw(); } };
+  canvas.onpointerup = event => { if (drag && !drag.moved) { const id = hit(event); if (id !== undefined) select(id); } drag = null; canvas.classList.remove('dragging'); };
+  canvas.onpointercancel = () => { drag = null; canvas.classList.remove('dragging'); };
+  canvas.onpointerleave = event => { if (event.relatedTarget !== $('branch-action')) hideBranchAction(); };
+  $('branch-action').onpointerleave = event => { if (event.relatedTarget === canvas) showBranchAction(event); else hideBranchAction(); };
+  $('branch-action').onclick = () => {
+    const action = hoverAction;
+    hideBranchAction();
+    if (!action) return;
+    if (action.kind === 'expand') expandNode(action.id);
+    else select(action.id, null, true);
+  };
+  canvas.ondblclick = event => { const id = hit(event); if (id !== undefined) toggleFold(id); };
+  canvas.addEventListener('wheel', event => { event.preventDefault(); const rect = canvas.getBoundingClientRect(); zoom(Math.exp(-event.deltaY*.0015), event.clientX-rect.left, event.clientY-rect.top); }, {passive: false});
+  canvas.onkeydown = event => {
+    let id;
+    if (event.key === 'ArrowLeft') id = nodes[selected].parent;
+    if (event.key === 'ArrowRight') id = eligibleChildren(selected)[0];
+    if (event.key === 'ArrowUp') id = visible[Math.max(0, visible.indexOf(selected)-1)];
+    if (event.key === 'ArrowDown') id = visible[Math.min(visible.length-1, visible.indexOf(selected)+1)];
+    if (id !== undefined && id !== null) { event.preventDefault(); select(id, null, true); }
+  };
+  $('fit').onclick = fit; $('zoom-in').onclick = () => zoom(1.35); $('zoom-out').onclick = () => zoom(1/1.35);
+  $('depth').oninput = updateDepthLabel; $('show-depth').onclick = showDepth; $('reset').onclick = resetTree;
+  $('pruned').onchange = updateVisibility; $('rollouts').onchange = updateVisibility;
+  $('parent').onclick = () => select(nodes[selected].parent, null, true); $('fold').onclick = () => toggleFold(selected);
+  $('search').oninput = () => { page = 0; updateResults(); };
+  $('previous').onclick = () => { page--; renderRows(); }; $('next').onclick = () => { page++; renderRows(); };
+  bindResizer($('details-resizer'), 'x', () => $('details').getBoundingClientRect().width,
+    (start, delta) => setDetailsWidth(start-delta), () => {
+      $('workspace').style.removeProperty('--details-width'); setDetailsWidth($('details').getBoundingClientRect().width);
+    });
+  bindResizer($('results-resizer'), 'y', () => $('workspace').getBoundingClientRect().height,
+    (start, delta) => setTreeHeight(start+delta), () => {
+      $('workspace').style.removeProperty('--workspace-height'); setTreeHeight($('workspace').getBoundingClientRect().height);
+    });
+  const constrainPanels = () => { setDetailsWidth($('details').getBoundingClientRect().width); setTreeHeight($('workspace').getBoundingClientRect().height); };
+  window.addEventListener('resize', constrainPanels); constrainPanels();
+  new ResizeObserver(() => {
+    hideBranchAction();
+    const nextWidth = canvas.clientWidth, nextHeight = canvas.clientHeight;
+    offsetX += (nextWidth-width)/2; offsetY += (nextHeight-height)/2;
+    width = nextWidth; height = nextHeight;
+    const ratio = window.devicePixelRatio || 1; canvas.width = width*ratio; canvas.height = height*ratio; draw();
+  }).observe(canvas);
+  width = canvas.clientWidth; height = canvas.clientHeight;
+  updateResults(); resetTree();
+})().catch(error => {
+  document.getElementById('summary').textContent = 'Could not load visualization. Please use an up-to-date browser.';
+  console.error(error);
+});
+</script>
+</html>

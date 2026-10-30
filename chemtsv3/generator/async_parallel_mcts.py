@@ -619,6 +619,7 @@ class AsyncParallelMCTS(MCTS):
             target = self.transition.rollout(child)
             is_direct = False
 
+        self.on_evaluation(child, target)
         pre = self._pre_reward_checks(target)
 
         if not (type(pre[0]) is bool and pre[0] is True): # no reward calculation

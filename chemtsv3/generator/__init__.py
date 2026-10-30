@@ -5,6 +5,15 @@ from .random_generator import RandomGenerator
 
 # lazy import
 def __getattr__(name):
+    if name == "VisualizedMCTS":
+        from .visualized_mcts import VisualizedMCTS
+        return VisualizedMCTS
+    if name == "VisualizedAsyncParallelMCTS":
+        from .visualized_mcts import VisualizedAsyncParallelMCTS
+        return VisualizedAsyncParallelMCTS
+    if name == "VisualizedDoubleAsyncParallelMCTS":
+        from .visualized_mcts import VisualizedDoubleAsyncParallelMCTS
+        return VisualizedDoubleAsyncParallelMCTS
     if name == "AsyncParallelMCTS":
         from .async_parallel_mcts import AsyncParallelMCTS
         return AsyncParallelMCTS

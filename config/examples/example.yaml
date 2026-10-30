@@ -1,5 +1,5 @@
 time_limit: 1200 # Seconds
-max_generations: 1000
+max_generations: 3000
 # seed: 0 # Set seed
 
 ### Common Args - output_dir, device(, logger) are automatically applied to all classes that have arguments with the same names. This is also applied to node_class_variables.###
@@ -50,9 +50,10 @@ policy_args:
 
 ### Generator ###
 generator_class: MCTS
+# generator_class: VisualizedMCTS   # Use this instead for tree visualizations
 generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
   n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might be more sample efficient.
-  n_eval_iters: 1
+  n_eval_iters: 3 # The number of forced evaluations
   n_tries: 1
   filter_reward: 0  # Applies the same fallback reward value to all filter steps
   # filter_reward: [0, 0.1] # Specifies different fallback reward values to each filter step

@@ -133,6 +133,7 @@ class MCTS(Generator):
     
     def _eval(self, node: Node):
         if node.has_reward():
+            self.on_evaluation(node, node)
             objective_values, reward = self._get_objective_values_and_reward(node)
             if self.reward_cutoff is not None and reward < self.reward_cutoff and self.reward_cutoff_warmups < self.n_generated_nodes():
                 if type(objective_values[0]) != str or not self.cut_failed_child: # not filtered
@@ -140,6 +141,7 @@ class MCTS(Generator):
                 node.leave(logger=self.logger)
         else:
             offspring = self.transition.rollout(node)
+            self.on_evaluation(node, offspring)
             objective_values, reward = self._get_objective_values_and_reward(offspring)
         
         self.policy.observe(child=node, objective_values=objective_values, reward=reward, is_filtered=(type(objective_values[0])==str))
@@ -163,7 +165,16 @@ class MCTS(Generator):
                     self.node_keys.add(key)
             node.add_child(n)
             expanded = True
+        self.on_expansion(node)
         return expanded
+
+    def on_expansion(self, node: Node):
+        """Called after attaching expansion results, before evaluation or pruning."""
+        pass
+
+    def on_evaluation(self, node: Node, target: Node):
+        """Called before reward checks with the tree node and its evaluation target (can be different if rollout is involved.). """
+        pass
 
     def _backpropagate(self, node: Node, value: float, use_dummy_reward: bool, objective_values: list[float]=None):
         if self._is_rebackpropagation_enabled and node is not None and objective_values is not None: # For AdaptiveReward
@@ -243,6 +254,7 @@ class MCTS(Generator):
             target = self.transition.rollout(child)
             is_direct = False
             
+        self.on_evaluation(child, target)
         pre = self._pre_reward_checks(target)
 
         if not (type(pre[0]) is bool and pre[0] is True): # no reward calculation

@@ -432,6 +432,7 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
         if not self._reward_can_accept():
             return False
 
+        self.on_evaluation(child, target)
         pre = self._pre_reward_checks(target)
 
         if not (type(pre[0]) is bool and pre[0] is True): # no reward calculation
@@ -565,6 +566,7 @@ class DoubleAsyncParallelMCTS(AsyncParallelMCTS):
             node.add_child(n, override_parent=True)
             expanded = True
 
+        self.on_expansion(node)
         if not expanded:
             node.mark_as_terminal(cut=self.cut_terminal, logger=self.logger)
 
