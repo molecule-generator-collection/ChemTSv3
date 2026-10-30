@@ -18,6 +18,20 @@ class SentenceNode(Node):
     def key(self):
         return self.lang.ids2sentence(self.id_list())
 
+    # override
+    def visualize(self) -> str:
+        """Draw completed molecular sentences; otherwise keep the token order."""
+        state = SentenceNode.key(self)
+        if (isinstance(self, MolNode) or isinstance(self.lang, MolLanguage)) and self.has_reward():
+            try:
+                mol = self.mol() if isinstance(self, MolNode) else self.lang.sentence2mol(state)
+                image = MolNode._mol_to_image(mol)
+                if image is not None:
+                    return image
+            except (ValueError, RuntimeError):
+                pass
+        return state
+
     # implement
     def has_reward(self):
         return self.id_tensor[0][-1] == self.lang.eos_id()

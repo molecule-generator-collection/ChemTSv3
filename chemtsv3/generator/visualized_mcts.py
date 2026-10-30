@@ -6,12 +6,10 @@ import math
 import os
 from pathlib import Path
 from numbers import Integral, Real
-from rdkit.Chem.Draw import rdMolDraw2D
 from chemtsv3.generator import MCTS
 from chemtsv3.generator.async_parallel_mcts import AsyncParallelMCTS
 from chemtsv3.generator.double_async_parallel_mcts import DoubleAsyncParallelMCTS
-from chemtsv3.node import Node, MolNode, SentenceNode
-from chemtsv3.language import SMILES
+from chemtsv3.node import Node, SentenceNode
 
 class VisualizedMCTS(MCTS):
     """MCTS with a standalone, offline HTML tree viewer.
@@ -66,7 +64,9 @@ class VisualizedMCTS(MCTS):
 
     @staticmethod
     def _pack_image(image: str | dict | None) -> str | dict | None:
-        """Compress SVG data URIs; preserve custom images and already packed SVGs."""
+        """Pack image data URIs, returning None for text labels."""
+        if isinstance(image, str) and not image.startswith("data:image/"):
+            return None
         prefix = "data:image/svg+xml;base64,"
         if not isinstance(image, str) or not image.startswith(prefix):
             return image
@@ -96,44 +96,16 @@ class VisualizedMCTS(MCTS):
 
     # override
     def on_generation(self, node: Node, objective_values: list[float], reward: float):
+        display = node.visualize()
+        image = self._pack_image(display)
         self._visualized_results[node.key()] = {
             "node_id": getattr(node, "_visualized_source_id", None),
-            "image": self._pack_image(self.key_to_image(node.key(), node)),
+            "image": image,
             "is_rollout": getattr(node, "_visualized_is_rollout", False),
-            "state": self._display_state(node),
+            "state": display if image is None else self._display_state(node),
             "type": node.__class__.__name__,
         }
         super().on_generation(node, objective_values=objective_values, reward=reward)
-
-    def key_to_image(self, key: str, node: Node) -> str | None:
-        """Return an image data URI, or None to display the key as text.
-
-        Override to customize drawings. SentenceNode tree entries always use
-        text; completed SMILES/SELFIES results also call this method.
-        """
-        lang = getattr(node, "lang", None)
-        if lang is None:
-            return None
-        if not isinstance(lang, SMILES):
-            try:
-                from chemtsv3.language import SELFIES
-            except ImportError:
-                return None
-            if not isinstance(lang, SELFIES):
-                return None
-        if not node.has_reward():
-            return None
-        try:
-            mol = node.mol() if isinstance(node, MolNode) else lang.sentence2mol(key)
-            if mol is None or mol.GetNumAtoms() == 0:
-                return None
-            drawer = rdMolDraw2D.MolDraw2DSVG(240, 150)
-            drawer.DrawMolecule(mol)
-            drawer.FinishDrawing()
-            encoded = base64.b64encode(drawer.GetDrawingText().encode("utf-8")).decode("ascii")
-            return "data:image/svg+xml;base64," + encoded
-        except (ValueError, RuntimeError):
-            return None
 
     # override
     def generate(self, max_generations: int=None, time_limit: float=None):
@@ -168,13 +140,13 @@ class VisualizedMCTS(MCTS):
         nodes = []
         for node_id, node in enumerate(self._visualized_nodes):
             key = node.key()
-            # Keep token prefixes as text, even when they happen to be valid SMILES.
-            image = None if isinstance(node, SentenceNode) else self.key_to_image(key, node)
+            display = node.visualize()
+            image = self._pack_image(display)
             nodes.append({
                 "id": node_id,
                 "parent": self._visualized_parents[node_id],
                 "key": key,
-                "state": self._display_state(node),
+                "state": display if image is None else self._display_state(node),
                 "type": node.__class__.__name__,
                 "depth": node.depth,
                 "n": node.n,

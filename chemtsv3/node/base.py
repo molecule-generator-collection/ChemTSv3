@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import base64
 import weakref
 import logging
 from typing import Self, Any
@@ -39,6 +40,13 @@ class Node(ABC):
     def has_reward(self) -> bool:
         """Define the reward condition (e.g. whether it is complete molecule or not)."""
         pass
+
+    def visualize(self) -> str:
+        """Return an image data URI or a text label for visualization.
+
+        Override this method to customize how the node is displayed.
+        """
+        return self.key()
     
     # should be overridden for YAML compatibility etc.
     @classmethod
@@ -206,6 +214,29 @@ class MolNode(Node):
     def smiles(self, save_cache=False) -> str:
         """Should be overridden if the node has an explicit SMILES as a variable."""
         return Chem.MolToSmiles(self.mol(save_cache=save_cache))
+
+    @staticmethod
+    def _mol_to_image(mol: Mol) -> str | None:
+        if mol is None or mol.GetNumAtoms() == 0:
+            return None
+        from rdkit.Chem.Draw import rdMolDraw2D
+        drawer = rdMolDraw2D.MolDraw2DSVG(240, 150)
+        drawer.DrawMolecule(mol)
+        drawer.FinishDrawing()
+        encoded = base64.b64encode(drawer.GetDrawingText().encode("utf-8")).decode("ascii")
+        return "data:image/svg+xml;base64," + encoded
+
+    # override
+    def visualize(self) -> str:
+        """Draw a completed molecule, falling back to its key."""
+        if self.has_reward():
+            try:
+                image = self._mol_to_image(self.mol())
+                if image is not None:
+                    return image
+            except (ValueError, RuntimeError):
+                pass
+        return super().visualize()
     
     # override
     # def hash(self):

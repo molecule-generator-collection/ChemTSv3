@@ -49,8 +49,8 @@ policy_args:
   best_rate: 0.5
 
 ### Generator ###
-generator_class: MCTS
-# generator_class: VisualizedMCTS   # Use this instead for tree visualizations
+# generator_class: MCTS # MCTS without visualization
+generator_class: VisualizedMCTS # For tree visualizations, use this instead of MCTS
 generator_args: # root, transition, reward, policy and filters are automatically included in the arguments.
   n_eval_width: .inf # If the reward calculation is expensive, n_eval_width = 1 might be more sample efficient.
   n_eval_iters: 3 # The number of forced evaluations
