@@ -43,9 +43,6 @@
   dl { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 6px 10px; font-size: 12px; }
   dt { color: #617786; }
   dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; white-space: pre-wrap; }
-  #parents { display: flex; gap: 8px; align-items: baseline; margin-top: 18px; }
-  #path { display: flex; gap: 4px; flex-wrap: wrap; min-width: 0; }
-  #path button { font-size: 11px; padding: 3px 6px; }
   #result-detail { margin-top: 20px; border-top: 1px solid #d9e2e8; padding-top: 15px; }
   .results { background: white; display: flex; flex-direction: column; flex: 1; min-height: 140px; }
   .results h2 { margin: 0 8px 0 0; }
@@ -71,7 +68,6 @@
   <button id="fit">Fit tree</button><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom"></span><button id="zoom-in" aria-label="Zoom in">+</button>
   <label>Depth <input id="depth" type="range" min="0" value="3"><output id="depth-value"></output></label>
   <button id="show-depth">Show all to depth 3</button><button id="reset">Reset</button>
-  <label><input id="pruned" type="checkbox" checked> Show pruned</label>
   <label><input id="rollouts" type="checkbox" checked> Show rollouts</label>
 </div>
 <div class="workspace" id="workspace">
@@ -82,7 +78,6 @@
     <button id="parent">Move to parent</button> <button id="fold">Fold branch</button>
     <dl id="stats"></dl>
     <div id="result-detail" hidden><h2>Selected result</h2><p id="result-source" class="muted"></p><img id="result-image" alt="Generated molecule" hidden><div id="result-key"></div></div>
-    <div id="parents"><span class="muted">Parents:</span><div id="path" aria-label="Parents"></div></div>
   </aside>
 </div>
 <div id="results-resizer" class="splitter horizontal" role="separator" aria-label="Results panel height" aria-orientation="horizontal" aria-controls="workspace results" tabindex="0" title="Drag to resize results · double-click to reset"></div>
@@ -144,7 +139,7 @@
   const hasReward = node => node.reward !== null && node.reward !== undefined;
   const boxHeight = node => (node.image === null ? 58 : 108)+(hasReward(node) ? 30 : 0);
   const displayState = node => node.state ?? node.key;
-  const eligibleChildren = id => children[id].filter(child => ($('pruned').checked || !nodes[child].pruned) && ($('rollouts').checked || !nodes[child].rollout));
+  const eligibleChildren = id => children[id].filter(child => $('rollouts').checked || !nodes[child].rollout);
 
   function bindResizer(handle, axis, begin, move, reset) {
     let resizing = null;
@@ -276,7 +271,6 @@
   function resetTree() {
     expanded.clear(); expanded.add(0);
     $('depth').value = Math.min(3, maxDepth); updateDepthLabel();
-    $('pruned').checked = true;
     $('rollouts').checked = true;
     select(0); fit();
   }
@@ -432,7 +426,7 @@
     if (nodes[id].rollout) { $('rollouts').checked = true; rowIndex ??= nodes[id].row_index; }
     selected = id; selectedRow = rowIndex; path = new Set();
     let cur = id;
-    while (cur !== null) { path.add(cur); if (nodes[cur].pruned) $('pruned').checked = true; if (cur !== id) expanded.add(cur); cur = nodes[cur].parent; }
+    while (cur !== null) { path.add(cur); if (cur !== id) expanded.add(cur); cur = nodes[cur].parent; }
     layout();
     if (center) {
       scale = Math.max(.7, scale);
@@ -455,11 +449,6 @@
     if (sameResult) {
       data.columns.forEach((column, index) => { if (index !== 2 && index !== 3) appendStat(column, row.values[index]); });
     }
-    $('path').replaceChildren();
-    for (const ancestor of Array.from(path).reverse().filter(ancestor => ancestor !== id)) {
-      const button = document.createElement('button'); button.textContent = `#${ancestor}`; button.title = displayState(nodes[ancestor]); button.onclick = () => select(ancestor, null, true); $('path').append(button);
-    }
-    if (!$('path').children.length) { const empty = document.createElement('span'); empty.className = 'muted'; empty.textContent = '—'; $('path').append(empty); }
     $('parent').disabled = node.parent === null;
     $('result-detail').hidden = !row || sameResult;
     if (row && !sameResult) {
@@ -591,7 +580,7 @@
   };
   $('fit').onclick = fit; $('zoom-in').onclick = () => zoom(1.35); $('zoom-out').onclick = () => zoom(1/1.35);
   $('depth').oninput = updateDepthLabel; $('show-depth').onclick = showDepth; $('reset').onclick = resetTree;
-  $('pruned').onchange = updateVisibility; $('rollouts').onchange = updateVisibility;
+  $('rollouts').onchange = updateVisibility;
   $('parent').onclick = () => select(nodes[selected].parent, null, true); $('fold').onclick = () => toggleFold(selected);
   $('search').oninput = () => { page = 0; updateResults(); };
   $('previous').onclick = () => { page--; renderRows(); }; $('next').onclick = () => { page++; renderRows(); };
