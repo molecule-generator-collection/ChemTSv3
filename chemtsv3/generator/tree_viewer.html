@@ -43,7 +43,8 @@
   dl { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 6px 10px; font-size: 12px; }
   dt { color: #617786; }
   dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; white-space: pre-wrap; }
-  #path { display: flex; gap: 4px; flex-wrap: wrap; margin: 10px 0; }
+  #parents { display: flex; gap: 8px; align-items: baseline; margin-top: 18px; }
+  #path { display: flex; gap: 4px; flex-wrap: wrap; min-width: 0; }
   #path button { font-size: 11px; padding: 3px 6px; }
   #result-detail { margin-top: 20px; border-top: 1px solid #d9e2e8; padding-top: 15px; }
   .results { background: white; display: flex; flex-direction: column; flex: 1; min-height: 140px; }
@@ -78,10 +79,10 @@
   <div id="details-resizer" class="splitter vertical" role="separator" aria-label="Details panel width" aria-orientation="vertical" aria-controls="details" tabindex="0" title="Drag to resize details · double-click to reset"></div>
   <aside id="details">
     <h2 id="node-title">Selected node</h2><img id="node-image" alt="Selected molecule" hidden><div id="node-key"></div>
-    <div id="path" aria-label="Path from root"></div>
     <button id="parent">Move to parent</button> <button id="fold">Fold branch</button>
     <dl id="stats"></dl>
     <div id="result-detail" hidden><h2>Selected result</h2><p id="result-source" class="muted"></p><img id="result-image" alt="Generated molecule" hidden><div id="result-key"></div></div>
+    <div id="parents"><span class="muted">Parents:</span><div id="path" aria-label="Parents"></div></div>
   </aside>
 </div>
 <div id="results-resizer" class="splitter horizontal" role="separator" aria-label="Results panel height" aria-orientation="horizontal" aria-controls="workspace results" tabindex="0" title="Drag to resize results · double-click to reset"></div>
@@ -104,13 +105,15 @@
   const $ = id => document.getElementById(id);
   const nodes = data.nodes;
   const treeNodeCount = nodes.length;
+  const generationOrders = new Map(data.rows.map(row => [row.values[2], row.values[0]]));
+  for (const node of nodes) node.generation_order = generationOrders.get(node.key);
   data.rows.forEach((row, rowIndex) => {
     if (!row.is_rollout || row.node_id === null || !nodes[row.node_id]) return;
     row.rollout_id = nodes.length;
     nodes.push({
       id: nodes.length, parent: row.node_id, key: row.values[2], state: row.state ?? row.values[2],
       type: row.type || 'Rollout', depth: nodes[row.node_id].depth+1, n_children: 0,
-      reward: row.values[3], last_action: 'rollout', action_label: 'rollout',
+      reward: row.values[3], generation_order: row.values[0], last_action: 'rollout', action_label: 'rollout',
       image: row.image, rollout: true, rollout_from: `#${row.node_id}`, row_index: rowIndex, pruned: false,
     });
   });
@@ -138,7 +141,8 @@
   const hasImages = data.rows.some(row => row.image !== null);
   const text = value => typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value ?? '');
   const short = (value, size = 23) => { const s = text(value).replace(/\s+/g, ' '); return s.length > size ? s.slice(0, size - 1) + '…' : s; };
-  const boxHeight = node => node.image === null ? 58 : 108;
+  const hasReward = node => node.reward !== null && node.reward !== undefined;
+  const boxHeight = node => (node.image === null ? 58 : 108)+(hasReward(node) ? 30 : 0);
   const displayState = node => node.state ?? node.key;
   const eligibleChildren = id => children[id].filter(child => ($('pruned').checked || !nodes[child].pruned) && ($('rollouts').checked || !nodes[child].rollout));
 
@@ -232,11 +236,11 @@
     positions = new Map();
     let leaf = 0;
     for (const id of visible) {
-      if (!visibleChildren.get(id).length) positions.set(id, {x: leaf++ * 184, y: depths[id] * 152});
+      if (!visibleChildren.get(id).length) positions.set(id, {x: leaf++ * 184, y: depths[id] * 166});
     }
     for (let i = visible.length - 1; i >= 0; i--) {
       const id = visible[i], next = visibleChildren.get(id);
-      if (next.length) positions.set(id, {x: (positions.get(next[0]).x + positions.get(next[next.length - 1]).x) / 2, y: depths[id] * 152});
+      if (next.length) positions.set(id, {x: (positions.get(next[0]).x + positions.get(next[next.length - 1]).x) / 2, y: depths[id] * 166});
     }
     canvas.setAttribute('aria-label', `Search tree: ${visible.length} visible nodes. Use arrow keys to navigate nodes.`);
     updateBranchControls();
@@ -390,8 +394,12 @@
       }
       ctx.font = '10px system-ui'; ctx.fillStyle = '#617786';
       const reward = typeof node.reward === 'number' ? Number(node.reward.toPrecision(5)) : node.reward;
-      const label = `#${id}${node.rollout ? ' rollout' : ' n: ' + node.n}${node.reward !== null && node.reward !== undefined ? ' reward: ' + text(reward) : ''}`;
-      ctx.fillText(label, p.x, p.y+h-11, 148);
+      const label = `#${id}${node.rollout ? '' : ' n: ' + node.n}`;
+      if (hasReward(node)) {
+        ctx.fillText(label, p.x, p.y+h-37, 148);
+        ctx.fillText(`order: ${text(node.generation_order ?? '—')}`, p.x, p.y+h-23, 148);
+        ctx.fillText(`reward: ${text(reward)}`, p.x, p.y+h-9, 148);
+      } else ctx.fillText(label, p.x, p.y+h-11, 148);
     }
     $('zoom').textContent = `${(scale*100).toFixed(scale < .1 ? 1 : 0)}%`;
   }
@@ -431,25 +439,34 @@
       const p = positions.get(id); offsetX = width/2-p.x*scale; offsetY = height/2-(p.y+boxHeight(nodes[id])/2)*scale;
     }
     const node = nodes[id];
-    $('node-title').textContent = `${node.rollout ? 'Rollout' : 'Node'} #${id}`;
+    $('node-title').textContent = `${node.rollout ? 'Rollout' : 'Node'} #${id}${hasReward(node) ? ' (order: ' + text(node.generation_order ?? '—') + ')' : ''}`;
     $('node-key').textContent = displayState(node) || '(empty key)'; showImage($('node-image'), node.image);
     $('stats').replaceChildren();
-    const fields = node.rollout ? ['type', 'depth', 'n_children', 'rollout_from', 'reward'] : ['type', 'depth', 'n', 'n_children', 'sum_r', 'best_r', 'reward', 'last_action', 'last_prob', 'terminal', 'frozen', 'pruned'];
-    for (const field of fields) {
-      const dt = document.createElement('dt'), dd = document.createElement('dd'), value = node[field];
+    const appendStat = (field, value) => {
+      const dt = document.createElement('dt'), dd = document.createElement('dd');
       dt.textContent = field; dd.title = text(value);
       dd.textContent = typeof value === 'number' && !Number.isInteger(value) ? value.toPrecision(8) : text(value);
       $('stats').append(dt, dd);
+    };
+    const fields = node.rollout ? ['type', 'depth', 'n_children', 'rollout_from', 'reward'] : ['type', 'depth', 'n', 'n_children', 'sum_r', 'best_r', 'reward', 'last_action', 'last_prob', 'terminal', 'frozen', 'pruned'];
+    for (const field of fields) appendStat(field, node[field]);
+    const row = rowIndex === null ? null : data.rows[rowIndex];
+    const sameResult = row && (row.rollout_id === id || (!row.is_rollout && row.node_id === id));
+    if (sameResult) {
+      data.columns.forEach((column, index) => { if (index !== 2 && index !== 3) appendStat(column, row.values[index]); });
     }
     $('path').replaceChildren();
-    for (const ancestor of Array.from(path).reverse()) {
+    for (const ancestor of Array.from(path).reverse().filter(ancestor => ancestor !== id)) {
       const button = document.createElement('button'); button.textContent = `#${ancestor}`; button.title = displayState(nodes[ancestor]); button.onclick = () => select(ancestor, null, true); $('path').append(button);
     }
+    if (!$('path').children.length) { const empty = document.createElement('span'); empty.className = 'muted'; empty.textContent = '—'; $('path').append(empty); }
     $('parent').disabled = node.parent === null;
-    $('result-detail').hidden = rowIndex === null;
-    if (rowIndex !== null) {
-      const row = data.rows[rowIndex]; $('result-key').textContent = text(row.state ?? row.values[2]); showImage($('result-image'), row.image);
+    $('result-detail').hidden = !row || sameResult;
+    if (row && !sameResult) {
+      $('result-key').textContent = text(row.state ?? row.values[2]); showImage($('result-image'), row.image);
       $('result-source').textContent = `Result #${row.values[0]} → ${row.is_rollout ? 'rollout from' : 'direct evaluation of'} node #${row.node_id}`;
+    } else {
+      $('result-key').textContent = ''; $('result-source').textContent = ''; showImage($('result-image'), null);
     }
     renderRows(); draw();
   }
@@ -495,7 +512,10 @@
     for (const index of filtered.slice(page*pageSize, (page+1)*pageSize)) {
       const row = data.rows[index], tr = document.createElement('tr'); tr.tabIndex = 0;
       tr.className = index === selectedRow ? 'selected' : row.node_id === selected || row.rollout_id === selected ? 'related' : '';
-      const choose = () => { if (row.node_id !== null) select(row.node_id, index, true); };
+      const choose = () => {
+        const id = $('rollouts').checked ? row.rollout_id ?? row.node_id : row.node_id;
+        if (id !== null && id !== undefined) select(id, index, true);
+      };
       tr.onclick = choose; tr.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(); } };
       row.values.forEach((value, column) => {
         const td = document.createElement('td'); td.textContent = text(value); tr.append(td);
