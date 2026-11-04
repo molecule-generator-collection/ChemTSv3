@@ -65,7 +65,7 @@
 </style>
 <header><h1>ChemTSv3 visualizer</h1><span id="summary"></span></header>
 <div class="toolbar">
-  <button id="fit">Fit tree</button><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom"></span><button id="zoom-in" aria-label="Zoom in">+</button>
+  <button id="fit">Fit tree</button><button id="align-path" title="Align and center the highlighted path">Align Path</button><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom"></span><button id="zoom-in" aria-label="Zoom in">+</button>
   <label>Depth <input id="depth" type="range" min="0" value="3"><output id="depth-value"></output></label>
   <button id="show-depth">Show up to depth 3</button><button id="reset">Reset</button>
   <label><input id="rollouts" type="checkbox" checked> Show rollouts</label>
@@ -127,8 +127,9 @@
   $('summary').textContent = `${data.name} · ${treeNodeCount.toLocaleString()} nodes · ${(nodes.length-treeNodeCount).toLocaleString()} rollouts · ${data.rows.length.toLocaleString()} results`;
   document.title = `${data.name} — ChemTSv3 visualizer`;
   let selected = 0, selectedRow = null, visible = [], positions = new Map(), path = new Set();
+  let alignedPath = null;
   let scale = 1, offsetX = 0, offsetY = 0, width = 1, height = 1;
-  let page = 0, sortColumn = 0, sortDirection = 1, filtered = [];
+  let page = 0, sortColumn = 0, sortDirection = -1, filtered = [];
   let drawPending = false;
   let columnWidths = null;
   const expanded = new Set([0]), imageCache = new Map(), imageSources = new Map(), pageSize = 100;
@@ -237,6 +238,7 @@
       const id = visible[i], next = visibleChildren.get(id);
       if (next.length) positions.set(id, {x: (positions.get(next[0]).x + positions.get(next[next.length - 1]).x) / 2, y: depths[id] * 166});
     }
+    if (alignedPath) compactPathLayout();
     canvas.setAttribute('aria-label', `Search tree: ${visible.length} visible nodes. Use arrow keys to navigate nodes.`);
     updateBranchControls();
     draw();
@@ -269,6 +271,7 @@
   }
 
   function resetTree() {
+    alignedPath = null;
     expanded.clear(); expanded.add(0);
     $('depth').value = Math.min(3, maxDepth); updateDepthLabel();
     $('rollouts').checked = true;
@@ -413,6 +416,42 @@
     offsetX = x-(x-offsetX)*next/scale; offsetY = y-(y-offsetY)*next/scale; scale = next; draw();
   }
 
+  function compactPathLayout() {
+    // Pack each level in tree order, keeping the last aligned path at x = 0.
+    const levels = new Map();
+    for (const id of visible) {
+      if (!levels.has(depths[id])) levels.set(depths[id], []);
+      levels.get(depths[id]).push(id);
+    }
+    for (const level of levels.values()) {
+      const pathIndex = level.findIndex(id => alignedPath.has(id));
+      const center = pathIndex < 0 ? (level.length-1)/2 : pathIndex;
+      level.forEach((id, index) => { positions.get(id).x = (index-center)*184; });
+    }
+  }
+
+  function alignPath(focusSelected = false) {
+    // Keep the layout anchor separate from the path highlighted by selection.
+    alignedPath = new Set(path);
+    // Reveal the selected path even if one of its ancestors was folded.
+    for (const id of path) if (id !== selected) expanded.add(id);
+    layout();
+    let bottom = 0;
+    for (const id of path) {
+      const p = positions.get(id);
+      bottom = Math.max(bottom, p.y+boxHeight(nodes[id])+(hiddenCounts.get(id) ? 42 : 0));
+    }
+    if (focusSelected) {
+      scale = Math.max(.7, scale);
+      const p = positions.get(selected);
+      offsetX = width/2-p.x*scale; offsetY = height/2-(p.y+boxHeight(nodes[selected])/2)*scale;
+    } else {
+      scale = Math.min(1.2, (width-40)/180, (height-50)/(bottom+10));
+      offsetX = width/2; offsetY = 20;
+    }
+    draw();
+  }
+
   function showImage(element, id) {
     element.hidden = id === null || id === undefined;
     element.dataset.imageId = String(id);
@@ -423,6 +462,7 @@
   }
 
   function select(id, rowIndex = null, center = false) {
+    const before = positions.get(id);
     if (nodes[id].rollout) { $('rollouts').checked = true; rowIndex ??= nodes[id].row_index; }
     selected = id; selectedRow = rowIndex; path = new Set();
     let cur = id;
@@ -431,6 +471,10 @@
     if (center) {
       scale = Math.max(.7, scale);
       const p = positions.get(id); offsetX = width/2-p.x*scale; offsetY = height/2-(p.y+boxHeight(nodes[id])/2)*scale;
+    } else if (alignedPath && before) {
+      // Keep a clicked node at its screen position when the layout changes.
+      const after = positions.get(id);
+      offsetX += (before.x-after.x)*scale; offsetY += (before.y-after.y)*scale;
     }
     const node = nodes[id];
     $('node-title').textContent = `${node.rollout ? 'Rollout' : 'Node'} #${id}${hasReward(node) ? ' (order: ' + text(node.generation_order ?? '—') + ')' : ''}`;
@@ -477,7 +521,7 @@
       const th = document.createElement('th'), button = document.createElement('button');
       th.setAttribute('aria-sort', index === sortColumn ? (sortDirection === 1 ? 'ascending' : 'descending') : 'none');
       button.textContent = `${column} ${index === sortColumn ? (sortDirection === 1 ? '↑' : '↓') : '↕'}`;
-      button.onclick = () => { sortDirection = index === sortColumn ? -sortDirection : 1; sortColumn = index; page = 0; updateResults(); };
+      button.onclick = () => { sortDirection = index === sortColumn ? -sortDirection : -1; sortColumn = index; page = 0; updateResults(); };
       th.append(button); appendColumn(th, column);
       if (index === 2 && hasImages) { const imageTh = document.createElement('th'); imageTh.className = 'image-column'; imageTh.textContent = 'Molecule'; appendColumn(imageTh, 'Molecule'); }
     });
@@ -503,7 +547,7 @@
       tr.className = index === selectedRow ? 'selected' : row.node_id === selected || row.rollout_id === selected ? 'related' : '';
       const choose = () => {
         const id = $('rollouts').checked ? row.rollout_id ?? row.node_id : row.node_id;
-        if (id !== null && id !== undefined) select(id, index, true);
+        if (id !== null && id !== undefined) { select(id, index); alignPath(true); }
       };
       tr.onclick = choose; tr.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(); } };
       row.values.forEach((value, column) => {
@@ -578,7 +622,8 @@
     if (event.key === 'ArrowDown') id = visible[Math.min(visible.length-1, visible.indexOf(selected)+1)];
     if (id !== undefined && id !== null) { event.preventDefault(); select(id, null, true); }
   };
-  $('fit').onclick = fit; $('zoom-in').onclick = () => zoom(1.35); $('zoom-out').onclick = () => zoom(1/1.35);
+  $('fit').onclick = fit; $('align-path').onclick = () => alignPath();
+  $('zoom-in').onclick = () => zoom(1.35); $('zoom-out').onclick = () => zoom(1/1.35);
   $('depth').oninput = updateDepthLabel; $('show-depth').onclick = showDepth; $('reset').onclick = resetTree;
   $('rollouts').onchange = updateVisibility;
   $('parent').onclick = () => select(nodes[selected].parent, null, true); $('fold').onclick = () => toggleFold(selected);
