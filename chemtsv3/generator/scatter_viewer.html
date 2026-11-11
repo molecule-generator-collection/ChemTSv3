@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChemTSv3 scatter</title>
+<style>
+:root{color-scheme:light;--ink:#182a36;--muted:#657783;--line:#dce4e9;--accent:#176878;--paper:#fff;--wash:#f5f8fa}
+*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid #52a8bf;outline-offset:3px}
+button{border:1px solid var(--line);border-radius:6px;background:white;color:var(--ink);padding:7px 11px}button:hover{background:#edf4f7}
+p{margin:0;color:var(--muted);line-height:1.5}
+.layout{--right-width:300px;display:grid;grid-template-columns:minmax(300px,1fr) 8px var(--right-width);align-items:start;min-height:100vh;min-width:0}
+.details{position:relative;background:var(--paper);overflow:hidden;height:100vh;min-height:240px;border-left:1px solid var(--line)}
+.details-content{height:100%;overflow:auto;padding:20px 16px 25px}
+.splitter{align-self:stretch;cursor:col-resize;touch-action:none;position:relative;background:var(--wash)}.splitter::after{content:'';position:absolute;width:2px;height:36px;background:#bacbd4;border-radius:2px;top:46%;left:3px}.splitter:hover,.splitter:focus-visible{background:#d8e9ef}
+.panel-height-handle{position:absolute;bottom:0;left:0;right:0;height:9px;cursor:row-resize;touch-action:none;background:linear-gradient(transparent,#dfe8ed)}
+.plot-resize-handle{position:absolute;z-index:3;touch-action:none}.resize-x{right:0;top:35%;height:30%;width:8px;cursor:col-resize}.resize-y{bottom:0;left:35%;width:30%;height:8px;cursor:row-resize}.resize-both{right:0;bottom:0;width:17px;height:17px;cursor:nwse-resize;background:repeating-linear-gradient(135deg,transparent 0 4px,#91a9b6 4px 5px,transparent 5px 8px);clip-path:polygon(100% 0,100% 100%,0 100%)}
+.plot-resize-handle:hover{background-color:#d8e9ef}body.resizing{user-select:none}body.resizing .tooltip{display:none}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.07em;margin:0 0 15px;color:#526773;font-weight:650}.section:not([hidden])~.section:not([hidden]){margin-top:30px;padding-top:24px;border-top:1px solid var(--line)}
+.chart-section{min-width:0;display:flex;flex-direction:column;padding:15px 10px 12px}.chart-heading{display:flex;gap:16px;align-items:center;padding:0 5px 12px;flex-wrap:wrap}.chart-heading button{font-size:12px;padding:5px 10px}
+.pareto-toggle{display:flex;gap:6px;align-items:center;font-size:12px;cursor:pointer;white-space:nowrap}.pareto-toggle input{accent-color:var(--accent);margin:0}.pareto-toggle:has(input:disabled){opacity:.45;cursor:default}
+#status{font-weight:650;color:var(--ink);white-space:pre-wrap}#omitted{font-size:12px;color:var(--muted);padding:7px 5px 0;min-height:22px}
+.plot-shell{position:relative;flex:none;width:100%;aspect-ratio:1.85;min-height:320px;min-width:300px;max-width:100%;background:white;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}canvas.dragging{cursor:grabbing}
+.axis-button{position:absolute;border:0;background:rgba(255,255,255,.96);padding:5px 9px;font-weight:550;color:#314f5f;max-width:75%;white-space:nowrap}
+.axis-button:hover{background:#eaf3f6}.axis-button::after{content:' ▾';color:var(--accent);font-size:12px}.x-axis{bottom:8px;left:50%;transform:translateX(-50%)}.y-axis{left:6px;top:50%;transform:translate(-45%,-50%) rotate(-90deg)}
+.axis-menu{position:absolute;z-index:5;max-width:calc(100% - 24px);width:280px;padding:7px;background:white;border:1px solid #b6c9d3;border-radius:8px;box-shadow:0 9px 30px #19394c24;max-height:340px;overflow:auto}
+.axis-menu button{display:block;width:100%;border:0;text-align:left;padding:10px;font-size:13px}.axis-menu button[aria-checked=true]{color:var(--accent);background:#eaf3f6;font-weight:650}
+.empty-chart{position:absolute;top:45%;left:12%;right:12%;text-align:center;pointer-events:none;background:#ffffffed;padding:15px;border-radius:6px}
+.empty-chart strong{display:block;margin-bottom:6px;font-size:16px}.empty-chart p{font-size:13px}.tooltip{position:fixed;z-index:10;background:#18323ff5;color:white;pointer-events:none;padding:9px;border-radius:6px;width:270px;max-width:calc(100vw - 24px);font-size:12px;line-height:1.6;box-shadow:0 3px 12px #0002}.tooltip img{display:block;width:100%;height:160px;object-fit:contain;background:white;border-radius:3px;margin-bottom:7px}#tooltip-copy{white-space:pre-line;overflow-wrap:anywhere}
+.placeholder{border:1px dashed #cbd7de;border-radius:8px;margin-top:10px;padding:35px 20px;text-align:center;color:var(--muted)}
+.molecule-image{width:100%;height:215px;object-fit:contain;margin:10px 0 3px;background:white}.smiles{display:block;font:11px/1.6 ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere;user-select:all;background:var(--wash);padding:10px;border-radius:5px;margin:9px 0 12px}
+.property-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}.property-table td{padding:9px 0;border-bottom:1px solid #edf1f4;vertical-align:top}.property-table td:first-child{width:66%;padding-right:12px;color:#526773;overflow-wrap:anywhere}.property-table td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere}.property-table tr.active-axis td:first-child{color:var(--accent);font-weight:650}
+.extra-properties{margin-top:27px}.detail-note{font-size:11px;margin-top:17px}.error{margin:40px;padding:24px;background:white;border:1px solid #da9393;border-radius:8px;color:#8c3030}
+[hidden]{display:none!important}
+@media(max-width:1100px){.layout{--right-width:260px}.details-content{padding:16px 12px 25px}.molecule-image{height:180px}.chart-section{padding:12px 6px}}
+@media(max-width:700px){.layout{display:flex;flex-direction:column}.details{width:100%;height:auto!important;min-height:0;border:0;border-top:1px solid var(--line)}.details-content{height:auto;max-width:640px;margin:auto}.splitter,.panel-height-handle{display:none}.chart-section{width:100%}.y-axis{font-size:12px}}
+.overlay-controls,.inline-settings{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.setting{display:flex;gap:6px;align-items:center;font-size:12px;white-space:nowrap}.setting input,.setting select,.color-controls select{min-width:0;max-width:100%;border:1px solid #cbd8df;border-radius:4px;background:white;color:var(--ink);padding:6px}#moving-window{width:78px}#moving-top{width:100px}.setting input[aria-invalid=true]{border-color:#b64e4e}.validation{flex-basis:100%;color:#a53737;font-size:12px}
+.color-controls{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:14px 5px 4px;font-size:12px}.color-controls label{display:flex;align-items:center;gap:8px}#color-legend{display:flex;align-items:center;gap:8px;min-width:0}.color-ramp{width:150px;height:9px;border-radius:3px;background:linear-gradient(to right,rgb(45,114,206),rgb(220,65,48))}.curve-legend{display:flex;gap:15px;flex-wrap:wrap;padding:7px 5px;font-size:12px;color:var(--muted)}.curve-key{display:flex;gap:6px;align-items:center}.curve-key::before{content:'';width:20px;height:3px;background:var(--curve-color)}
+.state-wrap{position:relative}#smiles{white-space:pre-wrap;padding-right:46px;min-height:46px;user-select:text}.copy-button{position:absolute;top:6px;right:6px;width:30px;height:30px;padding:6px;display:grid;place-items:center}.copy-button svg{width:16px;height:16px}.copy-button::after{content:attr(aria-label);position:absolute;right:0;bottom:calc(100% + 6px);padding:5px 8px;border-radius:4px;background:#142d40;color:white;font-size:12px;white-space:nowrap;pointer-events:none;visibility:hidden}.copy-button:hover::after,.copy-button:focus-visible::after{visibility:visible}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}#move-to-tree{margin-bottom:17px}.property-table td:first-child{width:60%}
+</style>
+</head>
+<body>
+<main class="layout" id="app" aria-busy="true">
+<section class="chart-section" id="chart-section" aria-label="Molecule scatter plot">
+ <div class="chart-heading">
+  <p id="status" role="status" aria-live="polite">Loading molecules…</p><button id="reset" disabled>Reset view</button><button id="fit-plot" disabled>Fit plot</button>
+  <div id="moving-group" class="overlay-controls"><label class="pareto-toggle" id="moving-control"><input id="moving-toggle" type="checkbox" checked><span>Moving average</span></label><div id="moving-settings" class="inline-settings"><label class="setting">Window <input id="moving-window" type="number" step="any" min="0.000001" value="0.05" aria-label="Moving average window"></label><label class="setting">Top p <input id="moving-top" type="text" value="0.2" aria-label="Moving average top p"></label></div><p id="moving-error" class="validation" role="status" hidden></p></div>
+  <div id="pareto-group" class="overlay-controls" hidden><label class="pareto-toggle" id="pareto-control" hidden><input id="pareto-toggle" type="checkbox" disabled><span id="pareto-label">Pareto front</span></label><div id="pareto-settings" class="inline-settings" hidden><label class="setting">X <select id="pareto-x" aria-label="X optimization direction"><option value="max">Maximize</option><option value="min">Minimize</option></select></label><label class="setting">Y <select id="pareto-y" aria-label="Y optimization direction"><option value="max">Maximize</option><option value="min">Minimize</option></select></label></div></div>
+ </div>
+ <div class="plot-shell" id="plot-shell">
+  <canvas id="plot" tabindex="0" aria-label="Interactive molecule scatter plot. Click a point for details. Use arrow keys to browse molecules."></canvas>
+  <button class="axis-button x-axis" id="x-axis" aria-label="Change X axis" aria-haspopup="menu" aria-expanded="false" disabled>X axis</button>
+  <button class="axis-button y-axis" id="y-axis" aria-label="Change Y axis" aria-haspopup="menu" aria-expanded="false" disabled>Y axis</button>
+  <div class="axis-menu" id="axis-menu" role="menu" hidden></div>
+  <div class="empty-chart" id="empty" hidden><strong>No molecules to display</strong><p id="empty-reason"></p></div>
+  <div class="plot-resize-handle resize-x" id="plot-width" role="separator" tabindex="0" aria-label="Resize plot width" aria-orientation="vertical"></div>
+  <div class="plot-resize-handle resize-y" id="plot-height" role="separator" tabindex="0" aria-label="Resize plot height" aria-orientation="horizontal"></div>
+  <div class="plot-resize-handle resize-both" id="plot-size" role="separator" tabindex="0" aria-label="Resize plot width and height"></div>
+ </div>
+ <div class="color-controls"><label>Color <select id="color-axis" aria-label="Point color"></select></label><div id="color-legend" hidden><span id="color-min"></span><span class="color-ramp" aria-hidden="true"></span><span id="color-max"></span></div></div>
+ <div id="curve-legend" class="curve-legend"></div><p id="omitted"></p>
+</section>
+<div class="splitter" id="right-splitter" role="separator" tabindex="0" aria-label="Resize details panel width" aria-orientation="vertical"></div>
+<aside class="details" id="right-panel" aria-label="Molecule details"><div class="details-content">
+<section class="section"><div id="detail-placeholder" class="placeholder">Click a molecule in the plot.<br>Or focus the plot and use ← →.</div><div id="detail-content" hidden><img id="molecule-image" class="molecule-image" alt="Selected molecule structure"><div class="state-wrap"><code id="smiles" class="smiles"></code><button id="copy-state" class="copy-button" aria-label="Copy to clipboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div><span id="copy-status" class="sr-only" role="status"></span><button id="move-to-tree">Move to tree</button><table class="property-table" aria-label="Axis properties"><tbody id="axis-properties"></tbody></table><div class="extra-properties" id="extra-properties"><table class="property-table" aria-label="Additional molecule properties"><tbody id="detail-properties"></tbody></table></div><p class="detail-note" id="detail-note"></p></div></section></div><div class="panel-height-handle" id="right-height" role="separator" tabindex="0" aria-label="Resize details panel height" aria-orientation="horizontal"></div></aside>
+</main>
+<div id="tooltip" class="tooltip" hidden><img id="tooltip-image" alt="Hovered molecule structure"><div id="tooltip-copy"></div></div>
+<script>
+'use strict';
+
+// Scatter interactions and Pareto annotations adapted from experiments/polar/gui.
+function pareto2D(rows, xIndex, yIndex, xDirection, yDirection) {
+    if (!['min', 'max'].includes(xDirection) || !['min', 'max'].includes(yDirection)) return [];
+    const xSign = xDirection === 'min' ? 1 : -1, ySign = yDirection === 'max' ? 1 : -1;
+    const sorted = rows.filter(row => Number.isFinite(row.values[xIndex]) && Number.isFinite(row.values[yIndex]))
+        .map(row => ({row, x: row.values[xIndex] * xSign, y: row.values[yIndex] * ySign}))
+        .sort((a, b) => a.x - b.x || b.y - a.y);
+    const frontier = [];
+    let bestY = -Infinity, bestX = NaN;
+    for (const point of sorted) {
+        if (point.y > bestY) {
+            frontier.push(point.row); bestY = point.y; bestX = point.x;
+        } else if (point.y === bestY && point.x === bestX) {
+            frontier.push(point.row); // Identical objective values do not dominate each other.
+        }
+    }
+    return frontier;
+}
+function overlapRect(a, b, gap = 0) {
+    return a.x < b.x + b.width + gap && a.x + a.width + gap > b.x && a.y < b.y + b.height + gap && a.y + a.height + gap > b.y;
+}
+function clipSegment(start, end, rect) {
+    let low = 0, high = 1;
+    for (const [value, delta, min, max] of [[start.x, end.x - start.x, rect.x, rect.x + rect.width], [start.y, end.y - start.y, rect.y, rect.y + rect.height]]) {
+        if (delta === 0) { if (value < min || value > max) return null; }
+        else {
+            const first = (min - value) / delta, last = (max - value) / delta;
+            low = Math.max(low, Math.min(first, last)); high = Math.min(high, Math.max(first, last));
+            if (low > high) return null;
+        }
+    }
+    return {start: {x: start.x + low * (end.x - start.x), y: start.y + low * (end.y - start.y)}, end: {x: start.x + high * (end.x - start.x), y: start.y + high * (end.y - start.y)}};
+}
+function cardLeader(point, card) {
+    const center = {x: card.x + card.width / 2, y: card.y + card.height / 2};
+    const dx = point.x - center.x, dy = point.y - center.y;
+    const scale = Math.min(1, card.width / 2 / Math.max(Math.abs(dx), 1e-12), card.height / 2 / Math.max(Math.abs(dy), 1e-12));
+    return {start: {x: point.x, y: point.y}, end: {x: center.x + scale * dx, y: center.y + scale * dy}};
+}
+function spreadAnnotationPoints(points, limit, selectedId) {
+    if (!points.length || limit < 1) return [];
+    const unique = [...new Map(points.slice().sort((a, b) => Number(a.row.id === selectedId) - Number(b.row.id === selectedId)).map(point => [`${point.x},${point.y}`, point])).values()].sort((a, b) => a.x - b.x || a.y - b.y);
+    limit = Math.min(limit, unique.length);
+    const chosen = [], distances = Array(unique.length).fill(Infinity);
+    const add = index => {
+        chosen.push(index);
+        unique.forEach((point, i) => { distances[i] = Math.min(distances[i], (point.x - unique[index].x) ** 2 + (point.y - unique[index].y) ** 2); });
+        distances[index] = -1;
+    };
+    const selected = unique.findIndex(point => point.row.id === selectedId);
+    if (selected >= 0) add(selected);
+    for (const index of [0, unique.length - 1]) if (chosen.length < limit && !chosen.includes(index)) add(index);
+    while (chosen.length < limit) {
+        let next = 0;
+        distances.forEach((distance, i) => { if (distance > distances[next]) next = i; });
+        add(next);
+    }
+    return chosen.map(index => unique[index]);
+}
+function preferredFrontSide(frontierLine, xDirection, yDirection) {
+    const line = frontierLine.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+    return rect => {
+        if (!line.length) return true;
+        // The corner farthest toward the dominated region must remain on the open side.
+        const x = xDirection === 'min' ? rect.x + rect.width : rect.x;
+        const y = yDirection === 'max' ? rect.y + rect.height : rect.y;
+        if ((xDirection === 'min' && x < line[0].x) || (xDirection === 'max' && x > line[line.length - 1].x)) return true;
+        let boundary;
+        if (x <= line[0].x) boundary = line[0].y;
+        else if (x >= line[line.length - 1].x) boundary = line[line.length - 1].y;
+        else {
+            let low = 0, high = line.length - 1;
+            while (high - low > 1) {
+                const middle = (low + high) >> 1;
+                if (line[middle].x <= x) low = middle; else high = middle;
+            }
+            const a = line[low], b = line[high];
+            boundary = a.y + (x - a.x) / (b.x - a.x) * (b.y - a.y);
+        }
+        return yDirection === 'max' ? y <= boundary + .5 : y >= boundary - .5;
+    };
+}
+function pointCloudCrossing(points, bounds) {
+    const cell = 16, stride = Math.ceil(bounds.width / cell) + 3, buckets = new Map();
+    const key = (x, y) => y * stride + x;
+    for (const point of points) {
+        const at = key(Math.floor((point.x - bounds.x) / cell), Math.floor((point.y - bounds.y) / cell));
+        if (!buckets.has(at)) buckets.set(at, []);
+        buckets.get(at).push(point);
+    }
+    return segment => {
+        const dx = segment.end.x - segment.start.x, dy = segment.end.y - segment.start.y, length2 = dx * dx + dy * dy;
+        const steps = Math.max(1, Math.ceil(Math.sqrt(length2) / 8)), visited = new Set();
+        for (let step = 0; step <= steps; step++) {
+            const x = Math.floor((segment.start.x + dx * step / steps - bounds.x) / cell);
+            const y = Math.floor((segment.start.y + dy * step / steps - bounds.y) / cell);
+            for (let by = y - 1; by <= y + 1; by++) for (let bx = x - 1; bx <= x + 1; bx++) {
+                const at = key(bx, by);
+                if (visited.has(at)) continue;
+                visited.add(at);
+                for (const point of buckets.get(at) || []) {
+                    const px = point.x - segment.start.x, py = point.y - segment.start.y;
+                    if (px * px + py * py < 1e-8) continue; // The anchor and coincident points are expected.
+                    const t = length2 ? Math.max(0, Math.min(1, (px * dx + py * dy) / length2)) : 0;
+                    if ((px - t * dx) ** 2 + (py - t * dy) ** 2 < 64) return true;
+                }
+            }
+        }
+        return false;
+    };
+}
+function paretoAnnotationLayout(frontierPoints, points, bounds, obstacles, frontierLine, limit, selectedId, xDirection, yDirection) {
+    const cardWidth = 126, cardHeight = 78, gap = 8, cell = 8;
+    if (!limit || !frontierPoints.length || bounds.width < cardWidth + 2 * gap || bounds.height < cardHeight + 2 * gap) return [];
+    const cols = Math.ceil(bounds.width / cell), rows = Math.ceil(bounds.height / cell), stride = cols + 1;
+    const onOpenSide = preferredFrontSide(frontierLine.length ? frontierLine : frontierPoints, xDirection, yDirection);
+    const crossesPoints = pointCloudCrossing(points, bounds);
+    const occupied = new Uint32Array((rows + 1) * stride);
+    function cells(rect) {
+        return [Math.max(0, Math.floor((rect.x - bounds.x) / cell)), Math.max(0, Math.floor((rect.y - bounds.y) / cell)), Math.min(cols - 1, Math.floor((rect.x + rect.width - bounds.x) / cell)), Math.min(rows - 1, Math.floor((rect.y + rect.height - bounds.y) / cell))];
+    }
+    function mark(rect) {
+        const [x0, y0, x1, y1] = cells(rect);
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) occupied[(y + 1) * stride + x + 1] = 1;
+    }
+    for (const point of points) mark({x: point.x - 10, y: point.y - 10, width: 20, height: 20});
+    obstacles.forEach(card => mark({x: card.x - gap, y: card.y - gap, width: card.width + gap * 2, height: card.height + gap * 2}));
+    for (let i = 1; i < frontierLine.length; i++) {
+        const segment = clipSegment(frontierLine[i - 1], frontierLine[i], bounds);
+        if (!segment) continue;
+        const count = Math.max(1, Math.ceil(Math.hypot(segment.end.x - segment.start.x, segment.end.y - segment.start.y) / 6));
+        for (let step = 0; step <= count; step++) mark({x: segment.start.x + step / count * (segment.end.x - segment.start.x) - 3, y: segment.start.y + step / count * (segment.end.y - segment.start.y) - 3, width: 6, height: 6});
+    }
+    // Integral image: testing a prospective card against every scatter point is O(1).
+    for (let y = 1; y <= rows; y++) for (let x = 1; x <= cols; x++) {
+        const at = y * stride + x;
+        occupied[at] += occupied[at - 1] + occupied[at - stride] - occupied[at - stride - 1];
+    }
+    function empty(rect) {
+        const [x0, y0, x1, y1] = cells(rect);
+        return occupied[(y1 + 1) * stride + x1 + 1] - occupied[y0 * stride + x1 + 1] - occupied[(y1 + 1) * stride + x0] + occupied[y0 * stride + x0] === 0;
+    }
+    const candidates = [];
+    const positions = (start, end) => {
+        const values = [];
+        for (let value = start; value <= end; value += 20) values.push(value);
+        if (values[values.length - 1] !== end) values.push(end);
+        return values;
+    };
+    for (const y of positions(bounds.y + gap, bounds.y + bounds.height - cardHeight - gap)) {
+        for (const x of positions(bounds.x + gap, bounds.x + bounds.width - cardWidth - gap)) {
+            const rect = {x, y, width: cardWidth, height: cardHeight};
+            if (onOpenSide(rect) && empty(rect)) candidates.push(rect);
+        }
+    }
+    if (!candidates.length) return [];
+    const cards = [];
+    for (const point of spreadAnnotationPoints(frontierPoints, Math.max(32, limit * 3), selectedId)) {
+        let best = null, bestScore = Infinity;
+        for (const rect of candidates) {
+            if (cards.some(other => overlapRect(rect, other, gap))) continue;
+            const leader = cardLeader(point, rect);
+            const length = Math.hypot(leader.end.x - leader.start.x, leader.end.y - leader.start.y);
+            if (length > 180) continue;
+            let leavesOpenSide = false;
+            const steps = Math.max(1, Math.ceil(length / 6));
+            for (let step = 1; step <= steps; step++) {
+                if (!onOpenSide({x: leader.start.x + (leader.end.x - leader.start.x) * step / steps, y: leader.start.y + (leader.end.y - leader.start.y) * step / steps, width: 0, height: 0})) { leavesOpenSide = true; break; }
+            }
+            if (leavesOpenSide || crossesPoints(leader)) continue;
+            if (cards.some(other => clipSegment(leader.start, leader.end, other) || clipSegment(other.leader.start, other.leader.end, rect))) continue;
+            if (obstacles.some(other => clipSegment(leader.start, leader.end, other))) continue;
+            const score = (point.x - (rect.x + cardWidth / 2)) ** 2 + (point.y - (rect.y + cardHeight / 2)) ** 2;
+            if (score < bestScore) { bestScore = score; best = {...rect, point, leader, annotation: true}; }
+        }
+        if (best) cards.push(best);
+        if (cards.length >= limit) break;
+    }
+    return cards;
+}
+function expandedRange(values) {
+    if (!values.length) return [0, 1];
+    let low = Infinity, high = -Infinity;
+    for (const value of values) { low = Math.min(low, value); high = Math.max(high, value); }
+    const margin = (high - low || Math.max(Math.abs(low), 1)) * 0.07;
+    return [low - margin, high + margin];
+}
+function formatValue(value) {
+    if (value === null || value === undefined) return '—';
+    if (typeof value !== 'number') return String(value);
+    if (value === 0) return '0';
+    if (Math.abs(value) < 0.001 || Math.abs(value) >= 1e6) return value.toExponential(4);
+    return Number(value.toPrecision(7)).toLocaleString('en-US', {maximumFractionDigits: 7});
+}
+function formatProperty(value, column) {
+    return formatValue(value);
+}
+function integerAxis(column, values) {
+    if (column === 'order') return true;
+    const finite = values.filter(Number.isFinite);
+    return finite.length > 0 && finite.every(Number.isInteger);
+}
+function axisTicks(range, integer = false, target = 5) {
+    const [low, high] = range;
+    if (!Number.isFinite(low) || !Number.isFinite(high) || high <= low) return [];
+    const rawStep = (high - low) / target, magnitude = 10 ** Math.floor(Math.log10(rawStep));
+    const error = rawStep / magnitude;
+    const factor = error >= Math.sqrt(50) ? 10 : error >= Math.sqrt(10) ? 5 : error >= Math.sqrt(2) ? 2 : 1;
+    const step = integer ? Math.max(1, magnitude * factor) : magnitude * factor;
+    const decimals = Math.max(0, -Math.floor(Math.log10(step)));
+    const first = Math.ceil(low / step), last = Math.floor(high / step);
+    const ticks = [];
+    for (let i = 0; i <= last - first && i <= target * 2 + 1; i++) {
+        let value = (first + i) * step + 0;
+        if (!integer && decimals <= 15) value = Number(value.toFixed(decimals));
+        if (value >= low && value <= high && (!ticks.length || value > ticks[ticks.length - 1])) ticks.push(value);
+    }
+    return ticks;
+}
+function formatTick(value, integer, step = 1) {
+    if (integer) return value.toLocaleString('en-US', {maximumFractionDigits: 0});
+    const spacing = Number.isFinite(step) && step !== 0 ? Math.abs(step) : 1;
+    const decimals = Math.max(2, -Math.floor(Math.log10(spacing)));
+    if (value === 0) return '0';
+    if (decimals > 6 || Math.abs(value) >= 1e9) {
+        const digits = Math.max(2, Math.min(15, Math.ceil(Math.log10(Math.abs(value) / spacing)) + 1));
+        return value.toExponential(digits);
+    }
+    return value.toLocaleString('en-US', {maximumFractionDigits: decimals});
+}
+function structureLayout(points, zoom, selectedId) {
+    if (zoom < 3 || points.length > 120) return [];
+    const cards = [], width = 126, height = 78, gap = 10;
+    const ordered = points.slice().sort((a, b) => Number(b.row.id === selectedId) - Number(a.row.id === selectedId));
+    for (const point of ordered) {
+        const card = {point, x: point.x - width / 2, y: point.y - height / 2, width, height};
+        if (cards.some(other => card.x < other.x + other.width + gap && card.x + width + gap > other.x && card.y < other.y + other.height + gap && card.y + height + gap > other.y)) continue;
+        cards.push(card);
+    }
+    return cards;
+}
+
+// Match chemtsv3.utils.math_utils.moving_average, including partial windows,
+// min_periods=10, and floor(window_size * top_p) samples for upper-tail means.
+function movingCurves(rows, xIndex, yIndex, window, topPs) {
+    if (!rows.length) return {window: 0, series: []};
+    const ordered = rows.slice().sort((a, b) => a.values[xIndex] - b.values[xIndex] || a.id - b.id);
+    const size = Math.min(ordered.length, window < 1 ? Math.max(1, Math.floor(ordered.length * window)) : window);
+    const values = [...new Set(ordered.map(row => row.values[yIndex]))].sort((a, b) => a - b);
+    const ranks = new Map(values.map((value, i) => [value, i + 1]));
+    const counts = new Float64Array(values.length + 1), sums = new Float64Array(values.length + 1);
+    const add = (value, delta) => { for (let i = ranks.get(value); i < counts.length; i += i & -i) { counts[i] += delta; sums[i] += delta * value; } };
+    const smallestSum = count => {
+        if (!count) return 0;
+        let index = 0, total = 0;
+        for (let step = 2 ** Math.floor(Math.log2(values.length)); step; step = Math.floor(step / 2)) {
+            const next = index + step;
+            if (next < counts.length && counts[next] <= count) { index = next; count -= counts[next]; total += sums[next]; }
+        }
+        return total + (count ? count * values[index] : 0);
+    };
+    const palette = ['#347cca', '#d87924', '#9862af', '#bd4f74', '#176878'];
+    const series = [null, ...topPs].map((p, i) => ({p, label: p === null ? 'Moving average' : `Top ${Number((p * 100).toPrecision(8))}%`, color: palette[i % palette.length], points: []}));
+    let sum = 0;
+    ordered.forEach((row, i) => {
+        const value = row.values[yIndex]; add(value, 1); sum += value;
+        if (i >= size) { const old = ordered[i - size].values[yIndex]; add(old, -1); sum -= old; }
+        const length = Math.min(i + 1, size);
+        if (length < Math.min(10, size)) return;
+        for (const curve of series) {
+            const k = curve.p === null ? length : Math.max(1, Math.floor(length * curve.p));
+            const y = curve.p === null ? sum / length : (sum - smallestSum(length - k)) / k;
+            curve.points.push({x: row.values[xIndex], y, partial: i < size - 1});
+        }
+    });
+    return {window: size, series};
+}
+function temperatureColor(value, min, max) {
+    if (!Number.isFinite(value)) return '#9ba9b2';
+    const t = max === min ? .5 : Math.max(0, Math.min(1, (value - min) / (max - min)));
+    return `rgb(${[45 + 175 * t, 114 - 49 * t, 206 - 158 * t].map(Math.round).join(',')})`;
+}
+
+window.initializeScatter = async function(snapshot, actions, initialRow = null) {
+    const $ = id => document.getElementById(id);
+    const data = {
+        fields: snapshot.columns,
+        axes: snapshot.columns.flatMap((column, index) => index === 2 ? [] : [{column, alias: column, direction: 'max'}]),
+        rows: snapshot.rows.map((row, id) => ({id, values: row.values})),
+        molecules: snapshot.rows.map(row => ({smiles: String(row.state ?? row.values[2] ?? ''), image: row.image})),
+        pareto: {show: true, maxAnnotations: 24},
+    };
+    const canvas = $('plot'), ctx = canvas.getContext('2d');
+    const initialX = Math.max(0, data.axes.findIndex(axis => axis.column === 'order'));
+    const initialY = Math.max(0, data.axes.findIndex(axis => axis.column === 'reward'));
+    data.axes.forEach(axis => { axis.integer = integerAxis(axis.column, data.rows.map(row => row.values[data.fields.indexOf(axis.column)])); });
+    let xAxis = initialX, yAxis = initialY;
+    let visible = [], missing = 0, selectedId = initialRow;
+    let showMoving = true, windowSize = .05, topPs = [.2], moving = {window: 0, series: []};
+    let colorAxis = -1, colorMin = 0, colorMax = 1, copyReset = null;
+    let showPareto = data.pareto.show, frontier = [], frontierIds = new Set();
+    let ranges = {x: [0, 1], y: [0, 1]}, fullRanges = ranges, width = 0, height = 0, points = [], cards = [], drag = null, menuAxis = null;
+    const imageCache = new Map();
+    let pendingFrame = 0;
+    const padding = {left: 90, right: 23, top: 26, bottom: 68};
+    const fieldIndex = column => data.fields.indexOf(column);
+    const axisIndex = axis => fieldIndex(data.axes[axis].column);
+    const create = (tag, text, className) => {
+        const node = document.createElement(tag);
+        if (text !== undefined) node.textContent = text;
+        if (className) node.className = className;
+        return node;
+    };
+    const isChronological = axis => ['order', 'time'].includes(data.axes[axis].column);
+    const hasImage = id => data.molecules[id].image !== null && data.molecules[id].image !== undefined;
+    const disable = create('option', '-'); disable.value = '-1'; $('color-axis').append(disable);
+    data.axes.forEach((axis, index) => { const option = create('option', axis.alias); option.value = String(index); $('color-axis').append(option); });
+    function defaultColor() {
+        colorAxis = !isChronological(xAxis) && !isChronological(yAxis) ? data.axes.findIndex(axis => axis.column === 'order') : -1;
+        $('color-axis').value = String(colorAxis);
+    }
+    function refreshColor() {
+        const values = colorAxis < 0 ? [] : visible.map(row => row.values[axisIndex(colorAxis)]).filter(Number.isFinite);
+        colorMin = Infinity; colorMax = -Infinity;
+        for (const value of values) { colorMin = Math.min(colorMin, value); colorMax = Math.max(colorMax, value); }
+        $('color-legend').hidden = !values.length;
+        $('color-min').textContent = formatValue(colorMin); $('color-max').textContent = formatValue(colorMax);
+        $('color-legend').setAttribute('aria-label', colorAxis < 0 ? '' : `${data.axes[colorAxis].alias}: low (blue) to high (red)`);
+    }
+    $('color-axis').addEventListener('change', () => { colorAxis = Number($('color-axis').value); refreshColor(); draw(); });
+    function refreshMoving() {
+        moving = isChronological(xAxis) && showMoving ? movingCurves(visible, axisIndex(xAxis), axisIndex(yAxis), windowSize, topPs) : {window: 0, series: []};
+        $('curve-legend').replaceChildren();
+        for (const curve of moving.series) {
+            const key = create('span', curve.label, 'curve-key'); key.style.setProperty('--curve-color', curve.color); $('curve-legend').append(key);
+        }
+    }
+    function editMoving() {
+        const window = Number($('moving-window').value), rawTop = $('moving-top').value.trim();
+        const ps = rawTop ? rawTop.split(',').map(value => value.trim() ? Number(value) : NaN) : [];
+        const badWindow = !Number.isFinite(window) || window <= 0 || (window >= 1 && !Number.isInteger(window));
+        const badTop = ps.some(p => !Number.isFinite(p) || p <= 0 || p >= 1);
+        $('moving-window').setAttribute('aria-invalid', String(badWindow)); $('moving-top').setAttribute('aria-invalid', String(badTop));
+        $('moving-error').hidden = !badWindow && !badTop;
+        $('moving-error').textContent = badWindow ? 'Window: a fraction between 0 and 1, or a positive integer.' : badTop ? 'Top p: comma-separated values between 0 and 1.' : '';
+        if (badWindow || badTop) return;
+        windowSize = window; topPs = [...new Set(ps)]; refreshMoving(); draw();
+    }
+    $('moving-window').addEventListener('input', editMoving); $('moving-top').addEventListener('input', editMoving);
+    $('moving-toggle').addEventListener('change', () => { showMoving = $('moving-toggle').checked; refreshMoving(); draw(); });
+    for (const axis of ['x', 'y']) $(`pareto-${axis}`).addEventListener('change', () => {
+        data.axes[axis === 'x' ? xAxis : yAxis].direction = $(`pareto-${axis}`).value;
+        refreshPareto(); draw();
+    });
+    defaultColor();
+    function resetRange() {
+        ranges = {x: expandedRange(visible.map(row => row.values[axisIndex(xAxis)])), y: expandedRange(visible.map(row => row.values[axisIndex(yAxis)]))};
+        fullRanges = {x: ranges.x.slice(), y: ranges.y.slice()};
+    }
+    function refreshPareto() {
+        const available = !isChronological(xAxis);
+        $('pareto-x').value = data.axes[xAxis].direction; $('pareto-y').value = data.axes[yAxis].direction;
+        const enabled = available && showPareto;
+        frontier = enabled ? pareto2D(visible, axisIndex(xAxis), axisIndex(yAxis), data.axes[xAxis].direction, data.axes[yAxis].direction) : [];
+        frontierIds = new Set(frontier.map(row => row.id));
+        $('pareto-toggle').checked = enabled;
+        $('pareto-toggle').disabled = !available;
+        $('pareto-control').title = 'Pareto front for the selected axes and optimization directions';
+        $('pareto-label').textContent = enabled ? `Pareto front (${frontier.length})` : 'Pareto front';
+    }
+    $('pareto-toggle').addEventListener('change', () => {
+        showPareto = $('pareto-toggle').checked;
+        refreshPareto(); draw();
+    });
+    function update() {
+        visible = data.rows.filter(row => Number.isFinite(row.values[axisIndex(xAxis)]) && Number.isFinite(row.values[axisIndex(yAxis)]));
+        missing = data.rows.length - visible.length;
+        const chronological = isChronological(xAxis);
+        $('moving-group').hidden = !chronological; $('pareto-group').hidden = chronological;
+        $('moving-control').hidden = !chronological; $('moving-settings').hidden = !chronological;
+        $('pareto-control').hidden = chronological; $('pareto-settings').hidden = chronological;
+        $('pareto-x').value = data.axes[xAxis].direction; $('pareto-y').value = data.axes[yAxis].direction;
+        if (!visible.some(row => row.id === selectedId)) selectedId = null;
+        refreshPareto(); refreshMoving(); refreshColor();
+        resetRange();
+        $('x-axis').textContent = data.axes[xAxis].alias;
+        $('y-axis').textContent = data.axes[yAxis].alias;
+        $('x-axis').setAttribute('aria-label', `Change X axis: ${data.axes[xAxis].alias}`);
+        $('y-axis').setAttribute('aria-label', `Change Y axis: ${data.axes[yAxis].alias}`);
+        $('status').textContent = `${visible.length.toLocaleString()} molecules`;
+        $('omitted').textContent = missing ? `${missing.toLocaleString()} molecules lack a finite value for the selected axes.` : '';
+        $('empty').hidden = visible.length > 0;
+        $('empty-reason').textContent = 'Choose axes with finite values, or generate more results.';
+        $('tooltip').hidden = true;
+        draw(); renderDetails();
+    }
+    function plotWidth() { return Math.max(1, width - padding.left - padding.right); }
+    function plotHeight() { return Math.max(1, height - padding.top - padding.bottom); }
+    function project(x, y) {
+        return [padding.left + (x - ranges.x[0]) / (ranges.x[1] - ranges.x[0]) * plotWidth(),
+            height - padding.bottom - (y - ranges.y[0]) / (ranges.y[1] - ranges.y[0]) * plotHeight()];
+    }
+    function inPlot(x, y) { return x >= padding.left && x <= width - padding.right && y >= padding.top && y <= height - padding.bottom; }
+    function moleculeImage(id) {
+        if (!imageCache.has(id)) {
+            const image = new Image();
+            imageCache.set(id, image);
+            image.onload = () => {
+                if (!pendingFrame) pendingFrame = requestAnimationFrame(() => { pendingFrame = 0; draw(); });
+            };
+            if (hasImage(id)) actions.imageSource(data.molecules[id].image).then(src => { image.src = src; }).catch(() => {});
+            if (imageCache.size > 160) imageCache.delete(imageCache.keys().next().value);
+        }
+        return imageCache.get(id);
+    }
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, width, height);
+        ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+        const xTicks = axisTicks(ranges.x, data.axes[xAxis].integer), yTicks = axisTicks(ranges.y, data.axes[yAxis].integer);
+        const xStep = xTicks.length > 1 ? xTicks[1] - xTicks[0] : ranges.x[1] - ranges.x[0];
+        const yStep = yTicks.length > 1 ? yTicks[1] - yTicks[0] : ranges.y[1] - ranges.y[0];
+        for (const value of xTicks) {
+            const [x] = project(value, ranges.y[0]);
+            ctx.strokeStyle = '#e9eff3'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(x, padding.top); ctx.lineTo(x, height - padding.bottom); ctx.stroke();
+            ctx.fillStyle = '#6b7c87'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+            ctx.fillText(formatTick(value, data.axes[xAxis].integer, xStep), x, height - padding.bottom + 12);
+        }
+        for (const value of yTicks) {
+            const [, y] = project(ranges.x[0], value);
+            ctx.strokeStyle = '#e9eff3'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(width - padding.right, y); ctx.stroke();
+            ctx.fillStyle = '#6b7c87'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+            ctx.fillText(formatTick(value, data.axes[yAxis].integer, yStep), padding.left - 11, y, padding.left - 27);
+        }
+        ctx.strokeStyle = '#b7c8d2'; ctx.strokeRect(padding.left, padding.top, plotWidth(), plotHeight());
+        ctx.save(); ctx.beginPath(); ctx.rect(padding.left, padding.top, plotWidth(), plotHeight()); ctx.clip();
+        points = [];
+        const radius = visible.length > 12000 ? 2.8 : visible.length > 3000 ? 3.4 : 4.2;
+        for (const row of visible) {
+            const [x, y] = project(row.values[axisIndex(xAxis)], row.values[axisIndex(yAxis)]);
+            if (!inPlot(x, y)) continue;
+            points.push({row, x, y});
+            const isFrontier = frontierIds.has(row.id), pointRadius = isFrontier ? radius + 1.5 : radius;
+            ctx.globalAlpha = row.id === selectedId || isFrontier ? 1 : .3;
+            ctx.beginPath(); ctx.arc(x, y, pointRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = colorAxis < 0 ? '#4b88c6' : temperatureColor(row.values[axisIndex(colorAxis)], colorMin, colorMax); ctx.fill();
+            if (isFrontier) {
+                ctx.beginPath(); ctx.arc(x, y, pointRadius + .6, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#243b49'; ctx.lineWidth = 1.3; ctx.stroke();
+            }
+        }
+        ctx.globalAlpha = 1;
+        const frontierLine = frontier.map(row => {
+            const [x, y] = project(row.values[axisIndex(xAxis)], row.values[axisIndex(yAxis)]);
+            return {row, x, y};
+        }).sort((a, b) => a.x - b.x || a.y - b.y);
+        if (frontierLine.length > 1) {
+            ctx.beginPath(); ctx.moveTo(frontierLine[0].x, frontierLine[0].y);
+            frontierLine.slice(1).forEach(point => ctx.lineTo(point.x, point.y));
+            ctx.strokeStyle = '#243b49'; ctx.lineWidth = 1.5; ctx.stroke();
+        }
+        for (const curve of moving.series) {
+            ctx.strokeStyle = curve.color; ctx.lineWidth = 3.2;
+            for (const partial of [true, false]) {
+                ctx.setLineDash(partial ? [3, 4] : []); ctx.beginPath();
+                let started = false;
+                for (let i = 0; i < curve.points.length; i++) {
+                    const point = curve.points[i];
+                    if (point.partial !== partial && !(i && curve.points[i - 1].partial === partial)) { started = false; continue; }
+                    const [x, y] = project(point.x, point.y);
+                    if (!Number.isFinite(x) || !Number.isFinite(y)) { started = false; continue; }
+                    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+        const zoom = Math.sqrt((fullRanges.x[1] - fullRanges.x[0]) / (ranges.x[1] - ranges.x[0]) * (fullRanges.y[1] - fullRanges.y[0]) / (ranges.y[1] - ranges.y[0]));
+        const zoomCards = structureLayout(points.filter(point => !frontierIds.has(point.row.id) && hasImage(point.row.id)), zoom, selectedId);
+        const bounds = {x: padding.left, y: padding.top, width: plotWidth(), height: plotHeight()};
+        const annotations = paretoAnnotationLayout(frontierLine.filter(point => inPlot(point.x, point.y) && hasImage(point.row.id)), points, bounds, zoomCards, frontierLine, data.pareto.maxAnnotations, selectedId, data.axes[xAxis].direction, data.axes[yAxis].direction);
+        for (const card of annotations) {
+            ctx.beginPath(); ctx.moveTo(card.leader.start.x, card.leader.start.y); ctx.lineTo(card.leader.end.x, card.leader.end.y);
+            ctx.strokeStyle = '#718794'; ctx.lineWidth = .8; ctx.stroke();
+        }
+        cards = [...annotations, ...zoomCards];
+        for (const card of cards) {
+            const image = moleculeImage(card.point.row.id);
+            if (!image.complete || !image.naturalWidth) continue;
+            ctx.fillStyle = '#fff'; ctx.fillRect(card.x, card.y, card.width, card.height);
+            ctx.drawImage(image, card.x + 2, card.y + 2, card.width - 4, card.height - 4);
+            ctx.strokeStyle = card.point.row.id === selectedId ? '#176878' : '#b8cbd6';
+            ctx.lineWidth = card.point.row.id === selectedId ? 2 : 1;
+            ctx.strokeRect(card.x, card.y, card.width, card.height);
+        }
+        const selectedPoint = points.find(point => point.row.id === selectedId);
+        if (selectedPoint && !cards.some(card => !card.annotation && card.point.row.id === selectedId)) {
+            ctx.beginPath(); ctx.arc(selectedPoint.x, selectedPoint.y, radius + 4, 0, 2 * Math.PI);
+            ctx.lineWidth = 2; ctx.strokeStyle = '#132e40'; ctx.stroke();
+        }
+        ctx.restore();
+        canvas.setAttribute('aria-description', `${visible.length} molecules. X: ${data.axes[xAxis].alias}. Y: ${data.axes[yAxis].alias}.`);
+    }
+    function resize() {
+        const rect = canvas.getBoundingClientRect();
+        width = rect.width; height = rect.height;
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0); draw();
+    }
+    new ResizeObserver(resize).observe($('plot-shell'));
+    function resizeControl(id, snapshot, apply) {
+        const handle = $(id);
+        let origin = null;
+        handle.addEventListener('pointerdown', event => {
+            if (event.button !== 0) return;
+            event.preventDefault();
+            handle.setPointerCapture(event.pointerId);
+            origin = {x: event.clientX, y: event.clientY, bounds: snapshot()};
+            document.body.classList.add('resizing');
+            $('tooltip').hidden = true;
+        });
+        handle.addEventListener('pointermove', event => {
+            if (!origin) return;
+            apply(origin.bounds, event.clientX - origin.x, event.clientY - origin.y);
+            resize();
+        });
+        const finish = () => { origin = null; document.body.classList.remove('resizing'); };
+        handle.addEventListener('pointerup', finish);
+        handle.addEventListener('pointercancel', finish);
+        handle.addEventListener('lostpointercapture', finish);
+        handle.addEventListener('keydown', event => {
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+            event.preventDefault();
+            apply(snapshot(), event.key === 'ArrowLeft' ? -20 : event.key === 'ArrowRight' ? 20 : 0, event.key === 'ArrowUp' ? -20 : event.key === 'ArrowDown' ? 20 : 0);
+            resize();
+        });
+    }
+    resizeControl('right-splitter', () => $('right-panel').getBoundingClientRect(), (bounds, dx) => {
+        const maximum = Math.max(180, $('app').getBoundingClientRect().width - 330);
+        $('app').style.setProperty('--right-width', `${Math.max(180, Math.min(maximum, bounds.width - dx))}px`);
+    });
+    resizeControl('right-height', () => $('right-panel').getBoundingClientRect(), (bounds, _, dy) => { $('right-panel').style.height = `${Math.max(240, bounds.height + dy)}px`; });
+    for (const direction of ['width', 'height', 'size']) {
+        resizeControl(`plot-${direction}`, () => $('plot-shell').getBoundingClientRect(), (bounds, dx, dy) => {
+            const maximum = Math.max(300, $('chart-section').getBoundingClientRect().width - 20);
+            $('plot-shell').style.width = `${direction === 'height' ? Math.min(maximum, bounds.width) : Math.max(300, Math.min(maximum, bounds.width + dx))}px`;
+            $('plot-shell').style.height = `${Math.max(320, bounds.height + (direction === 'width' ? 0 : dy))}px`;
+        });
+    }
+    function tableRow(body, name, value, active, column) {
+        const row = create('tr', undefined, active ? 'active-axis' : undefined);
+        row.append(create('td', name), create('td', formatProperty(value, column))); body.append(row);
+    }
+    function showImage(element, id) {
+        element.dataset.molecule = String(id); element.hidden = !hasImage(id); element.removeAttribute('src');
+        if (!element.hidden) actions.imageSource(data.molecules[id].image).then(src => {
+            if (element.dataset.molecule === String(id)) element.src = src;
+        }).catch(() => { if (element.dataset.molecule === String(id)) element.hidden = true; });
+    }
+    function resetCopy() {
+        clearTimeout(copyReset); $('copy-state').setAttribute('aria-label', 'Copy to clipboard'); $('copy-status').textContent = '';
+    }
+    function renderDetails() {
+        const row = visible.find(item => item.id === selectedId);
+        $('detail-placeholder').hidden = !!row; $('detail-content').hidden = !row; resetCopy();
+        if (!row) return;
+        const molecule = data.molecules[row.id];
+        $('smiles').textContent = molecule.smiles; $('copy-state').disabled = !molecule.smiles.length;
+        showImage($('molecule-image'), row.id);
+        $('move-to-tree').disabled = !actions.canMoveToTree(row.id);
+        $('axis-properties').replaceChildren(); $('detail-properties').replaceChildren();
+        data.axes.forEach((axis, i) => tableRow($('axis-properties'), axis.alias, row.values[fieldIndex(axis.column)], i === xAxis || i === yAxis, axis.column));
+        $('extra-properties').hidden = true;
+        $('detail-note').textContent = '';
+    }
+    $('move-to-tree').addEventListener('click', () => { if (selectedId !== null) actions.moveToTree(selectedId); });
+    $('copy-state').addEventListener('click', async () => {
+        const id = selectedId; let message = 'Copied!';
+        try { await actions.copyText(data.molecules[id].smiles); } catch { message = 'Could not copy. Select and copy the text.'; }
+        if (selectedId !== id) return;
+        resetCopy(); $('copy-state').setAttribute('aria-label', message); $('copy-status').textContent = message;
+        copyReset = setTimeout(resetCopy, 2000);
+    });
+    window.selectResult = id => { if (visible.some(row => row.id === id)) { selectedId = id; renderDetails(); draw(); } };
+    function closeMenu() {
+        $('axis-menu').hidden = true;
+        $('x-axis').setAttribute('aria-expanded', 'false'); $('y-axis').setAttribute('aria-expanded', 'false');
+        menuAxis = null;
+    }
+    function openMenu(axis) {
+        if (menuAxis === axis) { closeMenu(); return; }
+        closeMenu(); menuAxis = axis;
+        const menu = $('axis-menu'); menu.replaceChildren(); menu.hidden = false;
+        menu.style.left = axis === 'x' ? 'auto' : '18px';
+        menu.style.right = axis === 'x' ? '15px' : 'auto';
+        menu.style.bottom = axis === 'x' ? '48px' : 'auto';
+        menu.style.top = axis === 'x' ? 'auto' : '20px';
+        menu.setAttribute('aria-label', axis === 'x' ? 'X axis property' : 'Y axis property');
+        $(`${axis}-axis`).setAttribute('aria-expanded', 'true');
+        data.axes.forEach((option, i) => {
+            const button = create('button', option.alias); button.setAttribute('role', 'menuitemradio');
+            button.setAttribute('aria-checked', String(i === (axis === 'x' ? xAxis : yAxis)));
+            button.title = option.column;
+            button.addEventListener('click', () => {
+                if (axis === 'x') xAxis = i; else yAxis = i;
+                defaultColor(); closeMenu(); update(); $(`${axis}-axis`).focus();
+            });
+            menu.append(button);
+        });
+        menu.querySelector('[aria-checked="true"]').focus();
+    }
+    $('x-axis').addEventListener('click', () => openMenu('x'));
+    $('y-axis').addEventListener('click', () => openMenu('y'));
+    document.addEventListener('click', event => {
+        if (!$('axis-menu').contains(event.target) && event.target !== $('x-axis') && event.target !== $('y-axis')) closeMenu();
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeMenu();
+        if (menuAxis && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
+            event.preventDefault(); const buttons = [...$('axis-menu').querySelectorAll('button')];
+            const index = buttons.indexOf(document.activeElement);
+            buttons[(index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length].focus();
+        }
+    });
+    function fitPlot() {
+        closeMenu(); $('tooltip').hidden = true; resetRange(); draw();
+    }
+    $('fit-plot').addEventListener('click', fitPlot);
+    $('reset').addEventListener('click', () => {
+        xAxis = initialX; yAxis = initialY; selectedId = null;
+        showMoving = true; windowSize = .05; topPs = [.2]; showPareto = data.pareto.show;
+        data.axes.forEach(axis => { axis.direction = 'max'; });
+        $('moving-toggle').checked = true; $('moving-window').value = '0.05'; $('moving-top').value = '0.2';
+        $('moving-window').setAttribute('aria-invalid', 'false'); $('moving-top').setAttribute('aria-invalid', 'false');
+        $('moving-error').hidden = true; $('moving-error').textContent = '';
+        defaultColor(); closeMenu(); update();
+    });
+    function localPosition(event) {
+        const rect = canvas.getBoundingClientRect(); return [event.clientX - rect.left, event.clientY - rect.top];
+    }
+    function nearest(x, y) {
+        const card = cards.find(item => x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height);
+        if (card) return card.point;
+        let best = null, distance = 100;
+        for (const point of points) {
+            const d = (x - point.x) ** 2 + (y - point.y) ** 2;
+            if (d < distance) { best = point; distance = d; }
+        }
+        return best;
+    }
+    canvas.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        const [x, y] = localPosition(event); if (!inPlot(x, y)) return;
+        canvas.setPointerCapture(event.pointerId);
+        drag = {x, y, ranges: {x: ranges.x.slice(), y: ranges.y.slice()}, moved: false};
+    });
+    canvas.addEventListener('pointermove', event => {
+        const [x, y] = localPosition(event);
+        if (drag) {
+            if (Math.hypot(x - drag.x, y - drag.y) > 3) drag.moved = true;
+            if (!drag.moved) return;
+            const dx = (x - drag.x) / plotWidth() * (drag.ranges.x[1] - drag.ranges.x[0]);
+            const dy = (y - drag.y) / plotHeight() * (drag.ranges.y[1] - drag.ranges.y[0]);
+            ranges.x = drag.ranges.x.map(value => value - dx); ranges.y = drag.ranges.y.map(value => value + dy);
+            canvas.classList.add('dragging'); $('tooltip').hidden = true; draw(); return;
+        }
+        const point = nearest(x, y);
+        if (!point || !inPlot(x, y)) { $('tooltip').hidden = true; return; }
+        const row = point.row;
+        showImage($('tooltip-image'), row.id);
+        $('tooltip-copy').textContent = `${data.molecules[row.id].smiles.slice(0, 75)}\n${data.axes[xAxis].alias}: ${formatProperty(row.values[axisIndex(xAxis)], data.axes[xAxis].column)}\n${data.axes[yAxis].alias}: ${formatProperty(row.values[axisIndex(yAxis)], data.axes[yAxis].column)}${colorAxis < 0 ? '' : '\n' + data.axes[colorAxis].alias + ': ' + formatValue(row.values[axisIndex(colorAxis)])}`;
+        $('tooltip').hidden = false;
+        $('tooltip').style.left = `${Math.max(8, Math.min(event.clientX + 14, window.innerWidth - $('tooltip').offsetWidth - 12))}px`;
+        $('tooltip').style.top = `${Math.max(8, Math.min(event.clientY + 14, window.innerHeight - $('tooltip').offsetHeight - 12))}px`;
+    });
+    canvas.addEventListener('pointerup', event => {
+        if (!drag) return;
+        if (!drag.moved) {
+            const point = nearest(...localPosition(event)); selectedId = point ? point.row.id : null;
+            draw(); renderDetails();
+        }
+        drag = null; canvas.classList.remove('dragging');
+    });
+    canvas.addEventListener('pointercancel', () => { drag = null; canvas.classList.remove('dragging'); });
+    canvas.addEventListener('pointerleave', () => { $('tooltip').hidden = true; });
+    canvas.addEventListener('dblclick', fitPlot);
+    canvas.addEventListener('wheel', event => {
+        const [x, y] = localPosition(event); if (!inPlot(x, y)) return;
+        event.preventDefault();
+        const factor = Math.exp(Math.max(-1, Math.min(1, event.deltaY * .002)));
+        const fractions = {x: (x - padding.left) / plotWidth(), y: (height - padding.bottom - y) / plotHeight()};
+        for (const axis of ['x', 'y']) {
+            const old = ranges[axis], span = old[1] - old[0], center = old[0] + fractions[axis] * span;
+            const next = [center + (old[0] - center) * factor, center + (old[1] - center) * factor];
+            if (Number.isFinite(next[0]) && Number.isFinite(next[1]) && next[1] - next[0] > Math.max(1, Math.abs(center)) * 1e-12) ranges[axis] = next;
+        }
+        $('tooltip').hidden = true; draw();
+    }, {passive: false});
+    canvas.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key) || !visible.length) return;
+        event.preventDefault();
+        const current = visible.findIndex(row => row.id === selectedId), forward = ['ArrowRight', 'ArrowDown'].includes(event.key);
+        selectedId = visible[(current + (forward ? 1 : -1) + visible.length) % visible.length].id;
+        draw(); renderDetails();
+    });
+    for (const id of ['x-axis', 'y-axis', 'reset', 'fit-plot']) $(id).disabled = false;
+    $('app').setAttribute('aria-busy', 'false');
+    update(); resize();
+};
+
+</script>
+</body>
+</html>

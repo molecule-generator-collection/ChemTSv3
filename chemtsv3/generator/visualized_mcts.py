@@ -114,7 +114,7 @@ class VisualizedMCTS(MCTS):
         finally:
             self.visualize()
 
-    def visualize(self, filename: str="tree.html") -> str:
+    def visualize(self, filename: str="visualizer.html") -> str:
         """Write the current snapshot; call again to update it during a run."""
         self.logger.info("Making visualization files...")
         images = []
@@ -172,6 +172,10 @@ class VisualizedMCTS(MCTS):
         # Base64 keeps keys/actions containing HTML out of the script element.
         payload = self._pack_data(data)
         template = Path(__file__).with_name("tree_viewer.html").read_text(encoding="utf-8")
+        scatter_template = Path(__file__).with_name("scatter_viewer.html").read_text(encoding="utf-8")
+        # Keep the nested viewer's script tags inside the JSON script element.
+        scatter_payload = json.dumps(scatter_template, ensure_ascii=False).replace("<", "\\u003c")
+        template = template.replace("/*__SCATTER_VIEWER__*/", scatter_payload)
         path = os.path.join(self.output_dir(), filename)
         Path(path).write_text(template.replace("/*__TREE_DATA__*/", payload), encoding="utf-8")
         self.logger.info("Search tree visualization saved to: %s", path)

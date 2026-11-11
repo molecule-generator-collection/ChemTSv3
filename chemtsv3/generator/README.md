@@ -105,7 +105,7 @@ AsyncParallelMCTS variant that also parallelizes transition expansion and rollou
 
 ## VisualizedMCTS
 
-MCTS variant with visualization. `generate()` also writes a standalone `tree.html` viewer to the result directory. Expanded and pruned nodes are retained, and `discard_unneeded_states` is fixed to False.
+MCTS variant with visualization. `generate()` also writes a standalone `visualizer.html` viewer to the result directory. Expanded and pruned nodes are retained, and `discard_unneeded_states` is fixed to False.
 
 | Parameter | Default | Description |
 |---|---:|---|

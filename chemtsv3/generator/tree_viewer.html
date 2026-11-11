@@ -9,7 +9,13 @@
   body { margin: 0; height: 100dvh; min-height: 560px; display: flex; flex-direction: column; }
   header { padding: 18px 24px; display: flex; gap: 18px; align-items: baseline; background: #142d40; color: white; flex-shrink: 0; }
   h1 { font-size: 20px; margin: 0; font-weight: 650; }
-  #summary { color: #bdd1dd; font-size: 13px; }
+  #summary { color: #bdd1dd; font-size: 13px; white-space: pre-wrap; }
+  .view-switch { margin-left: auto; display: flex; gap: 6px; }
+  .view-switch button { border-color: #526d80; background: transparent; color: #bdd1dd; }
+  .view-switch button[aria-pressed="true"] { background: white; border-color: white; color: #142d40; }
+  #tree-view { display: contents; }
+  #scatter-view { flex: 1; min-height: 0; }
+  #scatter-frame { display: block; width: 100%; height: 100%; border: 0; }
   button, input { font: inherit; }
   button { border: 1px solid #cbd7df; background: white; color: #243647; padding: 6px 11px; border-radius: 5px; cursor: pointer; }
   button:hover { background: #edf6f6; }
@@ -38,6 +44,15 @@
   aside { padding: 18px; overflow: auto; min-width: 0; background: white; }
   h2 { font-size: 15px; margin: 0 0 12px; }
   #node-key, #result-key { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px ui-monospace, monospace; background: #f3f6f8; border-radius: 5px; padding: 10px; }
+  .node-state { position: relative; margin-bottom: 10px; }
+  .node-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  #path-status { margin: 8px 0 0; }
+  #node-key { min-height: 46px; padding-right: 46px; }
+  .copy-button { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; padding: 6px; display: grid; place-items: center; }
+  .copy-button svg { width: 16px; height: 16px; }
+  .copy-button::after { content: attr(aria-label); position: absolute; right: 0; bottom: calc(100% + 6px); padding: 5px 8px; border-radius: 4px; background: #142d40; color: white; font-size: 12px; white-space: nowrap; pointer-events: none; visibility: hidden; }
+  .copy-button:hover::after, .copy-button:focus-visible::after { visibility: visible; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   #node-image, #result-image { width: 100%; max-height: 160px; object-fit: contain; }
   [hidden] { display: none !important; }
   dl { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 6px 10px; font-size: 12px; }
@@ -63,7 +78,8 @@
   #empty { text-align: center; padding: 30px; }
   @media (max-width: 740px) { .workspace { --details-width: 220px; } aside { padding: 12px; } header { flex-wrap: wrap; gap: 6px; } }
 </style>
-<header><h1>ChemTSv3 visualizer</h1><span id="summary"></span></header>
+<header><h1>ChemTSv3 visualizer</h1><span id="summary"></span><nav class="view-switch" aria-label="Visualization"><button id="view-scatter" aria-pressed="false" aria-controls="scatter-view">Scatter</button><button id="view-tree" aria-pressed="true" aria-controls="tree-view">Tree</button></nav></header>
+<div id="tree-view">
 <div class="toolbar">
   <button id="fit">Fit tree</button><button id="align-path" title="Align and center the highlighted path">Align path</button><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom"></span><button id="zoom-in" aria-label="Zoom in">+</button>
   <label>Depth <input id="depth" type="range" min="0" value="3"><output id="depth-value"></output></label>
@@ -74,8 +90,11 @@
   <div class="tree"><canvas id="tree" tabindex="0" aria-label="Search tree. Use arrow keys to navigate nodes."></canvas><button id="branch-action" hidden></button><span class="hint muted">Drag to pan / Scroll to Zoom / Click to inspect</span></div>
   <div id="details-resizer" class="splitter vertical" role="separator" aria-label="Details panel width" aria-orientation="vertical" aria-controls="details" tabindex="0" title="Drag to resize details · double-click to reset"></div>
   <aside id="details">
-    <h2 id="node-title">Selected node</h2><img id="node-image" alt="Selected molecule" hidden><div id="node-key"></div>
-    <button id="parent">Move to parent</button> <button id="fold">Fold branch</button>
+    <h2 id="node-title">Selected node</h2><img id="node-image" alt="Selected molecule" hidden>
+    <div class="node-state"><div id="node-key"></div><button id="copy-node" class="copy-button" type="button" aria-label="Copy to clipboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div>
+    <span id="copy-status" class="sr-only" role="status"></span>
+    <div class="node-actions"><button id="parent">Move to parent</button><button id="extract-path">Extract path</button><button id="fold">Fold branch</button></div>
+    <p id="path-status" class="muted" role="status" hidden></p>
     <dl id="stats"></dl>
     <div id="result-detail" hidden><h2>Selected result</h2><p id="result-source" class="muted"></p><img id="result-image" alt="Generated molecule" hidden><div id="result-key"></div></div>
   </aside>
@@ -85,6 +104,9 @@
   <div class="toolbar"><h2>Generation results</h2><input id="search" type="search" placeholder="Filter results…" aria-label="Filter results"><span id="row-count" class="muted"></span><span class="spacer"></span><button id="previous">Previous</button><span id="page" class="muted"></span><button id="next">Next</button></div>
   <div class="table-scroll"><table id="result-table"><colgroup id="column-widths"></colgroup><thead><tr id="columns"></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="muted" hidden>No matching results.</div></div>
 </section>
+</div>
+<section id="scatter-view" hidden><iframe id="scatter-frame" title="Molecule scatter plot"></iframe></section>
+<script id="scatter-template" type="application/json">/*__SCATTER_VIEWER__*/</script>
 <script id="tree-data" type="application/json">/*__TREE_DATA__*/</script>
 <script>
 (async () => {
@@ -100,8 +122,11 @@
   const $ = id => document.getElementById(id);
   const nodes = data.nodes;
   const treeNodeCount = nodes.length;
-  const generationOrders = new Map(data.rows.map(row => [row.values[2], row.values[0]]));
-  for (const node of nodes) node.generation_order = generationOrders.get(node.key);
+  // A matching molecule key can also belong to an unfinished node. Only direct
+  // evaluations identify tree nodes; rollout orders belong to the rollout below.
+  for (const row of data.rows) {
+    if (!row.is_rollout && row.node_id !== null && nodes[row.node_id]) nodes[row.node_id].generation_order = row.values[0];
+  }
   data.rows.forEach((row, rowIndex) => {
     if (!row.is_rollout || row.node_id === null || !nodes[row.node_id]) return;
     row.rollout_id = nodes.length;
@@ -124,7 +149,7 @@
   const maxDepth = depths.reduce((a, b) => Math.max(a, b), 0);
   $('depth').max = maxDepth;
   $('depth').value = Math.min(3, maxDepth);
-  $('summary').textContent = `${data.name} · ${treeNodeCount.toLocaleString()} nodes · ${(nodes.length-treeNodeCount).toLocaleString()} rollouts · ${data.rows.length.toLocaleString()} results`;
+  $('summary').textContent = `${data.name}   ${treeNodeCount.toLocaleString()} nodes   ${(nodes.length-treeNodeCount).toLocaleString()} rollouts   ${data.rows.length.toLocaleString()} results`;
   document.title = `${data.name} — ChemTSv3 visualizer`;
   let selected = 0, selectedRow = null, visible = [], positions = new Map(), path = new Set();
   let alignedPath = null;
@@ -132,6 +157,8 @@
   let page = 0, sortColumn = 0, sortDirection = -1, filtered = [];
   let drawPending = false;
   let columnWidths = null;
+  let copyReset = null;
+  let scatterInitialized = false, scatterReady = false;
   const expanded = new Set([0]), imageCache = new Map(), imageSources = new Map(), pageSize = 100;
   let hiddenCounts = new Map(), hoverAction = null;
   const hasImages = data.rows.some(row => row.image !== null);
@@ -140,7 +167,42 @@
   const hasReward = node => node.reward !== null && node.reward !== undefined;
   const boxHeight = node => (node.image === null ? 58 : 108)+(hasReward(node) ? 30 : 0);
   const displayState = node => node.state ?? node.key;
+  const displayNumber = node => node.rollout ? node.id-treeNodeCount : node.id;
+  const nodeLabel = node => `${node.rollout ? 'Rollout' : 'Node'} #${displayNumber(node)}`;
   const eligibleChildren = id => children[id].filter(child => $('rollouts').checked || !nodes[child].rollout);
+
+  function setView(view) {
+    const scatter = view === 'scatter';
+    $('tree-view').hidden = scatter; $('scatter-view').hidden = !scatter;
+    $('view-tree').setAttribute('aria-pressed', String(!scatter)); $('view-scatter').setAttribute('aria-pressed', String(scatter));
+    hideBranchAction();
+    if (!scatter) { constrainPanels(); resizeTreeCanvas(); return; }
+    const frame = $('scatter-frame');
+    if (!scatterInitialized) {
+      scatterInitialized = true;
+      frame.onload = async () => {
+        try {
+          await frame.contentWindow.initializeScatter(data, {
+            imageSource, copyText: writeClipboard,
+            canMoveToTree: index => {
+              const row = data.rows[index], id = row.rollout_id ?? row.node_id;
+              return id !== null && id !== undefined && !!nodes[id];
+            },
+            moveToTree: index => {
+              const row = data.rows[index], id = row.rollout_id ?? row.node_id;
+              if (id === null || id === undefined || !nodes[id]) return;
+              setView('tree'); select(id, index); alignPath(true);
+            },
+          }, selectedRow);
+          scatterReady = true;
+        } catch (error) {
+          frame.contentDocument.getElementById('status').textContent = 'Could not load scatter plot.';
+          console.error(error);
+        }
+      };
+      frame.srcdoc = JSON.parse($('scatter-template').textContent);
+    } else if (scatterReady && selectedRow !== null) frame.contentWindow.selectResult(selectedRow);
+  }
 
   function bindResizer(handle, axis, begin, move, reset) {
     let resizing = null;
@@ -230,13 +292,32 @@
       for (let i = next.length - 1; i >= 0; i--) stack.push(next[i]);
     }
     positions = new Map();
-    let leaf = 0;
-    for (const id of visible) {
-      if (!visibleChildren.get(id).length) positions.set(id, {x: leaf++ * 184, y: depths[id] * 166});
-    }
+    const contours = new Map();
     for (let i = visible.length - 1; i >= 0; i--) {
       const id = visible[i], next = visibleChildren.get(id);
-      if (next.length) positions.set(id, {x: (positions.get(next[0]).x + positions.get(next[next.length - 1]).x) / 2, y: depths[id] * 166});
+      const left = [], right = [];
+      positions.set(id, {x: 0, y: depths[id] * 166});
+      // Pack subtrees by their contours. Cousins get one extra node of space.
+      next.forEach((child, index) => {
+        const outline = contours.get(child);
+        let shift = 0;
+        if (index) for (let depth = 0; depth < Math.min(right.length, outline.left.length); depth++) {
+          shift = Math.max(shift, right[depth] + (depth === 0 ? 184 : 344) - outline.left[depth]);
+        }
+        positions.get(child).x = shift;
+        for (let depth = 0; depth < outline.left.length; depth++) {
+          left[depth] = Math.min(left[depth] ?? Infinity, outline.left[depth]+shift);
+          right[depth] = Math.max(right[depth] ?? -Infinity, outline.right[depth]+shift);
+        }
+        contours.delete(child);
+      });
+      const center = next.length ? (positions.get(next[0]).x + positions.get(next[next.length-1]).x)/2 : 0;
+      for (const child of next) positions.get(child).x -= center;
+      contours.set(id, {left: [0, ...left.map(x => x-center)], right: [0, ...right.map(x => x-center)]});
+    }
+    // Convert the relative child offsets to canvas coordinates, top down.
+    for (const id of visible) {
+      if (nodes[id].parent !== null) positions.get(id).x += positions.get(nodes[id].parent).x;
     }
     if (alignedPath) compactPathLayout();
     canvas.setAttribute('aria-label', `Search tree: ${visible.length} visible nodes. Use arrow keys to navigate nodes.`);
@@ -251,6 +332,9 @@
 
   function expandNode(id) {
     const before = positions.get(id);
+    // Result clicks align the path; manual expansion releases that alignment
+    // so every parent can sit above the center of its visible children.
+    alignedPath = null;
     expanded.add(id); layout();
     const after = positions.get(id);
     if (before && after) {
@@ -391,7 +475,7 @@
       }
       ctx.font = '10px system-ui'; ctx.fillStyle = '#617786';
       const reward = typeof node.reward === 'number' ? Number(node.reward.toPrecision(5)) : node.reward;
-      const label = `#${id}${node.rollout ? '' : ' n: ' + node.n}`;
+      const label = `#${displayNumber(node)}${node.rollout ? '' : ' n: ' + node.n}`;
       if (hasReward(node)) {
         ctx.fillText(label, p.x, p.y+h-37, 148);
         ctx.fillText(`order: ${text(node.generation_order ?? '—')}`, p.x, p.y+h-23, 148);
@@ -461,6 +545,131 @@
     }).catch(error => { if (element.dataset.imageId === String(id)) element.hidden = true; console.error(error); });
   }
 
+  function extractPath() {
+    // Open synchronously from the click so image loading does not block the popup.
+    const popup = window.open('', '_blank', 'popup=yes,width=1000,height=700,resizable=yes,scrollbars=yes');
+    $('path-status').hidden = !!popup;
+    if (!popup) {
+      $('path-status').textContent = 'Allow pop-ups to open the extracted path.';
+      return;
+    }
+    const route = [];
+    for (let id = selected; id !== null; id = nodes[id].parent) route.push(id);
+    route.reverse();
+    const doc = popup.document;
+    // All node content is added as text below, never interpolated into HTML.
+    doc.open();
+    doc.write(`<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extracted path</title>
+<style>
+  :root { color-scheme: light; font: 14px system-ui, sans-serif; color: #243647; background: #f3f6f8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  header { padding: 18px 24px; background: #142d40; color: white; }
+  h1 { margin: 0; font-size: 20px; font-weight: 650; }
+  .path { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 234px), 1fr)); gap: 20px 0; margin: 0; padding: 24px; list-style: none; }
+  .path li { display: flex; align-items: center; min-width: 0; }
+  .arrow { flex: 0 0 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; color: #008b82; font-size: 24px; }
+  .branch-label { max-width: 100%; padding: 0 3px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; line-height: 1.3; }
+  .path li:first-child .arrow { visibility: hidden; }
+  .node { flex: 1; min-width: 0; align-self: stretch; padding: 12px; border: 1px solid #bdced8; border-radius: 7px; background: white; }
+  .path li:last-child .node { border: 2px solid #008b82; background: #d8f0eb; }
+  .node h2 { margin: 0 0 10px; font-size: 13px; }
+  .node img { display: block; width: 100%; height: 120px; object-fit: contain; margin-bottom: 10px; }
+  [hidden] { display: none !important; }
+  .state { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px ui-monospace, monospace; }
+  .stats { margin: 10px 0 0; color: #617786; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<header><h1></h1></header><ol class="path" aria-label="Path from root to selected node"></ol></html>`);
+    doc.close();
+    const targetLabel = nodeLabel(nodes[selected]).toLowerCase();
+    doc.title = `${data.name} — Path to ${targetLabel}`;
+    doc.querySelector('h1').textContent = `Path to ${targetLabel}`;
+    const list = doc.querySelector('.path');
+    for (const id of route) {
+      const node = nodes[id], item = doc.createElement('li'), arrow = doc.createElement('span');
+      arrow.className = 'arrow';
+      const action = node.action_label ?? node.last_action;
+      if (id !== route[0] && action !== null && action !== undefined) {
+        const label = doc.createElement('span'); label.className = 'branch-label';
+        label.textContent = short(action, 25); label.title = text(action); arrow.append(label);
+      }
+      const direction = doc.createElement('span'); direction.textContent = '→'; direction.setAttribute('aria-hidden', 'true');
+      arrow.append(direction);
+      const card = doc.createElement('article'), title = doc.createElement('h2');
+      card.className = 'node';
+      title.textContent = id === route[0] ? `Root #${displayNumber(node)}` : nodeLabel(node);
+      card.append(title);
+      if (node.image !== null && node.image !== undefined) {
+        const img = doc.createElement('img'); img.alt = `Molecule at ${nodeLabel(node).toLowerCase()}`;
+        card.append(img);
+        // Give compressed images URLs owned by this window, so it stays independent.
+        const image = data.images[node.image];
+        if (typeof image === 'string') img.src = image;
+        else unpack(image).then(response => response.blob()).then(blob => {
+          if (!popup.closed) img.src = popup.URL.createObjectURL(new Blob([blob], {type: image.type}));
+        }).catch(() => { img.hidden = true; });
+      }
+      const state = doc.createElement('p'); state.className = 'state';
+      state.textContent = text(displayState(node)) || (id === route[0] ? '(root)' : '(empty key)'); card.append(state);
+      const stats = [];
+      if (node.generation_order !== undefined) stats.push(`order: ${text(node.generation_order)}`);
+      if (hasReward(node)) stats.push(`reward: ${text(node.reward)}`);
+      if (stats.length) {
+        const details = doc.createElement('p'); details.className = 'stats';
+        details.textContent = stats.join('\n'); card.append(details);
+      }
+      item.append(arrow, card); list.append(item);
+    }
+    popup.focus();
+  }
+
+  function resetCopy() {
+    clearTimeout(copyReset);
+    $('copy-node').setAttribute('aria-label', 'Copy to clipboard');
+    $('copy-status').textContent = '';
+    $('copy-node').disabled = !text(displayState(nodes[selected])).length;
+  }
+
+  function copyTextFallback(value) {
+    // Standalone HTML may be opened where the Clipboard API is unavailable.
+    const input = document.createElement('textarea'), focused = document.activeElement;
+    input.value = value; input.readOnly = true;
+    input.style.cssText = 'position: fixed; top: 0; left: -9999px;';
+    document.body.append(input);
+    try {
+      input.select();
+      if (!document.execCommand('copy')) throw new Error('Copy failed');
+    } finally {
+      input.remove(); focused?.focus({preventScroll: true});
+    }
+  }
+
+  async function writeClipboard(value) {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+      await navigator.clipboard.writeText(value);
+    } catch {
+      copyTextFallback(value);
+    }
+  }
+
+  async function copyNodeState() {
+    const id = selected, value = text(displayState(nodes[id]));
+    let message = 'Copied!';
+    try {
+      await writeClipboard(value);
+    } catch {
+      message = 'Could not copy. Select and copy the text.';
+    }
+    if (selected !== id) return;
+    resetCopy();
+    $('copy-node').setAttribute('aria-label', message);
+    $('copy-status').textContent = message;
+    copyReset = setTimeout(resetCopy, 2000);
+  }
+
   function select(id, rowIndex = null, center = false) {
     const before = positions.get(id);
     if (nodes[id].rollout) { $('rollouts').checked = true; rowIndex ??= nodes[id].row_index; }
@@ -477,8 +686,9 @@
       offsetX += (before.x-after.x)*scale; offsetY += (before.y-after.y)*scale;
     }
     const node = nodes[id];
-    $('node-title').textContent = `${node.rollout ? 'Rollout' : 'Node'} #${id}${hasReward(node) ? ' (order: ' + text(node.generation_order ?? '—') + ')' : ''}`;
+    $('node-title').textContent = `${nodeLabel(node)}${hasReward(node) ? ' (order: ' + text(node.generation_order ?? '—') + ')' : ''}`;
     $('node-key').textContent = displayState(node) || '(empty key)'; showImage($('node-image'), node.image);
+    resetCopy();
     $('stats').replaceChildren();
     const appendStat = (field, value) => {
       const dt = document.createElement('dt'), dd = document.createElement('dd');
@@ -623,10 +833,13 @@
     if (id !== undefined && id !== null) { event.preventDefault(); select(id, null, true); }
   };
   $('fit').onclick = fit; $('align-path').onclick = () => alignPath();
+  $('view-tree').onclick = () => setView('tree'); $('view-scatter').onclick = () => setView('scatter');
   $('zoom-in').onclick = () => zoom(1.35); $('zoom-out').onclick = () => zoom(1/1.35);
   $('depth').oninput = updateDepthLabel; $('show-depth').onclick = showDepth; $('reset').onclick = resetTree;
   $('rollouts').onchange = updateVisibility;
   $('parent').onclick = () => select(nodes[selected].parent, null, true); $('fold').onclick = () => toggleFold(selected);
+  $('extract-path').onclick = extractPath;
+  $('copy-node').onclick = copyNodeState;
   $('search').oninput = () => { page = 0; updateResults(); };
   $('previous').onclick = () => { page--; renderRows(); }; $('next').onclick = () => { page++; renderRows(); };
   bindResizer($('details-resizer'), 'x', () => $('details').getBoundingClientRect().width,
@@ -637,15 +850,20 @@
     (start, delta) => setTreeHeight(start+delta), () => {
       $('workspace').style.removeProperty('--workspace-height'); setTreeHeight($('workspace').getBoundingClientRect().height);
     });
-  const constrainPanels = () => { setDetailsWidth($('details').getBoundingClientRect().width); setTreeHeight($('workspace').getBoundingClientRect().height); };
+  const constrainPanels = () => {
+    if ($('tree-view').hidden) return;
+    setDetailsWidth($('details').getBoundingClientRect().width); setTreeHeight($('workspace').getBoundingClientRect().height);
+  };
   window.addEventListener('resize', constrainPanels); constrainPanels();
-  new ResizeObserver(() => {
+  function resizeTreeCanvas() {
+    if ($('tree-view').hidden) return;
     hideBranchAction();
     const nextWidth = canvas.clientWidth, nextHeight = canvas.clientHeight;
     offsetX += (nextWidth-width)/2; offsetY += (nextHeight-height)/2;
     width = nextWidth; height = nextHeight;
     const ratio = window.devicePixelRatio || 1; canvas.width = width*ratio; canvas.height = height*ratio; draw();
-  }).observe(canvas);
+  }
+  new ResizeObserver(resizeTreeCanvas).observe(canvas);
   width = canvas.clientWidth; height = canvas.clientHeight;
   updateResults(); resetTree();
 })().catch(error => {
